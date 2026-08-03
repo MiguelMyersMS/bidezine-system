@@ -36,10 +36,10 @@
   },
   "ring": {
     "$type": "color",
-    "$description": "Focus border colour. DARKENED 2026-08-03: shadcn's 0.708 measured 2.58:1, below the 3:1 a focus indicator needs — the mechanism keyboard users navigate by was itself failing. L=0.629 gives 3.51:1, deliberately above the minimum since the halo is drawn at 50% and dilutes further.",
-    "$value": { "colorSpace": "oklch", "components": [0.629, 0, 0] }
+    "$description": "Focus indicator. DARKENED AGAIN 2026-08-03 to L=0.405 (#494949). The previous 0.629 (#898989) sat only 1.17:1 from the resting `input` border (#959595) — WCAG 2.4.11 Focus Appearance requires 3:1 between the FOCUSED and UNFOCUSED indicator, so focus was visually indistinguishable from rest. Root cause: darkening `input` to exactly 3.00:1 against the background consumed the contrast budget the focus state needed. 0.405 is the lightest value clearing 3:1 against `input`.",
+    "$value": { "colorSpace": "oklch", "components": [0.405, 0, 0] }
   },
-  "focus-ring": { "$type": "color", "$description": "The focus HALO — `ring` at 50%. Named because the treatment (1px border swap to `ring` + a 3px halo at 50%) appears verbatim in Button and Input and will recur in every focusable control (Q8).", "$value": { "colorSpace": "oklch", "components": [0.629, 0, 0], "alpha": 0.5 } },
+  "focus-ring": { "$type": "color", "$description": "The focus HALO — `ring` at 50%. The halo REINFORCES the indicator; the border swap to `ring` carries it, which is why `ring` must satisfy 2.4.11 on its own.", "$value": { "colorSpace": "oklch", "components": [0.405, 0, 0], "alpha": 0.6 } },
 
   "backdrop": {
     "$type": "color",

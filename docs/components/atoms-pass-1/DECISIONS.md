@@ -195,6 +195,34 @@ and I did not act on it at step 6.
 
 `hasValue` is therefore deliberately **not** a state of our Input.
 
+**A-D-030 · The focus ring was invisible — three separate causes, all mine.** *(Owner spotted it, 2026-08-03)*
+
+The owner asked why the grey surround he sees on a focused input wasn't in the research. It **was**
+documented at step 2 and named as the `focus-ring` token at step 5 — but it did not render, for three
+compounding reasons:
+
+**1. My own a11y fix erased the focus/rest distinction.** Darkening `input` to exactly 3.00:1 against
+the background (A-D-024) left `ring` (#898989) only **1.17:1** from it. **WCAG 2.4.11 Focus Appearance
+requires 3:1 between the focused and unfocused indicator** — so focus looked identical to rest.
+*Fixing one contrast requirement consumed the budget another one needed.* `ring` is now `#494949`
+light / `#afafaf` dark, each clearing 3:1 against its own resting border.
+
+**2. shadcn's `/50` halo is not itself compliant.** Composited it measures **2.49:1** against the
+background. Raised to `/60` → 3.12:1 light, 3.83:1 dark.
+
+**3. 🔧 Figma will not render a drop shadow with zero blur AND zero offset**, whatever the spread.
+Proved with an opaque red shadow at spread 6: the node's export bounds grew from 280×36 to 292×48 —
+Figma *accounts* for the shadow — but **not one red pixel was painted.**
+
+**So a focus ring in Figma must be a real OUTSIDE stroke, never a drop shadow.** Input was
+restructured into an outer ring-wrapper plus an inner box, which also mirrors CSS honestly: the border
+belongs to the element, the ring is a separate outset layer.
+
+Also corrected along the way: dark `input` was white@15%, which composites to `#2f2f2f` — **1.47:1**.
+I had earlier "verified" it as 19.79:1 by measuring *pure white* against the background instead of the
+composited result. **That is the error a translucent token invites**, and it is why dark `input` is now
+opaque.
+
 ## Step 3 — Observations
 
 **A-D-017 · Step 2 signed off; the bare `radius` token removed as part of closing it.** *(Owner, 2026-08-03)*

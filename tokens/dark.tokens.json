@@ -29,9 +29,13 @@
   },
 
   "border": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.1 } },
-  "input": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.15 } },
-  "ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.556, 0, 0] } },
-  "focus-ring": { "$type": "color", "$description": "`ring` at 50%, dark mode. Dark `ring` (0.556) already measures 4.18:1 against the dark background, so no correction was needed on this side — the failure was light-mode only.", "$value": { "colorSpace": "oklch", "components": [0.556, 0, 0], "alpha": 0.5 } },
+  "input": {
+    "$type": "color",
+    "$description": "CONTROL-AFFORDANCE stroke, dark mode. MADE OPAQUE 2026-08-03: shadcn's white@15% composites to #2f2f2f over the dark background — only 1.47:1, a WCAG 1.4.11 failure. I previously 'verified' this as 19.79:1 by measuring pure white against the background instead of the COMPOSITED result, which is the error a translucent token invites. L=0.478 is the darkest opaque value clearing 3.00:1.",
+    "$value": { "colorSpace": "oklch", "components": [0.478, 0, 0] }
+  },
+  "ring": { "$type": "color", "$description": "Focus indicator, dark mode. L=0.754 is the darkest value clearing 3:1 against the now-opaque `input` (#5d5d5d) per WCAG 2.4.11. In dark the ring is LIGHTER than the resting border; in light it is darker — the indicator moves AWAY from the border in whichever direction the theme allows.", "$value": { "colorSpace": "oklch", "components": [0.754, 0, 0] } },
+  "focus-ring": { "$type": "color", "$description": "`ring` at 50%, dark mode.", "$value": { "colorSpace": "oklch", "components": [0.754, 0, 0], "alpha": 0.6 } },
 
   "backdrop": {
     "$type": "color",
