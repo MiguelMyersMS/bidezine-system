@@ -47,6 +47,8 @@ frozen as **legacy / harvest reference**.
 - **Owner:** Miguel Myers (miguel@bidezine.com).
 - **Legacy/reference sibling:** `../design-system` — a sibling folder on every machine. We READ it (specs,
   registry, patterns, Figma files) for reference and harvest. **We never edit `../design-system` from here.**
+  Miguel already built ~90 components there (69 atoms · 36 molecules · 19 organisms). The three-way compare
+  (old DS ↔ shadcn ↔ v2) + what to harvest vs what's net-new is mapped in `docs/reference/REFERENCE-MAP.md`.
 - **Vendored reference:** `reference/shadcn-ui/` — the entire shadcn repo (MIT), read-only study material.
   Never imported or edited; it is a reference, not part of our source. See `THIRD-PARTY-LICENSES.md`.
 
