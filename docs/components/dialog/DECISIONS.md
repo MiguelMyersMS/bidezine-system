@@ -1,6 +1,6 @@
 ---
 component: dialog
-lifecycle: reviewing
+lifecycle: comparing
 sync: pushed
 owner-machine: —
 last-updated: 2026-08-03
@@ -132,6 +132,48 @@ padded out, per R-01.
   contract under the same name. A documentation stance, not a code restriction.
 - **R-06** Adopt from shadcn: `data-slot`, `asChild`, `forceMount`, and the ARIA-wiring mechanism.
   Do **not** adopt arbitrary-value escape hatches. Backend choice stays parked (ADR-006 chose Radix).
+
+**D-018 · The close control is an atom, not part of DialogContent.** *(Owner, 2026-08-03 → C-06)*
+Corrects a step-2 misclassification. It has its own radius, icon size, offset and the only complete
+interaction state set in the component — which is why O-20 read as an anomaly instead of as evidence
+that an atom was hiding inline. Confirmed at step 6: v1 already treats it as a real control (32×32,
+`RADIUS.soft`, `aria-label`).
+
+**D-019 · New variables AND effect styles both land in Figma at step 8.** *(Owner, 2026-08-03)*
+Explicitly includes the shadow **effect styles**, which cannot be Figma Variables (pending T3).
+
+## Step 6 — Compare to v1
+
+**D-020 · The fence produced a real result: typography did NOT converge.** *(Step 6)*
+The step-5 typography proposal was labelled `[possibly v1-influenced]`. Comparison shows different
+values (v1 has 13/22/28/48, we do not), a different model (v1 bundles family+size+weight+leading+
+tracking per semantic role; ours keeps size and leading separable) and a different family strategy
+(v1 has three faces, we have one). **The contamination did not bias the proposal.** Had the two matched
+we could never have known whether that was agreement or contamination.
+
+**D-021 · Four defects found that we would otherwise have shipped.** *(Step 6)*
+No `prefers-reduced-motion` handling (shadcn has none at all); theme-blind shadows; the overlay/content
+z-index collision; and a dialog that can silently ship with no accessible name. **v1 had already solved
+three of them.** Running steps 1–5 with v1 open would very likely have meant copying its answers without
+forming an independent view.
+
+**D-022 · Two index-translation traps between v1 and v2 naming.** *(Step 6)*
+`SPACE[5]` is **24px** in v1; `space-5` is **20px** in ours. And every breakpoint name is shifted one
+step — v1's `sm` (768) is our `md`. Translating either by index silently produces the wrong value. A
+v1→v2 mapping table is required, not optional.
+
+### Recommendations from step 6 awaiting ratification
+
+- **R-07** Adopt v1's **z-index scale** wholesale (7 steps). Resolves C-04 and R-01's objection.
+- **R-08** Adopt v1's **motion** durations *and easings* — dropping easing at step 5 was my error;
+  Figma's inability to hold it is a round-trip note, not a reason to omit it.
+- **R-09** Adopt v1's **theme-aware elevation** model. Fixed-alpha shadows are a dark-mode defect.
+- **R-10** Adopt v1's **required `title`** prop. Makes the unnamed-dialog failure structurally
+  impossible; supersedes C-03's three options.
+- **R-11** Extend radius with v1's container tiers and `pill` 99.
+- **R-12** Add 64 to spacing; keep Tailwind naming; publish the v1→v2 mapping table.
+- **R-13** *(open — needs the owner)* Typography: add a **semantic layer on top of** the raw scale,
+  rather than choosing between them.
 
 ---
 

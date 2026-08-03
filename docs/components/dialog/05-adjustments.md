@@ -157,6 +157,27 @@ Both sit at `z-50`, so their stacking depends purely on DOM order.
 **Proposal:** give them distinct layers. **Deferred** — per R-01, the right fix is a layering scale,
 and that needs more than one component. Recorded so it is not lost.
 
+### C-06 · Extract the close control as a first-class atom — *owner, 2026-08-03*
+
+**Owner's observation, and it corrects a step-2 misclassification of mine.** The close control — the
+`X` — was documented as part of `DialogContent`'s internal composition. It is not: it is an
+**anonymous atom embedded inline**. It has its own radius, its own icon size, its own offset, and the
+only full interaction state set in the entire component (rest / hover / focus / disabled / open) — which
+is exactly why O-20 read as an anomaly rather than as evidence that a distinct atom was hiding there.
+
+**Proposal:** extract it as a named atom (an icon button) with a proper variant and state matrix, and
+have `DialogContent` compose an instance of it rather than redrawing it inline.
+
+**Consequences to weigh:**
+
+- It becomes a Figma component in its own right, with states as variants — unlike `DialogTrigger` /
+  `DialogClose`, which stay code-only under R-03 because they have *no* visual definition. This one
+  has a very specific one.
+- It is almost certainly not Dialog-only. Any dismissible surface (sheet, drawer, popover, toast, tag)
+  wants the same atom. That makes it a **system** component surfaced by Dialog, like the token scales.
+- Sizes are currently a sample of one (`size-4` icon, 16px offset), so a size ramp would be invention
+  under R-01 — the atom can be extracted now and sized properly when a second consumer appears.
+
 ### C-05 · Document the modal-only contract — *R-05*
 
 `modal={false}` removes the focus trap, scroll lock and outside-pointer blocking. Documentation change
