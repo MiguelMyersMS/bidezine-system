@@ -1,9 +1,10 @@
 ---
 component: dialog
-lifecycle: scoped
+lifecycle: dissecting
 sync: pushed
 owner-machine: —
 last-updated: 2026-08-03
+figma-analysis-board: "Dialog · Step 2 — Dissection" (node 27:3)
 ---
 
 # Dialog — Decision Log
@@ -38,6 +39,15 @@ v1's `tokens.ts` (including the `TYPE` system) and the `InputTrigger` six-state 
 session, and a pre-protocol version of this component tree was already built and reverted. Both are
 recorded in `00-scope.md` §3. Step-5 proposals plausibly downstream of v1 exposure will be labelled
 `[possibly v1-influenced]` so step 6 does not mistake contaminated agreement for independent convergence.
+
+**D-006 · Radix is inside the fence at step 2.** *(Owner, 2026-08-03)*
+Nearly all of Dialog's behaviour — focus trap, portal, Escape, scroll lock, ARIA wiring — lives in the
+Radix primitive, not in shadcn's wrapper. Step 2 requires behaviour documented; excluding Radix would
+mean describing that behaviour from memory. Permitted as the component's own dependency.
+
+**D-007 · shadcn's prose docs are permitted, but marked.** *(Owner, 2026-08-03)*
+Source is primary. Observations drawn from prose are tagged `[prose]` so step 4 can weigh a documented
+intention differently from an observed fact.
 
 ---
 

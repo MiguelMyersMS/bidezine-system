@@ -38,7 +38,11 @@ the dissection enumerates it rather than confirming a list I wrote in advance.
 | **v1 design system — entirely** | `../design-system/` — code, `docs/atomic/*` specs, `src/tokens.ts`, evidence, registry |
 | Our own reference map of v1 | `docs/reference/REFERENCE-MAP.md` (it summarises v1 by name and category) |
 
-### Open fence questions — need answering before step 2 begins
+### Fence questions — ANSWERED by owner, 2026-08-03
+
+**Both approved as proposed.** Radix is permitted at step 2 as the component's own dependency; shadcn's
+prose documentation is permitted but every observation drawn from it is marked as prose-derived so
+step 4 can weigh it differently. The original wording is kept below for the record.
 
 1. **Does "shadcn as-is" include the Radix primitive underneath it?**
    Step 2 requires behaviour to be documented, and for Dialog nearly all behaviour (focus trap, portal,
