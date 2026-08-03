@@ -130,6 +130,23 @@ drawing it eight times documents nothing new.
 are the real axes and states are CSS rules applied orthogonally. A full 192-cell grid would assert in
 Figma that every combination is a separately designed artefact, which is not what the code says.
 
+**A-D-023 · Authoring shape: Option A — a full 48 component set plus a 24-frame states board.**
+*(Owner, 2026-08-03)*
+
+`variant × size` (48) is a **component set**, fully crossed and instantiable. `variant × state` (24, at
+default size) is a **documentation board**, not instantiable. States cross with **variant, not size**.
+
+This adds a **second test** alongside A-D-022's interaction test:
+
+> **Cross when the axes interact, OR when a consumer needs to instantiate the combination.
+> Sample only when neither applies.**
+
+The two tests disagree about `variant × size` — those axes barely interact, but a designer will place a
+`secondary` `lg` button in a mockup, and a sampled set would give them a missing-variant error. Nobody
+places a *hover* button in a mockup: states are documentation for whoever implements.
+
+Result: 72 drawn, 48 selectable, **no holes in the library**. Against 192 exhaustive.
+
 **A-D-011 · OWNER REQUIREMENT — Button overflow behaviour.** *(Owner, 2026-08-03)*
 Answers step 2's close-out question on truncation. shadcn has **none** of this; it is a net-new
 capability, so it becomes a step-5 change proposal rather than a step-2 fact.
