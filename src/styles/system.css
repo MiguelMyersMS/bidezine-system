@@ -44,13 +44,67 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-backdrop: var(--backdrop);
 
-  /* Authored explicitly in the DTCG source, not derived with calc() here —
-     Figma Variables have no calc(), so a CSS-only scale would drift. */
+  /* Radius. Authored explicitly in the DTCG source, not derived with calc() here —
+     Figma Variables have no calc(), so a CSS-only scale would drift.
+     The `container`/`rounded`/`pill` steps are migrated from v1 (R-11) and keep
+     v1's own names, per the TOKEN-PIPELINE migration rule. */
+  --radius-xxs: var(--radius-xxs);
+  --radius-xs: var(--radius-xs);
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
   --radius-xl: var(--radius-xl);
+  --radius-rounded: var(--radius-rounded);
+  --radius-container-sm: var(--radius-container-sm);
+  --radius-container: var(--radius-container);
+  --radius-container-lg: var(--radius-container-lg);
+  --radius-pill: var(--radius-pill);
+
+  /* Spacing. Tailwind computes every spacing utility as calc(--spacing * N), so
+     the BASE is what it needs; the space-* tokens exist for Figma, which has no
+     calc() and therefore needs the steps enumerated. Both come from one source. */
+  --spacing: var(--space-1);
+
+  /* Type scale. Each size carries its paired line-height — omitting the pair
+     silently drops Tailwind's default leading. */
+  --text-xs: var(--font-size-xs);
+  --text-xs--line-height: var(--line-height-xs);
+  --text-sm: var(--font-size-sm);
+  --text-sm--line-height: var(--line-height-sm);
+  --text-base: var(--font-size-base);
+  --text-base--line-height: var(--line-height-base);
+  --text-lg: var(--font-size-lg);
+  --text-lg--line-height: var(--line-height-lg);
+  --text-xl: var(--font-size-xl);
+  --text-xl--line-height: var(--line-height-xl);
+
+  --leading-none: var(--line-height-none);
+
+  --font-weight-normal: var(--font-weight-normal);
+  --font-weight-medium: var(--font-weight-medium);
+  --font-weight-semibold: var(--font-weight-semibold);
+  --font-weight-bold: var(--font-weight-bold);
+
+  /* Elevation. Theme-aware: the values differ in light and dark, which is the
+     defect R-09 fixes in shadcn's fixed-alpha shadows. */
+  --shadow-flat: var(--shadow-flat);
+  --shadow-low: var(--shadow-low);
+  --shadow-mid: var(--shadow-mid);
+  --shadow-high: var(--shadow-high);
+  --shadow-overlay: var(--shadow-overlay);
+
+  /* Motion. Easing has no Figma representation (T3) but still belongs here. */
+  --ease-standard: var(--ease-standard);
+  --ease-out: var(--ease-out);
+  --ease-expressive: var(--ease-expressive);
+
+  --breakpoint-sm: var(--breakpoint-sm);
+  --breakpoint-md: var(--breakpoint-md);
+  --breakpoint-lg: var(--breakpoint-lg);
+  --breakpoint-xl: var(--breakpoint-xl);
+  --breakpoint-2xl: var(--breakpoint-2xl);
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);

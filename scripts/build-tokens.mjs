@@ -23,24 +23,52 @@ const read = (name) =>
 const entries = (doc) =>
   Object.entries(doc).filter(([key]) => !key.startsWith("$"))
 
+/** Render a DTCG colour object as a CSS colour. */
+function colorToCss(value, name) {
+  if (typeof value === "string") return value // hex passthrough
+  const { colorSpace, components, alpha } = value
+  const a = alpha === undefined || alpha === 1 ? null : alpha
+
+  if (colorSpace === "oklch") {
+    const ch = components.join(" ")
+    return a === null ? `oklch(${ch})` : `oklch(${ch} / ${a})`
+  }
+  if (colorSpace === "srgb") {
+    // Shadows carry sRGB because they were migrated from v1, which authored them
+    // as rgba(). Round-tripping through oklch would lose precision for no benefit.
+    const ch = components.map((c) => Math.round(c * 255)).join(" ")
+    return a === null ? `rgb(${ch})` : `rgb(${ch} / ${a})`
+  }
+  throw new Error(`Token "${name}": unsupported colorSpace "${colorSpace}".`)
+}
+
+const dim = (d) => `${d.value}${d.unit}`
+
 /** Render one DTCG $value as a CSS value. */
 function toCss(token, name) {
   const { $type: type, $value: value } = token
 
   switch (type) {
-    case "color": {
-      if (typeof value === "string") return value // hex passthrough
-      const { colorSpace, components, alpha } = value
-      if (colorSpace !== "oklch") {
-        throw new Error(`Token "${name}": unsupported colorSpace "${colorSpace}".`)
-      }
-      const channels = components.join(" ")
-      return alpha === undefined || alpha === 1
-        ? `oklch(${channels})`
-        : `oklch(${channels} / ${alpha})`
-    }
+    case "color":
+      return colorToCss(value, name)
     case "dimension":
-      return `${value.value}${value.unit}`
+    case "duration":
+      return dim(value)
+    case "fontWeight":
+    case "number":
+      return String(value)
+    case "cubicBezier":
+      return `cubic-bezier(${value.join(", ")})`
+    case "shadow": {
+      // One or more layers, comma-separated, exactly as CSS box-shadow expects.
+      const layers = Array.isArray(value) ? value : [value]
+      return layers
+        .map(
+          (l) =>
+            `${dim(l.offsetX)} ${dim(l.offsetY)} ${dim(l.blur)} ${dim(l.spread)} ${colorToCss(l.color, name)}`
+        )
+        .join(", ")
+    }
     case "fontFamily":
       return (Array.isArray(value) ? value : [value])
         .map((f) => (f.includes(" ") ? `"${f}"` : f))

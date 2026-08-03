@@ -26,5 +26,51 @@
 
   "border": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.922, 0, 0] } },
   "input": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.922, 0, 0] } },
-  "ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.708, 0, 0] } }
+  "ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.708, 0, 0] } },
+
+  "backdrop": {
+    "$type": "color",
+    "$description": "Dialog/overlay scrim. shadcn hard-codes bg-black/50 with no token behind it, so Figma had nothing to bind. Named per v1's own `backdrop`.",
+    "$value": { "colorSpace": "oklch", "components": [0, 0, 0], "alpha": 0.4 }
+  },
+
+  "shadow-subtle": { "$type": "color", "$description": "Shadow ink. Figma EFFECT STYLES have no mode support, so a theme-aware shadow needs its colour as a variable the effect binds to — these four are that. v1's shadowSubtle.", "$value": { "colorSpace": "srgb", "components": [0.1098, 0.1255, 0.1412], "alpha": 0.04 } },
+  "shadow-light": { "$type": "color", "$description": "v1's shadowLight.", "$value": { "colorSpace": "srgb", "components": [0.1098, 0.1255, 0.1412], "alpha": 0.06 } },
+  "shadow-medium": { "$type": "color", "$description": "v1's shadowMedium.", "$value": { "colorSpace": "srgb", "components": [0.1098, 0.1255, 0.1412], "alpha": 0.1 } },
+  "shadow-strong": { "$type": "color", "$description": "v1's shadowStrong.", "$value": { "colorSpace": "srgb", "components": [0.1098, 0.1255, 0.1412], "alpha": 0.14 } },
+
+  "shadow-flat": {
+    "$type": "shadow",
+    "$description": "Migrated from v1's elevation() (R-09). Light shadows are slate-tinted (#1C2024), not pure black — that tint is why v1's elevation reads warmer than shadcn's fixed black alpha.",
+    "$value": [
+      { "color": { "colorSpace": "srgb", "components": [0.1098, 0.1255, 0.1412], "alpha": 0.04 }, "offsetX": { "value": 0, "unit": "px" }, "offsetY": { "value": 1, "unit": "px" }, "blur": { "value": 0, "unit": "px" }, "spread": { "value": 0, "unit": "px" } }
+    ]
+  },
+  "shadow-low": {
+    "$type": "shadow",
+    "$value": [
+      { "color": { "colorSpace": "srgb", "components": [0.1098, 0.1255, 0.1412], "alpha": 0.06 }, "offsetX": { "value": 0, "unit": "px" }, "offsetY": { "value": 1, "unit": "px" }, "blur": { "value": 3, "unit": "px" }, "spread": { "value": 0, "unit": "px" } }
+    ]
+  },
+  "shadow-mid": {
+    "$type": "shadow",
+    "$value": [
+      { "color": { "colorSpace": "srgb", "components": [0.1098, 0.1255, 0.1412], "alpha": 0.1 }, "offsetX": { "value": 0, "unit": "px" }, "offsetY": { "value": 2, "unit": "px" }, "blur": { "value": 8, "unit": "px" }, "spread": { "value": 0, "unit": "px" } }
+    ]
+  },
+  "shadow-high": {
+    "$type": "shadow",
+    "$value": [
+      { "color": { "colorSpace": "srgb", "components": [0.1098, 0.1255, 0.1412], "alpha": 0.14 }, "offsetX": { "value": 0, "unit": "px" }, "offsetY": { "value": 4, "unit": "px" }, "blur": { "value": 24, "unit": "px" }, "spread": { "value": 0, "unit": "px" } },
+      { "color": { "colorSpace": "srgb", "components": [0.1098, 0.1255, 0.1412], "alpha": 0.04 }, "offsetX": { "value": 0, "unit": "px" }, "offsetY": { "value": 1, "unit": "px" }, "blur": { "value": 4, "unit": "px" }, "spread": { "value": 0, "unit": "px" } }
+    ]
+  },
+  "shadow-overlay": {
+    "$type": "shadow",
+    "$description": "THE DIALOG SURFACE uses this (D-027), replacing shadcn's shadow-lg.",
+    "$value": [
+      { "color": { "colorSpace": "srgb", "components": [0.1098, 0.1255, 0.1412], "alpha": 0.14 }, "offsetX": { "value": 0, "unit": "px" }, "offsetY": { "value": 8, "unit": "px" }, "blur": { "value": 40, "unit": "px" }, "spread": { "value": 0, "unit": "px" } },
+      { "color": { "colorSpace": "srgb", "components": [0.1098, 0.1255, 0.1412], "alpha": 0.06 }, "offsetX": { "value": 0, "unit": "px" }, "offsetY": { "value": 2, "unit": "px" }, "blur": { "value": 8, "unit": "px" }, "spread": { "value": 0, "unit": "px" } }
+    ]
+  }
 }

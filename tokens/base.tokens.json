@@ -1,33 +1,80 @@
 {
-  "$description": "Mode-independent tokens. DTCG 2025.10 (ADR-001). Source of truth — emits src/styles/tokens.css + src/tokens.ts via `npm run tokens`. DO NOT hand-write CSS variables.",
-  "radius-sm": {
-    "$type": "dimension",
-    "$description": "0.6x base.",
-    "$value": { "value": 0.375, "unit": "rem" }
-  },
-  "radius-md": {
-    "$type": "dimension",
-    "$description": "0.8x base. Buttons, inputs.",
-    "$value": { "value": 0.5, "unit": "rem" }
-  },
-  "radius-lg": {
-    "$type": "dimension",
-    "$description": "10px — the anchor of the scale, which runs x0.2 / 0.4 / 0.6 / 0.8 / 1.0 / 1.4 of this value. A bare `radius` token duplicating it was REMOVED 2026-08-03: the steps are authored explicitly (Figma Variables cannot express calc(), so a derived scale would live in CSS only and Figma would need hand-entered numbers that silently drift), which left the base with nothing to compute and no consumer. See docs/DECISION_LOG.md.",
-    "$value": { "value": 0.625, "unit": "rem" }
-  },
-  "radius-xl": {
-    "$type": "dimension",
-    "$description": "1.4x base.",
-    "$value": { "value": 0.875, "unit": "rem" }
-  },
-  "font-sans": {
-    "$type": "fontFamily",
-    "$description": "UI typeface stack.",
-    "$value": ["ui-sans-serif", "system-ui", "sans-serif"]
-  },
-  "font-mono": {
-    "$type": "fontFamily",
-    "$description": "Monospace stack for code and tabular figures.",
-    "$value": ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"]
-  }
+  "$description": "Mode-independent tokens. DTCG 2025.10 (ADR-001). Source of truth — emits src/styles/tokens.css + src/tokens.ts via `npm run tokens`. DO NOT hand-write CSS variables. Mode-dependent tokens (colour, shadow) live in light/dark.tokens.json.",
+
+  "space-0-5": { "$type": "dimension", "$description": "2px. Tailwind x0.5.", "$value": { "value": 0.125, "unit": "rem" } },
+  "space-1": { "$type": "dimension", "$description": "4px. The grid unit.", "$value": { "value": 0.25, "unit": "rem" } },
+  "space-2": { "$type": "dimension", "$description": "8px.", "$value": { "value": 0.5, "unit": "rem" } },
+  "space-3": { "$type": "dimension", "$description": "12px.", "$value": { "value": 0.75, "unit": "rem" } },
+  "space-4": { "$type": "dimension", "$description": "16px.", "$value": { "value": 1, "unit": "rem" } },
+  "space-5": { "$type": "dimension", "$description": "20px. Absent from v1's SPACE, which jumps 16 to 24.", "$value": { "value": 1.25, "unit": "rem" } },
+  "space-6": { "$type": "dimension", "$description": "24px. NOTE: this is v1's SPACE[5], not SPACE[6]. See the mapping table in docs/process/TOKEN-PIPELINE.md.", "$value": { "value": 1.5, "unit": "rem" } },
+  "space-8": { "$type": "dimension", "$description": "32px. v1's SPACE[6].", "$value": { "value": 2, "unit": "rem" } },
+  "space-10": { "$type": "dimension", "$description": "40px. v1's SPACE[7].", "$value": { "value": 2.5, "unit": "rem" } },
+  "space-12": { "$type": "dimension", "$description": "48px. v1's SPACE[8].", "$value": { "value": 3, "unit": "rem" } },
+  "space-16": { "$type": "dimension", "$description": "64px. Migrated from v1's SPACE[9] (R-12).", "$value": { "value": 4, "unit": "rem" } },
+
+  "font-size-xs": { "$type": "dimension", "$description": "12px.", "$value": { "value": 0.75, "unit": "rem" } },
+  "font-size-sm": { "$type": "dimension", "$description": "14px. The workhorse.", "$value": { "value": 0.875, "unit": "rem" } },
+  "font-size-base": { "$type": "dimension", "$description": "16px. Also Input's mobile size — an iOS zoom defence.", "$value": { "value": 1, "unit": "rem" } },
+  "font-size-lg": { "$type": "dimension", "$description": "18px. DialogTitle.", "$value": { "value": 1.125, "unit": "rem" } },
+  "font-size-xl": { "$type": "dimension", "$description": "20px.", "$value": { "value": 1.25, "unit": "rem" } },
+
+  "line-height-none": { "$type": "number", "$description": "1. DialogTitle and Label use this — 18px type on an 18px line box. Kept separately addressable from size on purpose: a token bundling the two could not express it.", "$value": 1 },
+  "line-height-xs": { "$type": "dimension", "$description": "16px, paired with font-size-xs.", "$value": { "value": 1, "unit": "rem" } },
+  "line-height-sm": { "$type": "dimension", "$description": "20px, paired with font-size-sm.", "$value": { "value": 1.25, "unit": "rem" } },
+  "line-height-base": { "$type": "dimension", "$description": "24px, paired with font-size-base.", "$value": { "value": 1.5, "unit": "rem" } },
+  "line-height-lg": { "$type": "dimension", "$description": "28px, paired with font-size-lg.", "$value": { "value": 1.75, "unit": "rem" } },
+  "line-height-xl": { "$type": "dimension", "$description": "28px, paired with font-size-xl.", "$value": { "value": 1.75, "unit": "rem" } },
+
+  "font-weight-normal": { "$type": "fontWeight", "$value": 400 },
+  "font-weight-medium": { "$type": "fontWeight", "$description": "Labels and button text.", "$value": 500 },
+  "font-weight-semibold": { "$type": "fontWeight", "$description": "DialogTitle.", "$value": 600 },
+  "font-weight-bold": { "$type": "fontWeight", "$value": 700 },
+
+  "font-sans": { "$type": "fontFamily", "$description": "UI typeface stack.", "$value": ["ui-sans-serif", "system-ui", "sans-serif"] },
+  "font-mono": { "$type": "fontFamily", "$description": "Monospace stack for code and tabular figures.", "$value": ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"] },
+
+  "radius-xxs": { "$type": "dimension", "$description": "2px. Added 2026-08-03 (D-013) — brings the Dialog close control's `rounded-xs` under management. shadcn defines no --radius-xs at all, so that value was falling through to Tailwind's raw default.", "$value": { "value": 0.125, "unit": "rem" } },
+  "radius-xs": { "$type": "dimension", "$description": "4px. Added 2026-08-03 (D-013). Matches v1's RADIUS.xs.", "$value": { "value": 0.25, "unit": "rem" } },
+  "radius-sm": { "$type": "dimension", "$description": "6px. Matches v1's RADIUS.tooltip.", "$value": { "value": 0.375, "unit": "rem" } },
+  "radius-md": { "$type": "dimension", "$description": "8px. Buttons, inputs. Matches v1's RADIUS.soft.", "$value": { "value": 0.5, "unit": "rem" } },
+  "radius-lg": { "$type": "dimension", "$description": "10px — the anchor of the scale, which runs x0.2 / 0.4 / 0.6 / 0.8 / 1.0 / 1.4 of this value. A bare `radius` token duplicating it was REMOVED 2026-08-03; see docs/DECISION_LOG.md.", "$value": { "value": 0.625, "unit": "rem" } },
+  "radius-xl": { "$type": "dimension", "$description": "14px.", "$value": { "value": 0.875, "unit": "rem" } },
+  "radius-rounded": { "$type": "dimension", "$description": "12px. Migrated from v1's RADIUS.rounded — triggers, dropdown containers, logo-size buttons. v1's semantic name is kept per the TOKEN-PIPELINE migration rule.", "$value": { "value": 0.75, "unit": "rem" } },
+  "radius-container-sm": { "$type": "dimension", "$description": "16px. v1's RADIUS.containerSm — cards, smaller panels.", "$value": { "value": 1, "unit": "rem" } },
+  "radius-container": { "$type": "dimension", "$description": "18px. v1's RADIUS.container — panels, rails. THE DIALOG SURFACE uses this (D-027), not shadcn's 10px.", "$value": { "value": 1.125, "unit": "rem" } },
+  "radius-container-lg": { "$type": "dimension", "$description": "20px. v1's RADIUS.containerLg — large cards, right rail sections.", "$value": { "value": 1.25, "unit": "rem" } },
+  "radius-pill": { "$type": "dimension", "$description": "99px. v1's RADIUS.pill — pills, chips, badges, circular indicators (R-11).", "$value": { "value": 6.1875, "unit": "rem" } },
+
+  "stroke-1": { "$type": "dimension", "$description": "1px. Borders.", "$value": { "value": 1, "unit": "px" } },
+  "stroke-2": { "$type": "dimension", "$description": "2px. Focus rings and offsets.", "$value": { "value": 2, "unit": "px" } },
+  "stroke-3": { "$type": "dimension", "$description": "3px. The Button/Input focus ring.", "$value": { "value": 3, "unit": "px" } },
+
+  "duration-fast": { "$type": "duration", "$description": "120ms. Migrated from v1's MOTION.fast (R-08).", "$value": { "value": 120, "unit": "ms" } },
+  "duration-base": { "$type": "duration", "$description": "150ms. v1's MOTION.base.", "$value": { "value": 150, "unit": "ms" } },
+  "duration-medium": { "$type": "duration", "$description": "200ms. v1's MOTION.medium — and the value shadcn's dialog uses, so the two systems already agreed here.", "$value": { "value": 200, "unit": "ms" } },
+  "duration-slow": { "$type": "duration", "$description": "350ms. v1's MOTION.slow.", "$value": { "value": 350, "unit": "ms" } },
+  "duration-reveal": { "$type": "duration", "$description": "700ms. v1's MOTION.reveal.", "$value": { "value": 700, "unit": "ms" } },
+
+  "ease-standard": { "$type": "cubicBezier", "$description": "CSS `ease`. v1's MOTION.ease.", "$value": [0.25, 0.1, 0.25, 1] },
+  "ease-out": { "$type": "cubicBezier", "$description": "CSS `ease-out`. v1's MOTION.easeOut.", "$value": [0, 0, 0.58, 1] },
+  "ease-expressive": { "$type": "cubicBezier", "$description": "v1's MOTION.expressive. HAS NO FIGMA REPRESENTATION — easing cannot be a Figma Variable (pending T3).", "$value": [0.22, 1, 0.36, 1] },
+
+  "z-base": { "$type": "number", "$description": "1. Migrated from v1's Z (R-07) — a layering scale designed against a whole application, which is why step 5 declined to invent one from a single component.", "$value": 1 },
+  "z-sticky": { "$type": "number", "$description": "20. Page sticky headers / slicer bands.", "$value": 20 },
+  "z-rail": { "$type": "number", "$description": "30. Side nav rail — above the sticky band so its elevation shadow is never truncated.", "$value": 30 },
+  "z-dropdown": { "$type": "number", "$description": "40. Portalled menus, selects, popovers.", "$value": 40 },
+  "z-overlay": { "$type": "number", "$description": "50. Scrims and backdrops.", "$value": 50 },
+  "z-modal": { "$type": "number", "$description": "100. Dialogs. SEPARATE from z-overlay — resolves the shadcn defect where both sat at z-50 and stacking depended on DOM order (Dialog O-07 / C-04).", "$value": 100 },
+  "z-toast": { "$type": "number", "$description": "200.", "$value": 200 },
+
+  "breakpoint-sm": { "$type": "dimension", "$description": "640px. Tailwind naming kept so `sm:` in a class string means what it says. NOTE: v1's BP.sm is 768 — every v1 breakpoint name is shifted one step. See the mapping table in docs/process/TOKEN-PIPELINE.md.", "$value": { "value": 640, "unit": "px" } },
+  "breakpoint-md": { "$type": "dimension", "$description": "768px. Input's type size changes here.", "$value": { "value": 768, "unit": "px" } },
+  "breakpoint-lg": { "$type": "dimension", "$value": { "value": 1024, "unit": "px" } },
+  "breakpoint-xl": { "$type": "dimension", "$value": { "value": 1280, "unit": "px" } },
+  "breakpoint-2xl": { "$type": "dimension", "$value": { "value": 1536, "unit": "px" } },
+
+  "opacity-50": { "$type": "number", "$description": "Disabled.", "$value": 0.5 },
+  "opacity-70": { "$type": "number", "$description": "Muted rest state.", "$value": 0.7 },
+  "opacity-100": { "$type": "number", "$value": 1 }
 }

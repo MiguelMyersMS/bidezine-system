@@ -26,5 +26,50 @@
 
   "border": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.1 } },
   "input": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.15 } },
-  "ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.556, 0, 0] } }
+  "ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.556, 0, 0] } },
+
+  "backdrop": {
+    "$type": "color",
+    "$description": "Heavier in dark, matching v1's light 0.40 / dark 0.60 split.",
+    "$value": { "colorSpace": "oklch", "components": [0, 0, 0], "alpha": 0.6 }
+  },
+
+  "shadow-subtle": { "$type": "color", "$description": "Shadow ink, dark mode: pure black at ~2.5x the light alpha.", "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0.1 } },
+  "shadow-light": { "$type": "color", "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0.15 } },
+  "shadow-medium": { "$type": "color", "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0.25 } },
+  "shadow-strong": { "$type": "color", "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0.35 } },
+
+  "shadow-flat": {
+    "$type": "shadow",
+    "$description": "Dark shadows are pure black and roughly 2.5x the light alpha — v1's elevation is theme-aware, which is the defect R-09 fixes in shadcn's fixed-alpha shadow-lg.",
+    "$value": [
+      { "color": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0.1 }, "offsetX": { "value": 0, "unit": "px" }, "offsetY": { "value": 1, "unit": "px" }, "blur": { "value": 0, "unit": "px" }, "spread": { "value": 0, "unit": "px" } }
+    ]
+  },
+  "shadow-low": {
+    "$type": "shadow",
+    "$value": [
+      { "color": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0.15 }, "offsetX": { "value": 0, "unit": "px" }, "offsetY": { "value": 1, "unit": "px" }, "blur": { "value": 3, "unit": "px" }, "spread": { "value": 0, "unit": "px" } }
+    ]
+  },
+  "shadow-mid": {
+    "$type": "shadow",
+    "$value": [
+      { "color": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0.25 }, "offsetX": { "value": 0, "unit": "px" }, "offsetY": { "value": 2, "unit": "px" }, "blur": { "value": 8, "unit": "px" }, "spread": { "value": 0, "unit": "px" } }
+    ]
+  },
+  "shadow-high": {
+    "$type": "shadow",
+    "$value": [
+      { "color": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0.35 }, "offsetX": { "value": 0, "unit": "px" }, "offsetY": { "value": 4, "unit": "px" }, "blur": { "value": 24, "unit": "px" }, "spread": { "value": 0, "unit": "px" } },
+      { "color": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0.1 }, "offsetX": { "value": 0, "unit": "px" }, "offsetY": { "value": 1, "unit": "px" }, "blur": { "value": 4, "unit": "px" }, "spread": { "value": 0, "unit": "px" } }
+    ]
+  },
+  "shadow-overlay": {
+    "$type": "shadow",
+    "$value": [
+      { "color": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0.35 }, "offsetX": { "value": 0, "unit": "px" }, "offsetY": { "value": 8, "unit": "px" }, "blur": { "value": 40, "unit": "px" }, "spread": { "value": 0, "unit": "px" } },
+      { "color": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0.15 }, "offsetX": { "value": 0, "unit": "px" }, "offsetY": { "value": 2, "unit": "px" }, "blur": { "value": 8, "unit": "px" }, "spread": { "value": 0, "unit": "px" } }
+    ]
+  }
 }
