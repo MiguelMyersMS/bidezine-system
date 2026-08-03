@@ -31,6 +31,16 @@ Laptop A (Miguel), Laptop B (Blair), and the PC all work on **`main` directly**.
 3. Terminal equivalents: `git fetch` then `git status` ("behind by N"), or
    `git log --oneline HEAD..origin/main` to see exactly what's new.
 
+> **If you can't find the `git.autofetch` setting** (the search only shows Copilot/GitHub-extension results):
+> that means VS Code's **built-in Git extension is disabled**, so its settings are hidden. Two fixes —
+> - **Easiest — set it in JSON directly:** `Ctrl+Shift+P` → **Open User Settings (JSON)** → add
+>   `"git.autofetch": true,` and `"git.autofetchPeriod": 180` inside the `{ }` → save. Done, no UI needed.
+> - **Re-enable the extension:** Extensions (`Ctrl+Shift+X`) → search `@builtin git` → enable **Git**
+>   (Microsoft). Also clear any active filter (the funnel icon in Settings) and search plain `autofetch`.
+>
+> Autofetch is **optional polish** — it only adds the live ↓/↑ signal. You're already current because the
+> SessionStart hook pulls when you sit down; `git fetch` + `git status` works anytime as a manual check.
+
 ## The five habits that avoid conflicts
 
 1. **PULL before you start a new area** — begin from the latest.

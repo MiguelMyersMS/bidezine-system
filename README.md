@@ -30,9 +30,17 @@ Clone this repo as a **sibling of `design-system`** on each machine:
 - **Laptop B (Blair):** `C:\Users\miguelmyers\GitHub\bidezine-system`.
 - **PC (third person):** alongside `design-system`, when enabled.
 
-Then per machine: copy secrets locally (`.env` / `.env.copilot` from the `.example` templates — never
-commit them). All three machines work on **`main`** directly: pull in the morning, push at night,
-work room-by-room.
+**Per machine — one-time secret setup** (the values are shared across our repos, so you're *copying*, not
+authoring). From inside the `bidezine-system` folder:
+```
+cp ../design-system/.env .env
+cp ../design-system/.env.copilot .env.copilot
+```
+`.env` / `.env.copilot` are gitignored, so they never travel through git — each machine keeps its own local
+copy. The SessionStart hook warns you if they're missing. (Laptop B was set up during scaffolding.)
+
+All three machines then work on **`main`** directly: pull in the morning, push at night, work room-by-room.
+See `docs/process/TEAM-SYNC-DISCIPLINE.md`.
 
 ## Daily rhythm
 
