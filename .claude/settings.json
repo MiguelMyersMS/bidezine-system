@@ -1,0 +1,45 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx wrangler *)",
+      "Bash(npx wrangler:*)",
+      "Bash(wrangler *)",
+      "Bash(wrangler:*)",
+      "Bash(npm run build:storybook)"
+    ]
+  },
+  "breakReminder": {
+    "enabled": true,
+    "intervalMinutes": 45,
+    "breakThresholdMinutes": 10,
+    "message": "Checkpoint: if you've finished something, commit + push it now (two-laptop CHECKPOINT ritual) - don't save it all for end of day."
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "statusMessage": "Syncing with GitHub (ARRIVE ritual)...",
+            "timeout": 30,
+            "command": "git fetch --all --prune 2>&1; echo ---; git pull --ff-only 2>&1; echo ---; git status 2>&1"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "statusMessage": "Checking for uncommitted/unpushed work...",
+            "timeout": 10,
+            "command": "dirty=$(git status --porcelain); ahead=$(git rev-list --count @{u}..HEAD 2>/dev/null || echo 0); if [ -n \"$dirty\" ] || [ \"$ahead\" -gt 0 ]; then msg=\"Uncommitted or unpushed work here - commit + push before leaving this laptop (LEAVE ritual: docs/process/TWO-LAPTOP-WORKFLOW.md).\"; printf '{\"systemMessage\": \"%s\"}' \"$msg\"; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

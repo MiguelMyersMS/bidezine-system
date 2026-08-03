@@ -1,0 +1,36 @@
+node_modules/
+dist/
+storybook-static/
+.wrangler/
+test-results/
+.env
+.env.*
+!.env.example
+!.env.copilot.example
+*.tgz
+
+# Generated reports
+*.report.pdf
+design-system-*.pdf
+
+# .claude — track only shared machinery, not per-machine local config
+.claude/*
+!.claude/skills/
+!.claude/agents/
+!.claude/settings.json
+!.claude/commands/
+
+# Scratch / temp
+tmp/
+scratchpad/
+scratch_img.*
+.reseal-needed
+
+# Per-machine editor/agent config — must NOT travel between machines
+.vscode/
+
+# Vendored shadcn reference — keep the SOURCE, ignore any build artifacts inside it
+reference/shadcn-ui/**/node_modules/
+reference/shadcn-ui/**/dist/
+reference/shadcn-ui/**/.next/
+reference/shadcn-ui/**/.turbo/

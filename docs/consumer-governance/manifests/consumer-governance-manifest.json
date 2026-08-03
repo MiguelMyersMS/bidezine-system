@@ -1,0 +1,55 @@
+{
+  "kit": "design-system-consumer-governance",
+  "version": "0.1.0",
+  "phase": 1,
+  "generated_marker": "Generated from @miguel/design-system consumer governance kit. Do not edit directly.",
+  "local_override_path": "docs/process/local-governance-overrides.md",
+  "registration": {
+    "mode": "explicit-consumer-path",
+    "description": "Phase 1 does not define a broad consumer registry. Pass --consumer with a local path for targeted audits or apply."
+  },
+  "files": [
+    {
+      "template": "AGENTS.consumer.template.md",
+      "target": "AGENTS.md"
+    },
+    {
+      "template": "process/design-system-governor.consumer.md",
+      "target": "docs/process/design-system-governor.md"
+    },
+    {
+      "template": "process/release-readiness.consumer.md",
+      "target": "docs/process/release-readiness-checklist.md"
+    },
+    {
+      "template": "process/external-review-report-template.consumer.md",
+      "target": "docs/process/external-review-report-template.md"
+    },
+    {
+      "template": "process/next-step-decision.consumer.md",
+      "target": "docs/process/next-step-decision.md"
+    }
+  ],
+  "safety": {
+    "check_default_read_only": true,
+    "apply_requires_consumer": true,
+    "apply_refuses_dirty_consumer": true,
+    "overwrite_requires_generated_marker": true,
+    "never_overwrite": [
+      "docs/process/local-governance-overrides.md"
+    ],
+    "allowed_target_prefixes": [
+      "AGENTS.md",
+      "docs/process/"
+    ],
+    "forbidden_actions": [
+      "commit",
+      "push",
+      "tag",
+      "release",
+      "publish",
+      "update-baselines",
+      "modify-source-app-component-code"
+    ]
+  }
+}
