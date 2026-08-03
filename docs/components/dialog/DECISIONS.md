@@ -1,6 +1,6 @@
 ---
 component: dialog
-lifecycle: dissecting
+lifecycle: reviewing
 sync: pushed
 owner-machine: —
 last-updated: 2026-08-03
@@ -64,6 +64,25 @@ Uncovered: every spacing value, every font size and weight, line-height, shadow,
 opacity, widths, icon size, and `rounded-xs` (2px — below our smallest radius step). The 26 tokens we
 hold are colour and radius only: there is no spacing scale, no typography scale, no shadow scale and no
 sizing scale. Recorded as fact at step 2; what to do about it is step 3/5.
+
+## Step 3 — Observations
+
+**D-010 · Missing tokens go through steps 3→8, not straight to Figma.** *(Owner, 2026-08-03)*
+The token gaps are real and will be filled, but v1 already holds settled answers for most of them (a
+9-token `TYPE` system, `src/layout.ts`, a 7-step shadow scale) and those are fenced until step 6.
+Authoring our scales first, then opening v1, means we learn whether we converge or differ — rather than
+only ever seeing one answer. Creating tokens now would have repeated the typography mistake of
+2026-08-02.
+
+**D-011 · Every stop names its step and states what is needed.** *(Owner, 2026-08-03 — CDP §1.1)*
+A bare "awaiting your review" puts the burden on the owner to work out what is being asked. Each stop
+block now carries the step **number and name** plus a specific list of decisions, answers or
+confirmations required to close it.
+
+**D-012 · Step 2 overstated token coverage by one.** *(Step 3, self-correction)*
+The board tagged `DialogTitle`'s colour as covered by `foreground`. `dialog.tsx` sets **no text colour
+at all** — it inherits. The genuinely referenced colour tokens are `background`, `border`, `ring`,
+`accent`, `muted-foreground`.
 
 ---
 

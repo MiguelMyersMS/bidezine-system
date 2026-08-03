@@ -26,11 +26,20 @@ This protocol exists to prevent exactly that.
 
 Three mechanisms enforce it:
 
-**1.1 The stop phrase.** A step ends with exactly this and nothing more:
+**1.1 The stop block.** A step ends with a stop block stating **three** things — never a bare
+"awaiting your review", which puts the burden on the owner to work out what is being asked of them:
 
-> *Step N complete. Artifact: `<path>`. Awaiting your review.*
+> **Step N — \<Step name\> · complete**
+> **Artifact:** `<path>`
+> **What I need from you to close this step:**
+> - the specific decision, answer or confirmation required
+> - one line per item, phrased so it can be answered directly
 
-No preview of the next step, no "meanwhile I also…", no recommendations that assume approval.
+The name matters as much as the number: "step 4" means nothing at a glance, "Step 4 — Review & plan"
+does. *(Format agreed 2026-08-03.)*
+
+Still forbidden in the stop block: previewing the next step, "meanwhile I also…", and recommendations
+that assume approval.
 
 **1.2 The parking lot.** Anything noticed that belongs to a later step is written to
 `docs/components/<slug>/PARKING-LOT.md` — never acted on. The owner decides when an entry is picked up.
