@@ -1,0 +1,30 @@
+{
+  "$description": "Light-mode semantic colors → :root. Names are shadcn's contract vocabulary (so borrowed Radix behaviour compiles unmodified). Values are shadcn's neutral seed and are REPLACED with ours in Phase 4 (re-skin) — that is a one-file edit here, no component churn.",
+  "background": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0] } },
+  "foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0, 0, 0] } },
+
+  "card": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0] } },
+  "card-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0, 0, 0] } },
+
+  "popover": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0] } },
+  "popover-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0, 0, 0] } },
+
+  "primary": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0, 0, 0] } },
+  "primary-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] } },
+
+  "secondary": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.97, 0, 0] } },
+  "secondary-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.205, 0, 0] } },
+
+  "muted": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.97, 0, 0] } },
+  "muted-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.556, 0, 0] } },
+
+  "accent": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.97, 0, 0] } },
+  "accent-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.205, 0, 0] } },
+
+  "destructive": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.577, 0.245, 27.325] } },
+  "destructive-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.97, 0.01, 17] } },
+
+  "border": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.922, 0, 0] } },
+  "input": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.922, 0, 0] } },
+  "ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.708, 0, 0] } }
+}

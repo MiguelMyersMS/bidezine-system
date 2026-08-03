@@ -1,0 +1,18 @@
+{
+  "$description": "Mode-independent tokens. DTCG 2025.10 (ADR-001). Source of truth — emits src/styles/tokens.css + src/tokens.ts via `npm run tokens`. DO NOT hand-write CSS variables.",
+  "radius": {
+    "$type": "dimension",
+    "$description": "Base corner radius. Tailwind's --radius-sm/md/lg/xl derive from this in system.css.",
+    "$value": { "value": 0.625, "unit": "rem" }
+  },
+  "font-sans": {
+    "$type": "fontFamily",
+    "$description": "UI typeface stack.",
+    "$value": ["ui-sans-serif", "system-ui", "sans-serif"]
+  },
+  "font-mono": {
+    "$type": "fontFamily",
+    "$description": "Monospace stack for code and tabular figures.",
+    "$value": ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"]
+  }
+}

@@ -1,5 +1,12 @@
 node_modules/
 dist/
+
+# GENERATED from tokens/*.tokens.json by scripts/build-tokens.mjs.
+# Not committed: three machines share `main`, and a generated file would conflict
+# on every token change in addition to its own source. `pretokens` hooks on the
+# dev/build/typecheck scripts regenerate them. See docs/process/TOKEN-PIPELINE.md.
+src/styles/tokens.css
+src/tokens.ts
 storybook-static/
 .wrangler/
 test-results/
