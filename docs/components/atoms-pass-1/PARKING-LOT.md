@@ -15,6 +15,16 @@
 - [step 6] v1 has `ButtonField` in the gallery alongside `Button`. Whether that is a molecule wrapping
   Button, or something else entirely, is unknown and fenced until step 6.
 
+- [step 5] **`Tooltip` does not exist in our system**, and A-D-011 requires one for truncated buttons.
+  shadcn has a Tooltip component (Radix-backed). Whether Button composes it — which would end Button's
+  status as an atom — or uses the native `title` attribute, or defers the tooltip until Tooltip has had
+  its own CDP pass, is a step-5 decision. Parked, not assumed.
+
+- [step 5] **A shared truncation behaviour probably belongs above Button.** A-D-011's
+  truncate / wrap / clamp-to-N-lines model is not Button-specific — Label has the same problem
+  (A-D-009), and so will any text-bearing part. Whether this becomes a shared primitive or is
+  re-specified per component is a step-5 question.
+
 ## Picked up
 
 - None yet.

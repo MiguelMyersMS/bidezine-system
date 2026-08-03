@@ -76,6 +76,36 @@ freely but at `leading-none`, so wrapped lines have **zero leading** — the lin
 **Input is the only one of the three carrying `min-w-0`,** and so the only one able to shrink in a flex
 parent.
 
+**A-D-011 · OWNER REQUIREMENT — Button overflow behaviour.** *(Owner, 2026-08-03)*
+Answers step 2's close-out question on truncation. shadcn has **none** of this; it is a net-new
+capability, so it becomes a step-5 change proposal rather than a step-2 fact.
+
+As specified:
+
+1. **The button never overflows its container.** At most it fills the available area, and it must not
+   encroach on the container's inner padding.
+2. **Text truncates inside the button's own padding** — the padding is preserved, the text is cut.
+3. **Hovering a truncated button shows a tooltip with the full text.**
+4. **Some buttons wrap instead.** Line count is either unlimited or capped by the button's
+   specification, with the remainder truncated.
+5. **Wrapping grows the button's height**, and likely the container's too, since containers hug on the
+   y-axis.
+6. **Which behaviour applies is part of the button's specification**, in relation to its content and
+   its container.
+
+**Three consequences, recorded now so they are not discovered mid-build:**
+
+- **`shrink-0` must go.** It is the class that currently makes overflow inevitable (A-D-009). Removing
+  it is necessary but not sufficient — the text child also needs `min-w-0`, or a flex item still refuses
+  to shrink below its content.
+- **Fixed heights must become minimum heights.** Every size today is a fixed `h-6/8/9/10` with
+  `items-center` doing the vertical centring. Text that wraps **cannot** live in a fixed height, so
+  wrapping forces `min-h-*` plus real vertical padding — a change to how the whole size scale is
+  implemented, not a per-variant tweak.
+- **The tooltip may cost Button its atom status.** A Button that composes a Tooltip is no longer a leaf,
+  and `Tooltip` does not exist in our system yet. The alternative is the native `title` attribute, which
+  has no dependency but poor control over timing, styling and touch behaviour.
+
 **A-D-010 · Two behaviours exist only in prose, with no counterpart in the source.** *(Step 2)*
 (1) Tailwind v4 switched buttons from `cursor: pointer` to `cursor: default`, and shadcn does not
 override it — pointer behaviour needs a consumer `@layer base` rule. (2) There is no `loading` prop; the
