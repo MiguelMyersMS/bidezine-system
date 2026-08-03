@@ -103,6 +103,33 @@ The CVA has no state axis because CSS pseudo-classes are free in code. They are 
 each must be drawn. Four states over 48 combinations is **192 variants**. How many states we draw is a
 design-system decision, not an extraction — raised for step 4.
 
+**A-D-022 · Figma authoring rule — cross the axes that interact, sample the ones that don't.**
+*(Owner, 2026-08-03 — resolves A-D-021 / B-O-01)*
+
+Rather than authoring all 192 variant × size × state combinations, group them:
+
+| Group | Axis crossed | Held at default | Count |
+| --- | --- | --- | --- |
+| States per variant | variant × state | size | 6 × 4 = 24 |
+| Size showcase | size | variant, state | 8 |
+| | | *(shared default counted once)* | **≈ 31** |
+
+**The principle, stated so it is reusable on every future component:** cross two axes only when they
+**interact** — when the appearance of one genuinely depends on the other. Sample the rest.
+
+**Why variant × state must be crossed.** Step 3 found the exceptions that make "implicit" wrong:
+`destructive` overrides the focus ring to `ring-destructive/20` (B-O-03); `outline` and `ghost` use a
+structurally different hover treatment (`bg-accent` rather than a tint of their own fill); and three
+variants carry dark-mode-only state rules. Hover on `secondary` cannot be inferred from hover on
+`default`.
+
+**Why size × state need not be.** Size changes geometry only. Hover at `lg` is hover at `sm`, larger —
+drawing it eight times documents nothing new.
+
+**This also mirrors the code more honestly than an exhaustive matrix would.** In CVA, variant and size
+are the real axes and states are CSS rules applied orthogonally. A full 192-cell grid would assert in
+Figma that every combination is a separately designed artefact, which is not what the code says.
+
 **A-D-011 · OWNER REQUIREMENT — Button overflow behaviour.** *(Owner, 2026-08-03)*
 Answers step 2's close-out question on truncation. shadcn has **none** of this; it is a net-new
 capability, so it becomes a step-5 change proposal rather than a step-2 fact.
