@@ -24,14 +24,14 @@
   "destructive": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.704, 0.191, 22.216] } },
   "destructive-foreground": {
     "$type": "color",
-    "$description": "Near-white in dark too — a destructive fill stays red in both themes, so the text on it must stay light. See the light-mode note.",
-    "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] }
+    "$description": "NEAR-BLACK in dark, and this token therefore INVERTS by mode. Measured: the dark destructive fill is #ff6467, a much lighter red than light mode's #e7000b. Near-white on it scores 2.77:1 — a clear WCAG 1.4.3 failure. Near-black scores 6.84:1. My step-5 redefinition checked light (4.57, barely passing) and not dark; this corrects it.",
+    "$value": { "colorSpace": "oklch", "components": [0.145, 0, 0] }
   },
 
   "border": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.1 } },
   "input": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.15 } },
   "ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.556, 0, 0] } },
-  "focus-ring": { "$type": "color", "$description": "`ring` at 50%, dark mode.", "$value": { "colorSpace": "oklch", "components": [0.556, 0, 0], "alpha": 0.5 } },
+  "focus-ring": { "$type": "color", "$description": "`ring` at 50%, dark mode. Dark `ring` (0.556) already measures 4.18:1 against the dark background, so no correction was needed on this side — the failure was light-mode only.", "$value": { "colorSpace": "oklch", "components": [0.556, 0, 0], "alpha": 0.5 } },
 
   "backdrop": {
     "$type": "color",

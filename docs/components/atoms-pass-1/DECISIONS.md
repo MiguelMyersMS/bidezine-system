@@ -76,6 +76,32 @@ freely but at `leading-none`, so wrapped lines have **zero leading** — the lin
 **Input is the only one of the three carrying `min-w-0`,** and so the only one able to shrink in a flex
 parent.
 
+## Step 7 blockers — all resolved by the owner, 2026-08-03 ("fix all")
+
+**A-D-024 · Three measured WCAG failures corrected at the token level.** *(Owner, 2026-08-03)*
+
+| Token | Was | Now | Ratio |
+| --- | --- | --- | --- |
+| `input` (light) | `#e5e5e5` — 1.26:1 | `#959595` | **3.00:1** |
+| `ring` / `focus-ring` (light) | `#a1a1a1` — 2.58:1 | `#898989` | **3.51:1** |
+| `destructive-foreground` (dark) | near-white — 2.77:1 | near-black | **6.84:1** |
+
+All inherited from shadcn's default palette, not caused by anything we changed — **except the third,
+which was my error**: I redefined that token at step 5, verified light, and did not check dark.
+
+Two principles fall out, worth more than the fixes:
+
+- **`input` and `border` are now genuinely different tokens.** `input` is a **control affordance** and
+  is therefore governed by WCAG 1.4.11's 3:1; `border` is decorative and may stay light. shadcn ships
+  both at the same value, which is why the distinction was invisible.
+- **`destructive-foreground` inverts by mode.** The dark destructive fill is a much *lighter* red than
+  the light one, so the text on it must go the other way. A token that inverts is unusual and needs
+  saying out loud, or someone will "correct" it.
+
+**A-D-025 · Button adopts v1's pill radius (`radius-pill`, 99), not shadcn's 8.** *(Owner, 2026-08-03)*
+Consistent with D-027, which took v1's look for the Dialog surface. This is the largest visual
+divergence from shadcn in the system, and it is deliberate: **the pill is the v1 button's identity.**
+
 ## Step 3 — Observations
 
 **A-D-017 · Step 2 signed off; the bare `radius` token removed as part of closing it.** *(Owner, 2026-08-03)*
