@@ -1,7 +1,7 @@
 ---
 pass: atoms-pass-1
 components: Button, Input, Label
-lifecycle: dissecting
+lifecycle: reviewing
 figma-analysis-board: "Atoms 1 · Step 2 — Dissection" (node 40:3)
 sync: pushed
 owner-machine: —
@@ -75,6 +75,33 @@ truncates) + `shrink-0` (cannot be squeezed) leaves overflow as the only possibl
 freely but at `leading-none`, so wrapped lines have **zero leading** — the line box equals the font size.
 **Input is the only one of the three carrying `min-w-0`,** and so the only one able to shrink in a flex
 parent.
+
+## Step 3 — Observations
+
+**A-D-017 · Step 2 signed off; the bare `radius` token removed as part of closing it.** *(Owner, 2026-08-03)*
+Recorded system-wide in `docs/DECISION_LOG.md`.
+
+**A-D-018 · Button contains a raw colour keyword.** *(Step 3, B-O-02)*
+`variant=destructive` sets `text-white` — not `primary-foreground`, not any token. It is the **only
+hard-coded colour across all three components**, and it means destructive button text cannot respond to
+theming. Distinct from the ordinary "no token for this value" gap: this value bypasses the token system
+entirely.
+
+**A-D-019 · Every Button is `type="submit"` inside a form.** *(Step 3, B-O-09)*
+The HTML default, which shadcn does not override. A Cancel button in a dialog form **submits that form**
+unless the consumer remembers `type="button"`. shadcn's own dialog demo does remember — which is
+evidence the trap is real, not theoretical. The failure is silent and the component gives no signal.
+
+**A-D-020 · Input carries the only responsive value in the pass.** *(Step 3, I-O-02)*
+`text-base md:text-sm` — 16px below `md`, 14px above, a deliberate iOS zoom defence. **Figma cannot
+express a value that changes at a breakpoint within one variant**, so any Figma Input documents a single
+viewport unless breakpoint variants are drawn. First case in this project where the two media genuinely
+cannot hold the same truth.
+
+**A-D-021 · Button's real Figma cost is 48 × states.** *(Step 3, B-O-01)*
+The CVA has no state axis because CSS pseudo-classes are free in code. They are not free in Figma, where
+each must be drawn. Four states over 48 combinations is **192 variants**. How many states we draw is a
+design-system decision, not an extraction — raised for step 4.
 
 **A-D-011 · OWNER REQUIREMENT — Button overflow behaviour.** *(Owner, 2026-08-03)*
 Answers step 2's close-out question on truncation. shadcn has **none** of this; it is a net-new
