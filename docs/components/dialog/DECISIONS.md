@@ -1,6 +1,6 @@
 ---
 component: dialog
-lifecycle: comparing
+lifecycle: risk-review
 sync: pushed
 owner-machine: —
 last-updated: 2026-08-03
@@ -174,6 +174,34 @@ v1→v2 mapping table is required, not optional.
 - **R-12** Add 64 to spacing; keep Tailwind naming; publish the v1→v2 mapping table.
 - **R-13** *(open — needs the owner)* Typography: add a **semantic layer on top of** the raw scale,
   rather than choosing between them.
+
+**D-023 · R-07 … R-13 ratified.** *(Owner, 2026-08-03)* Including R-13 — typography gets a **semantic
+layer on top of** the raw scale, not one or the other — and breakpoints keep Tailwind's names. No step-6
+comparison board required.
+
+## Step 7 — Risk review
+
+**D-024 · Two ratified recommendations are NOT value-preserving, and I hid that.** *(Step 7)*
+R-09 (theme-aware elevation) changes the dialog's shadow; R-11 (v1's radius tiers) would take the
+dialog corner from 10px to 18px. Both were framed at step 6 as "adopt v1's answer", which concealed a
+visual consequence inside what read as a naming decision — the exact failure R-02 exists to prevent.
+**Blocks step 8** until the owner chooses: ship value-preserving and change the look separately, or
+adopt v1's look as a deliberate, recorded visual change.
+
+**D-025 · Two MEASURED accessibility failures in the close control.** *(Step 7)*
+
+- **A-1** `muted-foreground` at `opacity-70` over `background` composites to `#9d9d9d` — **2.71:1**
+  against WCAG 1.4.11's 3.0:1 for non-text UI. It only becomes conformant **on hover**, which keyboard
+  and touch users never trigger.
+- **A-2** The close control carries no width/height/padding, so its hit area is its `size-4` icon:
+  **16×16**, against WCAG 2.2 AA 2.5.8's **24×24** minimum. v1's is 32×32 and passes.
+
+Both change the C-06 atom's design, so they must be settled before it is built.
+
+**D-026 · The token pipeline rule and the plan contradict each other.** *(Step 7 — G-3)*
+`TOKEN-PIPELINE.md` says add a token *when a shipping component needs one, never in bulk*. Steps 5–6
+propose ~46+ at once. The justification is real, but the rule as written does not permit it. **Either
+the rule or the practice must change** — leaving it unresolved means the rule stops meaning anything.
 
 ---
 
