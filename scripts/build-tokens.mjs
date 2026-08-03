@@ -41,10 +41,6 @@ function toCss(token, name) {
     }
     case "dimension":
       return `${value.value}${value.unit}`
-    case "fontWeight":
-      return String(value)
-    case "number":
-      return String(value)
     case "fontFamily":
       return (Array.isArray(value) ? value : [value])
         .map((f) => (f.includes(" ") ? `"${f}"` : f))

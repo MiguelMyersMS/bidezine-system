@@ -54,26 +54,4 @@
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
-
-  /*
-   * Type scale. The values deliberately MATCH Tailwind's built-in scale, so
-   * adopting them changes nothing visually — but the source of truth moves from
-   * Tailwind's defaults into our DTCG file, which is what lets Figma read the
-   * same numbers. Each size carries its paired line-height; omitting the pair
-   * would silently drop Tailwind's default leading.
-   */
-  --text-xs: var(--font-size-xs);
-  --text-xs--line-height: var(--line-height-xs);
-  --text-sm: var(--font-size-sm);
-  --text-sm--line-height: var(--line-height-sm);
-  --text-base: var(--font-size-base);
-  --text-base--line-height: var(--line-height-base);
-  --text-lg: var(--font-size-lg);
-  --text-lg--line-height: var(--line-height-lg);
-
-  --font-weight-normal: var(--font-weight-normal);
-  --font-weight-medium: var(--font-weight-medium);
-  --font-weight-semibold: var(--font-weight-semibold);
-
-  --color-backdrop: var(--backdrop);
 }

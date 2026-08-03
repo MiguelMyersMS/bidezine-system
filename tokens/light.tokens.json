@@ -24,12 +24,6 @@
   "destructive": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.577, 0.245, 27.325] } },
   "destructive-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.97, 0.01, 17] } },
 
-  "backdrop": {
-    "$type": "color",
-    "$description": "Dialog/overlay scrim. FIRST demand-driven extension beyond shadcn's set (docs/process/TOKEN-PIPELINE.md): shadcn hard-codes bg-black/50 with no token behind it, so there was nothing to bind Figma's overlay to. Named `backdrop` per the rule to reuse the old DS's name for a distinction it already made (../design-system/src/tokens.ts).",
-    "$value": { "colorSpace": "oklch", "components": [0, 0, 0], "alpha": 0.5 }
-  },
-
   "border": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.922, 0, 0] } },
   "input": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.922, 0, 0] } },
   "ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.708, 0, 0] } }

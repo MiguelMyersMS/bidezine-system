@@ -26,8 +26,6 @@
     "tokens": "node scripts/build-tokens.mjs",
     "prebuild": "npm run tokens",
     "build": "vite build",
-    "predev": "npm run tokens",
-    "dev": "vite --config vite.playground.config.ts",
     "pretypecheck": "npm run tokens",
     "typecheck": "tsc --noEmit",
     "storybook": "storybook dev -p 6006",

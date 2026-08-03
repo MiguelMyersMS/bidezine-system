@@ -6,34 +6,11 @@ export { tokenNames, token, type TokenName } from "./tokens"
 // Utilities
 export { cn } from "./lib/utils"
 
-// Atoms
-export { Button, buttonVariants } from "./ui/button"
-export { Input } from "./ui/input"
-export { Label } from "./ui/label"
-
-// Molecules
-export {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldLegend,
-  FieldSet,
-  FieldTitle,
-} from "./ui/field"
-
-// Organisms
-export {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogOverlay,
-  DialogPortal,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog"
+/*
+ * No components are exported yet — deliberately.
+ *
+ * Components enter this package through the Component Development Protocol
+ * (docs/process/COMPONENT-DEVELOPMENT-PROTOCOL.md). Figma becomes the source of
+ * truth first (Phase A, steps 0-10); code is written to match it afterwards
+ * (Phase B, step 11). Anything exported here before that has skipped the process.
+ */

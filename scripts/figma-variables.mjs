@@ -44,22 +44,10 @@ const FILL_TOKENS = new Set([
 ])
 
 function scopesFor(name, resolvedType) {
-  if (resolvedType === "FLOAT") {
-    if (name.startsWith("radius")) return ["CORNER_RADIUS"]
-    if (name.startsWith("font-size")) return ["FONT_SIZE"]
-    if (name.startsWith("line-height")) return ["LINE_HEIGHT"]
-    if (name.startsWith("font-weight")) return ["FONT_WEIGHT"]
-    throw new Error(`Token "${name}": no FLOAT scope rule.`)
-  }
+  if (resolvedType === "FLOAT") return ["CORNER_RADIUS"]
   if (resolvedType === "STRING") return ["FONT_FAMILY"]
-
-  // Derived alpha steps inherit their base token's role.
-  const base = name.replace(/-\d+$/, "")
-  if (base !== name) return scopesFor(base, "COLOR")
-
   if (name === "ring") return ["STROKE_COLOR", "EFFECT_COLOR"]
   if (name === "border" || name === "input") return ["STROKE_COLOR"]
-  if (name === "backdrop") return ["FRAME_FILL", "SHAPE_FILL"]
   // Note the leading check: bare `foreground` is a text colour too, not just
   // the `*-foreground` pairs.
   if (name === "foreground" || name.endsWith("-foreground")) {
@@ -93,13 +81,8 @@ const variables = []
 
 // Mode-independent tokens: same value in both Figma modes.
 for (const [name, token] of entries(base)) {
-  if (token.$type === "dimension" || token.$type === "fontWeight") {
-    const px =
-      token.$type === "fontWeight"
-        ? token.$value
-        : token.$value.unit === "rem"
-          ? token.$value.value * REM_PX
-          : token.$value.value
+  if (token.$type === "dimension") {
+    const px = token.$value.unit === "rem" ? token.$value.value * REM_PX : token.$value.value
     variables.push({
       name,
       resolvedType: "FLOAT",
@@ -138,44 +121,6 @@ for (const [name, token] of entries(light)) {
     // Carried for eyeballing only; Figma consumes the channels above.
     hex: { light: toHex(l), dark: toHex(d) },
   })
-}
-
-// ── Derived alpha steps ────────────────────────────────────────────────────
-// Computed from each base token's OWN channels, so a step can never drift from
-// its base. Figma-only: Tailwind expresses this natively in code as `bg-x/90`.
-const alphaConfig = JSON.parse(
-  readFileSync(join(root, "tokens", "alpha.config.json"), "utf8")
-)
-const byName = Object.fromEntries(variables.map((v) => [v.name, v]))
-
-for (const [baseName, steps] of Object.entries(alphaConfig)) {
-  if (baseName.startsWith("$")) continue
-  const base = byName[baseName]
-  if (!base) {
-    throw new Error(`alpha.config.json: unknown base token "${baseName}".`)
-  }
-  if (base.resolvedType !== "COLOR") {
-    throw new Error(`alpha.config.json: "${baseName}" is not a colour token.`)
-  }
-
-  for (const { step, usedBy, scopes } of steps) {
-    const name = `${baseName}-${step}`
-    const alpha = step / 100
-    // `bg-input/30` is a FILL even though `input` itself is a stroke token, so a
-    // step may override the role it inherits from its base.
-    variables.push({
-      name,
-      resolvedType: "COLOR",
-      // Same channels as the base; only alpha differs. Multiplied by the base's
-      // own alpha so deriving from an already-translucent token stays correct.
-      light: { ...base.light, a: base.light.a * alpha },
-      dark: { ...base.dark, a: base.dark.a * alpha },
-      scopes: scopes ?? scopesFor(name, "COLOR"),
-      derivedFrom: baseName,
-      usedBy,
-      hex: base.hex,
-    })
-  }
 }
 
 const payload = { collection: "bidezine/tokens", modes: ["Light", "Dark"], variables }
