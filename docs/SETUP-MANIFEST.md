@@ -62,12 +62,16 @@ A full repo sweep found process infrastructure the first pass missed. Added:
   `evidence-*`, `workflows/*`, `lib/*`, `registry-refresh`, `session-brief`, `git-stages`, `run-audits`,
   etc.). **Tied to the legacy architecture — adapt as each skill is activated.** They also need to be
   re-wired as npm scripts in v2's future `package.json` (the legacy `package.json` was intentionally not copied).
-- **`.githooks/`** — `pre-commit`, `pre-push` (install via the legacy `hooks:install` flow when v2 is built).
+- **`.githooks/`** — `pre-commit`, `pre-push`. ⚠️ **Do NOT install yet** — they run legacy audits against
+  the old source and would block commits/pushes until adapted to the v2 build. Inert unless installed.
+- **`docs/process/TEAM-SYNC-DISCIPLINE.md`** — NEW canonical daily-sync guide; wired into all three
+  `.claude/settings.json` hook messages (session start / ~45 min / end).
 - **docs-root method/process docs:** `FACTORY_LINE.md` (read by /session-start), `GIT_WORKFLOW.md`,
   `Ambiguity-in-protocols.md`, `CLOUD_WAVES.md`, `PARALLELISM-AND-UNATTENDED-RUNS.md`,
   `STABLE_READINESS.md`, `interaction-patterns.md`, `icon-protocol.md` (adapt — icon decision pending),
   `FIGMA_MAKE_REFERENCE.md`, `THEME_AND_SURFACES.md`, `THEME_AND_ATOM_SURFACES.md`,
-  `DECISION_LOG.md` + `FOLLOWUPS.md` (**imported with legacy entries — clear/reset for bidezine**).
+  `DECISION_LOG.md` + `FOLLOWUPS.md` (**RESET to fresh bidezine versions 2026-08-02** — legacy entries
+  removed; they were pure design-system history that would have misled `/session-start`).
 - **docs/atomic protocols + templates:** `PROTOCOL.md`, `DEPLOYMENT_VERIFICATION_PROTOCOL.md`,
   `TOKEN_CHANGE_PROPAGATION_PROTOCOL.md`, `_TEMPLATE.lean.spec.md`, `animations/_TEMPLATE.anim.spec.md`.
 - **More templates/guides:** `docs/deploy/_TEMPLATE.deploy.md`, `docs/examples/_TEMPLATE.md`,

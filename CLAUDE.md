@@ -18,8 +18,17 @@ identity: **Laptop A** (Miguel), **Laptop B** (Blair — a helper), and a **PC**
 >   (different components = different files) so you rarely touch the same file at once. This differs from
 >   the legacy `design-system` repo (where Laptop A owned `master` and others used PR branches).
 
-Full sync rules: `docs/process/TWO-LAPTOP-WORKFLOW.md` (read "three machines / shared main" as the current
-model) · cheat sheet: `docs/process/TWO-LAPTOP-CHEAT-SHEET.md` · Figma per-machine: `docs/process/FIGMA-SETUP-PER-LAPTOP.md`.
+**Daily discipline (the 5 habits — read `docs/process/TEAM-SYNC-DISCIPLINE.md`, the canonical guide):**
+(1) PULL before you touch a new area · (2) work ROOM-BY-ROOM, one person per file · (3) commit + PUSH small
+and often · (4) CLAIM your area before you start · (5) PULL again right before you push. **`fetch` only
+checks for updates (changes nothing); `pull` applies them.** To SEE when someone else pushed, enable VS Code
+**`git.autofetch`** once per machine (Settings → search `git.autofetch` → `true`) — the status-bar ↓/↑ then
+shows incoming/outgoing commits. These habits are surfaced automatically at session start, ~every 45 min,
+and at session end via `.claude/settings.json`.
+
+Full sync rules: `docs/process/TEAM-SYNC-DISCIPLINE.md` (canonical) · legacy detail:
+`docs/process/TWO-LAPTOP-WORKFLOW.md` (read "three machines / shared main" as the current model) ·
+Figma per-machine: `docs/process/FIGMA-SETUP-PER-LAPTOP.md`.
 
 ⭐ **Founding decision & method:** read `docs/decisions/ADR-006-shadcn-foundation.md` and
 `docs/process/SHADCN-V2-FOUNDATION-HANDOFF.md` IN FULL before any work — they define this system.
@@ -84,8 +93,13 @@ their portions. Ownership deepens as we rewrite internals room-by-room.
 - **Claude Code** reads this file + `.claude/` (skills, agents, settings). MCP servers (Figma, Google Drive)
   are configured at the account/IDE level and carry over. `.mcp.json` registers the Figma dev MCP.
 - **Copilot/Codex** read `AGENTS.md` + `.github/copilot-instructions.md` (both carry a v2 banner pointing here).
-- **Secrets** (`.env`, `.env.copilot`) never travel through git — recreate them per machine from the
-  `.example` templates.
+- **Secrets** (`.env`, `.env.copilot`) never travel through git. The *values* are shared across all our
+  repos, so on each machine just place a copy of the existing `../design-system/.env` (and `.env.copilot`)
+  into this folder — you're not authoring new secrets, just giving this project its own local copy.
+- ⚠️ **Do NOT install the git hooks yet.** `.githooks/pre-commit` and `pre-push` were copied from the legacy
+  repo and run legacy audits against the old source — installing them (`git config core.hooksPath .githooks`
+  or the old `hooks:install`) would **fail and block your commits/pushes** until they're adapted to the v2
+  build. They are inert unless installed; leave them until v2's build + audits exist.
 
 ## What was copied / adapted / skipped from `design-system`
 

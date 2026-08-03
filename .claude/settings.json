@@ -12,7 +12,7 @@
     "enabled": true,
     "intervalMinutes": 45,
     "breakThresholdMinutes": 10,
-    "message": "Checkpoint: if you've finished something, commit + push it now (two-laptop CHECKPOINT ritual) - don't save it all for end of day."
+    "message": "CHECKPOINT (3 machines on main): if you've finished something, commit + PUSH it now - don't save it all for end of day. Before starting a NEW area, PULL first. Stay ROOM-BY-ROOM (one person per file) to avoid conflicts. Guide: docs/process/TEAM-SYNC-DISCIPLINE.md"
   },
   "hooks": {
     "SessionStart": [
@@ -23,7 +23,7 @@
             "shell": "bash",
             "statusMessage": "Syncing with GitHub (ARRIVE ritual)...",
             "timeout": 30,
-            "command": "git fetch --all --prune 2>&1; echo ---; git pull --ff-only 2>&1; echo ---; git status 2>&1"
+            "command": "git fetch --all --prune 2>&1; echo ---; git pull --ff-only 2>&1; echo ---; git status 2>&1; echo ---; echo 'TEAM DISCIPLINE (3 machines on main): PULL before you touch a new area | work ROOM-BY-ROOM (one person per file) | commit+PUSH small & often | PULL again right before you push. Turn on VS Code git.autofetch to see the down-arrow when others push. Full guide: docs/process/TEAM-SYNC-DISCIPLINE.md'"
           }
         ]
       }
@@ -36,7 +36,7 @@
             "shell": "bash",
             "statusMessage": "Checking for uncommitted/unpushed work...",
             "timeout": 10,
-            "command": "dirty=$(git status --porcelain); ahead=$(git rev-list --count @{u}..HEAD 2>/dev/null || echo 0); if [ -n \"$dirty\" ] || [ \"$ahead\" -gt 0 ]; then msg=\"Uncommitted or unpushed work here - commit + push before leaving this laptop (LEAVE ritual: docs/process/TWO-LAPTOP-WORKFLOW.md).\"; printf '{\"systemMessage\": \"%s\"}' \"$msg\"; fi"
+            "command": "dirty=$(git status --porcelain); ahead=$(git rev-list --count @{u}..HEAD 2>/dev/null || echo 0); if [ -n \"$dirty\" ] || [ \"$ahead\" -gt 0 ]; then msg=\"LEAVE ritual - uncommitted or unpushed work here. Commit + PUSH before you step away, or the other machines (Laptop A / B / PC) can't see it. Then it's safe to leave. Discipline guide: docs/process/TEAM-SYNC-DISCIPLINE.md\"; printf '{\"systemMessage\": \"%s\"}' \"$msg\"; fi"
           }
         ]
       }
