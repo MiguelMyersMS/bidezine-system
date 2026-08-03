@@ -102,6 +102,41 @@ Two principles fall out, worth more than the fixes:
 Consistent with D-027, which took v1's look for the Dialog surface. This is the largest visual
 divergence from shadcn in the system, and it is deliberate: **the pill is the v1 button's identity.**
 
+## Step 9 — Iteration 1 (icons + icon-aware padding)
+
+**A-D-026 · Icons are Fluent UI System Icons, always.** *(Owner, 2026-08-03)*
+Same rule as v1: `docs/icon-protocol.md` already governs it — fill-based inline SVG, Regular + Filled
+duality for interactive icons, fetched from `microsoft/fluentui-system-icons`. The placeholder squares
+built at step 8 are **replaced**; the sample glyph is **Folder Multiple**
+(`ic_fluent_folder_multiple_20_regular`).
+
+**A-D-027 · Button gains icon slots and v1's per-side padding compensation.** *(Owner, 2026-08-03)*
+An enhancement taken from v1, because **shadcn has no equivalent**.
+
+shadcn's rule is `has-[>svg]:px-3` — it reduces padding **uniformly** whenever *any* svg is present.
+That unbalances a button with only ONE icon: the bare-text side loses padding it still needs.
+
+v1's rule (EX-BUTTON-001) is **per side**: a side WITH a container drops the +8px that a bare-text side
+keeps, because the slot's own 6px already holds the label off the edge. Verified in the build:
+
+| `icons` | padding-left | padding-right |
+| --- | --- | --- |
+| `none` | 16 | 16 |
+| `start` | **8** | 16 |
+| `end` | 16 | **8** |
+| `both` | **8** | **8** |
+
+Slots sit **flush** to the label (`itemSpacing: 0`), exactly as v1 does — the spacing is the slot's
+internal padding, not a gap. Getting that wrong would double-count the space.
+
+`icons` is a **variant axis** rather than a boolean property, because Figma cannot vary auto-layout
+padding from a boolean. Crossed with variant and size per the instantiation test (A-D-023): a designer
+will place a `secondary` `lg` button with a leading icon. 6 × 4 × 4 = **96**.
+
+**Not yet built:** the **loading** state. v1 treats the spinner as its *own* 28px container — separate
+from the icons, placed left or right, and it does **not** replace an icon, so a side can hold both. It
+therefore needs the same per-side padding treatment and is the next iteration, not a variant of this one.
+
 ## Step 3 — Observations
 
 **A-D-017 · Step 2 signed off; the bare `radius` token removed as part of closing it.** *(Owner, 2026-08-03)*
