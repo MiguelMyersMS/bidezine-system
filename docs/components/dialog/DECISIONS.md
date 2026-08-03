@@ -98,7 +98,27 @@ it is one shadcn did not notice. Adding `radius-xxs` brings a stray literal unde
 **D-014 · Step 3 signed off.** *(Owner, 2026-08-03)* Observation list accepted as complete; no
 observation disputed.
 
-### Recommendations awaiting ratification (step 4 outputs, not yet decided)
+**D-015 · R-01 … R-06 all ratified.** *(Owner, 2026-08-03)* Including R-04 — the **`provider` tier is
+added** to the taxonomy. Owner deferred to the recommendation; the reasoning is in `04-review.md` Q4 and
+the decision is recorded system-wide in `docs/DECISION_LOG.md`, since it governs every Radix root,
+portal and context provider, not just Dialog.
+
+## Step 5 — Adjustments
+
+**D-016 · Step 5 proposals must be SHOWN in Figma, not only described.** *(Owner, 2026-08-03 — CDP §2)*
+Owner's words: *"I hope to see the real components assembled in Figma to provide real feedback on what
+to change — I cannot do it before."* A spacing ramp or a type ramp is a **visual artifact**; proposing
+eight of them as numbers in a markdown table asks the owner to simulate a rendering mentally and approve
+it unseen, and an approval given that way is not a real approval. Step 5 now produces both the written
+proposal and a Figma **proposal board** — drawn, not components, so it can be rejected cheaply.
+
+**D-017 · Nothing in the step-5 proposal is invented.** *(Step 5)*
+Every value is labelled `[observed]` (used by Dialog today, must be preserved) or `[extracted]` (a step
+of the Tailwind scale the component already sits on). Where a scale would need invention to be
+complete — z-index, icon sizing, content width — it is **left incomplete and flagged** rather than
+padded out, per R-01.
+
+### Recommendations ratified 2026-08-03 (see D-015)
 
 - **R-01** Build scales only for genuine foundations; treat Dialog-only values (512 width, zoom-95,
   the `calc(100%-2rem)` inset) as component decisions, not scales derived from one data point.

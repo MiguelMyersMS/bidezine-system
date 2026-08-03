@@ -113,6 +113,31 @@ Every proposed adjustment states plainly **which tokens it requires** and whethe
 that does not exist is raised here, under the demand-driven rule in `TOKEN-PIPELINE.md` — never invented
 mid-build at step 8.
 
+#### Step 5 proposals must be SHOWN, not just described
+
+*(Added 2026-08-03. The owner's words: "I hope to see the real components assembled in Figma to provide
+real feedback on what to change — I cannot do it before.")*
+
+A spacing ramp, a type ramp, a shadow ramp: these are **visual artifacts**. Proposing them as numbers in
+a markdown table asks the owner to simulate a rendering in their head and approve it sight-unseen — and
+an approval given that way is not a real approval. It is the same error as putting prose on the Figma
+canvas, in the opposite direction.
+
+So step 5 produces **two** artifacts:
+
+| Artifact | Contains |
+|---|---|
+| `05-adjustments.md` | The proposal, its rationale, and the full token impact |
+| **Figma proposal board** | Every proposed scale **rendered at real size**, plus **the component redrawn with the proposal applied**, beside the current state for comparison |
+
+**This is not step 8 arriving early.** The board is a drawn proposal — plain frames and text, no
+`COMPONENT` nodes — exactly like the step 2 board. What makes step 8 different is that it produces the
+real, instantiable component set. The step 5 board exists to be *rejected cheaply*.
+
+**Value-preserving still applies.** Where a proposal preserves the current rendering (the normal case
+per R-02), the board should say so explicitly, so the owner can tell apart "this is the same pixel, now
+named" from "this is a change."
+
 ### Step 7 — Risk review: accessibility is a named lens
 
 Contrast, target size, focus visibility, keyboard reachability, and motion are checked explicitly at
