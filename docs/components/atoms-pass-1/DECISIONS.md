@@ -1,7 +1,8 @@
 ---
 pass: atoms-pass-1
 components: Button, Input, Label
-lifecycle: scoped
+lifecycle: dissecting
+figma-analysis-board: "Atoms 1 · Step 2 — Dissection" (node 40:3)
 sync: pushed
 owner-machine: —
 last-updated: 2026-08-03
@@ -53,3 +54,30 @@ never needed as a distinct part.
 **A-D-006 · Button's sections carry more detail than the others, deliberately.** *(Step 0)*
 It is a 6 × 8 CVA matrix against a single class string each. The known cost of batching is glossing the
 largest component; this is the mitigation.
+
+**A-D-007 · Truncation and wrapping is a required lens on text elements.** *(Owner, 2026-08-03)*
+v1 specifies truncate-vs-wrap behaviour on text elements, so every text-bearing part is dissected for
+it. Applied at step 2 §4.1, with visual evidence on the Figma board.
+
+## Step 2 — Dissect
+
+**A-D-008 · Correction: Radix Label does almost nothing.** *(Step 2)*
+In the reverted pre-protocol `src/ui/label.tsx` I wrote that Radix Label *"wires the label→control
+association and forwards clicks to the control."* **Wrong.** That is the native `<label htmlFor>`; the
+browser does it. Radix Label's entire implementation is one `onMouseDown` handler that calls
+`preventDefault()` when `detail > 1` — it stops a double-click selecting the label text. shadcn also
+applies `select-none`, which already prevents selection by CSS.
+
+**A-D-009 · Neither Button nor Label has any truncation strategy.** *(Step 2, per A-D-007)*
+Measured on the board: a "Save all changes and close" button is **213px inside a 200px container — 23px
+of overflow.** `whitespace-nowrap` (never wraps) + no `overflow-hidden`/`text-ellipsis` (never
+truncates) + `shrink-0` (cannot be squeezed) leaves overflow as the only possible outcome. Label wraps
+freely but at `leading-none`, so wrapped lines have **zero leading** — the line box equals the font size.
+**Input is the only one of the three carrying `min-w-0`,** and so the only one able to shrink in a flex
+parent.
+
+**A-D-010 · Two behaviours exist only in prose, with no counterpart in the source.** *(Step 2)*
+(1) Tailwind v4 switched buttons from `cursor: pointer` to `cursor: default`, and shadcn does not
+override it — pointer behaviour needs a consumer `@layer base` rule. (2) There is no `loading` prop; the
+documented pattern is a `<Spinner />` child carrying `data-icon="inline-start|inline-end"` for spacing,
+a convention that appears nowhere in `button.tsx`. Both are invisible to anyone reading only the code.
