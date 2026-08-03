@@ -137,6 +137,29 @@ will place a `secondary` `lg` button with a leading icon. 6 × 4 × 4 = **96**.
 from the icons, placed left or right, and it does **not** replace an icon, so a side can hold both. It
 therefore needs the same per-side padding treatment and is the next iteration, not a variant of this one.
 
+**A-D-028 · Text below an input is NOT a Label.** *(Raised by the owner, 2026-08-03)*
+
+Three different things sit around a field, distinguished by what they do for assistive technology —
+not by where they appear:
+
+| | Position | ARIA | Announced as |
+| --- | --- | --- | --- |
+| **Label** | above / beside | `aria-labelledby` | the field's **name**, always |
+| **Description / hint** | below | `aria-describedby` | supplementary, after a pause |
+| **Error** | below | `aria-describedby` + `role="alert"` | interrupts |
+
+Confusing them produces a field whose accessible name is *"Must be at least 8 characters"* and no
+actual name. Both systems agree on the split, differently: shadcn ships three components
+(`Label`, `FieldDescription`, `FieldError`); v1's `TextInput` takes them as three props
+(`label`, `hint`, `error`).
+
+**Neither Description nor Error exists in our system yet — both are Field's parts**, and Field is the
+next pass. Carried there.
+
+*(The question arose because the Atoms page had the Label set positioned directly below the Input set,
+which read as composition. Layout corrected in Figma; component sets now sit side by side with
+on-canvas headings, since a set's name is visible in Figma's UI but vanishes in a screenshot.)*
+
 ## Step 3 — Observations
 
 **A-D-017 · Step 2 signed off; the bare `radius` token removed as part of closing it.** *(Owner, 2026-08-03)*
