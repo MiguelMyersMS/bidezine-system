@@ -4,7 +4,7 @@ lifecycle: dissecting
 sync: pushed
 owner-machine: —
 last-updated: 2026-08-03
-figma-analysis-board: "Dialog · Step 2 — Dissection" (node 27:3)
+figma-analysis-board: "Dialog · Step 2 — Dissection" (node 28:2)
 ---
 
 # Dialog — Decision Log
@@ -48,6 +48,22 @@ mean describing that behaviour from memory. Permitted as the component's own dep
 **D-007 · shadcn's prose docs are permitted, but marked.** *(Owner, 2026-08-03)*
 Source is primary. Observations drawn from prose are tagged `[prose]` so step 4 can weigh a documented
 intention differently from an observed fact.
+
+## Step 2 — Dissect
+
+**D-008 · The Figma board shows the thing, not the write-up.** *(Owner, 2026-08-03 — protocol updated)*
+The first board restated the markdown on the canvas: part-tree text, state tables, a behaviour panel.
+Rejected. Markdown holds the words; **Figma holds the actual organism, molecules and atoms, drawn as
+they really look, annotated with the tokens behind each value** — font, size, weight, colour, gap,
+padding, radius, border, shadow. Where no token supplies a value it is marked **NO TOKEN**, because
+that gap is itself a finding and feeds step 5's token-impact analysis. Recorded in CDP §2.
+
+**D-009 · Token coverage of Dialog is 6 of 27 values.** *(Step 2, observed)*
+Covered: `background` · `border` · `radius-lg` · `foreground` · `muted-foreground` · `ring` · `accent`.
+Uncovered: every spacing value, every font size and weight, line-height, shadow, the overlay fill,
+opacity, widths, icon size, and `rounded-xs` (2px — below our smallest radius step). The 26 tokens we
+hold are colour and radius only: there is no spacing scale, no typography scale, no shadow scale and no
+sizing scale. Recorded as fact at step 2; what to do about it is step 3/5.
 
 ---
 

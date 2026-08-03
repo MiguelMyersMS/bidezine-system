@@ -70,6 +70,25 @@ is the failure this protocol was written to stop.
 **What is dissected:** the shadcn component **exactly as it is, in its current form, as-is.** Not an
 idealised version, not ours, not a merge. The vendored source in `reference/shadcn-ui/` is the subject.
 
+#### Division of labour: markdown holds the words, Figma holds the thing
+
+*(Added 2026-08-03 after the first run put the written inventories on the canvas.)*
+
+| Artifact | Contains | Does **not** contain |
+| --- | --- | --- |
+| **`02-anatomy.md`** | All written analysis — the part tree, the three inventories, prop tables, ARIA, behaviour, source citations | — |
+| **Figma board** | The **actual organism, molecules and atoms, drawn as they really look**, each annotated with the **tokens it uses**: font, size, weight, colour, gap, padding, radius, border, shadow | Prose. Bullet lists. Behaviour panels. Anything already written in the markdown |
+
+**Do not restate the markdown on the canvas.** Figma's job at step 2 is to make the component *visible*
+— the real thing at real size, decomposed by atomic level, with every value labelled either with the
+token that supplies it or with an explicit **NO TOKEN** marker where none exists.
+
+That annotation is not decoration: the gaps it exposes are the raw material for step 3's observations
+and step 5's token-impact analysis. A value with no token behind it is a finding.
+
+**Still not components.** Drawn representations are plain frames and text. No `COMPONENT` nodes, no
+variant sets, no component properties — those are step 8.
+
 **Three inventories, all required** — a part is not dissected until all three are documented:
 
 1. **Structure** — every element, wrapper, slot, and data-attribute; the auto-layout/box model; the
