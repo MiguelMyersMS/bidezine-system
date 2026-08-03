@@ -1,0 +1,20 @@
+#!/bin/sh
+# Evidence gate — LOCAL ADVISORY push backstop (WARN only).
+#
+# Reads COMMITTED blobs (via --range), not the working tree, so it can't be fooled by
+# checking out clean content before pushing. Still advisory: the authoritative lock is
+# the server-side CI check. See docs/evidence/RED-TEAM-2026-06-23.md.
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ -z "$local_sha" ] && continue
+  case "$local_sha" in *0000000000000000000000000000000000000000) continue ;; esac
+  if echo "$remote_sha" | grep -qE '^0+$'; then
+    base=$(git rev-parse origin/master 2>/dev/null || git rev-list --max-parents=0 "$local_sha" | tail -n1)
+  else
+    base="$remote_sha"
+  fi
+  node scripts/audit-evidence.js --range "$base..$local_sha" || {
+    echo "⚠ evidence gate (push, advisory): unverified component change(s) in $base..$local_sha — record evidence before this lands on master."
+  }
+done
+exit 0

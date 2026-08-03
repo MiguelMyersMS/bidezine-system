@@ -53,3 +53,31 @@ copied, adapted, skipped, or referenced-in-place, and adjust it.
 ## 🔗 Referenced in place (sibling, never edited from here)
 
 - `../design-system` — legacy specs, registry, patterns, and Figma files, read for reference/harvest.
+
+## Addendum — second pass (exhaustive audit, 2026-08-02)
+
+A full repo sweep found process infrastructure the first pass missed. Added:
+
+- **`scripts/` (65 files, wholesale)** — the engine the skills/waves actually invoke (`audit-*`,
+  `evidence-*`, `workflows/*`, `lib/*`, `registry-refresh`, `session-brief`, `git-stages`, `run-audits`,
+  etc.). **Tied to the legacy architecture — adapt as each skill is activated.** They also need to be
+  re-wired as npm scripts in v2's future `package.json` (the legacy `package.json` was intentionally not copied).
+- **`.githooks/`** — `pre-commit`, `pre-push` (install via the legacy `hooks:install` flow when v2 is built).
+- **docs-root method/process docs:** `FACTORY_LINE.md` (read by /session-start), `GIT_WORKFLOW.md`,
+  `Ambiguity-in-protocols.md`, `CLOUD_WAVES.md`, `PARALLELISM-AND-UNATTENDED-RUNS.md`,
+  `STABLE_READINESS.md`, `interaction-patterns.md`, `icon-protocol.md` (adapt — icon decision pending),
+  `FIGMA_MAKE_REFERENCE.md`, `THEME_AND_SURFACES.md`, `THEME_AND_ATOM_SURFACES.md`,
+  `DECISION_LOG.md` + `FOLLOWUPS.md` (**imported with legacy entries — clear/reset for bidezine**).
+- **docs/atomic protocols + templates:** `PROTOCOL.md`, `DEPLOYMENT_VERIFICATION_PROTOCOL.md`,
+  `TOKEN_CHANGE_PROPAGATION_PROTOCOL.md`, `_TEMPLATE.lean.spec.md`, `animations/_TEMPLATE.anim.spec.md`.
+- **More templates/guides:** `docs/deploy/_TEMPLATE.deploy.md`, `docs/examples/_TEMPLATE.md`,
+  `docs/evidence/GUIDE.md` + `README.md`, `docs/followups/MOLECULE-FEEDBACK-CHECKLIST.md`,
+  `tasks/TASK_TEMPLATE.md`.
+- **`sync/` multi-agent SYSTEM files** (`PROTOCOL`, `ROLES`, `STOP_CONDITIONS`, `README`, `INSTALL`,
+  `HANDOFF`, `REVIEW`) — the governor/implementor ledger templates. Instance ledgers (RAILNAV, SELECT) and
+  `sync/history/` were left as reference.
+
+Still deliberately excluded (reference in `../design-system`): `src/`, `app/` (demo), `dist-browser`,
+`.storybook`, `tests/`, `docs/evidence/*` (1,639 instance captures), `docs/atomic/*` instance specs,
+`docs/audits/*`, `docs/registry/*`, `docs/migrations|proposals|qa|patterns|infra|_archive`,
+`prompts/consumer-build/*`, `docs/actionmenu-figma-spec.md`, `docs/ROADMAP.md`, `CHANGELOG.md`.

@@ -1,0 +1,17 @@
+#!/bin/sh
+# Evidence gate — LOCAL ADVISORY (WARN only).
+#
+# The AUTHORITATIVE lock is the server-side CI check (.github/workflows/evidence.yml),
+# which runs over committed blobs from the trusted base ref and cannot be skipped by
+# --no-verify or `git config --unset core.hooksPath`. This local hook only surfaces
+# problems early. It does NOT block — blocking locally before the one-command capture
+# (mechanism A) exists would just push the owner to disable hooks (the abandonment trap).
+# See docs/evidence/README.md and docs/evidence/RED-TEAM-2026-06-23.md.
+
+node scripts/audit-evidence.js --staged || {
+  echo ""
+  echo "⚠ evidence gate (advisory): the staged change above has no fresh, passing bundle."
+  echo "  This is a WARNING, not a block. The server-side CI check is the real gate."
+  echo "  Clear it honestly with:  npm run evidence:record <slug>"
+}
+exit 0
