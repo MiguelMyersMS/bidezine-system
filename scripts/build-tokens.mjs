@@ -78,9 +78,32 @@ function toCss(token, name) {
   }
 }
 
+/**
+ * A `typography` composite cannot be one CSS variable, so it expands into one
+ * variable per sub-property. The composite still lives in the source as a single
+ * named role — which is what makes the Figma text style and the CSS agree.
+ */
+function expandTypography(name, token) {
+  const v = token.$value
+  const fam = (Array.isArray(v.fontFamily) ? v.fontFamily : [v.fontFamily])
+    .map((f) => (f.includes(" ") ? `"${f}"` : f))
+    .join(", ")
+  return [
+    `  --${name}-font-family: ${fam};`,
+    `  --${name}-font-size: ${dim(v.fontSize)};`,
+    `  --${name}-line-height: ${dim(v.lineHeight)};`,
+    `  --${name}-font-weight: ${v.fontWeight};`,
+    `  --${name}-letter-spacing: ${dim(v.letterSpacing)};`,
+  ].join("\n")
+}
+
 const block = (doc) =>
   entries(doc)
-    .map(([name, token]) => `  --${name}: ${toCss(token, name)};`)
+    .map(([name, token]) =>
+      token.$type === "typography"
+        ? expandTypography(name, token)
+        : `  --${name}: ${toCss(token, name)};`
+    )
     .join("\n")
 
 const base = read("base")
@@ -121,7 +144,15 @@ ${block(dark)}
 `
 
 // ── Emit typed tokens ──────────────────────────────────────────────────────
-const allNames = [...entries(base).map(([n]) => n), ...lightNames]
+// A typography composite has no single CSS variable, so the typed surface lists
+// its five sub-properties instead — matching exactly what the CSS emits.
+const TYPO_PARTS = ["font-family", "font-size", "line-height", "font-weight", "letter-spacing"]
+const allNames = [
+  ...entries(base).flatMap(([n, t]) =>
+    t.$type === "typography" ? TYPO_PARTS.map((p) => `${n}-${p}`) : [n]
+  ),
+  ...lightNames,
+]
 
 const ts = `${banner}
 

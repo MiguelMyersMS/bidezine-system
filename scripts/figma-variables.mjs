@@ -28,7 +28,9 @@ const read = (name) =>
 const entries = (doc) => Object.entries(doc).filter(([k]) => !k.startsWith("$"))
 
 const REM_PX = 16
-const toPx = (d) => (d.unit === "rem" ? d.value * REM_PX : d.value)
+/** rem -> px; em -> percent (Figma expresses tracking as a % of font size). */
+const toPx = (d) =>
+  d.unit === "rem" ? d.value * REM_PX : d.unit === "em" ? d.value * 100 : d.value
 
 /**
  * Figma variable scopes by token role. Lives here, not in the push script, so a
@@ -54,6 +56,7 @@ function scopesFor(name, type) {
     if (name.startsWith("font-size-")) return ["FONT_SIZE"]
     if (name.startsWith("line-height-")) return ["LINE_HEIGHT"]
     if (name.startsWith("font-weight-")) return ["FONT_WEIGHT"]
+    if (name.startsWith("tracking-")) return ["LETTER_SPACING"]
     if (name.startsWith("stroke-")) return ["STROKE_FLOAT"]
     if (name.startsWith("opacity-")) return ["OPACITY"]
     throw new Error(`Token "${name}": no FLOAT scope rule.`)
@@ -109,8 +112,10 @@ for (const [name, t] of entries(base)) {
       break
     }
     case "cubicBezier":
-      unsupported.push({ name, type: t.$type, reason: "Figma has no representation for an easing curve." })
+      unsupported.push({ name, type: t.$type, reason: "Figma has no representation for an easing curve. Enforced in code only." })
       break
+    case "typography":
+      break // handled below, as text styles
     default:
       throw new Error(`Token "${name}": unhandled $type "${t.$type}" in base.`)
   }
@@ -166,11 +171,47 @@ for (const [name, t] of entries(light)) {
   effectStyles.push({ name, layers })
 }
 
+// ── Typography composites → Figma text styles ──────────────────────────────
+// Figma text styles carry family, size, leading, weight and tracking, so a
+// typography role maps almost exactly. What a text style CANNOT carry is colour —
+// which is why `lead` and `muted` lose their muted-foreground here and keep it as
+// a separate token applied at use.
+const WEIGHT_TO_INTER_STYLE = {
+  400: "Regular", 500: "Medium", 600: "Semi Bold", 700: "Bold", 800: "Extra Bold",
+}
+
+const textStyles = []
+for (const [name, t] of entries(base)) {
+  if (t.$type !== "typography") continue
+  const v = t.$value
+  const style = WEIGHT_TO_INTER_STYLE[v.fontWeight]
+  if (!style) throw new Error(`Token "${name}": no Inter style for weight ${v.fontWeight}.`)
+  const mono = String(v.fontFamily[0]).includes("mono")
+  textStyles.push({
+    name,
+    family: mono ? "Roboto Mono" : "Inter",
+    style,
+    fontSize: toPx(v.fontSize),
+    lineHeight: toPx(v.lineHeight),
+    // em -> percent: Figma expresses tracking as a percentage of the font size,
+    // which is the same thing em is.
+    letterSpacingPercent: v.letterSpacing.unit === "em" ? v.letterSpacing.value * 100 : 0,
+    boundSize: `font-size-${sizeTokenFor(toPx(v.fontSize))}`,
+  })
+}
+
+/** Map a px size back to the raw-scale token that carries it, for binding. */
+function sizeTokenFor(px) {
+  const map = { 12: "xs", 14: "sm", 16: "base", 18: "lg", 20: "xl", 24: "2xl", 30: "3xl", 36: "4xl" }
+  return map[px] ?? null
+}
+
 const payload = {
   collection: "bidezine/tokens",
   modes: ["Light", "Dark"],
   variables,
   effectStyles,
+  textStyles,
   unsupported,
 }
 
