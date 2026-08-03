@@ -143,6 +143,41 @@ named" from "this is a change."
 Contrast, target size, focus visibility, keyboard reachability, and motion are checked explicitly at
 step 7 (draw on the `a11y-audit` skill). Cheap here, expensive after build.
 
+### Batching: when components may share one pass
+
+*(Added 2026-08-03.)*
+
+> **Components may share a single CDP pass only if none of them composes another.**
+
+Running a full pass per component is ~10 stops each, which becomes the bottleneck once a slice needs
+several. Components with **no composition relationship** — three independent atoms, say — can be carried
+through the same steps together, with a clearly separated section per component in every artifact.
+
+**What batching does not change.** Every step still runs, every step still stops, and the fence still
+holds. Three components are reviewed *together at each stop*, not fewer times.
+
+**Why the composition test is the right one.** A molecule cannot be honestly reviewed while its atoms
+are unsettled (D-001). Batching a molecule with its own atoms would mean reviewing a composition and
+its parts in the same breath, which is the failure the bottom-up order exists to prevent.
+
+**The known cost:** a batched artifact can gloss over the component that deserved most attention —
+typically the largest. Where one component in a batch is substantially bigger, its sections carry
+proportionally more detail, deliberately.
+
+### The fence is per-pass — and does not cover already-adopted system decisions
+
+*(Added 2026-08-03, clarifying a case the original wording did not anticipate.)*
+
+The v1 fence **resets for every pass**: v1 is closed again from step 0 of a new component, even if a
+previous component has already reached step 6.
+
+But it covers **v1's components and their specs** — not system-level decisions we have *already
+adopted* from v1 in an earlier pass. Once a v1 scale has been migrated into our token source, it is
+**ours**, and pretending not to know it during a later pass would be theatre rather than independence.
+
+The distinction: the fence exists so our analysis of *a component* is formed before we see v1's answer
+for *that component*. It was never meant to un-decide settled system architecture.
+
 ### Step 9 — Exit condition
 
 The 3–8 loop exits when **a review round produces no new blocking observations AND the owner signs off.**
