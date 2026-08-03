@@ -7,7 +7,7 @@
 
 ## Open
 
-- [step 6] v1 has **three** input-ish components — `TextInput`, `InputTrigger`, `InputTriggerCompact` —
+- [RESOLVED at step 9 — see A-D-029] v1 has **three** input-ish components — `TextInput`, `InputTrigger`, `InputTriggerCompact` —
   where shadcn has one `Input`. Which is the true counterpart is a step-6 question, and the answer
   matters: I am contaminated on `InputTrigger` but not on `TextInput`, so if `TextInput` is the real
   counterpart, Input's comparison may be less compromised than A-D-004 assumes.

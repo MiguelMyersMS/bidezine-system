@@ -160,6 +160,41 @@ next pass. Carried there.
 which read as composition. Layout corrected in Figma; component sets now sit side by side with
 on-canvas headings, since a set's name is visible in Figma's UI but vanishes in a screenshot.)*
 
+**A-D-029 · CORRECTION — my step 6 under-compared Input, and it cost two states.** *(Owner challenge, 2026-08-03)*
+
+The owner asked whether the dissection had really pulled the relevant information, pointing at shadcn's
+live Input docs. **Verified against the live page:** it matches our vendored copy exactly — the same 16
+sections, the same three named states (disabled, invalid, required), no props table, and the word
+"active" appears nowhere on it. The step-2 dissection was accurate: **shadcn's Input genuinely has four
+visual states.**
+
+**But step 6 was thin.** I compared Input to v1 *architecturally* — "v1 has no Input, `TextInput` bundles
+label + hint + error" — and never enumerated `TextInput`'s **states**. It has six:
+
+| | border | background |
+| --- | --- | --- |
+| default | `border` | surface |
+| **hover** | `borderStrong` | surface |
+| focus | `accent` | surface |
+| **readOnly** | `border` | `bg` |
+| disabled | `border` | `bgSubtle` |
+| error | `statusRed` | surface |
+
+**`hover` and `readOnly` are v1's and shadcn has neither.** `readOnly` I had never mentioned in any
+step. Input rebuilt with all six.
+
+**This also corrects A-D-004's contamination claim.** I declared Input heavily contaminated by v1's
+`InputTrigger` six-state model (`empty` · `active` · `hasValue` · `activeHasValue` · `disabled` ·
+`error`). But `InputTrigger` is a **closed-state trigger**, not a text field — Input's real counterpart
+is `TextInput`, whose states are different and contain no `hasValue` at all. The contamination was
+about the wrong component.
+
+**The step-0 parking lot predicted exactly this** ("which of the three v1 input components is the true
+counterpart… matters, because I am contaminated on InputTrigger but not on TextInput"). It was right,
+and I did not act on it at step 6.
+
+`hasValue` is therefore deliberately **not** a state of our Input.
+
 ## Step 3 — Observations
 
 **A-D-017 · Step 2 signed off; the bare `radius` token removed as part of closing it.** *(Owner, 2026-08-03)*
