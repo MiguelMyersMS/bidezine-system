@@ -1,6 +1,6 @@
 ---
 component: dialog
-lifecycle: risk-review
+lifecycle: paused-at-step-7
 sync: pushed
 owner-machine: —
 last-updated: 2026-08-03
@@ -202,6 +202,33 @@ Both change the C-06 atom's design, so they must be settled before it is built.
 `TOKEN-PIPELINE.md` says add a token *when a shipping component needs one, never in bulk*. Steps 5–6
 propose ~46+ at once. The justification is real, but the rule as written does not permit it. **Either
 the rule or the practice must change** — leaving it unresolved means the rule stops meaning anything.
+
+### Step 7 blockers — all five resolved by the owner, 2026-08-03
+
+**D-027 · Follow v1's look. Recorded as a deliberate visual change, not tokenisation.**
+The v2 dialog takes v1's radius (`RADIUS.container`, **18px**, not shadcn's 10px) and v1's theme-aware
+elevation. This is option (b) from `07-risks.md` §1: R-02 is not violated, because the change is being
+made **knowingly and on the record** rather than smuggled inside a rename.
+
+**D-028 · A-1 contrast — drop `opacity-70` as the rest mechanism.**
+The close icon gets a colour that clears 3:1 at full opacity; hover is expressed with opacity or a
+background tint instead. Fixes the 2.71:1 failure at rest.
+
+**D-029 · A-2 target size — follow v1: 32×32 hit area, 16px icon.**
+Clears WCAG 2.2 AA 2.5.8's 24×24 minimum. Sets the dimensions of the C-06 atom.
+
+**D-030 · Token rule amended: migrating a v1 scale is not "bulk adding".**
+`TOKEN-PIPELINE.md` now distinguishes **invention** (still demand-driven, still one component at a
+time) from **migration** of a scale v1 already designed and proved in a shipped product. A scale
+adopted piecemeal is worse than one adopted whole — it produces a ramp with holes that get filled
+ad-hoc later, which is the very drift the rule guards against. Adoption is *not* a licence to round out
+a v1 scale with steps v1 never had.
+
+**D-031 · Dialog PAUSES at step 7. Atoms go first.**
+Button, Input, Label and Field each run their own CDP pass before Dialog reaches step 8, so the
+assembled modal form is real rather than a shell with a placeholder. Consistent with D-001's
+bottom-up loop order: a molecule cannot be honestly reviewed while its atoms are unsettled, and an
+organism cannot be assembled from parts that do not exist.
 
 ---
 

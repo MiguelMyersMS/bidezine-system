@@ -6,7 +6,7 @@
 
 ## The shape of it
 
-```
+```text
 tokens/*.tokens.json      ← THE SOURCE. Hand-edited. DTCG 2025.10.
         │
         │  npm run tokens   (scripts/build-tokens.mjs)
@@ -23,6 +23,7 @@ Tailwind utilities        ← bg-background, text-muted-foreground, border-borde
 can never lag the source.
 
 **Two hard rules:**
+
 1. **Never hand-edit `src/styles/tokens.css` or `src/tokens.ts`.** They carry a
    generated banner. Edits are overwritten on the next build.
 2. **Never add a CSS custom property directly to a stylesheet.** It would exist at
@@ -79,6 +80,30 @@ When you hit a distinction the current set can't express:
    documentation instead of requiring a translation table.
 5. **Map it in `@theme inline`** in `src/styles/system.css` if it should produce a
    Tailwind utility.
+
+### Exception: migrating an established scale from v1
+
+*(Added 2026-08-03, resolving the contradiction raised at `docs/components/dialog/07-risks.md` G-3.)*
+
+The demand-driven rule above governs tokens **we invent**. It does not govern **scales v1 already
+designed and proved in a shipped application** — spacing, typography, radius, z-index, motion,
+elevation and breakpoints in `../design-system/src/{layout,tokens,status}.ts`.
+
+Those may be adopted **whole**, in one move, because:
+
+- they are **not speculative** — the risk the rule guards against is inventing tokens nobody needs, and
+  a scale that has been carrying a real product for a year is the opposite of speculative;
+- a scale adopted **piecemeal is worse than one adopted whole.** Taking three steps of a ramp because
+  three components happened to need them produces a ramp with holes, and the holes get filled later by
+  whoever hits them first — which is exactly the ad-hoc drift the rule exists to prevent;
+- the alternative is re-deriving, component by component, a system that already exists.
+
+**The rule that still binds:** a value that exists in *neither* v1 nor the component being built is an
+invention, and invention still requires a shipping component to demand it. Adoption is not a licence to
+round out a v1 scale with steps v1 never had.
+
+Every adopted scale records **where it came from** in `docs/DECISION_LOG.md`, so a later reader can tell
+a migrated decision from a new one.
 
 ### Why the rule exists
 
