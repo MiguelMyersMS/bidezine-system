@@ -106,6 +106,28 @@ As specified:
   and `Tooltip` does not exist in our system yet. The alternative is the native `title` attribute, which
   has no dependency but poor control over timing, styling and touch behaviour.
 
+**A-D-012 · Overflow behaviour is selected by a single `lines` prop.** *(Owner, 2026-08-03)*
+`lines={1}` truncates to one line · `lines={n}` clamps to n lines and truncates the remainder ·
+`lines="auto"` wraps unbounded. One axis rather than several booleans.
+
+**A-D-013 · The tooltip appears on hover ONLY when the text is actually truncated.** *(Owner, 2026-08-03)*
+Applies to any truncated state, single-line or clamped — not to unbounded wrap, where nothing is cut.
+**Implementation note:** "only when truncated" cannot be expressed in CSS; it requires measuring
+`scrollWidth > clientWidth` (or the clamped equivalent) at runtime and on resize.
+
+**A-D-014 · Button does NOT compose Tooltip. The dependency is recorded, not built.** *(Owner, 2026-08-03)*
+Tooltip is its own element and gets its own CDP pass in its turn. **Button therefore keeps its atom
+status** (resolving the concern in A-D-011). Until Tooltip exists, the truncation tooltip is a
+**documented, deferred dependency** — Button ships truncation without it, and the tooltip is wired when
+Tooltip lands. This must not be silently dropped: it is the whole reason truncation is acceptable, since
+truncating text with no way to read it is a content-loss bug.
+
+**A-D-015 · Icon-only sizes are unaffected by A-D-011.** *(Owner, 2026-08-03)*
+`icon` · `icon-xs` · `icon-sm` · `icon-lg` have no text to truncate or wrap.
+
+**A-D-016 · Button carries the full 6 × 8 matrix through to step 8.** *(Owner, 2026-08-03)*
+No reduced set proposed at step 5.
+
 **A-D-010 · Two behaviours exist only in prose, with no counterpart in the source.** *(Step 2)*
 (1) Tailwind v4 switched buttons from `cursor: pointer` to `cursor: default`, and shadcn does not
 override it — pointer behaviour needs a consumer `@layer base` rule. (2) There is no `loading` prop; the
