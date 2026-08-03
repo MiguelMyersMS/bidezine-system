@@ -1,11 +1,35 @@
 # shadcn-Foundation ("v2") — Founding Plan & Laptop-A Handoff
 
-**Status:** Proposed — awaiting Miguel's go + one decision (site scope, see §10)
+**Status:** **Accepted and in progress** — all §13 decisions resolved; per-component sequence now
+governed by the CDP (see the banner below). Last reconciled with reality: 2026-08-03.
 **Authored:** 2026-08-02 by Blair on **Laptop B**, for **Miguel on Laptop A** to execute.
-**Branch:** `feat/shadcn-foundation` (Laptop B never commits to `master` — this is a PR branch).
+**Branch:** merged to `main`. *(The original plan named `feat/shadcn-foundation`; this repo settled on
+all three machines working `main` directly — see CLAUDE.md.)*
 **Companion artifact:** a Figma reference-guide frame on the **atoms Page** of the *Single shape*
 file (see §11). This markdown is the text twin of that frame.
 **Founding decision record:** `docs/decisions/ADR-006-shadcn-foundation.md`.
+
+> ## ⚠️ SUPERSEDED IN PART — read this first (2026-08-03)
+>
+> This document remains the **founding plan**: the four-axis decision, the build-step consequence, dual
+> source of truth, the MIT position, and the phase model (§7) all still stand.
+>
+> **What no longer applies: the per-component sequence.** §12 Step 4 lays out a six-move golden path
+> (pull → map → author Figma → bind → re-skin → verify) that describes *what to produce* but says
+> nothing about *pace* — and in practice it was read as a checklist to run start-to-finish. Component
+> work is now governed by **`docs/process/COMPONENT-DEVELOPMENT-PROTOCOL.md` (CDP)**, which:
+>
+> - stops after **every** step for owner review, and forbids skipping, merging or reordering;
+> - **separates analysis from build** — the Figma map at CDP step 2 is documentation, and CDP step 8 is
+>   the only step that authors components;
+> - **fences the v1 design system until CDP step 6**, so our own answer is formed before v1's is seen.
+>
+> Where this document and the CDP disagree on **how component work proceeds, the CDP wins.**
+> Where they disagree on **what the foundation is**, this document and ADR-006 win.
+>
+> A factual correction to §8 from CDP step 2 is noted inline there.
+
+---
 
 > **One-line summary.** We stop building the design system from scratch (currently ~4% done) and
 > instead **start a fresh "v2" on shadcn/ui's modern foundation** (Tailwind/CVA styling + CSS-variable
@@ -93,7 +117,7 @@ make building the normal path. **CLAUDE.md Rule #1 gets rewritten** (and with it
   asking permission. We can put **our own license** on v2 (even proprietary), sell it, keep it closed —
   as long as that third-party notice stays.
 - **Trademark, not copyright, is the only real limit:** we can't market v2 *as* "shadcn." We're
-  `@miguel/design-system`, so this is already a non-issue.
+  `@bidezine/system`, so this is already a non-issue.
 - **Ownership deepens automatically.** Re-skinning makes the *look* ours now; rewriting a component's
   internals room-by-room sheds even the notice on that part over time. We choose the endpoint later.
 
@@ -139,6 +163,15 @@ Code Connect** at once is a **modal form**:
 > **Dialog** *(organism)* → containing a **Field / Input / Label** *(molecule + atoms)* → with
 > **Button** *(atom)* actions.
 
+**⚠️ Factual correction (CDP step 2, 2026-08-03).** The word "containing" above is wrong. Dissection of
+`dialog.tsx` shows it imports **only** `Button`, `XIcon`, `cn` and the Radix primitive. `Field`, `Input`
+and `Label` are **passed in by the consumer as children** — Dialog does not compose them. A modal form
+is Dialog **used with** a form, not Dialog **made of** one.
+
+This does not invalidate the slice: it still walks all three atomic levels and still exercises nested
+Code Connect. But the nesting it proves is **composition-by-usage**, not composition-by-import, and the
+two bind differently. Evidence: `docs/components/dialog/02-anatomy.md` §1.1–1.2.
+
 What it proves:
 - **Atoms** — Button (rich CVA variant matrix → tests variant extraction), Input, Label
 - **Molecule** — Field / form-row (composes Label + Input → tests composition + registry-graph classification)
@@ -170,7 +203,11 @@ the rest — expect a *separate* mini-slice for each): **Chart** (Recharts/D3), 
 
 ---
 
-## 10. ⚠️ DECISION NEEDED FROM MIGUEL — site scope
+## 10. ✅ RESOLVED — site scope
+
+> **Answered (b): the entire site.** `reference/shadcn-ui/` holds the whole vendored repo — all 63
+> registry components, the docs content, examples, blocks and style themes. Question kept below for
+> the record.
 
 **Question:** For the `reference/shadcn-ui/` copy, do we want **(a) only the Components**, or **(b) the
 entire site from the repo** — Home, Docs, Components, Blocks, Charts, Discovery, Typeset, and Create —
@@ -206,6 +243,19 @@ in its current form, **plus any future updates** if/when they land upstream?
 
 Execute in order. Each step is a natural commit point (push small + often — two-laptop rule).
 
+> **Live status (2026-08-03).** Steps 0–2 are **done and standing**. Step 3 was done, then largely
+> **reverted**. Step 4 is **replaced** by the CDP — see below. Steps 5–6 not started.
+>
+> | Step | State |
+> | --- | --- |
+> | 0 · Scope question | ✅ answered — entire site vendored |
+> | 1 · Reference folder | ✅ `reference/shadcn-ui/`, `THIRD-PARTY-LICENSES.md`, fenced out of the package |
+> | 2 · v2 foundation | ✅ **kept** — Vite library build → `dist/`, DTCG source + three emitters, Tailwind v4 entry (`b95dea0`, `b5d6c87`) |
+> | 3 · Extraction | ⚠️ **partly reverted** (`12b997d`) — see note below |
+> | 4 · Golden path | 🔄 **superseded by the CDP** |
+> | 5 · Retrospective | ⬜ becomes CDP step 10 |
+> | 6 · Slice #2 | ⬜ not started |
+
 **Step 0 — Get current & answer the scope question.**
 - In the VSC integrated terminal: `git fetch origin` → `git checkout feat/shadcn-foundation` → `git pull`.
 - Read this whole doc + the Figma frame (§11).
@@ -217,7 +267,8 @@ Execute in order. Each step is a natural commit point (push small + often — tw
 - Clone shadcn into `reference/shadcn-ui/` (scope per §10). Keep its `LICENSE`; add root
   `THIRD-PARTY-LICENSES` / `NOTICE`.
 - Fence it out of the package: `package.json` `files` allowlist + `.npmignore` + tsconfig excludes so
-  it never ships in `@miguel/design-system`.
+  it never ships in `@bidezine/system`. *(Package name corrected 2026-08-03 — the draft said
+  `@miguel/design-system`, which is v1's name.)*
 - Confirm it opens/browses (live `ui.shadcn.com` for casual browsing; the clone for study).
 
 **Step 2 — Stand up the v2 foundation.**
@@ -230,19 +281,42 @@ Execute in order. Each step is a natural commit point (push small + often — tw
 - Extract only what the modal-form slice needs: tokens (→ DTCG), the CVA variant matrices for
   Button/Field/Input/Label/Dialog, and the registry dependency sub-graph for those components.
 
+> **⚠️ Partly reverted (2026-08-03, `12b997d`).** The colour and radius extraction **stands** — 26
+> tokens, a faithful extraction of shadcn's own contract, in the DTCG source and in Figma. The
+> typography scale and derived alpha steps were **removed**: they were authored as decisions rather
+> than extracted, and one of them (typography) was invented while v1's settled `TYPE` system sat
+> unexamined. Extraction beyond colour and radius now happens **per component**, at CDP step 5's
+> token-impact check, with v1 opening at CDP step 6.
+
 **Step 4 — Golden path: the modal-form slice, end-to-end.**
-1. Pull `dialog`, `field` (or `form`), `input`, `label`, `button` from shadcn into v2.
-2. Map to atomic levels + tokens (from Step 3).
-3. **Figma (Phase 2):** author the modal-form at all three levels via `/figma-generate-library`, tokens
-   as Figma Variables.
-4. **Bind (Phase 3):** `/figma-code-connect` for each of the 5 components (test nested binding on Dialog).
-5. **Re-skin (Phase 4):** replace shadcn styling with our tokens.
-6. **Verify:** run the slice through `/evidence-pipeline` (behavior contract tests per ADR-005 — the
-   Dialog focus trap/escape/portal must be *behaviorally* verified, not assumed).
+
+> **🔄 SUPERSEDED by `docs/process/COMPONENT-DEVELOPMENT-PROTOCOL.md`.**
+>
+> The six moves below are still the right *outputs*. What they lacked was any constraint on **pace**,
+> and in practice they were run as a checklist straight through to a finished component — analysis,
+> review and comparison compressed into assumptions made mid-build. The whole slice was reverted.
+>
+> The CDP keeps these outputs and puts them in a governed order:
+>
+> | Old Step 4 move | Now |
+> | --- | --- |
+> | 1 · Pull the components into v2 | CDP **step 8** (build) — and only after steps 0–7 |
+> | 2 · Map to atomic levels + tokens | CDP **step 2** (dissect) — documentation, not components |
+> | 3 · Author in Figma | split: analysis map at CDP **step 2**, real components at CDP **step 8** |
+> | 4 · Code Connect bind | CDP **step 8**, after the component exists |
+> | 5 · Re-skin to our tokens | CDP **steps 5–6** decide it, CDP **step 8** applies it |
+> | 6 · Verify via `/evidence-pipeline` | CDP **Phase B step 14** — Figma ↔ code ↔ behavioural spec |
+>
+> Two rules the old sequence had no place for: **v1 is fenced until CDP step 6**, and **every step
+> stops for owner review**.
+>
+> First run: `docs/components/dialog/`.
 
 **Step 5 — Retrospective & protocol updates.**
 - Capture what actually broke/changed; update CLAUDE.md (Rule #1, styling, tokens, GR4) and the three
   new protocols (§11). File follow-ups in `docs/followups/`.
+
+> **Now CDP step 10**, which runs per component rather than once for the whole slice.
 
 **Step 6 — Slice #2 (Combobox), then fan out.**
 - Repeat for Combobox; then fan out demand-driven (top-down), parallelizing with workflow/agent tooling.
@@ -250,18 +324,27 @@ Execute in order. Each step is a natural commit point (push small + often — tw
 
 ---
 
-## 13. Open decisions still outstanding
+## 13. Open decisions — all four now resolved (2026-08-03)
 
-1. **§10 site scope** — Miguel to answer (a/b). *(Blair: b)*
-2. **Golden path confirm** — modal-form slice first, Combobox second. *(Recommended; Miguel confirm)*
-3. **Reference storage** — vendored `reference/shadcn-ui/` folder. *(Recommended over submodule for
-   3-machine simplicity — no extra commands, no conflicts)*
-4. **v2 location** — new folder/repo vs in-place `src-v2/`? *(Recommend a clean v2 surface; current
-   system becomes legacy/harvest per PRIMITIVES-FIRST §9/§11)*
+1. **§10 site scope** — ✅ **(b), the entire site.** Vendored in full.
+2. **Golden path confirm** — ✅ **confirmed**, and now run under the CDP. Dialog is the trial, decomposed
+   to its molecules and atoms, every part stepped through. Combobox remains slice #2.
+3. **Reference storage** — ✅ **vendored folder**, as recommended. Committed, read-only, no submodule.
+4. **v2 location** — ✅ **its own repo** (`bidezine-system`), not `src-v2/` inside v1. v1 is a sibling
+   folder, read-only from here.
+
+**Newer open questions live per component**, in `docs/components/<slug>/PARKING-LOT.md` and the
+step-4 question lists — not here. This section is closed.
 
 ---
 
 ## 14. Two-laptop / three-machine handoff — how Miguel picks this up
+
+> **📎 HISTORICAL.** This describes the one-time Laptop B → Laptop A handoff, which happened on
+> 2026-08-02. The branch it names no longer exists; all three machines now work `main` directly
+> (CLAUDE.md). Kept for the record. **To pick up current work, read
+> `docs/process/COMPONENT-DEVELOPMENT-PROTOCOL.md` and the live component folder under
+> `docs/components/`.**
 
 Blair (Laptop B) pushes `feat/shadcn-foundation`. Then, on **Laptop A**, Miguel does two things:
 
