@@ -64,7 +64,7 @@ function scopesFor(name, type) {
 
   // COLOR
   if (name.startsWith("shadow-")) return ["EFFECT_COLOR"]
-  if (name === "ring") return ["STROKE_COLOR", "EFFECT_COLOR"]
+  if (name === "ring" || name === "focus-ring") return ["STROKE_COLOR", "EFFECT_COLOR"]
   if (name === "border" || name === "input") return ["STROKE_COLOR"]
   if (name === "foreground" || name.endsWith("-foreground")) return ["TEXT_FILL", "SHAPE_FILL"]
   if (FILL_TOKENS.has(name)) return ["FRAME_FILL", "SHAPE_FILL"]

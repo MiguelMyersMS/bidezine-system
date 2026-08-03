@@ -22,11 +22,16 @@
   "accent-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] } },
 
   "destructive": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.704, 0.191, 22.216] } },
-  "destructive-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.58, 0.22, 27] } },
+  "destructive-foreground": {
+    "$type": "color",
+    "$description": "Near-white in dark too — a destructive fill stays red in both themes, so the text on it must stay light. See the light-mode note.",
+    "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] }
+  },
 
   "border": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.1 } },
   "input": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.15 } },
   "ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.556, 0, 0] } },
+  "focus-ring": { "$type": "color", "$description": "`ring` at 50%, dark mode.", "$value": { "colorSpace": "oklch", "components": [0.556, 0, 0], "alpha": 0.5 } },
 
   "backdrop": {
     "$type": "color",
