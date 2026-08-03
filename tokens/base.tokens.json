@@ -1,10 +1,5 @@
 {
   "$description": "Mode-independent tokens. DTCG 2025.10 (ADR-001). Source of truth — emits src/styles/tokens.css + src/tokens.ts via `npm run tokens`. DO NOT hand-write CSS variables.",
-  "radius": {
-    "$type": "dimension",
-    "$description": "Base corner radius. The step scale below is authored explicitly rather than derived with calc() in CSS — Figma Variables cannot express calc(), so a derived scale would exist in CSS only and Figma would need hand-entered numbers that silently drift. Explicit steps keep one source for both.",
-    "$value": { "value": 0.625, "unit": "rem" }
-  },
   "radius-sm": {
     "$type": "dimension",
     "$description": "0.6x base.",
@@ -17,7 +12,7 @@
   },
   "radius-lg": {
     "$type": "dimension",
-    "$description": "1.0x base. Dialog surface.",
+    "$description": "10px — the anchor of the scale, which runs x0.2 / 0.4 / 0.6 / 0.8 / 1.0 / 1.4 of this value. A bare `radius` token duplicating it was REMOVED 2026-08-03: the steps are authored explicitly (Figma Variables cannot express calc(), so a derived scale would live in CSS only and Figma would need hand-entered numbers that silently drift), which left the base with nothing to compute and no consumer. See docs/DECISION_LOG.md.",
     "$value": { "value": 0.625, "unit": "rem" }
   },
   "radius-xl": {

@@ -25,6 +25,14 @@
   (A-D-009), and so will any text-bearing part. Whether this becomes a shared primitive or is
   re-specified per component is a step-5 question.
 
+- [adopting Input Group / Sonner] **Those two shadcn components reference the bare `--radius` we just
+  removed**, and would silently break: `input-group.tsx` uses `rounded-[calc(var(--radius)-5px)]` in
+  three places, and `sonner.tsx` sets `"--border-radius": "var(--radius)"`. An undefined var inside
+  `calc()` invalidates the whole declaration, so the corner would fall back to square with no error.
+  Both are the arbitrary-value escape hatch **R-06 already decided not to adopt**, so they need
+  re-expressing as tokens regardless. Worth noting the calc resolves to **5px** — a value in neither our
+  scale (4, 6) nor shadcn's own steps.
+
 ## Picked up
 
 - None yet.

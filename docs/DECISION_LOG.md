@@ -47,6 +47,14 @@
   If naming and changing happen in one move, a visual regression cannot be attributed to either. The
   tokenisation diff must be reviewable by inspection: same pixels, new names.
 
+- **2026-08-03 — The bare `radius` token is removed; `radius-lg` is the anchor** (`active`). Owner
+  decision. In shadcn, `--radius` is the single knob the whole ramp derives from via `calc()`. We author
+  the steps **explicitly** — Figma Variables cannot express `calc()`, so a derived scale would live in
+  CSS only and Figma would need hand-entered numbers that silently drift — which left `--radius` with
+  nothing to compute and no consumer. Verified before removing: nothing in our source referenced it.
+  Tokens 26 → 25 in both the DTCG source and Figma. Origin:
+  `docs/components/atoms-pass-1/` step-2 close-out.
+
 ## Pending
 
 - **T2 — Foundation scales beyond colour and radius are unbuilt.** Spacing, typography, shadow, stroke
