@@ -24,6 +24,12 @@
   "destructive": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.704, 0.191, 22.216] } },
   "destructive-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.58, 0.22, 27] } },
 
+  "backdrop": {
+    "$type": "color",
+    "$description": "Dialog/overlay scrim. Heavier in dark, matching the old DS's light 0.40 / dark 0.60 split.",
+    "$value": { "colorSpace": "oklch", "components": [0, 0, 0], "alpha": 0.6 }
+  },
+
   "border": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.1 } },
   "input": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.15 } },
   "ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.556, 0, 0] } }

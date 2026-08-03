@@ -34,5 +34,63 @@
     "$type": "fontFamily",
     "$description": "Monospace stack for code and tabular figures.",
     "$value": ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"]
+  },
+
+  "font-size-xs": {
+    "$type": "dimension",
+    "$description": "12px. Button size=xs.",
+    "$value": { "value": 0.75, "unit": "rem" }
+  },
+  "font-size-sm": {
+    "$type": "dimension",
+    "$description": "14px. The workhorse: labels, buttons, inputs, descriptions.",
+    "$value": { "value": 0.875, "unit": "rem" }
+  },
+  "font-size-base": {
+    "$type": "dimension",
+    "$description": "16px. FieldLegend variant=legend.",
+    "$value": { "value": 1, "unit": "rem" }
+  },
+  "font-size-lg": {
+    "$type": "dimension",
+    "$description": "18px. DialogTitle.",
+    "$value": { "value": 1.125, "unit": "rem" }
+  },
+
+  "line-height-xs": {
+    "$type": "dimension",
+    "$description": "16px, paired with font-size-xs.",
+    "$value": { "value": 1, "unit": "rem" }
+  },
+  "line-height-sm": {
+    "$type": "dimension",
+    "$description": "20px, paired with font-size-sm.",
+    "$value": { "value": 1.25, "unit": "rem" }
+  },
+  "line-height-base": {
+    "$type": "dimension",
+    "$description": "24px, paired with font-size-base.",
+    "$value": { "value": 1.5, "unit": "rem" }
+  },
+  "line-height-lg": {
+    "$type": "dimension",
+    "$description": "28px, paired with font-size-lg.",
+    "$value": { "value": 1.75, "unit": "rem" }
+  },
+
+  "font-weight-normal": {
+    "$type": "fontWeight",
+    "$description": "400. Body and descriptions.",
+    "$value": 400
+  },
+  "font-weight-medium": {
+    "$type": "fontWeight",
+    "$description": "500. Labels and button text.",
+    "$value": 500
+  },
+  "font-weight-semibold": {
+    "$type": "fontWeight",
+    "$description": "600. DialogTitle.",
+    "$value": 600
   }
 }
