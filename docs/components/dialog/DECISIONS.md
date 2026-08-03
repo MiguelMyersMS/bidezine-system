@@ -84,6 +84,35 @@ The board tagged `DialogTitle`'s colour as covered by `foreground`. `dialog.tsx`
 at all** — it inherits. The genuinely referenced colour tokens are `background`, `border`, `ring`,
 `accent`, `muted-foreground`.
 
+## Step 4 — Review & plan
+
+**D-013 · The radius scale gains `xxs` (2px) and `xs` (4px).** *(Owner, 2026-08-03)*
+Resolves O-11. Extends the existing arithmetic rather than bolting on: the scale becomes ×0.2, 0.4,
+0.6, 0.8, 1.0, 1.4 of the 10px base → 2 · 4 · 6 · 8 · 10 · 14.
+
+Related discovery: shadcn's `@theme` defines `--radius-sm` through `--radius-4xl` but **no
+`--radius-xs`**. The close control's `rounded-xs` was therefore never resolving through shadcn's radius
+system at all — it fell through to Tailwind's raw `0.125rem` default. It is not a value shadcn chose;
+it is one shadcn did not notice. Adding `radius-xxs` brings a stray literal under management.
+
+**D-014 · Step 3 signed off.** *(Owner, 2026-08-03)* Observation list accepted as complete; no
+observation disputed.
+
+### Recommendations awaiting ratification (step 4 outputs, not yet decided)
+
+- **R-01** Build scales only for genuine foundations; treat Dialog-only values (512 width, zoom-95,
+  the `calc(100%-2rem)` inset) as component decisions, not scales derived from one data point.
+- **R-02** Tokenising is **value-preserving**; changing a value is a separate explicit decision. Keeps
+  the diff reviewable — otherwise a regression cannot be attributed to the rename or the change.
+- **R-03** `DialogTrigger` / `DialogClose` are **code-only**, excluded from the Figma library but still
+  documented. Nothing visual exists to bind.
+- **R-04** Add a **provider** tier to the taxonomy for parts that render no DOM (`Dialog`,
+  `DialogPortal`). System-wide: it recurs on every Radix root, portal and context provider.
+- **R-05** Support the **modal contract only** for now. `modal={false}` is a different behavioural
+  contract under the same name. A documentation stance, not a code restriction.
+- **R-06** Adopt from shadcn: `data-slot`, `asChild`, `forceMount`, and the ARIA-wiring mechanism.
+  Do **not** adopt arbitrary-value escape hatches. Backend choice stays parked (ADR-006 chose Radix).
+
 ---
 
 ## Prior decisions inherited from before the protocol
