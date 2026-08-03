@@ -1,0 +1,24 @@
+# Git hooks are executed by sh — they MUST stay LF or they break with $'\r' errors.
+.githooks/** text eol=lf
+
+# The generated browser UMD bundle is a build artifact — pin it to LF so line-ending conversion
+# on Windows/autocrlf can't create phantom diffs on the committed bundle across platforms. (Its
+# freshness gate hashes SOURCE, not these bytes, so this is purely to keep the artifact diff-clean.)
+dist-browser/** text eol=lf
+
+# Evidence-protocol example JSON dumps are sha256-pinned (figma-layout.rawDumpSha256 must
+# equal sha256(figma-raw.json bytes)). On Windows with core.autocrlf=true, a checkout without
+# this rule silently rewrites LF -> CRLF, changing the bytes and tripping EX.FIGMA-RAW-TAMPERED
+# even though nothing was actually tampered with. Force LF so the hash binding survives checkout
+# on any platform/autocrlf setting.
+docs/examples/**/*.json text eol=lf
+
+# Audit + registry artifacts are written by Node (always LF) but were checked out as CRLF under
+# core.autocrlf=true. An LF-over-CRLF rewrite makes `git status` report " M" while `git diff` prints
+# NOTHING — invisible dirt that does not self-heal (clearing it with `git checkout --` re-arms it).
+# Combined with the idempotent-write guard (writeJsonIfChanged, 2026-08-02) nothing ever rewrites an
+# unchanged artifact, so without this pin the CRLF copies would stay permanently "modified" with no
+# path back to clean. Note `*` does not cross `/`, so these patterns do NOT match the sha256-pinned
+# docs/audits/_evidence/** or docs/examples/**/*.json above.
+docs/audits/*.json text eol=lf
+docs/registry/*.json text eol=lf

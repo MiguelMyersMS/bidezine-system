@@ -1,0 +1,31 @@
+{
+  "$description": "Dark-mode semantic colours → .dark. Values are shadcn/ui's own, unmodified. Must declare exactly the same token names as light.tokens.json — the emitter fails the build on any mismatch.",
+
+  "background": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.145, 0, 0] } },
+  "foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] } },
+
+  "card": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.205, 0, 0] } },
+  "card-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] } },
+
+  "popover": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.205, 0, 0] } },
+  "popover-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] } },
+
+  "primary": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.922, 0, 0] } },
+  "primary-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.205, 0, 0] } },
+
+  "secondary": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.269, 0, 0] } },
+  "secondary-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] } },
+
+  "muted": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.269, 0, 0] } },
+  "muted-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.708, 0, 0] } },
+
+  "accent": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.371, 0, 0] } },
+  "accent-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] } },
+
+  "destructive": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.704, 0.191, 22.216] } },
+  "destructive-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.58, 0.22, 27] } },
+
+  "border": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.1 } },
+  "input": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.15 } },
+  "ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.556, 0, 0] } }
+}

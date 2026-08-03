@@ -1,0 +1,19 @@
+{
+  "$description": "Mode-independent tokens, mirroring shadcn/ui's own theme. DTCG 2025.10. Source of truth — emits src/styles/tokens.css + src/tokens.ts via `npm run tokens`. Never hand-write a CSS variable.\n\nOnly what shadcn defines lives here. Spacing, typography, opacity, breakpoints and shadows are Tailwind defaults and need no token until something actually demands one.",
+
+  "radius": {
+    "$type": "dimension",
+    "$description": "Base corner radius. shadcn derives the steps below from this with calc(); we author them explicitly because the values also have to be readable by tooling that has no calc().",
+    "$value": { "value": 0.625, "unit": "rem" }
+  },
+  "radius-sm": { "$type": "dimension", "$description": "0.6x base.", "$value": { "value": 0.375, "unit": "rem" } },
+  "radius-md": { "$type": "dimension", "$description": "0.8x base.", "$value": { "value": 0.5, "unit": "rem" } },
+  "radius-lg": { "$type": "dimension", "$description": "1.0x base.", "$value": { "value": 0.625, "unit": "rem" } },
+  "radius-xl": { "$type": "dimension", "$description": "1.4x base.", "$value": { "value": 0.875, "unit": "rem" } },
+  "radius-2xl": { "$type": "dimension", "$description": "1.8x base.", "$value": { "value": 1.125, "unit": "rem" } },
+  "radius-3xl": { "$type": "dimension", "$description": "2.2x base.", "$value": { "value": 1.375, "unit": "rem" } },
+  "radius-4xl": { "$type": "dimension", "$description": "2.6x base.", "$value": { "value": 1.625, "unit": "rem" } },
+
+  "font-sans": { "$type": "fontFamily", "$value": ["ui-sans-serif", "system-ui", "sans-serif"] },
+  "font-mono": { "$type": "fontFamily", "$value": ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"] }
+}

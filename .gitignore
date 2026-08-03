@@ -1,0 +1,42 @@
+node_modules/
+dist/
+
+# GENERATED from tokens/*.tokens.json by scripts/build-tokens.mjs.
+# Not committed: three machines share `main`, and a generated file would conflict
+# on every token change in addition to its own source. `pretokens` hooks on the
+# dev/build/typecheck scripts regenerate them. See docs/process/TOKEN-PIPELINE.md.
+src/styles/tokens.css
+src/tokens.ts
+storybook-static/
+.wrangler/
+test-results/
+.env
+.env.*
+!.env.example
+!.env.copilot.example
+*.tgz
+
+# Generated reports
+*.report.pdf
+
+# .claude — track only shared machinery, not per-machine local config
+.claude/*
+!.claude/skills/
+!.claude/agents/
+!.claude/settings.json
+!.claude/commands/
+
+# Scratch / temp
+tmp/
+scratchpad/
+scratch_img.*
+.reseal-needed
+
+# Per-machine editor/agent config — must NOT travel between machines
+.vscode/
+
+# Vendored shadcn reference — keep the SOURCE, ignore any build artifacts inside it
+reference/shadcn-ui/**/node_modules/
+reference/shadcn-ui/**/dist/
+reference/shadcn-ui/**/.next/
+reference/shadcn-ui/**/.turbo/

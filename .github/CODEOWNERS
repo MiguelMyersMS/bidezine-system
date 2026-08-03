@@ -1,0 +1,18 @@
+# Enforcement paths — the evidence lock's own source of truth.
+#
+# These files DEFINE what "verified" means and how it is enforced. A change here can
+# disarm the whole system, so they require explicit owner review. Agents must not be
+# able to weaken the gate in the same PR that ships an unverified component.
+#
+# For this to bite, enable on the master branch protection rule:
+#   "Require review from Code Owners"  (GitHub > Settings > Branches > master)
+# Without that setting, CODEOWNERS is advisory only.
+
+/.githooks/                         @miguelmyers
+/scripts/audit-evidence.js          @miguelmyers
+/scripts/evidence-record.js         @miguelmyers
+/scripts/lib/evidence.js            @miguelmyers
+/scripts/run-audits.js              @miguelmyers
+/.github/workflows/                 @miguelmyers
+/.github/CODEOWNERS                 @miguelmyers
+/docs/evidence/exemptions.json      @miguelmyers
