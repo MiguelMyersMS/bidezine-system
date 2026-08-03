@@ -2,8 +2,28 @@
   "$description": "Mode-independent tokens. DTCG 2025.10 (ADR-001). Source of truth — emits src/styles/tokens.css + src/tokens.ts via `npm run tokens`. DO NOT hand-write CSS variables.",
   "radius": {
     "$type": "dimension",
-    "$description": "Base corner radius. Tailwind's --radius-sm/md/lg/xl derive from this in system.css.",
+    "$description": "Base corner radius. The step scale below is authored explicitly rather than derived with calc() in CSS — Figma Variables cannot express calc(), so a derived scale would exist in CSS only and Figma would need hand-entered numbers that silently drift. Explicit steps keep one source for both.",
     "$value": { "value": 0.625, "unit": "rem" }
+  },
+  "radius-sm": {
+    "$type": "dimension",
+    "$description": "0.6x base.",
+    "$value": { "value": 0.375, "unit": "rem" }
+  },
+  "radius-md": {
+    "$type": "dimension",
+    "$description": "0.8x base. Buttons, inputs.",
+    "$value": { "value": 0.5, "unit": "rem" }
+  },
+  "radius-lg": {
+    "$type": "dimension",
+    "$description": "1.0x base. Dialog surface.",
+    "$value": { "value": 0.625, "unit": "rem" }
+  },
+  "radius-xl": {
+    "$type": "dimension",
+    "$description": "1.4x base.",
+    "$value": { "value": 0.875, "unit": "rem" }
   },
   "font-sans": {
     "$type": "fontFamily",
