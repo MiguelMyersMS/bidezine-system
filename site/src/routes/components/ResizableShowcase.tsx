@@ -3,7 +3,73 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
+
+const examples: ShowcaseExample[] = [
+  {
+    label: "Demo",
+    render: () => (
+      <ResizablePanelGroup orientation="horizontal" className="max-w-sm rounded-lg border">
+        <ResizablePanel defaultSize="50%">
+          <div className="flex h-[200px] items-center justify-center p-6">
+            <span className="font-semibold">One</span>
+          </div>
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel defaultSize="50%">
+          <ResizablePanelGroup orientation="vertical">
+            <ResizablePanel defaultSize="25%">
+              <div className="flex h-full items-center justify-center p-6">
+                <span className="font-semibold">Two</span>
+              </div>
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize="75%">
+              <div className="flex h-full items-center justify-center p-6">
+                <span className="font-semibold">Three</span>
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    ),
+    code: `<ResizablePanelGroup orientation="horizontal" className="max-w-sm rounded-lg border">
+  <ResizablePanel defaultSize="50%">
+    <div className="flex h-[200px] items-center justify-center p-6">
+      <span className="font-semibold">One</span>
+    </div>
+  </ResizablePanel>
+  <ResizableHandle withHandle />
+  <ResizablePanel defaultSize="50%">
+    <ResizablePanelGroup orientation="vertical">
+      <ResizablePanel defaultSize="25%">
+        <div className="flex h-full items-center justify-center p-6">
+          <span className="font-semibold">Two</span>
+        </div>
+      </ResizablePanel>
+      <ResizableHandle withHandle />
+      <ResizablePanel defaultSize="75%">
+        <div className="flex h-full items-center justify-center p-6">
+          <span className="font-semibold">Three</span>
+        </div>
+      </ResizablePanel>
+    </ResizablePanelGroup>
+  </ResizablePanel>
+</ResizablePanelGroup>`,
+  },
+]
+
+const apiRows: ApiRow[] = [
+  {
+    prop: "withHandle",
+    type: "boolean",
+  },
+  {
+    prop: "className",
+    type: "string",
+  }
+]
 
 export function ResizableShowcase() {
   return (
@@ -18,31 +84,8 @@ export function ResizableShowcase() {
           unchanged.
         </p>
       </div>
-      <Example title="Demo">
-        <ResizablePanelGroup orientation="horizontal" className="max-w-sm rounded-lg border">
-          <ResizablePanel defaultSize="50%">
-            <div className="flex h-[200px] items-center justify-center p-6">
-              <span className="font-semibold">One</span>
-            </div>
-          </ResizablePanel>
-          <ResizableHandle withHandle />
-          <ResizablePanel defaultSize="50%">
-            <ResizablePanelGroup orientation="vertical">
-              <ResizablePanel defaultSize="25%">
-                <div className="flex h-full items-center justify-center p-6">
-                  <span className="font-semibold">Two</span>
-                </div>
-              </ResizablePanel>
-              <ResizableHandle withHandle />
-              <ResizablePanel defaultSize="75%">
-                <div className="flex h-full items-center justify-center p-6">
-                  <span className="font-semibold">Three</span>
-                </div>
-              </ResizablePanel>
-            </ResizablePanelGroup>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </Example>
+      <ExampleBrowser examples={examples} />
+      <ApiReference rows={apiRows} title="ResizableHandle" />
     </div>
   )
 }
