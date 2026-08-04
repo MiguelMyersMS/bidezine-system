@@ -2,9 +2,11 @@ import { NavLink, Outlet } from "react-router-dom"
 import { ChevronDownIcon } from "lucide-react"
 import {
   Button,
+  buttonVariants,
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
+  cn,
   ScrollArea,
   TooltipProvider,
 } from "@bidezine/system"
@@ -53,13 +55,14 @@ export function Layout() {
                           <NavLink
                             to={`/components/${component.slug}`}
                             className={({ isActive }) =>
-                              [
-                                "flex items-center justify-between rounded-md px-2 py-1.5 text-sm",
+                              cn(
+                                buttonVariants({ variant: "ghost", size: "sm" }),
+                                "w-full justify-between font-normal",
                                 isActive
                                   ? "bg-accent text-accent-foreground"
-                                  : "text-foreground/80 hover:bg-accent/50",
-                                component.status === "pending" ? "opacity-50" : "",
-                              ].join(" ")
+                                  : "text-foreground/80",
+                                component.status === "pending" && "opacity-50"
+                              )
                             }
                           >
                             <span>{component.name}</span>
