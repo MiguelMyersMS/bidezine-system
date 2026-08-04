@@ -11,6 +11,13 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: { "@": src },
+    // @bidezine/system is a workspace link (site/node_modules/@bidezine/system
+    // -> repo root). Vite follows that symlink to its real path and would
+    // otherwise resolve "react" from the root's node_modules instead of this
+    // app's — two React copies, and any component using hooks (e.g. Radix's
+    // Avatar) crashes with "Cannot read properties of null (reading
+    // 'useState')". Dedupe forces both resolutions to the same instance.
+    dedupe: ["react", "react-dom"],
   },
   build: {
     target: "es2022",

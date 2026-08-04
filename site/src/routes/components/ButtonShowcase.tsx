@@ -1,6 +1,6 @@
-import type React from "react"
 import { ArrowUpIcon, GitBranchIcon } from "lucide-react"
 import { Button } from "@bidezine/system"
+import { Example } from "./Example"
 
 /**
  * Reproduces shadcn's own button-default / button-with-icon / button-demo
@@ -57,25 +57,6 @@ function ButtonVariantMatrix() {
         </div>
       ))}
     </div>
-  )
-}
-
-function Example({
-  title,
-  children,
-}: {
-  title: string
-  children: React.ReactNode
-}) {
-  return (
-    <section>
-      <h2 className="mb-3 text-sm font-medium text-muted-foreground">
-        {title}
-      </h2>
-      <div className="rounded-lg border border-border bg-card p-6">
-        {children}
-      </div>
-    </section>
   )
 }
 

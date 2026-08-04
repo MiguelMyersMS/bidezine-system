@@ -2,6 +2,15 @@ import type React from "react"
 import { useParams } from "react-router-dom"
 import { findComponent } from "@/nav-manifest"
 import { ButtonShowcase } from "./components/ButtonShowcase"
+import { AvatarShowcase } from "./components/AvatarShowcase"
+import { BadgeShowcase } from "./components/BadgeShowcase"
+import { SeparatorShowcase } from "./components/SeparatorShowcase"
+import { SkeletonShowcase } from "./components/SkeletonShowcase"
+import { AspectRatioShowcase } from "./components/AspectRatioShowcase"
+import { LabelShowcase } from "./components/LabelShowcase"
+import { KbdShowcase } from "./components/KbdShowcase"
+import { SpinnerShowcase } from "./components/SpinnerShowcase"
+import { ProgressShowcase } from "./components/ProgressShowcase"
 
 /**
  * Showcase pages register here as components are ported (Phase 3 of the plan).
@@ -10,6 +19,15 @@ import { ButtonShowcase } from "./components/ButtonShowcase"
  */
 const showcases: Record<string, React.ComponentType> = {
   button: ButtonShowcase,
+  avatar: AvatarShowcase,
+  badge: BadgeShowcase,
+  separator: SeparatorShowcase,
+  skeleton: SkeletonShowcase,
+  "aspect-ratio": AspectRatioShowcase,
+  label: LabelShowcase,
+  kbd: KbdShowcase,
+  spinner: SpinnerShowcase,
+  progress: ProgressShowcase,
 }
 
 export function ComponentRoute() {
