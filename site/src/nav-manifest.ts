@@ -16,6 +16,12 @@ export interface ComponentEntry {
   slug: string
   name: string
   status: ComponentStatus
+  /**
+   * Override for the exported symbol shown in the Usage import line, when it
+   * doesn't match `name` with spaces stripped (e.g. Sonner's nav name is
+   * "Sonner" but src/ui/sonner.tsx exports `Toaster`).
+   */
+  exportName?: string
 }
 
 export interface NavCategory {
@@ -114,7 +120,7 @@ export const navManifest: NavCategory[] = [
       { slug: "command", name: "Command", status: "ready" },
       { slug: "resizable", name: "Resizable", status: "ready" },
       { slug: "scroll-area", name: "Scroll Area", status: "ready" },
-      { slug: "sonner", name: "Sonner", status: "ready" },
+      { slug: "sonner", name: "Sonner", status: "ready", exportName: "Toaster" },
       { slug: "accordion", name: "Accordion", status: "ready" },
       { slug: "collapsible", name: "Collapsible", status: "ready" },
       { slug: "button-group", name: "Button Group", status: "ready" },

@@ -17,7 +17,88 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
+
+function CommandDemo() {
+  return (
+    <Command className="max-w-sm rounded-lg border">
+      <CommandInput placeholder="Type a command or search..." />
+      <CommandList>
+        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandGroup heading="Suggestions">
+          <CommandItem>
+            <Calendar />
+            <span>Calendar</span>
+          </CommandItem>
+          <CommandItem>
+            <Smile />
+            <span>Search Emoji</span>
+          </CommandItem>
+          <CommandItem disabled>
+            <Calculator />
+            <span>Calculator</span>
+          </CommandItem>
+        </CommandGroup>
+        <CommandSeparator />
+        <CommandGroup heading="Settings">
+          <CommandItem>
+            <User />
+            <span>Profile</span>
+            <CommandShortcut>⌘P</CommandShortcut>
+          </CommandItem>
+          <CommandItem>
+            <CreditCard />
+            <span>Billing</span>
+            <CommandShortcut>⌘B</CommandShortcut>
+          </CommandItem>
+          <CommandItem>
+            <Settings />
+            <span>Settings</span>
+            <CommandShortcut>⌘S</CommandShortcut>
+          </CommandItem>
+        </CommandGroup>
+      </CommandList>
+    </Command>
+  )
+}
+
+const examples: ShowcaseExample[] = [
+  {
+    label: "Demo",
+    render: () => <CommandDemo />,
+    code: `<Command className="max-w-sm rounded-lg border">
+  <CommandInput placeholder="Type a command or search..." />
+  <CommandList>
+    <CommandEmpty>No results found.</CommandEmpty>
+    <CommandGroup heading="Suggestions">
+      <CommandItem>
+        <Calendar />
+        <span>Calendar</span>
+      </CommandItem>
+    </CommandGroup>
+  </CommandList>
+</Command>`,
+  },
+]
+
+const apiRows: ApiRow[] = [
+  {
+    prop: "heading",
+    type: "ReactNode",
+    description: "CommandGroup: label rendered above its items.",
+  },
+  {
+    prop: "disabled",
+    type: "boolean",
+    description: "CommandItem: prevents selection, dims the item (uses cmdk's disabled state).",
+  },
+  {
+    prop: "value",
+    type: "string",
+    description: "CommandItem: value used for cmdk's search filtering.",
+  },
+]
 
 export function CommandShowcase() {
   return (
@@ -32,46 +113,8 @@ export function CommandShowcase() {
           unchanged.
         </p>
       </div>
-      <Example title="Demo">
-        <Command className="max-w-sm rounded-lg border">
-          <CommandInput placeholder="Type a command or search..." />
-          <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup heading="Suggestions">
-              <CommandItem>
-                <Calendar />
-                <span>Calendar</span>
-              </CommandItem>
-              <CommandItem>
-                <Smile />
-                <span>Search Emoji</span>
-              </CommandItem>
-              <CommandItem disabled>
-                <Calculator />
-                <span>Calculator</span>
-              </CommandItem>
-            </CommandGroup>
-            <CommandSeparator />
-            <CommandGroup heading="Settings">
-              <CommandItem>
-                <User />
-                <span>Profile</span>
-                <CommandShortcut>⌘P</CommandShortcut>
-              </CommandItem>
-              <CommandItem>
-                <CreditCard />
-                <span>Billing</span>
-                <CommandShortcut>⌘B</CommandShortcut>
-              </CommandItem>
-              <CommandItem>
-                <Settings />
-                <span>Settings</span>
-                <CommandShortcut>⌘S</CommandShortcut>
-              </CommandItem>
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </Example>
+      <ExampleBrowser examples={examples} />
+      <ApiReference rows={apiRows} />
     </div>
   )
 }

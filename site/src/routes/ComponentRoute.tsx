@@ -164,7 +164,7 @@ export function ComponentRoute() {
         <span className="text-foreground">{entry.name}</span>
       </nav>
       <Showcase />
-      <Install exportName={entry.name.replace(/\s+/g, "")} />
+      <Install exportName={entry.exportName ?? entry.name.replace(/\s+/g, "")} />
     </div>
   )
 }

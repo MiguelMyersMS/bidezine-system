@@ -7,7 +7,71 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
+
+function CarouselDemo() {
+  return (
+    <Carousel className="w-full max-w-[12rem] sm:max-w-xs">
+      <CarouselContent>
+        {Array.from({ length: 5 }).map((_, index) => (
+          <CarouselItem key={index}>
+            <div className="p-1">
+              <Card>
+                <CardContent className="flex aspect-square items-center justify-center p-6">
+                  <span className="text-4xl font-semibold">{index + 1}</span>
+                </CardContent>
+              </Card>
+            </div>
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+      <CarouselPrevious />
+      <CarouselNext />
+    </Carousel>
+  )
+}
+
+const examples: ShowcaseExample[] = [
+  {
+    label: "Demo",
+    render: () => <CarouselDemo />,
+    code: `<Carousel className="w-full max-w-xs">
+  <CarouselContent>
+    {items.map((item, index) => (
+      <CarouselItem key={index}>
+        <Card>
+          <CardContent className="flex aspect-square items-center justify-center p-6">
+            <span className="text-4xl font-semibold">{item}</span>
+          </CardContent>
+        </Card>
+      </CarouselItem>
+    ))}
+  </CarouselContent>
+  <CarouselPrevious />
+  <CarouselNext />
+</Carousel>`,
+  },
+]
+
+const apiRows: ApiRow[] = [
+  {
+    prop: "orientation",
+    type: '"horizontal" | "vertical"',
+    default: '"horizontal"',
+    description: "Carousel: scroll axis, passed through to embla-carousel-react.",
+  },
+  {
+    prop: "opts",
+    type: "CarouselOptions",
+    description: "Carousel: embla-carousel-react options object.",
+  },
+  {
+    prop: "setApi",
+    type: "(api: CarouselApi) => void",
+    description: "Carousel: exposes the underlying embla API instance.",
+  },
+]
 
 export function CarouselShowcase() {
   return (
@@ -22,25 +86,8 @@ export function CarouselShowcase() {
           unchanged.
         </p>
       </div>
-      <Example title="Demo">
-        <Carousel className="w-full max-w-[12rem] sm:max-w-xs">
-          <CarouselContent>
-            {Array.from({ length: 5 }).map((_, index) => (
-              <CarouselItem key={index}>
-                <div className="p-1">
-                  <Card>
-                    <CardContent className="flex aspect-square items-center justify-center p-6">
-                      <span className="text-4xl font-semibold">{index + 1}</span>
-                    </CardContent>
-                  </Card>
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
-        </Carousel>
-      </Example>
+      <ExampleBrowser examples={examples} />
+      <ApiReference rows={apiRows} />
     </div>
   )
 }

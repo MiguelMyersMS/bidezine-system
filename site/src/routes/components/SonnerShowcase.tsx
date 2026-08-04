@@ -2,7 +2,66 @@ import { ThemeProvider } from "next-themes"
 import { toast } from "sonner"
 
 import { Button, Toaster } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
+
+function ToastDemo() {
+  return (
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <div className="flex items-center gap-3">
+        <Button
+          variant="outline"
+          onClick={() =>
+            toast("Event has been created", {
+              description: "Sunday, December 03, 2023 at 9:00 AM",
+              action: {
+                label: "Undo",
+                onClick: () => undefined,
+              },
+            })
+          }
+        >
+          Show Toast
+        </Button>
+        <Toaster closeButton />
+      </div>
+    </ThemeProvider>
+  )
+}
+
+const examples: ShowcaseExample[] = [
+  {
+    label: "Toast demo",
+    render: () => <ToastDemo />,
+    code: `<Button
+  variant="outline"
+  onClick={() =>
+    toast("Event has been created", {
+      description: "Sunday, December 03, 2023 at 9:00 AM",
+      action: { label: "Undo", onClick: () => undefined },
+    })
+  }
+>
+  Show Toast
+</Button>
+<Toaster closeButton />`,
+  },
+]
+
+const apiRows: ApiRow[] = [
+  {
+    prop: "closeButton",
+    type: "boolean",
+    default: "false",
+    description: "Toaster: shows a close (X) button on each toast, sonner's own prop.",
+  },
+  {
+    prop: "theme",
+    type: '"light" | "dark" | "system"',
+    default: '"system"',
+    description: "Toaster: forwarded to sonner, normally driven by next-themes.",
+  },
+]
 
 export function SonnerShowcase() {
   return (
@@ -17,27 +76,8 @@ export function SonnerShowcase() {
           unchanged.
         </p>
       </div>
-      <Example title="Toast demo">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={() =>
-                toast("Event has been created", {
-                  description: "Sunday, December 03, 2023 at 9:00 AM",
-                  action: {
-                    label: "Undo",
-                    onClick: () => undefined,
-                  },
-                })
-              }
-            >
-              Show Toast
-            </Button>
-            <Toaster closeButton />
-          </div>
-        </ThemeProvider>
-      </Example>
+      <ExampleBrowser examples={examples} />
+      <ApiReference rows={apiRows} />
     </div>
   )
 }
