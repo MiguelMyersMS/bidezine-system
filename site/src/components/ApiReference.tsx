@@ -1,53 +1,85 @@
-/**
- * Props table for a showcase page, keyed off the real component's exported
- * prop types (see each *Showcase.tsx's `api` array, hand-verified against
- * src/ui/*.tsx and dist/index.d.ts — not guessed or ported from any
- * recreation). Renders nothing if a showcase hasn't defined one yet, so
- * rollout can stay progressive across all 59 components.
- */
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@bidezine/system"
+
 export interface ApiRow {
   prop: string
+  /** Written as it appears in the component's own props type. */
   type: string
+  /** Omit when the prop has no default. */
   default?: string
   description?: string
 }
 
-export function ApiReference({ rows }: { rows: ApiRow[] }) {
-  if (rows.length === 0) return null
+interface ApiReferenceProps {
+  rows: ApiRow[]
+  /** Heading; set it when a page documents more than one part (e.g. "CardHeader"). */
+  title?: string
+}
+
+/**
+ * Props table for a showcase page. Rows are written by hand per component,
+ * mirroring the exported props type in src/ui/<component>.tsx — keep them in
+ * sync when a variant is added.
+ */
+export function ApiReference({ rows, title = "API reference" }: ApiReferenceProps) {
+  if (!rows.length) return null
+
+  const hasDefaults = rows.some((row) => row.default)
+  const hasDescriptions = rows.some((row) => row.description)
 
   return (
-    <div className="rounded-lg border border-border bg-card">
-      <div className="border-b border-border px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        API Reference
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border text-left text-muted-foreground">
-              <th className="px-4 py-2 font-medium">Prop</th>
-              <th className="px-4 py-2 font-medium">Type</th>
-              <th className="px-4 py-2 font-medium">Default</th>
-              <th className="px-4 py-2 font-medium">Description</th>
-            </tr>
-          </thead>
-          <tbody>
+    <section>
+      <h2 className="mb-3 text-lg font-semibold">{title}</h2>
+      <div className="rounded-lg border border-border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Prop</TableHead>
+              <TableHead>Type</TableHead>
+              {hasDefaults && <TableHead>Default</TableHead>}
+              {hasDescriptions && <TableHead>Description</TableHead>}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {rows.map((row) => (
-              <tr key={row.prop} className="border-b border-border last:border-0">
-                <td className="px-4 py-2 font-mono text-xs">{row.prop}</td>
-                <td className="px-4 py-2 font-mono text-xs text-muted-foreground">
-                  {row.type}
-                </td>
-                <td className="px-4 py-2 font-mono text-xs text-muted-foreground">
-                  {row.default ?? "—"}
-                </td>
-                <td className="px-4 py-2 text-muted-foreground">
-                  {row.description ?? ""}
-                </td>
-              </tr>
+              <TableRow key={row.prop}>
+                <TableCell>
+                  <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+                    {row.prop}
+                  </code>
+                </TableCell>
+                <TableCell className="whitespace-normal">
+                  <code className="font-mono text-xs text-muted-foreground">
+                    {row.type}
+                  </code>
+                </TableCell>
+                {hasDefaults && (
+                  <TableCell>
+                    {row.default ? (
+                      <code className="font-mono text-xs text-muted-foreground">
+                        {row.default}
+                      </code>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                )}
+                {hasDescriptions && (
+                  <TableCell className="whitespace-normal text-muted-foreground">
+                    {row.description}
+                  </TableCell>
+                )}
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
-    </div>
+    </section>
   )
 }

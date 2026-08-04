@@ -1,5 +1,5 @@
-import { ArrowUpIcon, GitBranchIcon } from "lucide-react"
-import { Button } from "@bidezine/system"
+import { ArrowUpIcon, ChevronLeftIcon, GitBranchIcon, MoreHorizontalIcon } from "lucide-react"
+import { Button, ButtonGroup, Spinner } from "@bidezine/system"
 import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
 import { ApiReference, type ApiRow } from "@/components/ApiReference"
 
@@ -11,9 +11,8 @@ import { ApiReference, type ApiRow } from "@/components/ApiReference"
  * a dependency of this package — substituted with the equivalent lucide-react
  * icon (already a dependency) since lucide-react is what button-demo itself uses.
  *
- * Restructured as an ExampleBrowser (filter chips, one example visible at a
- * time) instead of a long stack — the shell Claude (design) proposed, ported
- * here against the real @bidezine/system import with no behavior changes.
+ * Sections are the same ones shadcn's own docs page lists, restructured as an
+ * ExampleBrowser (filter chips, one at a time) instead of a long stack.
  */
 
 const variants = [
@@ -33,13 +32,77 @@ const examples: ShowcaseExample[] = [
     code: `<Button>Button</Button>`,
   },
   {
+    label: "Size",
+    render: () => (
+      <div className="flex flex-wrap items-center gap-4">
+        <Button size="xs">Extra Small</Button>
+        <Button size="sm">Small</Button>
+        <Button>Default</Button>
+        <Button size="lg">Large</Button>
+      </div>
+    ),
+    code: `<Button size="xs">Extra Small</Button>
+<Button size="sm">Small</Button>
+<Button>Default</Button>
+<Button size="lg">Large</Button>`,
+  },
+  {
+    label: "Outline",
+    render: () => <Button variant="outline">Outline</Button>,
+    code: `<Button variant="outline">Outline</Button>`,
+  },
+  {
+    label: "Secondary",
+    render: () => <Button variant="secondary">Secondary</Button>,
+    code: `<Button variant="secondary">Secondary</Button>`,
+  },
+  {
+    label: "Ghost",
+    render: () => <Button variant="ghost">Ghost</Button>,
+    code: `<Button variant="ghost">Ghost</Button>`,
+  },
+  {
+    label: "Destructive",
+    render: () => <Button variant="destructive">Destructive</Button>,
+    code: `<Button variant="destructive">Destructive</Button>`,
+  },
+  {
+    label: "Link",
+    render: () => <Button variant="link">Link</Button>,
+    code: `<Button variant="link">Link</Button>`,
+  },
+  {
+    label: "Icon",
+    render: () => (
+      <div className="flex flex-wrap items-center gap-2">
+        <Button variant="outline" size="icon-xs" aria-label="Submit">
+          <ArrowUpIcon />
+        </Button>
+        <Button variant="outline" size="icon-sm" aria-label="Submit">
+          <ArrowUpIcon />
+        </Button>
+        <Button variant="outline" size="icon" aria-label="Submit">
+          <ArrowUpIcon />
+        </Button>
+        <Button variant="outline" size="icon-lg" aria-label="Submit">
+          <ArrowUpIcon />
+        </Button>
+      </div>
+    ),
+    code: `<Button variant="outline" size="icon" aria-label="Submit">
+  <ArrowUpIcon />
+</Button>`,
+  },
+  {
     label: "With icon",
     render: () => (
       <Button variant="outline" size="sm">
         <GitBranchIcon /> New Branch
       </Button>
     ),
-    code: `<Button variant="outline" size="sm">\n  <GitBranchIcon /> New Branch\n</Button>`,
+    code: `<Button variant="outline" size="sm">
+  <GitBranchIcon /> New Branch
+</Button>`,
   },
   {
     label: "Demo",
@@ -51,7 +114,69 @@ const examples: ShowcaseExample[] = [
         </Button>
       </div>
     ),
-    code: `<Button variant="outline">Button</Button>\n<Button variant="outline" size="icon" aria-label="Submit">\n  <ArrowUpIcon />\n</Button>`,
+    code: `<Button variant="outline">Button</Button>
+<Button variant="outline" size="icon" aria-label="Submit">
+  <ArrowUpIcon />
+</Button>`,
+  },
+  {
+    label: "Rounded",
+    render: () => (
+      <Button variant="outline" size="icon" aria-label="Submit" className="rounded-full">
+        <ArrowUpIcon />
+      </Button>
+    ),
+    code: `<Button variant="outline" size="icon" className="rounded-full">
+  <ArrowUpIcon />
+</Button>`,
+  },
+  {
+    label: "Spinner",
+    render: () => (
+      <div className="flex flex-wrap items-center gap-3">
+        <Button variant="secondary" disabled>
+          <Spinner /> Generating
+        </Button>
+        <Button variant="ghost" disabled>
+          Downloading <Spinner />
+        </Button>
+      </div>
+    ),
+    code: `<Button variant="secondary" disabled>
+  <Spinner /> Generating
+</Button>`,
+  },
+  {
+    label: "Button group",
+    render: () => (
+      <ButtonGroup>
+        <Button variant="outline" size="icon" aria-label="Back">
+          <ChevronLeftIcon />
+        </Button>
+        <Button variant="outline">Archive</Button>
+        <Button variant="outline">Report</Button>
+        <Button variant="outline">Snooze</Button>
+        <Button variant="outline" size="icon" aria-label="More">
+          <MoreHorizontalIcon />
+        </Button>
+      </ButtonGroup>
+    ),
+    code: `<ButtonGroup>
+  <Button variant="outline">Archive</Button>
+  <Button variant="outline">Report</Button>
+  <Button variant="outline">Snooze</Button>
+</ButtonGroup>`,
+  },
+  {
+    label: "As child",
+    render: () => (
+      <Button asChild>
+        <a href="#as-child">Login</a>
+      </Button>
+    ),
+    code: `<Button asChild>
+  <a href="/login">Login</a>
+</Button>`,
   },
   {
     label: "Variant × size",
@@ -68,11 +193,23 @@ const examples: ShowcaseExample[] = [
         ))}
       </div>
     ),
-    code: `<Button variant="secondary" size="lg">secondary</Button>\n// variant: ${variants.join(" | ")}\n// size: ${sizes.join(" | ")}`,
+    code: `<Button variant="secondary" size="lg">secondary</Button>
+// variant: ${variants.join(" | ")}
+// size: ${sizes.join(" | ")}`,
   },
   {
     label: "Disabled",
-    render: () => <Button disabled>Button</Button>,
+    render: () => (
+      <div className="flex flex-wrap items-center gap-2">
+        <Button disabled>default</Button>
+        <Button variant="outline" disabled>
+          outline
+        </Button>
+        <Button variant="ghost" disabled>
+          ghost
+        </Button>
+      </div>
+    ),
     code: `<Button disabled>Button</Button>`,
   },
 ]
@@ -88,7 +225,8 @@ const apiRows: ApiRow[] = [
     prop: "size",
     type: `"default" | "xs" | "sm" | "lg" | "icon" | "icon-xs" | "icon-sm" | "icon-lg"`,
     default: `"default"`,
-    description: "Height/padding, or square icon-only sizing.",
+    description:
+      "Height and padding, or square icon-only sizing. Inline padding tightens automatically when a direct svg child is present.",
   },
   {
     prop: "asChild",
@@ -105,11 +243,11 @@ export function ButtonShowcase() {
       <div>
         <h1 className="text-2xl font-semibold">Button</h1>
         <p className="mt-2 text-muted-foreground">
-          Ported from{" "}
+          Displays a button or a component that looks like a button. Ported from{" "}
           <code className="rounded bg-muted px-1 py-0.5 text-sm">
             reference/shadcn-ui/apps/v4/registry/new-york-v4/ui/button.tsx
           </code>{" "}
-          unchanged. Examples below reproduce the source's own demos before any
+          unchanged. Examples below reproduce the source&rsquo;s own demos before any
           styling adjustments.
         </p>
       </div>

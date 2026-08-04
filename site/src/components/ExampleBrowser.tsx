@@ -1,67 +1,120 @@
-import type React from "react"
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon, CopyIcon } from "lucide-react"
+import { Button, cn } from "@bidezine/system"
 
-/**
- * One-example-at-a-time viewer, replacing the long vertical stack of
- * <Example> blocks. Filter chips switch the single visible preview instead
- * of scrolling — the layout idea Claude (design) proposed, rebuilt here
- * against the real components with zero behavior changes (see
- * docs/infra/CLOUDFLARE.md history: only the page shell was ported, never
- * Claude's component reimplementations).
- */
 export interface ShowcaseExample {
+  /** Section name, shown in the filter row. Keep it short — these are chips. */
   label: string
-  render: () => React.ReactNode
+  /** Live render. A function so only the visible example mounts. */
+  render: () => ReactNode
+  /** Source snippet shown under "View code". */
   code: string
 }
 
-export function ExampleBrowser({ examples }: { examples: ShowcaseExample[] }) {
-  const [active, setActive] = useState(0)
+interface ExampleBrowserProps {
+  examples: ShowcaseExample[]
+  /** Index shown first. Defaults to 0. */
+  defaultIndex?: number
+  /** Min height of the preview stage. Raise it for overlays that open downward. */
+  stageClassName?: string
+}
+
+/**
+ * Replaces the long stack of Example sections with a filter row plus a single
+ * preview. Same content, one section at a time, code collapsed by default.
+ *
+ * Only the selected example's render() runs, so a page with a dozen sections
+ * mounts one subtree instead of twelve — worth it for the overlay-heavy pages.
+ */
+export function ExampleBrowser({
+  examples,
+  defaultIndex = 0,
+  stageClassName,
+}: ExampleBrowserProps) {
+  const [active, setActive] = useState(defaultIndex)
   const [showCode, setShowCode] = useState(false)
-  const current = examples[active]
+
+  const example = examples[active]
+  if (!example) return null
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap gap-2">
-        {examples.map((example, i) => (
-          <button
-            key={example.label}
-            type="button"
-            onClick={() => {
-              setActive(i)
-              setShowCode(false)
-            }}
-            aria-pressed={i === active}
-            className={
-              "rounded-full border px-3 py-1 text-xs font-medium transition-colors " +
-              (i === active
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground")
-            }
+    <section className="flex flex-col gap-3">
+      <div role="tablist" aria-label="Examples" className="flex flex-wrap gap-1.5">
+        {examples.map((item, index) => (
+          <Button
+            key={item.label}
+            role="tab"
+            aria-selected={index === active}
+            variant={index === active ? "default" : "outline"}
+            size="xs"
+            className="rounded-full"
+            onClick={() => setActive(index)}
           >
-            {example.label}
-          </button>
+            {item.label}
+          </Button>
         ))}
       </div>
 
-      <div className="flex min-h-40 items-center justify-center rounded-lg border border-border bg-card p-6">
-        {current.render()}
-      </div>
-
-      <div>
-        <button
-          type="button"
-          onClick={() => setShowCode((v) => !v)}
-          className="text-xs font-medium text-muted-foreground hover:text-foreground"
+      <div className="overflow-hidden rounded-lg border border-border bg-card">
+        <div
+          className={cn(
+            "flex min-h-[200px] items-center justify-center p-8",
+            stageClassName
+          )}
         >
-          {showCode ? "Hide code" : "View code"}
-        </button>
-        {showCode && (
-          <pre className="mt-2 overflow-x-auto rounded-md bg-muted px-3 py-2 text-xs">
-            <code>{current.code}</code>
-          </pre>
-        )}
+          {example.render()}
+        </div>
+
+        <div className="flex items-center justify-between border-t border-border px-3 py-2">
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {example.label}
+          </span>
+          <Button variant="ghost" size="xs" onClick={() => setShowCode(!showCode)}>
+            {showCode ? <ChevronUpIcon /> : <ChevronDownIcon />}
+            {showCode ? "Hide code" : "View code"}
+          </Button>
+        </div>
+
+        {showCode && <CodeBlock code={example.code} />}
       </div>
+    </section>
+  )
+}
+
+export function CodeBlock({
+  code,
+  label,
+  className,
+}: {
+  code: string
+  label?: string
+  className?: string
+}) {
+  const [copied, setCopied] = useState(false)
+
+  return (
+    <div className={cn("relative border-t border-border bg-muted", className)}>
+      {label && (
+        <div className="px-3 pt-2 font-mono text-[11px] text-muted-foreground">
+          {label}
+        </div>
+      )}
+      <pre className="overflow-x-auto p-3 font-mono text-[13px] leading-relaxed">
+        <code>{code}</code>
+      </pre>
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        aria-label="Copy code"
+        className="absolute top-1.5 right-1.5"
+        onClick={() => {
+          void navigator.clipboard?.writeText(code)
+          setCopied(true)
+          window.setTimeout(() => setCopied(false), 1200)
+        }}
+      >
+        {copied ? <CheckIcon /> : <CopyIcon />}
+      </Button>
     </div>
   )
 }
