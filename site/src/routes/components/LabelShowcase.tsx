@@ -1,5 +1,6 @@
 import { Label } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
 
 /**
  * Adapts reference/shadcn-ui/apps/v4/examples/radix/label-demo.tsx: the
@@ -8,6 +9,30 @@ import { Example } from "./Example"
  * stands in here so Label's htmlFor/peer-disabled behaviour is still
  * demonstrated without introducing a phantom dependency.
  */
+const examples: ShowcaseExample[] = [
+  {
+    label: "Demo",
+    render: () => (
+      <div className="flex gap-2">
+        <input type="checkbox" id="terms" className="peer size-4" />
+        <Label htmlFor="terms">Accept terms and conditions</Label>
+      </div>
+    ),
+    code: `<div className="flex gap-2">
+  <input type="checkbox" id="terms" className="peer size-4" />
+  <Label htmlFor="terms">Accept terms and conditions</Label>
+</div>`,
+  },
+]
+
+const apiRows: ApiRow[] = [
+  {
+    prop: "className",
+    type: "string",
+    description: "Additional classes applied to the label.",
+  }
+]
+
 export function LabelShowcase() {
   return (
     <div className="flex max-w-3xl flex-col gap-8">
@@ -21,12 +46,8 @@ export function LabelShowcase() {
           unchanged.
         </p>
       </div>
-      <Example title="Demo">
-        <div className="flex gap-2">
-          <input type="checkbox" id="terms" className="peer size-4" />
-          <Label htmlFor="terms">Accept terms and conditions</Label>
-        </div>
-      </Example>
+      <ExampleBrowser examples={examples} />
+      <ApiReference rows={apiRows} />
     </div>
   )
 }
