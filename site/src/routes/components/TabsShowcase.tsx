@@ -9,7 +9,160 @@ import {
   TabsList,
   TabsTrigger,
 } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
+
+const examples: ShowcaseExample[] = [
+  {
+    label: "Demo",
+    render: () => (
+      <Tabs defaultValue="overview" className="w-[400px]">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="reports">Reports</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview">
+          <Card>
+            <CardHeader>
+              <CardTitle>Overview</CardTitle>
+              <CardDescription>
+                View your key metrics and recent project activity across active projects.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              You have 12 active projects and 3 pending tasks.
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="analytics">
+          <Card>
+            <CardHeader>
+              <CardTitle>Analytics</CardTitle>
+              <CardDescription>
+                Track performance and user engagement metrics to identify growth opportunities.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              Page views are up 25% compared to last month.
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="reports">
+          <Card>
+            <CardHeader>
+              <CardTitle>Reports</CardTitle>
+              <CardDescription>
+                Generate and download detailed reports in multiple export formats.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              You have 5 reports ready and available to export.
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="settings">
+          <Card>
+            <CardHeader>
+              <CardTitle>Settings</CardTitle>
+              <CardDescription>
+                Manage your account preferences and customize your experience.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              Configure notifications, security, and themes.
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    ),
+    code: `<Tabs defaultValue="overview" className="w-[400px]">
+  <TabsList>
+    <TabsTrigger value="overview">Overview</TabsTrigger>
+    <TabsTrigger value="analytics">Analytics</TabsTrigger>
+    <TabsTrigger value="reports">Reports</TabsTrigger>
+    <TabsTrigger value="settings">Settings</TabsTrigger>
+  </TabsList>
+  <TabsContent value="overview">
+    <Card>
+      <CardHeader>
+        <CardTitle>Overview</CardTitle>
+        <CardDescription>
+          View your key metrics and recent project activity across active projects.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="text-sm text-muted-foreground">
+        You have 12 active projects and 3 pending tasks.
+      </CardContent>
+    </Card>
+  </TabsContent>
+  <TabsContent value="analytics">
+    <Card>
+      <CardHeader>
+        <CardTitle>Analytics</CardTitle>
+        <CardDescription>
+          Track performance and user engagement metrics to identify growth opportunities.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="text-sm text-muted-foreground">
+        Page views are up 25% compared to last month.
+      </CardContent>
+    </Card>
+  </TabsContent>
+  <TabsContent value="reports">
+    <Card>
+      <CardHeader>
+        <CardTitle>Reports</CardTitle>
+        <CardDescription>
+          Generate and download detailed reports in multiple export formats.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="text-sm text-muted-foreground">
+        You have 5 reports ready and available to export.
+      </CardContent>
+    </Card>
+  </TabsContent>
+  <TabsContent value="settings">
+    <Card>
+      <CardHeader>
+        <CardTitle>Settings</CardTitle>
+        <CardDescription>
+          Manage your account preferences and customize your experience.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="text-sm text-muted-foreground">
+        Configure notifications, security, and themes.
+      </CardContent>
+    </Card>
+  </TabsContent>
+</Tabs>`,
+  },
+]
+
+const apiRows1: ApiRow[] = [
+  {
+    prop: "orientation",
+    type: "\"horizontal\" | \"vertical\"",
+    default: "\"horizontal\"",
+  },
+  {
+    prop: "className",
+    type: "string",
+  }
+]
+
+const apiRows2: ApiRow[] = [
+  {
+    prop: "variant",
+    type: "\"default\" | \"line\"",
+    default: "\"default\"",
+  },
+  {
+    prop: "className",
+    type: "string",
+  }
+]
 
 export function TabsShowcase() {
   return (
@@ -24,68 +177,9 @@ export function TabsShowcase() {
           unchanged.
         </p>
       </div>
-      <Example title="Demo">
-        <Tabs defaultValue="overview" className="w-[400px]">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="reports">Reports</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-          </TabsList>
-          <TabsContent value="overview">
-            <Card>
-              <CardHeader>
-                <CardTitle>Overview</CardTitle>
-                <CardDescription>
-                  View your key metrics and recent project activity across active projects.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                You have 12 active projects and 3 pending tasks.
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="analytics">
-            <Card>
-              <CardHeader>
-                <CardTitle>Analytics</CardTitle>
-                <CardDescription>
-                  Track performance and user engagement metrics to identify growth opportunities.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                Page views are up 25% compared to last month.
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="reports">
-            <Card>
-              <CardHeader>
-                <CardTitle>Reports</CardTitle>
-                <CardDescription>
-                  Generate and download detailed reports in multiple export formats.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                You have 5 reports ready and available to export.
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="settings">
-            <Card>
-              <CardHeader>
-                <CardTitle>Settings</CardTitle>
-                <CardDescription>
-                  Manage your account preferences and customize your experience.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                Configure notifications, security, and themes.
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </Example>
+      <ExampleBrowser examples={examples} />
+      <ApiReference rows={apiRows1} title="Tabs" />
+      <ApiReference rows={apiRows2} title="TabsList" />
     </div>
   )
 }

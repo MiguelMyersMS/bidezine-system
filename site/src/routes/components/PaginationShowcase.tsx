@@ -7,7 +7,80 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
+
+const examples: ShowcaseExample[] = [
+  {
+    label: "Demo",
+    render: () => (
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious href="#page-1" />
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink href="#page-1">1</PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink href="#page-2" isActive>
+              2
+            </PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink href="#page-3">3</PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationEllipsis />
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationNext href="#page-3" />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    ),
+    code: `<Pagination>
+  <PaginationContent>
+    <PaginationItem>
+      <PaginationPrevious href="#page-1" />
+    </PaginationItem>
+    <PaginationItem>
+      <PaginationLink href="#page-1">1</PaginationLink>
+    </PaginationItem>
+    <PaginationItem>
+      <PaginationLink href="#page-2" isActive>
+        2
+      </PaginationLink>
+    </PaginationItem>
+    <PaginationItem>
+      <PaginationLink href="#page-3">3</PaginationLink>
+    </PaginationItem>
+    <PaginationItem>
+      <PaginationEllipsis />
+    </PaginationItem>
+    <PaginationItem>
+      <PaginationNext href="#page-3" />
+    </PaginationItem>
+  </PaginationContent>
+</Pagination>`,
+  },
+]
+
+const apiRows: ApiRow[] = [
+  {
+    prop: "isActive",
+    type: "boolean",
+  },
+  {
+    prop: "size",
+    type: "\"default\" | \"sm\" | \"lg\" | \"icon\" | \"xs\" | \"icon-xs\" | \"icon-sm\" | \"icon-lg\"",
+    default: "\"icon\"",
+  },
+  {
+    prop: "className",
+    type: "string",
+  }
+]
 
 export function PaginationShowcase() {
   return (
@@ -22,32 +95,8 @@ export function PaginationShowcase() {
           unchanged.
         </p>
       </div>
-      <Example title="Demo">
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious href="#page-1" />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#page-1">1</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#page-2" isActive>
-                2
-              </PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#page-3">3</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationEllipsis />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext href="#page-3" />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      </Example>
+      <ExampleBrowser examples={examples} />
+      <ApiReference rows={apiRows} title="PaginationLink" />
     </div>
   )
 }
