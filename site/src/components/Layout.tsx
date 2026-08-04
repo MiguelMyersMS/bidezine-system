@@ -1,8 +1,7 @@
-import { NavLink, Outlet } from "react-router-dom"
+import { NavLink, Outlet, useLocation } from "react-router-dom"
 import { ChevronDownIcon } from "lucide-react"
 import {
   Button,
-  buttonVariants,
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -21,6 +20,8 @@ import { ThemeSwitcher } from "./ThemeSwitcher"
  * own scrollbar never appears and both columns use the system's thumb.
  */
 export function Layout() {
+  const location = useLocation()
+
   return (
     <TooltipProvider>
       <div className="flex h-screen overflow-hidden">
@@ -50,30 +51,33 @@ export function Layout() {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <ul className="flex flex-col gap-0.5">
-                      {category.components.map((component) => (
-                        <li key={component.slug}>
-                          <NavLink
-                            to={`/components/${component.slug}`}
-                            className={({ isActive }) =>
-                              cn(
-                                buttonVariants({ variant: "ghost", size: "sm" }),
-                                "w-full justify-between font-normal",
-                                isActive
-                                  ? "bg-accent text-accent-foreground"
-                                  : "text-foreground/80",
+                      {category.components.map((component) => {
+                        const isActive =
+                          location.pathname === `/components/${component.slug}`
+                        return (
+                          <li key={component.slug}>
+                            <Button
+                              asChild
+                              variant="ghost"
+                              size="sm"
+                              className={cn(
+                                "w-full justify-between",
+                                isActive && "bg-accent text-accent-foreground",
                                 component.status === "pending" && "opacity-50"
-                              )
-                            }
-                          >
-                            <span>{component.name}</span>
-                            {component.status === "pending" && (
-                              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                                soon
-                              </span>
-                            )}
-                          </NavLink>
-                        </li>
-                      ))}
+                              )}
+                            >
+                              <NavLink to={`/components/${component.slug}`}>
+                                <span>{component.name}</span>
+                                {component.status === "pending" && (
+                                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                                    soon
+                                  </span>
+                                )}
+                              </NavLink>
+                            </Button>
+                          </li>
+                        )
+                      })}
                     </ul>
                   </CollapsibleContent>
                 </Collapsible>
