@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react"
-import { Moon, Sun } from "lucide-react"
-import { themeNames, type ThemeName } from "@bidezine/system"
+import { MoonIcon, SunIcon } from "lucide-react"
+import {
+  Button,
+  NativeSelect,
+  NativeSelectOption,
+  themeNames,
+  type ThemeName,
+} from "@bidezine/system"
 
 type Mode = "light" | "dark"
 type Preset = "default" | ThemeName
@@ -12,9 +18,7 @@ function readMode(): Mode {
   if (typeof window === "undefined") return "light"
   const stored = window.localStorage.getItem(MODE_KEY)
   if (stored === "light" || stored === "dark") return stored
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light"
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
 }
 
 function readPreset(): Preset {
@@ -41,7 +45,7 @@ function applyTheme(mode: Mode, preset: Preset) {
   }
 }
 
-const presetLabels: Record<Preset, string> = {
+const presetLabels: Record<string, string> = {
   default: "Default",
   daylight: "Daylight",
   emerald: "Emerald",
@@ -60,31 +64,28 @@ export function ThemeSwitcher() {
 
   return (
     <div className="flex items-center gap-2">
-      <select
+      <NativeSelect
+        size="sm"
         aria-label="Theme preset"
         value={preset}
-        onChange={(e) => setPreset(e.target.value as Preset)}
-        className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+        onChange={(event) => setPreset(event.target.value as Preset)}
+        className="flex-1"
       >
-        <option value="default">{presetLabels.default}</option>
+        <NativeSelectOption value="default">{presetLabels.default}</NativeSelectOption>
         {themeNames.map((name) => (
-          <option key={name} value={name}>
+          <NativeSelectOption key={name} value={name}>
             {presetLabels[name] ?? name}
-          </option>
+          </NativeSelectOption>
         ))}
-      </select>
-      <button
-        type="button"
+      </NativeSelect>
+      <Button
+        variant="outline"
+        size="icon-sm"
         aria-label={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-        onClick={() => setMode((m) => (m === "dark" ? "light" : "dark"))}
-        className="flex size-7 shrink-0 items-center justify-center rounded-md border border-border bg-background text-foreground hover:bg-accent"
+        onClick={() => setMode(mode === "dark" ? "light" : "dark")}
       >
-        {mode === "dark" ? (
-          <Moon className="size-3.5" />
-        ) : (
-          <Sun className="size-3.5" />
-        )}
-      </button>
+        {mode === "dark" ? <MoonIcon /> : <SunIcon />}
+      </Button>
     </div>
   )
 }

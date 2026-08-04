@@ -1,6 +1,6 @@
 import type React from "react"
 import { useParams } from "react-router-dom"
-import { findComponent } from "@/nav-manifest"
+import { findComponent, navManifest } from "@/nav-manifest"
 import { Install } from "@/components/Install"
 import { ButtonShowcase } from "./components/ButtonShowcase"
 import { AvatarShowcase } from "./components/AvatarShowcase"
@@ -68,41 +68,41 @@ import { TabsShowcase } from "./components/TabsShowcase"
  * below, so the full menu is always navigable even before a component lands.
  */
 const showcases: Record<string, React.ComponentType> = {
-  button: ButtonShowcase,
-  avatar: AvatarShowcase,
-  badge: BadgeShowcase,
-  separator: SeparatorShowcase,
-  skeleton: SkeletonShowcase,
+  "button": ButtonShowcase,
+  "avatar": AvatarShowcase,
+  "badge": BadgeShowcase,
+  "separator": SeparatorShowcase,
+  "skeleton": SkeletonShowcase,
   "aspect-ratio": AspectRatioShowcase,
-  label: LabelShowcase,
-  kbd: KbdShowcase,
-  spinner: SpinnerShowcase,
-  progress: ProgressShowcase,
-  input: InputShowcase,
-  textarea: TextareaShowcase,
-  checkbox: CheckboxShowcase,
-  switch: SwitchShowcase,
-  select: SelectShowcase,
+  "label": LabelShowcase,
+  "kbd": KbdShowcase,
+  "spinner": SpinnerShowcase,
+  "progress": ProgressShowcase,
+  "input": InputShowcase,
+  "textarea": TextareaShowcase,
+  "checkbox": CheckboxShowcase,
+  "switch": SwitchShowcase,
+  "select": SelectShowcase,
   "native-select": NativeSelectShowcase,
   "radio-group": RadioGroupShowcase,
-  slider: SliderShowcase,
+  "slider": SliderShowcase,
   "input-otp": InputOTPShowcase,
-  toggle: ToggleShowcase,
+  "toggle": ToggleShowcase,
   "toggle-group": ToggleGroupShowcase,
   "input-group": InputGroupShowcase,
-  field: FieldShowcase,
-  form: FormShowcase,
-  combobox: ComboboxShowcase,
-  dialog: DialogShowcase,
+  "field": FieldShowcase,
+  "form": FormShowcase,
+  "combobox": ComboboxShowcase,
+  "dialog": DialogShowcase,
   "alert-dialog": AlertDialogShowcase,
-  sheet: SheetShowcase,
-  popover: PopoverShowcase,
-  tooltip: TooltipShowcase,
+  "sheet": SheetShowcase,
+  "popover": PopoverShowcase,
+  "tooltip": TooltipShowcase,
   "dropdown-menu": DropdownMenuShowcase,
   "context-menu": ContextMenuShowcase,
   "hover-card": HoverCardShowcase,
-  menubar: MenubarShowcase,
-  drawer: DrawerShowcase,
+  "menubar": MenubarShowcase,
+  "drawer": DrawerShowcase,
   "accordion": AccordionShowcase,
   "attachment": AttachmentShowcase,
   "breadcrumb": BreadcrumbShowcase,
@@ -129,6 +129,13 @@ const showcases: Record<string, React.ComponentType> = {
   "tabs": TabsShowcase,
 }
 
+function groupFor(slug: string): string {
+  const category = navManifest.find((entry) =>
+    entry.components.some((component) => component.slug === slug)
+  )
+  return category ? category.title : "Components"
+}
+
 export function ComponentRoute() {
   const { slug = "" } = useParams()
   const entry = findComponent(slug)
@@ -151,7 +158,11 @@ export function ComponentRoute() {
   }
 
   return (
-    <div className="flex max-w-3xl flex-col gap-6">
+    <div className="flex max-w-3xl flex-col gap-8">
+      <nav aria-label="breadcrumb" className="text-sm text-muted-foreground">
+        {groupFor(slug)} <span aria-hidden="true">›</span>{" "}
+        <span className="text-foreground">{entry.name}</span>
+      </nav>
       <Showcase />
       <Install exportName={entry.name.replace(/\s+/g, "")} />
     </div>

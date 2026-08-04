@@ -10,6 +10,17 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Both columns scroll inside a ScrollArea (see components/Layout.tsx), so the
+ * page itself must not scroll — otherwise the browser scrollbar sits alongside
+ * the system's own thumb.
+ */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
