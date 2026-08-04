@@ -11,6 +11,21 @@ import { LabelShowcase } from "./components/LabelShowcase"
 import { KbdShowcase } from "./components/KbdShowcase"
 import { SpinnerShowcase } from "./components/SpinnerShowcase"
 import { ProgressShowcase } from "./components/ProgressShowcase"
+import { InputShowcase } from "./components/InputShowcase"
+import { TextareaShowcase } from "./components/TextareaShowcase"
+import { CheckboxShowcase } from "./components/CheckboxShowcase"
+import { SwitchShowcase } from "./components/SwitchShowcase"
+import { SelectShowcase } from "./components/SelectShowcase"
+import { NativeSelectShowcase } from "./components/NativeSelectShowcase"
+import { RadioGroupShowcase } from "./components/RadioGroupShowcase"
+import { SliderShowcase } from "./components/SliderShowcase"
+import { InputOTPShowcase } from "./components/InputOTPShowcase"
+import { ToggleShowcase } from "./components/ToggleShowcase"
+import { ToggleGroupShowcase } from "./components/ToggleGroupShowcase"
+import { InputGroupShowcase } from "./components/InputGroupShowcase"
+import { FieldShowcase } from "./components/FieldShowcase"
+import { FormShowcase } from "./components/FormShowcase"
+import { ComboboxShowcase } from "./components/ComboboxShowcase"
 
 /**
  * Showcase pages register here as components are ported (Phase 3 of the plan).
@@ -28,6 +43,21 @@ const showcases: Record<string, React.ComponentType> = {
   kbd: KbdShowcase,
   spinner: SpinnerShowcase,
   progress: ProgressShowcase,
+  input: InputShowcase,
+  textarea: TextareaShowcase,
+  checkbox: CheckboxShowcase,
+  switch: SwitchShowcase,
+  select: SelectShowcase,
+  "native-select": NativeSelectShowcase,
+  "radio-group": RadioGroupShowcase,
+  slider: SliderShowcase,
+  "input-otp": InputOTPShowcase,
+  toggle: ToggleShowcase,
+  "toggle-group": ToggleGroupShowcase,
+  "input-group": InputGroupShowcase,
+  field: FieldShowcase,
+  form: FormShowcase,
+  combobox: ComboboxShowcase,
 }
 
 export function ComponentRoute() {
