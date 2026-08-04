@@ -36,6 +36,30 @@ import { ContextMenuShowcase } from "./components/ContextMenuShowcase"
 import { HoverCardShowcase } from "./components/HoverCardShowcase"
 import { MenubarShowcase } from "./components/MenubarShowcase"
 import { DrawerShowcase } from "./components/DrawerShowcase"
+import { AccordionShowcase } from "./components/AccordionShowcase"
+import { AttachmentShowcase } from "./components/AttachmentShowcase"
+import { BreadcrumbShowcase } from "./components/BreadcrumbShowcase"
+import { BubbleShowcase } from "./components/BubbleShowcase"
+import { ButtonGroupShowcase } from "./components/ButtonGroupShowcase"
+import { CalendarShowcase } from "./components/CalendarShowcase"
+import { CardShowcase } from "./components/CardShowcase"
+import { CarouselShowcase } from "./components/CarouselShowcase"
+import { ChartShowcase } from "./components/ChartShowcase"
+import { CollapsibleShowcase } from "./components/CollapsibleShowcase"
+import { CommandShowcase } from "./components/CommandShowcase"
+import { EmptyShowcase } from "./components/EmptyShowcase"
+import { ItemShowcase } from "./components/ItemShowcase"
+import { MarkerShowcase } from "./components/MarkerShowcase"
+import { MessageShowcase } from "./components/MessageShowcase"
+import { MessageScrollerShowcase } from "./components/MessageScrollerShowcase"
+import { NavigationMenuShowcase } from "./components/NavigationMenuShowcase"
+import { PaginationShowcase } from "./components/PaginationShowcase"
+import { ResizableShowcase } from "./components/ResizableShowcase"
+import { ScrollAreaShowcase } from "./components/ScrollAreaShowcase"
+import { SidebarShowcase } from "./components/SidebarShowcase"
+import { SonnerShowcase } from "./components/SonnerShowcase"
+import { TableShowcase } from "./components/TableShowcase"
+import { TabsShowcase } from "./components/TabsShowcase"
 
 /**
  * Showcase pages register here as components are ported (Phase 3 of the plan).
@@ -78,6 +102,30 @@ const showcases: Record<string, React.ComponentType> = {
   "hover-card": HoverCardShowcase,
   menubar: MenubarShowcase,
   drawer: DrawerShowcase,
+  "accordion": AccordionShowcase,
+  "attachment": AttachmentShowcase,
+  "breadcrumb": BreadcrumbShowcase,
+  "bubble": BubbleShowcase,
+  "button-group": ButtonGroupShowcase,
+  "calendar": CalendarShowcase,
+  "card": CardShowcase,
+  "carousel": CarouselShowcase,
+  "chart": ChartShowcase,
+  "collapsible": CollapsibleShowcase,
+  "command": CommandShowcase,
+  "empty": EmptyShowcase,
+  "item": ItemShowcase,
+  "marker": MarkerShowcase,
+  "message": MessageShowcase,
+  "message-scroller": MessageScrollerShowcase,
+  "navigation-menu": NavigationMenuShowcase,
+  "pagination": PaginationShowcase,
+  "resizable": ResizableShowcase,
+  "scroll-area": ScrollAreaShowcase,
+  "sidebar": SidebarShowcase,
+  "sonner": SonnerShowcase,
+  "table": TableShowcase,
+  "tabs": TabsShowcase,
 }
 
 export function ComponentRoute() {

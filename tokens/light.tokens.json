@@ -27,5 +27,20 @@
 
   "border": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.922, 0, 0] } },
   "input": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.922, 0, 0] } },
-  "ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.708, 0, 0] } }
+  "ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.708, 0, 0] } },
+
+  "chart-1": { "$type": "color", "$description": "shadcn aliases this to Tailwind's own blue-300; passthrough keeps the same alias instead of resolving it to a literal.", "$value": "var(--color-blue-300)" },
+  "chart-2": { "$type": "color", "$value": "var(--color-blue-500)" },
+  "chart-3": { "$type": "color", "$value": "var(--color-blue-600)" },
+  "chart-4": { "$type": "color", "$value": "var(--color-blue-700)" },
+  "chart-5": { "$type": "color", "$value": "var(--color-blue-800)" },
+
+  "sidebar": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] } },
+  "sidebar-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0, 0, 0] } },
+  "sidebar-primary": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.205, 0, 0] } },
+  "sidebar-primary-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] } },
+  "sidebar-accent": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.97, 0, 0] } },
+  "sidebar-accent-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.205, 0, 0] } },
+  "sidebar-border": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.922, 0, 0] } },
+  "sidebar-ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.708, 0, 0] } }
 }

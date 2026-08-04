@@ -24,17 +24,6 @@ export interface NavCategory {
   components: ComponentEntry[]
 }
 
-function pending(name: string): ComponentEntry {
-  return { slug: name, name: titleCase(name), status: "pending" }
-}
-
-function titleCase(slug: string): string {
-  return slug
-    .split("-")
-    .map((word) => word[0].toUpperCase() + word.slice(1))
-    .join(" ")
-}
-
 export const navManifest: NavCategory[] = [
   {
     slug: "primitives",
@@ -93,42 +82,42 @@ export const navManifest: NavCategory[] = [
     slug: "navigation",
     title: "Navigation",
     components: [
-      pending("breadcrumb"),
-      pending("tabs"),
-      pending("navigation-menu"),
-      pending("pagination"),
-      pending("sidebar"),
+      { slug: "breadcrumb", name: "Breadcrumb", status: "ready" },
+      { slug: "tabs", name: "Tabs", status: "ready" },
+      { slug: "navigation-menu", name: "Navigation Menu", status: "ready" },
+      { slug: "pagination", name: "Pagination", status: "ready" },
+      { slug: "sidebar", name: "Sidebar", status: "ready" },
     ],
   },
   {
     slug: "data-display",
     title: "Data Display",
     components: [
-      pending("card"),
-      pending("table"),
-      pending("item"),
-      pending("empty"),
-      pending("marker"),
-      pending("message"),
-      pending("message-scroller"),
-      pending("bubble"),
-      pending("attachment"),
-      pending("chart"),
+      { slug: "card", name: "Card", status: "ready" },
+      { slug: "table", name: "Table", status: "ready" },
+      { slug: "item", name: "Item", status: "ready" },
+      { slug: "empty", name: "Empty", status: "ready" },
+      { slug: "marker", name: "Marker", status: "ready" },
+      { slug: "message", name: "Message", status: "ready" },
+      { slug: "message-scroller", name: "Message Scroller", status: "ready" },
+      { slug: "bubble", name: "Bubble", status: "ready" },
+      { slug: "attachment", name: "Attachment", status: "ready" },
+      { slug: "chart", name: "Chart", status: "ready" },
     ],
   },
   {
     slug: "composed",
     title: "Composed",
     components: [
-      pending("calendar"),
-      pending("carousel"),
-      pending("command"),
-      pending("resizable"),
-      pending("scroll-area"),
-      pending("sonner"),
-      pending("accordion"),
-      pending("collapsible"),
-      pending("button-group"),
+      { slug: "calendar", name: "Calendar", status: "ready" },
+      { slug: "carousel", name: "Carousel", status: "ready" },
+      { slug: "command", name: "Command", status: "ready" },
+      { slug: "resizable", name: "Resizable", status: "ready" },
+      { slug: "scroll-area", name: "Scroll Area", status: "ready" },
+      { slug: "sonner", name: "Sonner", status: "ready" },
+      { slug: "accordion", name: "Accordion", status: "ready" },
+      { slug: "collapsible", name: "Collapsible", status: "ready" },
+      { slug: "button-group", name: "Button Group", status: "ready" },
     ],
   },
 ]

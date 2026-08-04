@@ -1,15 +1,19 @@
 import { NavLink, Outlet } from "react-router-dom"
 import { TooltipProvider } from "@bidezine/system"
 import { navManifest } from "@/nav-manifest"
+import { ThemeSwitcher } from "./ThemeSwitcher"
 
 export function Layout() {
   return (
     <TooltipProvider>
       <div className="flex min-h-screen">
         <aside className="w-64 shrink-0 border-r border-border bg-card px-4 py-6 overflow-y-auto">
-          <NavLink to="/" className="mb-6 block text-lg font-semibold">
+          <NavLink to="/" className="mb-4 block text-lg font-semibold">
             bidezine<span className="text-muted-foreground">/system</span>
           </NavLink>
+          <div className="mb-6">
+            <ThemeSwitcher />
+          </div>
           <nav className="flex flex-col gap-6">
             {navManifest.map((category) => (
               <div key={category.slug}>
