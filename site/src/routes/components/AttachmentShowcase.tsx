@@ -11,7 +11,8 @@ import {
   AttachmentTitle,
   Spinner,
 } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
 
 const images = [
   {
@@ -34,6 +35,134 @@ const images = [
   },
 ]
 
+const examples: ShowcaseExample[] = [
+  {
+    label: "Demo",
+    render: () => (
+      <div className="mx-auto flex w-full max-w-sm flex-col gap-3 py-6">
+        <AttachmentGroup>
+          {images.map((image) => (
+            <Attachment key={image.name} orientation="vertical">
+              <AttachmentMedia variant="image">
+                <img src={image.src} alt={image.alt} />
+              </AttachmentMedia>
+              <AttachmentContent>
+                <AttachmentTitle>{image.name}</AttachmentTitle>
+                <AttachmentDescription>{image.meta}</AttachmentDescription>
+              </AttachmentContent>
+            </Attachment>
+          ))}
+        </AttachmentGroup>
+        <Attachment state="uploading" className="w-full">
+          <AttachmentMedia>
+            <Spinner />
+          </AttachmentMedia>
+          <AttachmentContent>
+            <AttachmentTitle>sales-dashboard.pdf</AttachmentTitle>
+            <AttachmentDescription>Uploading · 64%</AttachmentDescription>
+          </AttachmentContent>
+          <AttachmentActions>
+            <AttachmentAction aria-label="Cancel upload">
+              <XIcon />
+            </AttachmentAction>
+          </AttachmentActions>
+        </Attachment>
+        <Attachment className="w-full">
+          <AttachmentMedia>
+            <FileCodeIcon />
+          </AttachmentMedia>
+          <AttachmentContent>
+            <AttachmentTitle>message-renderer.tsx</AttachmentTitle>
+            <AttachmentDescription>TypeScript · 12 KB</AttachmentDescription>
+          </AttachmentContent>
+          <AttachmentActions>
+            <AttachmentAction aria-label="Remove message-renderer.tsx">
+              <XIcon />
+            </AttachmentAction>
+          </AttachmentActions>
+        </Attachment>
+      </div>
+    ),
+    code: `<div className="mx-auto flex w-full max-w-sm flex-col gap-3 py-6">
+  <AttachmentGroup>
+    {images.map((image) => (
+      <Attachment key={image.name} orientation="vertical">
+        <AttachmentMedia variant="image">
+          <img src={image.src} alt={image.alt} />
+        </AttachmentMedia>
+        <AttachmentContent>
+          <AttachmentTitle>{image.name}</AttachmentTitle>
+          <AttachmentDescription>{image.meta}</AttachmentDescription>
+        </AttachmentContent>
+      </Attachment>
+    ))}
+  </AttachmentGroup>
+  <Attachment state="uploading" className="w-full">
+    <AttachmentMedia>
+      <Spinner />
+    </AttachmentMedia>
+    <AttachmentContent>
+      <AttachmentTitle>sales-dashboard.pdf</AttachmentTitle>
+      <AttachmentDescription>Uploading · 64%</AttachmentDescription>
+    </AttachmentContent>
+    <AttachmentActions>
+      <AttachmentAction aria-label="Cancel upload">
+        <XIcon />
+      </AttachmentAction>
+    </AttachmentActions>
+  </Attachment>
+  <Attachment className="w-full">
+    <AttachmentMedia>
+      <FileCodeIcon />
+    </AttachmentMedia>
+    <AttachmentContent>
+      <AttachmentTitle>message-renderer.tsx</AttachmentTitle>
+      <AttachmentDescription>TypeScript · 12 KB</AttachmentDescription>
+    </AttachmentContent>
+    <AttachmentActions>
+      <AttachmentAction aria-label="Remove message-renderer.tsx">
+        <XIcon />
+      </AttachmentAction>
+    </AttachmentActions>
+  </Attachment>
+</div>`,
+  },
+]
+
+const apiRows1: ApiRow[] = [
+  {
+    prop: "state",
+    type: "\"idle\" | \"uploading\" | \"processing\" | \"error\" | \"done\"",
+    default: "\"done\"",
+  },
+  {
+    prop: "size",
+    type: "\"sm\" | \"default\"",
+    default: "\"default\"",
+  },
+  {
+    prop: "orientation",
+    type: "\"horizontal\" | \"vertical\"",
+    default: "\"horizontal\"",
+  },
+  {
+    prop: "className",
+    type: "string",
+  }
+]
+
+const apiRows2: ApiRow[] = [
+  {
+    prop: "variant",
+    type: "\"icon\" | \"image\"",
+    default: "\"icon\"",
+  },
+  {
+    prop: "className",
+    type: "string",
+  }
+]
+
 export function AttachmentShowcase() {
   return (
     <div className="flex max-w-3xl flex-col gap-8">
@@ -47,51 +176,9 @@ export function AttachmentShowcase() {
           unchanged.
         </p>
       </div>
-      <Example title="Demo">
-        <div className="mx-auto flex w-full max-w-sm flex-col gap-3 py-6">
-          <AttachmentGroup>
-            {images.map((image) => (
-              <Attachment key={image.name} orientation="vertical">
-                <AttachmentMedia variant="image">
-                  <img src={image.src} alt={image.alt} />
-                </AttachmentMedia>
-                <AttachmentContent>
-                  <AttachmentTitle>{image.name}</AttachmentTitle>
-                  <AttachmentDescription>{image.meta}</AttachmentDescription>
-                </AttachmentContent>
-              </Attachment>
-            ))}
-          </AttachmentGroup>
-          <Attachment state="uploading" className="w-full">
-            <AttachmentMedia>
-              <Spinner />
-            </AttachmentMedia>
-            <AttachmentContent>
-              <AttachmentTitle>sales-dashboard.pdf</AttachmentTitle>
-              <AttachmentDescription>Uploading · 64%</AttachmentDescription>
-            </AttachmentContent>
-            <AttachmentActions>
-              <AttachmentAction aria-label="Cancel upload">
-                <XIcon />
-              </AttachmentAction>
-            </AttachmentActions>
-          </Attachment>
-          <Attachment className="w-full">
-            <AttachmentMedia>
-              <FileCodeIcon />
-            </AttachmentMedia>
-            <AttachmentContent>
-              <AttachmentTitle>message-renderer.tsx</AttachmentTitle>
-              <AttachmentDescription>TypeScript · 12 KB</AttachmentDescription>
-            </AttachmentContent>
-            <AttachmentActions>
-              <AttachmentAction aria-label="Remove message-renderer.tsx">
-                <XIcon />
-              </AttachmentAction>
-            </AttachmentActions>
-          </Attachment>
-        </div>
-      </Example>
+      <ExampleBrowser examples={examples} />
+      <ApiReference rows={apiRows1} title="Attachment" />
+      <ApiReference rows={apiRows2} title="AttachmentMedia" />
     </div>
   )
 }

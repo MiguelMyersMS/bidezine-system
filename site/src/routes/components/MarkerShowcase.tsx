@@ -6,7 +6,79 @@ import {
   MarkerIcon,
   Spinner,
 } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
+
+const examples: ShowcaseExample[] = [
+  {
+    label: "Demo",
+    render: () => (
+      <div className="flex w-full max-w-sm flex-col gap-8 py-6">
+        <Marker>
+          <MarkerIcon>
+            <GitBranchIcon />
+          </MarkerIcon>
+          <MarkerContent>Switched to a new branch</MarkerContent>
+        </Marker>
+        <Marker role="status">
+          <MarkerIcon>
+            <Spinner />
+          </MarkerIcon>
+          <MarkerContent className="shimmer">Thinking...</MarkerContent>
+        </Marker>
+        <Marker variant="separator">
+          <MarkerContent>Conversation compacted</MarkerContent>
+        </Marker>
+        <Marker>
+          <MarkerIcon>
+            <SearchIcon />
+          </MarkerIcon>
+          <MarkerContent>Explored 4 files</MarkerContent>
+        </Marker>
+      </div>
+    ),
+    code: `<div className="flex w-full max-w-sm flex-col gap-8 py-6">
+  <Marker>
+    <MarkerIcon>
+      <GitBranchIcon />
+    </MarkerIcon>
+    <MarkerContent>Switched to a new branch</MarkerContent>
+  </Marker>
+  <Marker role="status">
+    <MarkerIcon>
+      <Spinner />
+    </MarkerIcon>
+    <MarkerContent className="shimmer">Thinking...</MarkerContent>
+  </Marker>
+  <Marker variant="separator">
+    <MarkerContent>Conversation compacted</MarkerContent>
+  </Marker>
+  <Marker>
+    <MarkerIcon>
+      <SearchIcon />
+    </MarkerIcon>
+    <MarkerContent>Explored 4 files</MarkerContent>
+  </Marker>
+</div>`,
+  },
+]
+
+const apiRows: ApiRow[] = [
+  {
+    prop: "variant",
+    type: "\"default\" | \"secondary\" | \"destructive\" | \"outline\"",
+    default: "\"default\"",
+  },
+  {
+    prop: "asChild",
+    type: "boolean",
+    default: "false",
+  },
+  {
+    prop: "className",
+    type: "string",
+  }
+]
 
 export function MarkerShowcase() {
   return (
@@ -21,31 +93,8 @@ export function MarkerShowcase() {
           unchanged.
         </p>
       </div>
-      <Example title="Demo">
-        <div className="flex w-full max-w-sm flex-col gap-8 py-6">
-          <Marker>
-            <MarkerIcon>
-              <GitBranchIcon />
-            </MarkerIcon>
-            <MarkerContent>Switched to a new branch</MarkerContent>
-          </Marker>
-          <Marker role="status">
-            <MarkerIcon>
-              <Spinner />
-            </MarkerIcon>
-            <MarkerContent className="shimmer">Thinking...</MarkerContent>
-          </Marker>
-          <Marker variant="separator">
-            <MarkerContent>Conversation compacted</MarkerContent>
-          </Marker>
-          <Marker>
-            <MarkerIcon>
-              <SearchIcon />
-            </MarkerIcon>
-            <MarkerContent>Explored 4 files</MarkerContent>
-          </Marker>
-        </div>
-      </Example>
+      <ExampleBrowser examples={examples} />
+      <ApiReference rows={apiRows} title="Marker" />
     </div>
   )
 }
