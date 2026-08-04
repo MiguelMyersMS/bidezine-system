@@ -9,7 +9,8 @@ import {
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
 
 const components: { title: string; href: string; description: string }[] = [
   {
@@ -44,62 +45,6 @@ const components: { title: string; href: string; description: string }[] = [
   },
 ]
 
-export function NavigationMenuShowcase() {
-  return (
-    <div className="flex max-w-4xl flex-col gap-8">
-      <div>
-        <h1 className="text-2xl font-semibold">Navigation Menu</h1>
-        <p className="mt-2 text-muted-foreground">
-          Ported from{" "}
-          <code className="rounded bg-muted px-1 py-0.5 text-sm">
-            reference/shadcn-ui/apps/v4/registry/new-york-v4/ui/navigation-menu.tsx
-          </code>{" "}
-          unchanged.
-        </p>
-      </div>
-      <Example title="Demo">
-        <NavigationMenu>
-          <NavigationMenuList>
-            <NavigationMenuItem>
-              <NavigationMenuTrigger>Getting started</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="w-96">
-                  <ListItem href="#intro" title="Introduction">
-                    Re-usable components built with Tailwind CSS.
-                  </ListItem>
-                  <ListItem href="#installation" title="Installation">
-                    How to install dependencies and structure your app.
-                  </ListItem>
-                  <ListItem href="#typography" title="Typography">
-                    Styles for headings, paragraphs, and lists.
-                  </ListItem>
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-            <NavigationMenuItem className="hidden md:flex">
-              <NavigationMenuTrigger>Components</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-[400px] gap-2 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-                  {components.map((component) => (
-                    <ListItem key={component.title} title={component.title} href={component.href}>
-                      {component.description}
-                    </ListItem>
-                  ))}
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                <a href="#docs">Docs</a>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
-      </Example>
-    </div>
-  )
-}
-
 function ListItem({
   title,
   children,
@@ -117,5 +62,85 @@ function ListItem({
         </a>
       </NavigationMenuLink>
     </li>
+  )
+}
+
+const examples: ShowcaseExample[] = [
+  {
+    label: "Demo",
+    render: () => (
+      <NavigationMenu>
+        <NavigationMenuList>
+          <NavigationMenuItem>
+            <NavigationMenuTrigger>Getting started</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="w-96">
+                <ListItem href="#intro" title="Introduction">
+                  Re-usable components built with Tailwind CSS.
+                </ListItem>
+                <ListItem href="#installation" title="Installation">
+                  How to install dependencies and structure your app.
+                </ListItem>
+                <ListItem href="#typography" title="Typography">
+                  Styles for headings, paragraphs, and lists.
+                </ListItem>
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+          <NavigationMenuItem className="hidden md:flex">
+            <NavigationMenuTrigger>Components</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid w-[400px] gap-2 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                {components.map((component) => (
+                  <ListItem key={component.title} title={component.title} href={component.href}>
+                    {component.description}
+                  </ListItem>
+                ))}
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+              <a href="#docs">Docs</a>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+      </NavigationMenu>
+    ),
+    code: `<NavigationMenu>
+  <NavigationMenuList>
+    <NavigationMenuItem>
+      <NavigationMenuTrigger>Getting started</NavigationMenuTrigger>
+      <NavigationMenuContent>...</NavigationMenuContent>
+    </NavigationMenuItem>
+  </NavigationMenuList>
+</NavigationMenu>`,
+  },
+]
+
+const apiRows: ApiRow[] = [
+  {
+    prop: "navigationMenuTriggerStyle()",
+    type: "() => string",
+    description: "Utility function returning the trigger's class list, for plain links styled to match.",
+  },
+]
+
+export function NavigationMenuShowcase() {
+  return (
+    <div className="flex max-w-4xl flex-col gap-8">
+      <div>
+        <h1 className="text-2xl font-semibold">Navigation Menu</h1>
+        <p className="mt-2 text-muted-foreground">
+          Ported from{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-sm">
+            reference/shadcn-ui/apps/v4/registry/new-york-v4/ui/navigation-menu.tsx
+          </code>{" "}
+          unchanged.
+        </p>
+      </div>
+      <ExampleBrowser examples={examples} />
+      <ApiReference rows={apiRows} />
+    </div>
   )
 }
