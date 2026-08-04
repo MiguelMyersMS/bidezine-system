@@ -1,10 +1,72 @@
-import {
-  Button,
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@bidezine/system"
-import { Example } from "./Example"
+import { Button, HoverCard, HoverCardContent, HoverCardTrigger } from "@bidezine/system"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
+
+const examples: ShowcaseExample[] = [
+  {
+    label: "Demo",
+    render: () => (
+      <HoverCard openDelay={10} closeDelay={100}>
+        <HoverCardTrigger asChild>
+          <Button variant="link">Hover Here</Button>
+        </HoverCardTrigger>
+        <HoverCardContent className="flex w-64 flex-col gap-0.5">
+          <div className="font-semibold">@nextjs</div>
+          <div>The React Framework – created and maintained by @vercel.</div>
+          <div className="mt-1 text-xs text-muted-foreground">Joined December 2021</div>
+        </HoverCardContent>
+      </HoverCard>
+    ),
+    code: `<HoverCard openDelay={10} closeDelay={100}>
+  <HoverCardTrigger asChild><Button variant="link">Hover Here</Button></HoverCardTrigger>
+  <HoverCardContent className="w-64">
+    <div className="font-semibold">@nextjs</div>
+    ...
+  </HoverCardContent>
+</HoverCard>`,
+  },
+  {
+    label: "Sides",
+    render: () => (
+      <div className="flex flex-wrap justify-center gap-2">
+        {(["left", "top", "bottom", "right"] as const).map((side) => (
+          <HoverCard key={side} openDelay={100} closeDelay={100}>
+            <HoverCardTrigger asChild>
+              <Button variant="outline" className="capitalize">
+                {side}
+              </Button>
+            </HoverCardTrigger>
+            <HoverCardContent side={side}>
+              <div className="flex flex-col gap-1">
+                <h4 className="font-medium">Hover Card</h4>
+                <p>This hover card appears on the {side} side of the trigger.</p>
+              </div>
+            </HoverCardContent>
+          </HoverCard>
+        ))}
+      </div>
+    ),
+    code: `<HoverCard openDelay={100} closeDelay={100}>
+  <HoverCardTrigger asChild><Button variant="outline">{side}</Button></HoverCardTrigger>
+  <HoverCardContent side={side}>...</HoverCardContent>
+</HoverCard>`,
+  },
+]
+
+const apiRows: ApiRow[] = [
+  {
+    prop: "openDelay / closeDelay",
+    type: "number",
+    default: "700 / 300",
+    description: "HoverCard: hover delay before opening/closing, in milliseconds.",
+  },
+  {
+    prop: "side",
+    type: `"top" | "right" | "bottom" | "left"`,
+    default: `"bottom"`,
+    description: "HoverCardContent: which side of the trigger the card renders on.",
+  },
+]
 
 export function HoverCardShowcase() {
   return (
@@ -19,39 +81,8 @@ export function HoverCardShowcase() {
           unchanged.
         </p>
       </div>
-      <Example title="Demo">
-        <HoverCard openDelay={10} closeDelay={100}>
-          <HoverCardTrigger asChild>
-            <Button variant="link">Hover Here</Button>
-          </HoverCardTrigger>
-          <HoverCardContent className="flex w-64 flex-col gap-0.5">
-            <div className="font-semibold">@nextjs</div>
-            <div>The React Framework – created and maintained by @vercel.</div>
-            <div className="mt-1 text-xs text-muted-foreground">
-              Joined December 2021
-            </div>
-          </HoverCardContent>
-        </HoverCard>
-      </Example>
-      <Example title="Sides">
-        <div className="flex flex-wrap justify-center gap-2">
-          {(["left", "top", "bottom", "right"] as const).map((side) => (
-            <HoverCard key={side} openDelay={100} closeDelay={100}>
-              <HoverCardTrigger asChild>
-                <Button variant="outline" className="capitalize">
-                  {side}
-                </Button>
-              </HoverCardTrigger>
-              <HoverCardContent side={side}>
-                <div className="flex flex-col gap-1">
-                  <h4 className="font-medium">Hover Card</h4>
-                  <p>This hover card appears on the {side} side of the trigger.</p>
-                </div>
-              </HoverCardContent>
-            </HoverCard>
-          ))}
-        </div>
-      </Example>
+      <ExampleBrowser examples={examples} />
+      <ApiReference rows={apiRows} />
     </div>
   )
 }
