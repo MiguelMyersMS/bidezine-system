@@ -1,6 +1,7 @@
 import { ArrowUpIcon, GitBranchIcon } from "lucide-react"
 import { Button } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
 
 /**
  * Reproduces shadcn's own button-default / button-with-icon / button-demo
@@ -9,56 +10,94 @@ import { Example } from "./Example"
  * reference's button-with-icon example uses @tabler/icons-react, which isn't
  * a dependency of this package — substituted with the equivalent lucide-react
  * icon (already a dependency) since lucide-react is what button-demo itself uses.
+ *
+ * Restructured as an ExampleBrowser (filter chips, one example visible at a
+ * time) instead of a long stack — the shell Claude (design) proposed, ported
+ * here against the real @bidezine/system import with no behavior changes.
  */
 
-function ButtonDefault() {
-  return <Button>Button</Button>
-}
+const variants = [
+  "default",
+  "secondary",
+  "destructive",
+  "outline",
+  "ghost",
+  "link",
+] as const
+const sizes = ["sm", "default", "lg"] as const
 
-function ButtonWithIcon() {
-  return (
-    <Button variant="outline" size="sm">
-      <GitBranchIcon /> New Branch
-    </Button>
-  )
-}
-
-function ButtonDemo() {
-  return (
-    <div className="flex flex-wrap items-center gap-2 md:flex-row">
-      <Button variant="outline">Button</Button>
-      <Button variant="outline" size="icon" aria-label="Submit">
-        <ArrowUpIcon />
+const examples: ShowcaseExample[] = [
+  {
+    label: "Default",
+    render: () => <Button>Button</Button>,
+    code: `<Button>Button</Button>`,
+  },
+  {
+    label: "With icon",
+    render: () => (
+      <Button variant="outline" size="sm">
+        <GitBranchIcon /> New Branch
       </Button>
-    </div>
-  )
-}
+    ),
+    code: `<Button variant="outline" size="sm">\n  <GitBranchIcon /> New Branch\n</Button>`,
+  },
+  {
+    label: "Demo",
+    render: () => (
+      <div className="flex flex-wrap items-center gap-2 md:flex-row">
+        <Button variant="outline">Button</Button>
+        <Button variant="outline" size="icon" aria-label="Submit">
+          <ArrowUpIcon />
+        </Button>
+      </div>
+    ),
+    code: `<Button variant="outline">Button</Button>\n<Button variant="outline" size="icon" aria-label="Submit">\n  <ArrowUpIcon />\n</Button>`,
+  },
+  {
+    label: "Variant × size",
+    render: () => (
+      <div className="flex flex-col gap-4">
+        {sizes.map((size) => (
+          <div key={size} className="flex flex-wrap items-center gap-2">
+            {variants.map((variant) => (
+              <Button key={variant} variant={variant} size={size}>
+                {variant}
+              </Button>
+            ))}
+          </div>
+        ))}
+      </div>
+    ),
+    code: `<Button variant="secondary" size="lg">secondary</Button>\n// variant: ${variants.join(" | ")}\n// size: ${sizes.join(" | ")}`,
+  },
+  {
+    label: "Disabled",
+    render: () => <Button disabled>Button</Button>,
+    code: `<Button disabled>Button</Button>`,
+  },
+]
 
-function ButtonVariantMatrix() {
-  const variants = [
-    "default",
-    "secondary",
-    "destructive",
-    "outline",
-    "ghost",
-    "link",
-  ] as const
-  const sizes = ["sm", "default", "lg"] as const
-
-  return (
-    <div className="flex flex-col gap-4">
-      {sizes.map((size) => (
-        <div key={size} className="flex flex-wrap items-center gap-2">
-          {variants.map((variant) => (
-            <Button key={variant} variant={variant} size={size}>
-              {variant}
-            </Button>
-          ))}
-        </div>
-      ))}
-    </div>
-  )
-}
+const apiRows: ApiRow[] = [
+  {
+    prop: "variant",
+    type: `"default" | "secondary" | "destructive" | "outline" | "ghost" | "link"`,
+    default: `"default"`,
+    description: "Visual style.",
+  },
+  {
+    prop: "size",
+    type: `"default" | "xs" | "sm" | "lg" | "icon" | "icon-xs" | "icon-sm" | "icon-lg"`,
+    default: `"default"`,
+    description: "Height/padding, or square icon-only sizing.",
+  },
+  {
+    prop: "asChild",
+    type: "boolean",
+    default: "false",
+    description:
+      "Render props onto a single child element instead of a <button> (Radix Slot).",
+  },
+]
 
 export function ButtonShowcase() {
   return (
@@ -74,18 +113,8 @@ export function ButtonShowcase() {
           styling adjustments.
         </p>
       </div>
-      <Example title="Default">
-        <ButtonDefault />
-      </Example>
-      <Example title="With icon">
-        <ButtonWithIcon />
-      </Example>
-      <Example title="Demo (outline + icon)">
-        <ButtonDemo />
-      </Example>
-      <Example title="Variant × size matrix">
-        <ButtonVariantMatrix />
-      </Example>
+      <ExampleBrowser examples={examples} />
+      <ApiReference rows={apiRows} />
     </div>
   )
 }
