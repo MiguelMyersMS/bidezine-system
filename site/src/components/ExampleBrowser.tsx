@@ -72,7 +72,14 @@ export function ExampleBrowser({
 
       <Card className="gap-0 overflow-hidden py-0">
         <CardContent
-          className={cn("flex min-h-[200px] items-center justify-center p-8", stageClassName)}
+          className={cn(
+            // contain-layout gives position:fixed descendants (e.g. Sidebar's
+            // desktop rail) a containing block here instead of the real
+            // viewport, so a demo stays inside its own preview box instead of
+            // overlapping the site's own page chrome.
+            "relative flex min-h-[200px] items-center justify-center overflow-hidden contain-layout p-8",
+            stageClassName
+          )}
         >
           {example.render()}
         </CardContent>
