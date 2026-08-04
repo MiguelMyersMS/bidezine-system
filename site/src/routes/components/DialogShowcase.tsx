@@ -13,7 +13,165 @@ import {
   Input,
   Label,
 } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
+
+const examples: ShowcaseExample[] = [
+  {
+    label: "Demo",
+    render: () => (
+      <Dialog>
+        <form>
+          <DialogTrigger asChild>
+            <Button variant="outline">Open Dialog</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Edit profile</DialogTitle>
+              <DialogDescription>
+                Make changes to your profile here. Click save when you&apos;re
+                done.
+              </DialogDescription>
+            </DialogHeader>
+            <FieldGroup>
+              <Field>
+                <Label htmlFor="dialog-demo-name">Name</Label>
+                <Input
+                  id="dialog-demo-name"
+                  name="name"
+                  defaultValue="Pedro Duarte"
+                />
+              </Field>
+              <Field>
+                <Label htmlFor="dialog-demo-username">Username</Label>
+                <Input
+                  id="dialog-demo-username"
+                  name="username"
+                  defaultValue="@peduarte"
+                />
+              </Field>
+            </FieldGroup>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button type="submit">Save changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </form>
+      </Dialog>
+    ),
+    code: `<Dialog>
+  <form>
+    <DialogTrigger asChild>
+      <Button variant="outline">Open Dialog</Button>
+    </DialogTrigger>
+    <DialogContent className="sm:max-w-sm">
+      <DialogHeader>
+        <DialogTitle>Edit profile</DialogTitle>
+        <DialogDescription>
+          Make changes to your profile here. Click save when you&apos;re
+          done.
+        </DialogDescription>
+      </DialogHeader>
+      <FieldGroup>
+        <Field>
+          <Label htmlFor="dialog-demo-name">Name</Label>
+          <Input
+            id="dialog-demo-name"
+            name="name"
+            defaultValue="Pedro Duarte"
+          />
+        </Field>
+        <Field>
+          <Label htmlFor="dialog-demo-username">Username</Label>
+          <Input
+            id="dialog-demo-username"
+            name="username"
+            defaultValue="@peduarte"
+          />
+        </Field>
+      </FieldGroup>
+      <DialogFooter>
+        <DialogClose asChild>
+          <Button variant="outline">Cancel</Button>
+        </DialogClose>
+        <Button type="submit">Save changes</Button>
+      </DialogFooter>
+    </DialogContent>
+  </form>
+</Dialog>`,
+  },
+  {
+    label: "Scrollable content",
+    render: () => (
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline">Scrollable Content</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Scrollable Content</DialogTitle>
+            <DialogDescription>
+              This is a dialog with scrollable content.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4">
+            {Array.from({ length: 10 }).map((_, index) => (
+              <p key={index} className="mb-4 leading-normal">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
+                in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+                nulla pariatur. Excepteur sint occaecat cupidatat non proident,
+                sunt in culpa qui officia deserunt mollit anim id est laborum.
+              </p>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+    ),
+    code: `<Dialog>
+  <DialogTrigger asChild>
+    <Button variant="outline">Scrollable Content</Button>
+  </DialogTrigger>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Scrollable Content</DialogTitle>
+      <DialogDescription>
+        This is a dialog with scrollable content.
+      </DialogDescription>
+    </DialogHeader>
+    <div className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4">
+      {Array.from({ length: 10 }).map((_, index) => (
+        <p key={index} className="mb-4 leading-normal">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+          enim ad minim veniam, quis nostrud exercitation ullamco laboris
+          nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
+          in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+          nulla pariatur. Excepteur sint occaecat cupidatat non proident,
+          sunt in culpa qui officia deserunt mollit anim id est laborum.
+        </p>
+      ))}
+    </div>
+  </DialogContent>
+</Dialog>`,
+  },
+]
+
+const apiRows: ApiRow[] = [
+  {
+    prop: "showCloseButton",
+    type: "boolean",
+    default: "true",
+  },
+  {
+    prop: "className",
+    type: "string",
+  }
+]
 
 export function DialogShowcase() {
   return (
@@ -28,76 +186,8 @@ export function DialogShowcase() {
           with only internal import-path fixes.
         </p>
       </div>
-      <Example title="Demo">
-        <Dialog>
-          <form>
-            <DialogTrigger asChild>
-              <Button variant="outline">Open Dialog</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-sm">
-              <DialogHeader>
-                <DialogTitle>Edit profile</DialogTitle>
-                <DialogDescription>
-                  Make changes to your profile here. Click save when you&apos;re
-                  done.
-                </DialogDescription>
-              </DialogHeader>
-              <FieldGroup>
-                <Field>
-                  <Label htmlFor="dialog-demo-name">Name</Label>
-                  <Input
-                    id="dialog-demo-name"
-                    name="name"
-                    defaultValue="Pedro Duarte"
-                  />
-                </Field>
-                <Field>
-                  <Label htmlFor="dialog-demo-username">Username</Label>
-                  <Input
-                    id="dialog-demo-username"
-                    name="username"
-                    defaultValue="@peduarte"
-                  />
-                </Field>
-              </FieldGroup>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant="outline">Cancel</Button>
-                </DialogClose>
-                <Button type="submit">Save changes</Button>
-              </DialogFooter>
-            </DialogContent>
-          </form>
-        </Dialog>
-      </Example>
-      <Example title="Scrollable content">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline">Scrollable Content</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Scrollable Content</DialogTitle>
-              <DialogDescription>
-                This is a dialog with scrollable content.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4">
-              {Array.from({ length: 10 }).map((_, index) => (
-                <p key={index} className="mb-4 leading-normal">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-                  eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-                  enim ad minim veniam, quis nostrud exercitation ullamco laboris
-                  nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
-                  in reprehenderit in voluptate velit esse cillum dolore eu fugiat
-                  nulla pariatur. Excepteur sint occaecat cupidatat non proident,
-                  sunt in culpa qui officia deserunt mollit anim id est laborum.
-                </p>
-              ))}
-            </div>
-          </DialogContent>
-        </Dialog>
-      </Example>
+      <ExampleBrowser examples={examples} stageClassName="min-h-[320px]" />
+      <ApiReference rows={apiRows} title="DialogContent" />
     </div>
   )
 }

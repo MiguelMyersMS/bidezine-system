@@ -16,11 +16,317 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
+
+const apiRows1: ApiRow[] = [
+  {
+    prop: "align",
+    type: "\"start\" | \"center\" | \"end\"",
+    default: "\"start\"",
+  },
+  {
+    prop: "alignOffset",
+    type: "number",
+    default: "-4",
+  },
+  {
+    prop: "sideOffset",
+    type: "number",
+    default: "8",
+  },
+  {
+    prop: "className",
+    type: "string",
+  }
+]
+
+const apiRows2: ApiRow[] = [
+  {
+    prop: "inset",
+    type: "boolean",
+  },
+  {
+    prop: "variant",
+    type: "\"default\" | \"destructive\"",
+    default: "\"default\"",
+  },
+  {
+    prop: "className",
+    type: "string",
+  }
+]
 
 export function MenubarShowcase() {
   const [user, setUser] = React.useState("benoit")
   const [theme, setTheme] = React.useState("system")
+
+const examples: ShowcaseExample[] = [
+  {
+    label: "Demo",
+    render: () => (
+      <Menubar className="w-72">
+        <MenubarMenu>
+          <MenubarTrigger>File</MenubarTrigger>
+          <MenubarContent>
+            <MenubarGroup>
+              <MenubarItem>
+                New Tab <MenubarShortcut>⌘T</MenubarShortcut>
+              </MenubarItem>
+              <MenubarItem>
+                New Window <MenubarShortcut>⌘N</MenubarShortcut>
+              </MenubarItem>
+              <MenubarItem disabled>New Incognito Window</MenubarItem>
+            </MenubarGroup>
+            <MenubarSeparator />
+            <MenubarGroup>
+              <MenubarSub>
+                <MenubarSubTrigger>Share</MenubarSubTrigger>
+                <MenubarSubContent>
+                  <MenubarGroup>
+                    <MenubarItem>Email link</MenubarItem>
+                    <MenubarItem>Messages</MenubarItem>
+                    <MenubarItem>Notes</MenubarItem>
+                  </MenubarGroup>
+                </MenubarSubContent>
+              </MenubarSub>
+            </MenubarGroup>
+            <MenubarSeparator />
+            <MenubarGroup>
+              <MenubarItem>
+                Print... <MenubarShortcut>⌘P</MenubarShortcut>
+              </MenubarItem>
+            </MenubarGroup>
+          </MenubarContent>
+        </MenubarMenu>
+        <MenubarMenu>
+          <MenubarTrigger>Edit</MenubarTrigger>
+          <MenubarContent>
+            <MenubarGroup>
+              <MenubarItem>
+                Undo <MenubarShortcut>⌘Z</MenubarShortcut>
+              </MenubarItem>
+              <MenubarItem>
+                Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
+              </MenubarItem>
+            </MenubarGroup>
+            <MenubarSeparator />
+            <MenubarGroup>
+              <MenubarSub>
+                <MenubarSubTrigger>Find</MenubarSubTrigger>
+                <MenubarSubContent>
+                  <MenubarGroup>
+                    <MenubarItem>Search the web</MenubarItem>
+                  </MenubarGroup>
+                  <MenubarSeparator />
+                  <MenubarGroup>
+                    <MenubarItem>Find...</MenubarItem>
+                    <MenubarItem>Find Next</MenubarItem>
+                    <MenubarItem>Find Previous</MenubarItem>
+                  </MenubarGroup>
+                </MenubarSubContent>
+              </MenubarSub>
+            </MenubarGroup>
+            <MenubarSeparator />
+            <MenubarGroup>
+              <MenubarItem>Cut</MenubarItem>
+              <MenubarItem>Copy</MenubarItem>
+              <MenubarItem>Paste</MenubarItem>
+            </MenubarGroup>
+          </MenubarContent>
+        </MenubarMenu>
+      </Menubar>
+    ),
+    code: `<Menubar className="w-72">
+  <MenubarMenu>
+    <MenubarTrigger>File</MenubarTrigger>
+    <MenubarContent>
+      <MenubarGroup>
+        <MenubarItem>
+          New Tab <MenubarShortcut>⌘T</MenubarShortcut>
+        </MenubarItem>
+        <MenubarItem>
+          New Window <MenubarShortcut>⌘N</MenubarShortcut>
+        </MenubarItem>
+        <MenubarItem disabled>New Incognito Window</MenubarItem>
+      </MenubarGroup>
+      <MenubarSeparator />
+      <MenubarGroup>
+        <MenubarSub>
+          <MenubarSubTrigger>Share</MenubarSubTrigger>
+          <MenubarSubContent>
+            <MenubarGroup>
+              <MenubarItem>Email link</MenubarItem>
+              <MenubarItem>Messages</MenubarItem>
+              <MenubarItem>Notes</MenubarItem>
+            </MenubarGroup>
+          </MenubarSubContent>
+        </MenubarSub>
+      </MenubarGroup>
+      <MenubarSeparator />
+      <MenubarGroup>
+        <MenubarItem>
+          Print... <MenubarShortcut>⌘P</MenubarShortcut>
+        </MenubarItem>
+      </MenubarGroup>
+    </MenubarContent>
+  </MenubarMenu>
+  <MenubarMenu>
+    <MenubarTrigger>Edit</MenubarTrigger>
+    <MenubarContent>
+      <MenubarGroup>
+        <MenubarItem>
+          Undo <MenubarShortcut>⌘Z</MenubarShortcut>
+        </MenubarItem>
+        <MenubarItem>
+          Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
+        </MenubarItem>
+      </MenubarGroup>
+      <MenubarSeparator />
+      <MenubarGroup>
+        <MenubarSub>
+          <MenubarSubTrigger>Find</MenubarSubTrigger>
+          <MenubarSubContent>
+            <MenubarGroup>
+              <MenubarItem>Search the web</MenubarItem>
+            </MenubarGroup>
+            <MenubarSeparator />
+            <MenubarGroup>
+              <MenubarItem>Find...</MenubarItem>
+              <MenubarItem>Find Next</MenubarItem>
+              <MenubarItem>Find Previous</MenubarItem>
+            </MenubarGroup>
+          </MenubarSubContent>
+        </MenubarSub>
+      </MenubarGroup>
+      <MenubarSeparator />
+      <MenubarGroup>
+        <MenubarItem>Cut</MenubarItem>
+        <MenubarItem>Copy</MenubarItem>
+        <MenubarItem>Paste</MenubarItem>
+      </MenubarGroup>
+    </MenubarContent>
+  </MenubarMenu>
+</Menubar>`,
+  },
+  {
+    label: "Radio groups",
+    render: () => (
+      <Menubar className="w-72">
+        <MenubarMenu>
+          <MenubarTrigger>Profiles</MenubarTrigger>
+          <MenubarContent>
+            <MenubarRadioGroup value={user} onValueChange={setUser}>
+              <MenubarRadioItem value="andy">Andy</MenubarRadioItem>
+              <MenubarRadioItem value="benoit">Benoit</MenubarRadioItem>
+              <MenubarRadioItem value="luis">Luis</MenubarRadioItem>
+            </MenubarRadioGroup>
+            <MenubarSeparator />
+            <MenubarItem inset>Edit...</MenubarItem>
+            <MenubarItem inset>Add Profile...</MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
+        <MenubarMenu>
+          <MenubarTrigger>Theme</MenubarTrigger>
+          <MenubarContent>
+            <MenubarRadioGroup value={theme} onValueChange={setTheme}>
+              <MenubarRadioItem value="light">Light</MenubarRadioItem>
+              <MenubarRadioItem value="dark">Dark</MenubarRadioItem>
+              <MenubarRadioItem value="system">System</MenubarRadioItem>
+            </MenubarRadioGroup>
+          </MenubarContent>
+        </MenubarMenu>
+      </Menubar>
+    ),
+    code: `<Menubar className="w-72">
+  <MenubarMenu>
+    <MenubarTrigger>Profiles</MenubarTrigger>
+    <MenubarContent>
+      <MenubarRadioGroup value={user} onValueChange={setUser}>
+        <MenubarRadioItem value="andy">Andy</MenubarRadioItem>
+        <MenubarRadioItem value="benoit">Benoit</MenubarRadioItem>
+        <MenubarRadioItem value="luis">Luis</MenubarRadioItem>
+      </MenubarRadioGroup>
+      <MenubarSeparator />
+      <MenubarItem inset>Edit...</MenubarItem>
+      <MenubarItem inset>Add Profile...</MenubarItem>
+    </MenubarContent>
+  </MenubarMenu>
+  <MenubarMenu>
+    <MenubarTrigger>Theme</MenubarTrigger>
+    <MenubarContent>
+      <MenubarRadioGroup value={theme} onValueChange={setTheme}>
+        <MenubarRadioItem value="light">Light</MenubarRadioItem>
+        <MenubarRadioItem value="dark">Dark</MenubarRadioItem>
+        <MenubarRadioItem value="system">System</MenubarRadioItem>
+      </MenubarRadioGroup>
+    </MenubarContent>
+  </MenubarMenu>
+</Menubar>`,
+  },
+  {
+    label: "Checkboxes",
+    render: () => (
+      <Menubar className="w-72">
+        <MenubarMenu>
+          <MenubarTrigger>View</MenubarTrigger>
+          <MenubarContent className="w-64">
+            <MenubarCheckboxItem>
+              Always Show Bookmarks Bar
+            </MenubarCheckboxItem>
+            <MenubarCheckboxItem checked>
+              Always Show Full URLs
+            </MenubarCheckboxItem>
+            <MenubarSeparator />
+            <MenubarItem inset>
+              Reload <MenubarShortcut>⌘R</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem disabled inset>
+              Force Reload <MenubarShortcut>⇧⌘R</MenubarShortcut>
+            </MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
+        <MenubarMenu>
+          <MenubarTrigger>Format</MenubarTrigger>
+          <MenubarContent>
+            <MenubarCheckboxItem checked>Strikethrough</MenubarCheckboxItem>
+            <MenubarCheckboxItem>Code</MenubarCheckboxItem>
+            <MenubarCheckboxItem>Superscript</MenubarCheckboxItem>
+          </MenubarContent>
+        </MenubarMenu>
+      </Menubar>
+    ),
+    code: `<Menubar className="w-72">
+  <MenubarMenu>
+    <MenubarTrigger>View</MenubarTrigger>
+    <MenubarContent className="w-64">
+      <MenubarCheckboxItem>
+        Always Show Bookmarks Bar
+      </MenubarCheckboxItem>
+      <MenubarCheckboxItem checked>
+        Always Show Full URLs
+      </MenubarCheckboxItem>
+      <MenubarSeparator />
+      <MenubarItem inset>
+        Reload <MenubarShortcut>⌘R</MenubarShortcut>
+      </MenubarItem>
+      <MenubarItem disabled inset>
+        Force Reload <MenubarShortcut>⇧⌘R</MenubarShortcut>
+      </MenubarItem>
+    </MenubarContent>
+  </MenubarMenu>
+  <MenubarMenu>
+    <MenubarTrigger>Format</MenubarTrigger>
+    <MenubarContent>
+      <MenubarCheckboxItem checked>Strikethrough</MenubarCheckboxItem>
+      <MenubarCheckboxItem>Code</MenubarCheckboxItem>
+      <MenubarCheckboxItem>Superscript</MenubarCheckboxItem>
+    </MenubarContent>
+  </MenubarMenu>
+</Menubar>`,
+  },
+]
+
 
   return (
     <div className="flex max-w-3xl flex-col gap-8">
@@ -34,136 +340,9 @@ export function MenubarShowcase() {
           unchanged.
         </p>
       </div>
-      <Example title="Demo">
-        <Menubar className="w-72">
-          <MenubarMenu>
-            <MenubarTrigger>File</MenubarTrigger>
-            <MenubarContent>
-              <MenubarGroup>
-                <MenubarItem>
-                  New Tab <MenubarShortcut>⌘T</MenubarShortcut>
-                </MenubarItem>
-                <MenubarItem>
-                  New Window <MenubarShortcut>⌘N</MenubarShortcut>
-                </MenubarItem>
-                <MenubarItem disabled>New Incognito Window</MenubarItem>
-              </MenubarGroup>
-              <MenubarSeparator />
-              <MenubarGroup>
-                <MenubarSub>
-                  <MenubarSubTrigger>Share</MenubarSubTrigger>
-                  <MenubarSubContent>
-                    <MenubarGroup>
-                      <MenubarItem>Email link</MenubarItem>
-                      <MenubarItem>Messages</MenubarItem>
-                      <MenubarItem>Notes</MenubarItem>
-                    </MenubarGroup>
-                  </MenubarSubContent>
-                </MenubarSub>
-              </MenubarGroup>
-              <MenubarSeparator />
-              <MenubarGroup>
-                <MenubarItem>
-                  Print... <MenubarShortcut>⌘P</MenubarShortcut>
-                </MenubarItem>
-              </MenubarGroup>
-            </MenubarContent>
-          </MenubarMenu>
-          <MenubarMenu>
-            <MenubarTrigger>Edit</MenubarTrigger>
-            <MenubarContent>
-              <MenubarGroup>
-                <MenubarItem>
-                  Undo <MenubarShortcut>⌘Z</MenubarShortcut>
-                </MenubarItem>
-                <MenubarItem>
-                  Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
-                </MenubarItem>
-              </MenubarGroup>
-              <MenubarSeparator />
-              <MenubarGroup>
-                <MenubarSub>
-                  <MenubarSubTrigger>Find</MenubarSubTrigger>
-                  <MenubarSubContent>
-                    <MenubarGroup>
-                      <MenubarItem>Search the web</MenubarItem>
-                    </MenubarGroup>
-                    <MenubarSeparator />
-                    <MenubarGroup>
-                      <MenubarItem>Find...</MenubarItem>
-                      <MenubarItem>Find Next</MenubarItem>
-                      <MenubarItem>Find Previous</MenubarItem>
-                    </MenubarGroup>
-                  </MenubarSubContent>
-                </MenubarSub>
-              </MenubarGroup>
-              <MenubarSeparator />
-              <MenubarGroup>
-                <MenubarItem>Cut</MenubarItem>
-                <MenubarItem>Copy</MenubarItem>
-                <MenubarItem>Paste</MenubarItem>
-              </MenubarGroup>
-            </MenubarContent>
-          </MenubarMenu>
-        </Menubar>
-      </Example>
-      <Example title="Radio groups">
-        <Menubar className="w-72">
-          <MenubarMenu>
-            <MenubarTrigger>Profiles</MenubarTrigger>
-            <MenubarContent>
-              <MenubarRadioGroup value={user} onValueChange={setUser}>
-                <MenubarRadioItem value="andy">Andy</MenubarRadioItem>
-                <MenubarRadioItem value="benoit">Benoit</MenubarRadioItem>
-                <MenubarRadioItem value="luis">Luis</MenubarRadioItem>
-              </MenubarRadioGroup>
-              <MenubarSeparator />
-              <MenubarItem inset>Edit...</MenubarItem>
-              <MenubarItem inset>Add Profile...</MenubarItem>
-            </MenubarContent>
-          </MenubarMenu>
-          <MenubarMenu>
-            <MenubarTrigger>Theme</MenubarTrigger>
-            <MenubarContent>
-              <MenubarRadioGroup value={theme} onValueChange={setTheme}>
-                <MenubarRadioItem value="light">Light</MenubarRadioItem>
-                <MenubarRadioItem value="dark">Dark</MenubarRadioItem>
-                <MenubarRadioItem value="system">System</MenubarRadioItem>
-              </MenubarRadioGroup>
-            </MenubarContent>
-          </MenubarMenu>
-        </Menubar>
-      </Example>
-      <Example title="Checkboxes">
-        <Menubar className="w-72">
-          <MenubarMenu>
-            <MenubarTrigger>View</MenubarTrigger>
-            <MenubarContent className="w-64">
-              <MenubarCheckboxItem>
-                Always Show Bookmarks Bar
-              </MenubarCheckboxItem>
-              <MenubarCheckboxItem checked>
-                Always Show Full URLs
-              </MenubarCheckboxItem>
-              <MenubarSeparator />
-              <MenubarItem inset>
-                Reload <MenubarShortcut>⌘R</MenubarShortcut>
-              </MenubarItem>
-              <MenubarItem disabled inset>
-                Force Reload <MenubarShortcut>⇧⌘R</MenubarShortcut>
-              </MenubarItem>
-            </MenubarContent>
-          </MenubarMenu>
-          <MenubarMenu>
-            <MenubarTrigger>Format</MenubarTrigger>
-            <MenubarContent>
-              <MenubarCheckboxItem checked>Strikethrough</MenubarCheckboxItem>
-              <MenubarCheckboxItem>Code</MenubarCheckboxItem>
-              <MenubarCheckboxItem>Superscript</MenubarCheckboxItem>
-            </MenubarContent>
-          </MenubarMenu>
-        </Menubar>
-      </Example>
+      <ExampleBrowser examples={examples} stageClassName="min-h-[320px]" />
+      <ApiReference rows={apiRows1} title="MenubarContent" />
+      <ApiReference rows={apiRows2} title="MenubarItem" />
     </div>
   )
 }

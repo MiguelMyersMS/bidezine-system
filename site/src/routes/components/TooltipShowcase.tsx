@@ -7,7 +7,110 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
+
+const examples: ShowcaseExample[] = [
+  {
+    label: "Demo",
+    render: () => (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="outline">Hover</Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Add to library</p>
+        </TooltipContent>
+      </Tooltip>
+    ),
+    code: `<Tooltip>
+  <TooltipTrigger asChild>
+    <Button variant="outline">Hover</Button>
+  </TooltipTrigger>
+  <TooltipContent>
+    <p>Add to library</p>
+  </TooltipContent>
+</Tooltip>`,
+  },
+  {
+    label: "Keyboard shortcut",
+    render: () => (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="outline" size="icon-sm">
+            <SaveIcon />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          Save Changes <Kbd>S</Kbd>
+        </TooltipContent>
+      </Tooltip>
+    ),
+    code: `<Tooltip>
+  <TooltipTrigger asChild>
+    <Button variant="outline" size="icon-sm">
+      <SaveIcon />
+    </Button>
+  </TooltipTrigger>
+  <TooltipContent>
+    Save Changes <Kbd>S</Kbd>
+  </TooltipContent>
+</Tooltip>`,
+  },
+  {
+    label: "Sides",
+    render: () => (
+      <div className="flex flex-wrap gap-2">
+        {(["left", "top", "bottom", "right"] as const).map((side) => (
+          <Tooltip key={side}>
+            <TooltipTrigger asChild>
+              <Button variant="outline" className="w-fit capitalize">
+                {side}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side={side}>
+              <p>Add to library</p>
+            </TooltipContent>
+          </Tooltip>
+        ))}
+      </div>
+    ),
+    code: `<div className="flex flex-wrap gap-2">
+  {(["left", "top", "bottom", "right"] as const).map((side) => (
+    <Tooltip key={side}>
+      <TooltipTrigger asChild>
+        <Button variant="outline" className="w-fit capitalize">
+          {side}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side={side}>
+        <p>Add to library</p>
+      </TooltipContent>
+    </Tooltip>
+  ))}
+</div>`,
+  },
+]
+
+const apiRows1: ApiRow[] = [
+  {
+    prop: "delayDuration",
+    type: "number",
+    default: "0",
+  }
+]
+
+const apiRows2: ApiRow[] = [
+  {
+    prop: "sideOffset",
+    type: "number",
+    default: "0",
+  },
+  {
+    prop: "className",
+    type: "string",
+  }
+]
 
 export function TooltipShowcase() {
   return (
@@ -22,44 +125,9 @@ export function TooltipShowcase() {
           unchanged.
         </p>
       </div>
-      <Example title="Demo">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="outline">Hover</Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Add to library</p>
-          </TooltipContent>
-        </Tooltip>
-      </Example>
-      <Example title="Keyboard shortcut">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="outline" size="icon-sm">
-              <SaveIcon />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            Save Changes <Kbd>S</Kbd>
-          </TooltipContent>
-        </Tooltip>
-      </Example>
-      <Example title="Sides">
-        <div className="flex flex-wrap gap-2">
-          {(["left", "top", "bottom", "right"] as const).map((side) => (
-            <Tooltip key={side}>
-              <TooltipTrigger asChild>
-                <Button variant="outline" className="w-fit capitalize">
-                  {side}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side={side}>
-                <p>Add to library</p>
-              </TooltipContent>
-            </Tooltip>
-          ))}
-        </div>
-      </Example>
+      <ExampleBrowser examples={examples} stageClassName="min-h-[320px]" />
+      <ApiReference rows={apiRows1} title="TooltipProvider" />
+      <ApiReference rows={apiRows2} title="TooltipContent" />
     </div>
   )
 }
