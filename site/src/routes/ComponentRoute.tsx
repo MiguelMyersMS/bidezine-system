@@ -1,6 +1,7 @@
 import type React from "react"
 import { useParams } from "react-router-dom"
 import { findComponent } from "@/nav-manifest"
+import { UsageBlock } from "@/components/UsageBlock"
 import { ButtonShowcase } from "./components/ButtonShowcase"
 import { AvatarShowcase } from "./components/AvatarShowcase"
 import { BadgeShowcase } from "./components/BadgeShowcase"
@@ -149,5 +150,10 @@ export function ComponentRoute() {
     )
   }
 
-  return <Showcase />
+  return (
+    <div className="flex max-w-3xl flex-col gap-6">
+      <UsageBlock name={entry.name} />
+      <Showcase />
+    </div>
+  )
 }
