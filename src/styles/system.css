@@ -69,3 +69,19 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
 }
+
+/*
+ * Base-layer reset, matching shadcn/ui's own globals.css exactly. Without
+ * this, bare `border` utilities (used throughout src/ui/*.tsx, e.g. Button's
+ * outline variant) fall back to currentColor instead of the border token —
+ * every "outline" border and table divider renders black instead of the
+ * intended --border gray.
+ */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
