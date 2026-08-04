@@ -2,8 +2,11 @@ import { useEffect, useState } from "react"
 import { MoonIcon, SunIcon } from "lucide-react"
 import {
   Button,
-  NativeSelect,
-  NativeSelectOption,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
   themeNames,
   type ThemeName,
 } from "@bidezine/system"
@@ -64,20 +67,19 @@ export function ThemeSwitcher() {
 
   return (
     <div className="flex items-center gap-2">
-      <NativeSelect
-        size="sm"
-        aria-label="Theme preset"
-        value={preset}
-        onChange={(event) => setPreset(event.target.value as Preset)}
-        className="flex-1"
-      >
-        <NativeSelectOption value="default">{presetLabels.default}</NativeSelectOption>
-        {themeNames.map((name) => (
-          <NativeSelectOption key={name} value={name}>
-            {presetLabels[name] ?? name}
-          </NativeSelectOption>
-        ))}
-      </NativeSelect>
+      <Select value={preset} onValueChange={(value) => setPreset(value as Preset)}>
+        <SelectTrigger size="sm" aria-label="Theme preset" className="flex-1">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="default">{presetLabels.default}</SelectItem>
+          {themeNames.map((name) => (
+            <SelectItem key={name} value={name}>
+              {presetLabels[name] ?? name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <Button
         variant="outline"
         size="icon-sm"
