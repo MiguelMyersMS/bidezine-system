@@ -1,41 +1,10 @@
 import { Skeleton } from "@bidezine/system"
-import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
-import { ApiReference, type ApiRow } from "@/components/ApiReference"
+import { Example } from "./Example"
 
 /**
  * Reproduces reference/shadcn-ui/apps/v4/examples/radix/skeleton-demo.tsx
  * verbatim.
  */
-const examples: ShowcaseExample[] = [
-  {
-    label: "Demo",
-    render: () => (
-      <div className="flex items-center gap-4">
-        <Skeleton className="h-12 w-12 rounded-full" />
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-[250px]" />
-          <Skeleton className="h-4 w-[200px]" />
-        </div>
-      </div>
-    ),
-    code: `<div className="flex items-center gap-4">
-  <Skeleton className="h-12 w-12 rounded-full" />
-  <div className="space-y-2">
-    <Skeleton className="h-4 w-[250px]" />
-    <Skeleton className="h-4 w-[200px]" />
-  </div>
-</div>`,
-  },
-]
-
-const apiRows: ApiRow[] = [
-  {
-    prop: "className",
-    type: "string",
-    description: "Additional classes applied to the skeleton block.",
-  }
-]
-
 export function SkeletonShowcase() {
   return (
     <div className="flex max-w-3xl flex-col gap-8">
@@ -49,8 +18,15 @@ export function SkeletonShowcase() {
           unchanged.
         </p>
       </div>
-      <ExampleBrowser examples={examples} />
-      <ApiReference rows={apiRows} />
+      <Example title="Demo">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-12 w-12 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[250px]" />
+            <Skeleton className="h-4 w-[200px]" />
+          </div>
+        </div>
+      </Example>
     </div>
   )
 }

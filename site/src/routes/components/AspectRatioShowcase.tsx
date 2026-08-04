@@ -1,46 +1,11 @@
 import { AspectRatio } from "@bidezine/system"
-import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
-import { ApiReference, type ApiRow } from "@/components/ApiReference"
+import { Example } from "./Example"
 
 /**
  * Reproduces reference/shadcn-ui/apps/v4/examples/radix/aspect-ratio-demo.tsx,
  * with next/image swapped for a plain <img> since this site isn't a Next.js
  * app — same source image, fill behaviour, and classes.
  */
-const examples: ShowcaseExample[] = [
-  {
-    label: "Demo",
-    render: () => (
-      <div className="w-full max-w-sm">
-        <AspectRatio ratio={16 / 9} className="rounded-lg bg-muted">
-          <img
-            src="https://avatar.vercel.sh/shadcn1"
-            alt="Photo"
-            className="size-full rounded-lg object-cover grayscale dark:brightness-20"
-          />
-        </AspectRatio>
-      </div>
-    ),
-    code: `<div className="w-full max-w-sm">
-  <AspectRatio ratio={16 / 9} className="rounded-lg bg-muted">
-    <img
-      src="https://avatar.vercel.sh/shadcn1"
-      alt="Photo"
-      className="size-full rounded-lg object-cover grayscale dark:brightness-20"
-    />
-  </AspectRatio>
-</div>`,
-  },
-]
-
-const apiRows: ApiRow[] = [
-  {
-    prop: "ratio",
-    type: "number",
-    description: "Width divided by height for the root box.",
-  }
-]
-
 export function AspectRatioShowcase() {
   return (
     <div className="flex max-w-3xl flex-col gap-8">
@@ -54,8 +19,17 @@ export function AspectRatioShowcase() {
           unchanged.
         </p>
       </div>
-      <ExampleBrowser examples={examples} />
-      <ApiReference rows={apiRows} />
+      <Example title="Demo">
+        <div className="w-full max-w-sm">
+          <AspectRatio ratio={16 / 9} className="rounded-lg bg-muted">
+            <img
+              src="https://avatar.vercel.sh/shadcn1"
+              alt="Photo"
+              className="size-full rounded-lg object-cover grayscale dark:brightness-20"
+            />
+          </AspectRatio>
+        </div>
+      </Example>
     </div>
   )
 }
