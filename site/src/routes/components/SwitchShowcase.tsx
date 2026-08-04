@@ -6,12 +6,72 @@ import {
   Label,
   Switch,
 } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
 
 /**
  * Reproduces reference/shadcn-ui/apps/v4/examples/radix/switch-demo.tsx and
  * switch-description.tsx as closely as possible.
  */
+const examples: ShowcaseExample[] = [
+  {
+    label: "Demo",
+    render: () => (
+      <div className="flex items-center space-x-2">
+        <Switch id="airplane-mode" />
+        <Label htmlFor="airplane-mode">Airplane Mode</Label>
+      </div>
+    ),
+    code: `<div className="flex items-center space-x-2">
+  <Switch id="airplane-mode" />
+  <Label htmlFor="airplane-mode">Airplane Mode</Label>
+</div>`,
+  },
+  {
+    label: "With description",
+    render: () => (
+      <div className="max-w-sm">
+        <Field orientation="horizontal">
+          <FieldContent>
+            <FieldLabel htmlFor="switch-focus-mode">
+              Share across devices
+            </FieldLabel>
+            <FieldDescription>
+              Focus is shared across devices, and turns off when you leave the app.
+            </FieldDescription>
+          </FieldContent>
+          <Switch id="switch-focus-mode" />
+        </Field>
+      </div>
+    ),
+    code: `<div className="max-w-sm">
+  <Field orientation="horizontal">
+    <FieldContent>
+      <FieldLabel htmlFor="switch-focus-mode">
+        Share across devices
+      </FieldLabel>
+      <FieldDescription>
+        Focus is shared across devices, and turns off when you leave the app.
+      </FieldDescription>
+    </FieldContent>
+    <Switch id="switch-focus-mode" />
+  </Field>
+</div>`,
+  },
+]
+
+const apiRows: ApiRow[] = [
+  {
+    prop: "size",
+    type: "\"sm\" | \"default\"",
+    default: "\"default\"",
+  },
+  {
+    prop: "className",
+    type: "string",
+  }
+]
+
 export function SwitchShowcase() {
   return (
     <div className="flex max-w-3xl flex-col gap-8">
@@ -25,27 +85,8 @@ export function SwitchShowcase() {
           unchanged.
         </p>
       </div>
-      <Example title="Demo">
-        <div className="flex items-center space-x-2">
-          <Switch id="airplane-mode" />
-          <Label htmlFor="airplane-mode">Airplane Mode</Label>
-        </div>
-      </Example>
-      <Example title="With description">
-        <div className="max-w-sm">
-          <Field orientation="horizontal">
-            <FieldContent>
-              <FieldLabel htmlFor="switch-focus-mode">
-                Share across devices
-              </FieldLabel>
-              <FieldDescription>
-                Focus is shared across devices, and turns off when you leave the app.
-              </FieldDescription>
-            </FieldContent>
-            <Switch id="switch-focus-mode" />
-          </Field>
-        </div>
-      </Example>
+      <ExampleBrowser examples={examples} />
+      <ApiReference rows={apiRows} />
     </div>
   )
 }

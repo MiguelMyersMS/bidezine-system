@@ -1,12 +1,46 @@
 import { BookmarkIcon } from "lucide-react"
 
 import { Toggle } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
 
 /**
  * Reproduces reference/shadcn-ui/apps/v4/examples/radix/toggle-demo.tsx
  * verbatim.
  */
+const examples: ShowcaseExample[] = [
+  {
+    label: "Demo",
+    render: () => (
+      <Toggle aria-label="Toggle bookmark" size="sm" variant="outline">
+        <BookmarkIcon className="group-data-[state=on]/toggle:fill-foreground" />
+        Bookmark
+      </Toggle>
+    ),
+    code: `<Toggle aria-label="Toggle bookmark" size="sm" variant="outline">
+  <BookmarkIcon className="group-data-[state=on]/toggle:fill-foreground" />
+  Bookmark
+</Toggle>`,
+  },
+]
+
+const apiRows: ApiRow[] = [
+  {
+    prop: "variant",
+    type: "\"default\" | \"outline\"",
+    default: "\"default\"",
+  },
+  {
+    prop: "size",
+    type: "\"sm\" | \"default\" | \"lg\"",
+    default: "\"default\"",
+  },
+  {
+    prop: "className",
+    type: "string",
+  }
+]
+
 export function ToggleShowcase() {
   return (
     <div className="flex max-w-3xl flex-col gap-8">
@@ -20,12 +54,8 @@ export function ToggleShowcase() {
           unchanged.
         </p>
       </div>
-      <Example title="Demo">
-        <Toggle aria-label="Toggle bookmark" size="sm" variant="outline">
-          <BookmarkIcon className="group-data-[state=on]/toggle:fill-foreground" />
-          Bookmark
-        </Toggle>
-      </Example>
+      <ExampleBrowser examples={examples} />
+      <ApiReference rows={apiRows} />
     </div>
   )
 }
