@@ -4,12 +4,79 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
 
 /**
  * Reproduces reference/shadcn-ui/apps/v4/examples/radix/input-otp-demo.tsx and
- * input-otp-separator.tsx as closely as possible.
+ * input-otp-separator.tsx as closely as possible, restructured as an
+ * ExampleBrowser instead of a stack of fixed demos.
  */
+
+const examples: ShowcaseExample[] = [
+  {
+    label: "Demo",
+    render: () => (
+      <InputOTP maxLength={6} defaultValue="123456">
+        <InputOTPGroup>
+          <InputOTPSlot index={0} />
+          <InputOTPSlot index={1} />
+          <InputOTPSlot index={2} />
+          <InputOTPSlot index={3} />
+          <InputOTPSlot index={4} />
+          <InputOTPSlot index={5} />
+        </InputOTPGroup>
+      </InputOTP>
+    ),
+    code: `<InputOTP maxLength={6}>
+  <InputOTPGroup>
+    <InputOTPSlot index={0} />
+    ...
+  </InputOTPGroup>
+</InputOTP>`,
+  },
+  {
+    label: "With separators",
+    render: () => (
+      <InputOTP maxLength={6}>
+        <InputOTPGroup>
+          <InputOTPSlot index={0} />
+          <InputOTPSlot index={1} />
+        </InputOTPGroup>
+        <InputOTPSeparator />
+        <InputOTPGroup>
+          <InputOTPSlot index={2} />
+          <InputOTPSlot index={3} />
+        </InputOTPGroup>
+        <InputOTPSeparator />
+        <InputOTPGroup>
+          <InputOTPSlot index={4} />
+          <InputOTPSlot index={5} />
+        </InputOTPGroup>
+      </InputOTP>
+    ),
+    code: `<InputOTP maxLength={6}>
+  <InputOTPGroup><InputOTPSlot index={0} /><InputOTPSlot index={1} /></InputOTPGroup>
+  <InputOTPSeparator />
+  <InputOTPGroup><InputOTPSlot index={2} /><InputOTPSlot index={3} /></InputOTPGroup>
+  ...
+</InputOTP>`,
+  },
+]
+
+const apiRows: ApiRow[] = [
+  {
+    prop: "maxLength",
+    type: "number",
+    description: "Number of characters/slots for the one-time-password value.",
+  },
+  {
+    prop: "value / defaultValue",
+    type: "string",
+    description: "Controlled/uncontrolled OTP value.",
+  },
+]
+
 export function InputOTPShowcase() {
   return (
     <div className="flex max-w-3xl flex-col gap-8">
@@ -23,36 +90,8 @@ export function InputOTPShowcase() {
           unchanged.
         </p>
       </div>
-      <Example title="Demo">
-        <InputOTP maxLength={6} defaultValue="123456">
-          <InputOTPGroup>
-            <InputOTPSlot index={0} />
-            <InputOTPSlot index={1} />
-            <InputOTPSlot index={2} />
-            <InputOTPSlot index={3} />
-            <InputOTPSlot index={4} />
-            <InputOTPSlot index={5} />
-          </InputOTPGroup>
-        </InputOTP>
-      </Example>
-      <Example title="With separators">
-        <InputOTP maxLength={6}>
-          <InputOTPGroup>
-            <InputOTPSlot index={0} />
-            <InputOTPSlot index={1} />
-          </InputOTPGroup>
-          <InputOTPSeparator />
-          <InputOTPGroup>
-            <InputOTPSlot index={2} />
-            <InputOTPSlot index={3} />
-          </InputOTPGroup>
-          <InputOTPSeparator />
-          <InputOTPGroup>
-            <InputOTPSlot index={4} />
-            <InputOTPSlot index={5} />
-          </InputOTPGroup>
-        </InputOTP>
-      </Example>
+      <ExampleBrowser examples={examples} />
+      <ApiReference rows={apiRows} />
     </div>
   )
 }

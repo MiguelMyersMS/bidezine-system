@@ -7,12 +7,85 @@ import {
   InputGroupText,
   Spinner,
 } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
 
 /**
  * Reproduces reference/shadcn-ui/apps/v4/examples/radix/input-group-demo.tsx
- * and input-group-spinner.tsx as closely as possible.
+ * and input-group-spinner.tsx as closely as possible, restructured as an
+ * ExampleBrowser instead of a stack of fixed demos.
  */
+
+const examples: ShowcaseExample[] = [
+  {
+    label: "Search",
+    render: () => (
+      <InputGroup className="max-w-xs">
+        <InputGroupInput placeholder="Search..." />
+        <InputGroupAddon>
+          <Search />
+        </InputGroupAddon>
+        <InputGroupAddon align="inline-end">12 results</InputGroupAddon>
+      </InputGroup>
+    ),
+    code: `<InputGroup>
+  <InputGroupInput placeholder="Search..." />
+  <InputGroupAddon><Search /></InputGroupAddon>
+  <InputGroupAddon align="inline-end">12 results</InputGroupAddon>
+</InputGroup>`,
+  },
+  {
+    label: "Loading states",
+    render: () => (
+      <div className="grid w-full max-w-sm gap-4">
+        <InputGroup>
+          <InputGroupInput placeholder="Searching..." />
+          <InputGroupAddon align="inline-end">
+            <Spinner />
+          </InputGroupAddon>
+        </InputGroup>
+        <InputGroup>
+          <InputGroupInput placeholder="Processing..." />
+          <InputGroupAddon>
+            <Spinner />
+          </InputGroupAddon>
+        </InputGroup>
+        <InputGroup>
+          <InputGroupInput placeholder="Saving changes..." />
+          <InputGroupAddon align="inline-end">
+            <InputGroupText>Saving...</InputGroupText>
+            <Spinner />
+          </InputGroupAddon>
+        </InputGroup>
+        <InputGroup>
+          <InputGroupInput placeholder="Refreshing data..." />
+          <InputGroupAddon>
+            <LoaderIcon className="animate-spin" />
+          </InputGroupAddon>
+          <InputGroupAddon align="inline-end">
+            <InputGroupText className="text-muted-foreground">
+              Please wait...
+            </InputGroupText>
+          </InputGroupAddon>
+        </InputGroup>
+      </div>
+    ),
+    code: `<InputGroup>
+  <InputGroupInput placeholder="Searching..." />
+  <InputGroupAddon align="inline-end"><Spinner /></InputGroupAddon>
+</InputGroup>`,
+  },
+]
+
+const apiRows: ApiRow[] = [
+  {
+    prop: "align",
+    type: `"inline-start" | "inline-end" | "block-start" | "block-end"`,
+    default: `"inline-start"`,
+    description: "InputGroupAddon: where the addon sits relative to the input.",
+  },
+]
+
 export function InputGroupShowcase() {
   return (
     <div className="flex max-w-3xl flex-col gap-8">
@@ -26,49 +99,8 @@ export function InputGroupShowcase() {
           unchanged.
         </p>
       </div>
-      <Example title="Search">
-        <InputGroup className="max-w-xs">
-          <InputGroupInput placeholder="Search..." />
-          <InputGroupAddon>
-            <Search />
-          </InputGroupAddon>
-          <InputGroupAddon align="inline-end">12 results</InputGroupAddon>
-        </InputGroup>
-      </Example>
-      <Example title="Loading states">
-        <div className="grid w-full max-w-sm gap-4">
-          <InputGroup>
-            <InputGroupInput placeholder="Searching..." />
-            <InputGroupAddon align="inline-end">
-              <Spinner />
-            </InputGroupAddon>
-          </InputGroup>
-          <InputGroup>
-            <InputGroupInput placeholder="Processing..." />
-            <InputGroupAddon>
-              <Spinner />
-            </InputGroupAddon>
-          </InputGroup>
-          <InputGroup>
-            <InputGroupInput placeholder="Saving changes..." />
-            <InputGroupAddon align="inline-end">
-              <InputGroupText>Saving...</InputGroupText>
-              <Spinner />
-            </InputGroupAddon>
-          </InputGroup>
-          <InputGroup>
-            <InputGroupInput placeholder="Refreshing data..." />
-            <InputGroupAddon>
-              <LoaderIcon className="animate-spin" />
-            </InputGroupAddon>
-            <InputGroupAddon align="inline-end">
-              <InputGroupText className="text-muted-foreground">
-                Please wait...
-              </InputGroupText>
-            </InputGroupAddon>
-          </InputGroup>
-        </div>
-      </Example>
+      <ExampleBrowser examples={examples} />
+      <ApiReference rows={apiRows} />
     </div>
   )
 }

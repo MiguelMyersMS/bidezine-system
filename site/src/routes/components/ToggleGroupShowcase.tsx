@@ -1,12 +1,97 @@
 import { Bold, Italic, Underline } from "lucide-react"
 
 import { ToggleGroup, ToggleGroupItem } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
 
 /**
  * Reproduces reference/shadcn-ui/apps/v4/examples/radix/toggle-group-demo.tsx
- * and toggle-group-sizes.tsx as closely as possible.
+ * and toggle-group-sizes.tsx as closely as possible, restructured as an
+ * ExampleBrowser instead of a stack of fixed demos.
  */
+
+const examples: ShowcaseExample[] = [
+  {
+    label: "Demo",
+    render: () => (
+      <ToggleGroup variant="outline" type="multiple">
+        <ToggleGroupItem value="bold" aria-label="Toggle bold">
+          <Bold />
+        </ToggleGroupItem>
+        <ToggleGroupItem value="italic" aria-label="Toggle italic">
+          <Italic />
+        </ToggleGroupItem>
+        <ToggleGroupItem value="strikethrough" aria-label="Toggle strikethrough">
+          <Underline />
+        </ToggleGroupItem>
+      </ToggleGroup>
+    ),
+    code: `<ToggleGroup variant="outline" type="multiple">
+  <ToggleGroupItem value="bold" aria-label="Toggle bold"><Bold /></ToggleGroupItem>
+  ...
+</ToggleGroup>`,
+  },
+  {
+    label: "Sizes",
+    render: () => (
+      <div className="flex flex-col gap-4">
+        <ToggleGroup type="single" size="sm" defaultValue="top" variant="outline">
+          <ToggleGroupItem value="top" aria-label="Toggle top">
+            Top
+          </ToggleGroupItem>
+          <ToggleGroupItem value="bottom" aria-label="Toggle bottom">
+            Bottom
+          </ToggleGroupItem>
+          <ToggleGroupItem value="left" aria-label="Toggle left">
+            Left
+          </ToggleGroupItem>
+          <ToggleGroupItem value="right" aria-label="Toggle right">
+            Right
+          </ToggleGroupItem>
+        </ToggleGroup>
+        <ToggleGroup type="single" defaultValue="top" variant="outline">
+          <ToggleGroupItem value="top" aria-label="Toggle top default">
+            Top
+          </ToggleGroupItem>
+          <ToggleGroupItem value="bottom" aria-label="Toggle bottom default">
+            Bottom
+          </ToggleGroupItem>
+          <ToggleGroupItem value="left" aria-label="Toggle left default">
+            Left
+          </ToggleGroupItem>
+          <ToggleGroupItem value="right" aria-label="Toggle right default">
+            Right
+          </ToggleGroupItem>
+        </ToggleGroup>
+      </div>
+    ),
+    code: `<ToggleGroup type="single" size="sm" defaultValue="top" variant="outline">
+  <ToggleGroupItem value="top">Top</ToggleGroupItem>
+  ...
+</ToggleGroup>`,
+  },
+]
+
+const apiRows: ApiRow[] = [
+  {
+    prop: "type",
+    type: `"single" | "multiple"`,
+    description: "Whether one or multiple items can be pressed at once.",
+  },
+  {
+    prop: "variant",
+    type: `"default" | "outline"`,
+    default: `"default"`,
+    description: "Visual style shared by all items.",
+  },
+  {
+    prop: "size",
+    type: `"default" | "sm" | "lg"`,
+    default: `"default"`,
+    description: "Size shared by all items.",
+  },
+]
+
 export function ToggleGroupShowcase() {
   return (
     <div className="flex max-w-3xl flex-col gap-8">
@@ -20,51 +105,8 @@ export function ToggleGroupShowcase() {
           unchanged.
         </p>
       </div>
-      <Example title="Demo">
-        <ToggleGroup variant="outline" type="multiple">
-          <ToggleGroupItem value="bold" aria-label="Toggle bold">
-            <Bold />
-          </ToggleGroupItem>
-          <ToggleGroupItem value="italic" aria-label="Toggle italic">
-            <Italic />
-          </ToggleGroupItem>
-          <ToggleGroupItem value="strikethrough" aria-label="Toggle strikethrough">
-            <Underline />
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </Example>
-      <Example title="Sizes">
-        <div className="flex flex-col gap-4">
-          <ToggleGroup type="single" size="sm" defaultValue="top" variant="outline">
-            <ToggleGroupItem value="top" aria-label="Toggle top">
-              Top
-            </ToggleGroupItem>
-            <ToggleGroupItem value="bottom" aria-label="Toggle bottom">
-              Bottom
-            </ToggleGroupItem>
-            <ToggleGroupItem value="left" aria-label="Toggle left">
-              Left
-            </ToggleGroupItem>
-            <ToggleGroupItem value="right" aria-label="Toggle right">
-              Right
-            </ToggleGroupItem>
-          </ToggleGroup>
-          <ToggleGroup type="single" defaultValue="top" variant="outline">
-            <ToggleGroupItem value="top" aria-label="Toggle top default">
-              Top
-            </ToggleGroupItem>
-            <ToggleGroupItem value="bottom" aria-label="Toggle bottom default">
-              Bottom
-            </ToggleGroupItem>
-            <ToggleGroupItem value="left" aria-label="Toggle left default">
-              Left
-            </ToggleGroupItem>
-            <ToggleGroupItem value="right" aria-label="Toggle right default">
-              Right
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </div>
-      </Example>
+      <ExampleBrowser examples={examples} />
+      <ApiReference rows={apiRows} />
     </div>
   )
 }
