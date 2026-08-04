@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Progress } from "@bidezine/system"
-import { Example } from "./Example"
+import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
+import { ApiReference, type ApiRow } from "@/components/ApiReference"
 
 /**
  * Reproduces reference/shadcn-ui/apps/v4/examples/radix/progress-demo.tsx
@@ -17,6 +18,29 @@ function ProgressDemo() {
   return <Progress value={progress} className="w-[60%]" />
 }
 
+const examples: ShowcaseExample[] = [
+  {
+    label: "Demo",
+    render: () => (
+      <ProgressDemo />
+    ),
+    code: `<ProgressDemo />`,
+  },
+]
+
+const apiRows: ApiRow[] = [
+  {
+    prop: "value",
+    type: "number",
+    description: "Current progress value used to size the indicator.",
+  },
+  {
+    prop: "className",
+    type: "string",
+    description: "Additional classes applied to the progress track.",
+  }
+]
+
 export function ProgressShowcase() {
   return (
     <div className="flex max-w-3xl flex-col gap-8">
@@ -30,9 +54,8 @@ export function ProgressShowcase() {
           unchanged.
         </p>
       </div>
-      <Example title="Demo">
-        <ProgressDemo />
-      </Example>
+      <ExampleBrowser examples={examples} />
+      <ApiReference rows={apiRows} />
     </div>
   )
 }
