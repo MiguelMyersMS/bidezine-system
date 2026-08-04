@@ -1,0 +1,16 @@
+/*
+ * bidezine-site — stylesheet entry.
+ *
+ * Consumes the BUILT @bidezine/system stylesheet (tokens + component classes),
+ * then adds Tailwind for the site's own layout (sidebar, nav, page chrome) —
+ * exactly what a real consumer app would do.
+ */
+@import "tailwindcss";
+@import "@bidezine/system/styles.css";
+
+@custom-variant dark (&:is(.dark *));
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}

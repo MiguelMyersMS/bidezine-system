@@ -10,3 +10,4 @@ export { cn } from "./lib/utils"
  * Components are added here as they are pulled in from reference/shadcn-ui/.
  * Nothing is exported until it exists in src/ui/.
  */
+export { Button, buttonVariants } from "./ui/button"

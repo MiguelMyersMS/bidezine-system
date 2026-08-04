@@ -30,8 +30,9 @@ Adjusting before verifying makes it impossible to tell a deliberate change from 
 | `tokens/*.tokens.json` | DTCG token source — shadcn's values, unmodified. **The only place tokens are authored.** |
 | `scripts/build-tokens.mjs` | Emits `src/styles/tokens.css` + `src/tokens.ts`. Both are generated and gitignored. |
 | `scripts/figma-variables.mjs` | Emits a Figma payload from the same source, so Figma and code cannot drift. |
-| `src/ui/` | Components, as they are pulled in. **Currently empty.** |
+| `src/ui/` | Components, as they are pulled in. Ported one at a time; see `site/` for the rollout order. |
 | `dist/` | Build output — JS + `.d.ts` + CSS. Consumers import this. |
+| `site/` | Showcase site (separate consumer app) deployed to bs.bidezine.systems. Imports `@bidezine/system` like any real consumer — never reaches into `src/` or `reference/` directly. |
 
 ## Rules that matter
 

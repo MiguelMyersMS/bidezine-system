@@ -27,7 +27,9 @@
     "prebuild": "npm run tokens",
     "build": "vite build",
     "pretypecheck": "npm run tokens",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "site:dev": "npm run build && npm --prefix site install && npm --prefix site run dev",
+    "site:build": "npm run build && npm --prefix site install && npm --prefix site run build"
   },
   "peerDependencies": {
     "react": "^19.0.0",
