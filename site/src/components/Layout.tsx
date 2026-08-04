@@ -1,5 +1,13 @@
 import { NavLink, Outlet } from "react-router-dom"
-import { ScrollArea, TooltipProvider } from "@bidezine/system"
+import { ChevronDownIcon } from "lucide-react"
+import {
+  Button,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+  ScrollArea,
+  TooltipProvider,
+} from "@bidezine/system"
 import { navManifest } from "@/nav-manifest"
 import { ThemeSwitcher } from "./ThemeSwitcher"
 
@@ -26,36 +34,46 @@ export function Layout() {
           <ScrollArea className="-mr-2 min-h-0 flex-1 pr-2">
             <nav className="flex flex-col gap-6">
               {navManifest.map((category) => (
-                <div key={category.slug}>
-                  <div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    {category.title}
-                  </div>
-                  <ul className="flex flex-col gap-0.5">
-                    {category.components.map((component) => (
-                      <li key={component.slug}>
-                        <NavLink
-                          to={`/components/${component.slug}`}
-                          className={({ isActive }) =>
-                            [
-                              "flex items-center justify-between rounded-md px-2 py-1.5 text-sm",
-                              isActive
-                                ? "bg-accent text-accent-foreground"
-                                : "text-foreground/80 hover:bg-accent/50",
-                              component.status === "pending" ? "opacity-50" : "",
-                            ].join(" ")
-                          }
-                        >
-                          <span>{component.name}</span>
-                          {component.status === "pending" && (
-                            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                              soon
-                            </span>
-                          )}
-                        </NavLink>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                <Collapsible key={category.slug} defaultOpen>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="group mb-2 w-full justify-between px-2 text-xs font-medium uppercase tracking-wide text-muted-foreground hover:bg-transparent hover:text-foreground"
+                    >
+                      {category.title}
+                      <ChevronDownIcon className="size-3.5 transition-transform group-data-[state=closed]:-rotate-90" />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <ul className="flex flex-col gap-0.5">
+                      {category.components.map((component) => (
+                        <li key={component.slug}>
+                          <NavLink
+                            to={`/components/${component.slug}`}
+                            className={({ isActive }) =>
+                              [
+                                "flex items-center justify-between rounded-md px-2 py-1.5 text-sm",
+                                isActive
+                                  ? "bg-accent text-accent-foreground"
+                                  : "text-foreground/80 hover:bg-accent/50",
+                                component.status === "pending" ? "opacity-50" : "",
+                              ].join(" ")
+                            }
+                          >
+                            <span>{component.name}</span>
+                            {component.status === "pending" && (
+                              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                                soon
+                              </span>
+                            )}
+                          </NavLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </CollapsibleContent>
+                </Collapsible>
               ))}
             </nav>
           </ScrollArea>
