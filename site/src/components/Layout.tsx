@@ -43,7 +43,7 @@ export function Layout() {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="group mb-2 w-full justify-between px-2 text-xs font-medium uppercase tracking-wide text-muted-foreground hover:bg-transparent hover:text-foreground"
+                      className="group mb-2 px-2 text-xs font-medium uppercase tracking-wide text-muted-foreground hover:bg-transparent hover:text-foreground"
                     >
                       {category.title}
                       <ChevronDownIcon className="size-3.5 transition-transform group-data-[state=closed]:-rotate-90" />
@@ -61,7 +61,6 @@ export function Layout() {
                               variant="ghost"
                               size="sm"
                               className={cn(
-                                "w-full justify-between",
                                 isActive && "bg-accent text-accent-foreground",
                                 component.status === "pending" && "opacity-50"
                               )}
