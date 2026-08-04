@@ -26,6 +26,16 @@ import { InputGroupShowcase } from "./components/InputGroupShowcase"
 import { FieldShowcase } from "./components/FieldShowcase"
 import { FormShowcase } from "./components/FormShowcase"
 import { ComboboxShowcase } from "./components/ComboboxShowcase"
+import { DialogShowcase } from "./components/DialogShowcase"
+import { AlertDialogShowcase } from "./components/AlertDialogShowcase"
+import { SheetShowcase } from "./components/SheetShowcase"
+import { PopoverShowcase } from "./components/PopoverShowcase"
+import { TooltipShowcase } from "./components/TooltipShowcase"
+import { DropdownMenuShowcase } from "./components/DropdownMenuShowcase"
+import { ContextMenuShowcase } from "./components/ContextMenuShowcase"
+import { HoverCardShowcase } from "./components/HoverCardShowcase"
+import { MenubarShowcase } from "./components/MenubarShowcase"
+import { DrawerShowcase } from "./components/DrawerShowcase"
 
 /**
  * Showcase pages register here as components are ported (Phase 3 of the plan).
@@ -58,6 +68,16 @@ const showcases: Record<string, React.ComponentType> = {
   field: FieldShowcase,
   form: FormShowcase,
   combobox: ComboboxShowcase,
+  dialog: DialogShowcase,
+  "alert-dialog": AlertDialogShowcase,
+  sheet: SheetShowcase,
+  popover: PopoverShowcase,
+  tooltip: TooltipShowcase,
+  "dropdown-menu": DropdownMenuShowcase,
+  "context-menu": ContextMenuShowcase,
+  "hover-card": HoverCardShowcase,
+  menubar: MenubarShowcase,
+  drawer: DrawerShowcase,
 }
 
 export function ComponentRoute() {
