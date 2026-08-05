@@ -15,24 +15,34 @@
  * page itself must not scroll — otherwise the browser scrollbar sits alongside
  * the system's own thumb.
  */
-html,
-body {
-  height: 100%;
-  overflow: hidden;
-}
+@layer base {
+  /*
+   * These are un-layered by default, which means they'd win over ANY
+   * Tailwind utility class (e.g. `text-primary-foreground`) applied to the
+   * same element, regardless of that utility's specificity -- CSS cascade
+   * layers rank layered rules below un-layered ones. Explicitly placing
+   * them in Tailwind's `base` layer lets `@layer utilities` (used by every
+   * real component's variant classes) correctly win, as it should.
+   */
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
 
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
-  font-size: 14px;
-}
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: 14px;
+  }
 
-a {
-  color: var(--foreground);
-  text-decoration: none;
-}
+  a {
+    color: var(--foreground);
+    text-decoration: none;
+  }
 
-a:hover {
-  color: var(--foreground);
+  a:hover {
+    color: var(--foreground);
+  }
 }
