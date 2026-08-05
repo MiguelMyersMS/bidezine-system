@@ -136,6 +136,40 @@ friction, anything.)_
   rows must also apply to anything rendered as a visual aid — a plausible-looking but unverified swatch
   is just as much an auto-decision as an unverified prose claim.
 
+- **A resolved decision still needs its own status tier, not a reuse of "clean":** once Q1/Q3/Q4 were
+  answered, the divergence rows that cascade from them (A-3, A-7, A-8, A-9) kept displaying "Needs human
+  decision" / "Worth noting" badges even though nothing was actually still open — the badge reflected the
+  row's *history*, not its *current* state. Reusing the "clean" tag for these would have been equally
+  wrong in the other direction (it erases the fact that a real decision happened). **Lesson:** a factory
+  line needs a fourth tier distinct from clean/decision/note — "resolved" (decided via a cascade, not
+  because it never diverged) — or badges silently go stale every time a blocking question closes, and the
+  reviewer has to re-verify rows that are actually already settled.
+
+- **An `<img src="data:...">` does not track `currentColor`, even when the underlying SVG uses
+  `fill="currentColor"`:** the logo preview was built with an `<img>` tag wrapping a data-URI, which
+  visually looked identical to an inline SVG at rest but silently failed the one property that mattered
+  (switching color with the theme). **Lesson:** "render as SVG so the color switches" is a requirement
+  about the DOM mechanism, not just the file format — an SVG *file* embedded via `<img>`/`background:
+  url(...)` is opaque to CSS `currentColor`/`fill`, only an inline `<svg>` element in the document
+  responds. The Independent Audit agent should treat "does it respond to the theme toggle" as a literal,
+  checked behavior — not inferred from "it's an SVG."
+
+- **Sizing/rendering questions need the actual sourcing rule stated, not re-derived per row:** two
+  separate divergence rows (A-2, A-6) both surfaced the same underlying question — "is a 16px-in-a-20px-
+  slot render a real icon divergence, or just a display-size choice?" — and both were left open pending an
+  answer the codebase already had (100% of `icons/manifest.json` sources from Fluent's `_20_regular` grid;
+  on-screen size is a separate, per-component Tailwind concern). **Lesson:** once a standing sourcing rule
+  is confirmed for one row, the Intake/Escalation agents should proactively check every other row flagged
+  with a similar-shaped concern and resolve them together, rather than making the human re-ask the same
+  underlying question row by row.
+
+- **Tab/section ordering is itself a divergence-resolution dependency, not just a UI nicety:** category B
+  (and part of C) genuinely cannot be evaluated without the Color Token Lab's proposed swatches, but the
+  lab tab was placed after the divergence list in the initial build. **Lesson:** when one tab/section is a
+  hard prerequisite for reading another, the factory-line shell should order them by dependency, not by
+  the order they happened to be built in — this is a recurring risk for the *next* Limbo occupant's
+  factory line too, not a one-off fix specific to Rail Sidebar.
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given
