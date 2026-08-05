@@ -1,6 +1,4 @@
-import { BookmarkIcon } from "lucide-react"
-
-import { Toggle } from "@bidezine/system"
+import { BookmarkIcon, Toggle } from "@bidezine/system"
 import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
 import { ApiReference, type ApiRow } from "@/components/ApiReference"
 

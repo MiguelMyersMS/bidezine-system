@@ -1,5 +1,3 @@
-import { GlobeIcon } from "lucide-react"
-
 import {
   Combobox,
   ComboboxCollection,
@@ -11,6 +9,7 @@ import {
   ComboboxLabel,
   ComboboxList,
   ComboboxSeparator,
+  GlobeIcon,
   InputGroupAddon,
 } from "@bidezine/system"
 import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"

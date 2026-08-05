@@ -24,9 +24,10 @@
   },
   "scripts": {
     "tokens": "node scripts/build-tokens.mjs",
-    "prebuild": "npm run tokens",
+    "icons": "node scripts/build-icons.mjs",
+    "prebuild": "npm run tokens && npm run icons",
     "build": "vite build",
-    "pretypecheck": "npm run tokens",
+    "pretypecheck": "npm run tokens && npm run icons",
     "typecheck": "tsc --noEmit",
     "site:dev": "npm run build && npm --prefix site install && npm --prefix site run dev",
     "site:build": "npm run build && npm --prefix site install && npm --prefix site run build"
@@ -37,13 +38,13 @@
   },
   "dependencies": {
     "@base-ui/react": "1.6.0",
+    "@fluentui/svg-icons": "1.1.334",
     "@shadcn/react": "^0.2.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "embla-carousel-react": "^8.5.2",
     "input-otp": "^1.4.2",
-    "lucide-react": "^0.474.0",
     "next-themes": "^0.4.6",
     "radix-ui": "^1.4.3",
     "react-day-picker": "^9.14.0",

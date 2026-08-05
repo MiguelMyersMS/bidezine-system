@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom"
-import { ChevronDownIcon } from "lucide-react"
 import {
   Button,
+  ChevronDownIcon,
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,

@@ -23,7 +23,7 @@ import {
   TrashIcon,
   UserRoundXIcon,
   VolumeOffIcon,
-} from "lucide-react"
+} from "@bidezine/system"
 
 import {
   Button,

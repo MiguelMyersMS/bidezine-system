@@ -1,8 +1,8 @@
 import * as React from "react"
-import { ChevronsUpDown } from "lucide-react"
 
 import {
   Button,
+  ChevronsUpDownIcon as ChevronsUpDown,
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,

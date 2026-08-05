@@ -1,13 +1,6 @@
 import {
-  Calculator,
-  Calendar,
-  CreditCard,
-  Settings,
-  Smile,
-  User,
-} from "lucide-react"
-
-import {
+  CalculatorIcon as Calculator,
+  CalendarIcon as Calendar,
   Command,
   CommandEmpty,
   CommandGroup,
@@ -16,6 +9,10 @@ import {
   CommandList,
   CommandSeparator,
   CommandShortcut,
+  CreditCardIcon as CreditCard,
+  SettingsIcon as Settings,
+  SmileIcon as Smile,
+  UserIcon as User,
 } from "@bidezine/system"
 import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
 import { ApiReference, type ApiRow } from "@/components/ApiReference"

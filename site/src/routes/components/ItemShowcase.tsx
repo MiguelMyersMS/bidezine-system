@@ -1,7 +1,7 @@
-import { BadgeCheckIcon, ChevronRightIcon } from "lucide-react"
-
 import {
+  BadgeCheckIcon,
   Button,
+  ChevronRightIcon,
   Item,
   ItemActions,
   ItemContent,

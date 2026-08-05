@@ -1,5 +1,3 @@
-import { Trash2Icon } from "lucide-react"
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,6 +10,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
   Button,
+  Trash2Icon,
 } from "@bidezine/system"
 import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
 import { ApiReference, type ApiRow } from "@/components/ApiReference"

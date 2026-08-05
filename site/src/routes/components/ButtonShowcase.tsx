@@ -1,5 +1,12 @@
-import { ArrowUpIcon, ChevronLeftIcon, GitBranchIcon, MoreHorizontalIcon } from "lucide-react"
-import { Button, ButtonGroup, Spinner } from "@bidezine/system"
+import {
+  ArrowUpIcon,
+  Button,
+  ButtonGroup,
+  ChevronLeftIcon,
+  GitBranchIcon,
+  MoreHorizontalIcon,
+  Spinner,
+} from "@bidezine/system"
 import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
 import { ApiReference, type ApiRow } from "@/components/ApiReference"
 
@@ -8,8 +15,8 @@ import { ApiReference, type ApiRow } from "@/components/ApiReference"
  * examples (reference/shadcn-ui/apps/v4/examples/radix/button-*.tsx)
  * verbatim, as the Phase 2 fidelity baseline. The only adaptation: the
  * reference's button-with-icon example uses @tabler/icons-react, which isn't
- * a dependency of this package — substituted with the equivalent lucide-react
- * icon (already a dependency) since lucide-react is what button-demo itself uses.
+ * a dependency of this package — substituted with the equivalent Fluent UI
+ * System Icon (this design system's icon set).
  *
  * Sections are the same ones shadcn's own docs page lists, restructured as an
  * ExampleBrowser (filter chips, one at a time) instead of a long stack.

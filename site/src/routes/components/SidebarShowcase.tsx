@@ -1,18 +1,15 @@
 import {
   BookOpenIcon,
+  ChevronRightIcon,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
   FolderIcon,
   FrameIcon,
   LifeBuoyIcon,
   MapIcon,
   PieChartIcon,
   SendIcon,
-  ChevronRightIcon,
-} from "lucide-react"
-
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
   Sidebar,
   SidebarContent,
   SidebarFooter,

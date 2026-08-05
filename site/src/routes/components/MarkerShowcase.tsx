@@ -1,9 +1,9 @@
-import { GitBranchIcon, SearchIcon } from "lucide-react"
-
 import {
+  GitBranchIcon,
   Marker,
   MarkerContent,
   MarkerIcon,
+  SearchIcon,
   Spinner,
 } from "@bidezine/system"
 import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"

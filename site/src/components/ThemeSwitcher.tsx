@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react"
-import { MoonIcon, SunIcon } from "lucide-react"
 import {
   Button,
+  MoonIcon,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SunIcon,
   themeNames,
   type ThemeName,
 } from "@bidezine/system"

@@ -1,6 +1,10 @@
-import { Bold, Italic, Underline } from "lucide-react"
-
-import { ToggleGroup, ToggleGroupItem } from "@bidezine/system"
+import {
+  BoldIcon as Bold,
+  ItalicIcon as Italic,
+  ToggleGroup,
+  ToggleGroupItem,
+  UnderlineIcon as Underline,
+} from "@bidezine/system"
 import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
 import { ApiReference, type ApiRow } from "@/components/ApiReference"
 

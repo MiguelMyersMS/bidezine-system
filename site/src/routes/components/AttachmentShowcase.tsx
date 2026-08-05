@@ -1,5 +1,3 @@
-import { FileCodeIcon, XIcon } from "lucide-react"
-
 import {
   Attachment,
   AttachmentAction,
@@ -9,7 +7,9 @@ import {
   AttachmentGroup,
   AttachmentMedia,
   AttachmentTitle,
+  FileCodeIcon,
   Spinner,
+  XIcon,
 } from "@bidezine/system"
 import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
 import { ApiReference, type ApiRow } from "@/components/ApiReference"

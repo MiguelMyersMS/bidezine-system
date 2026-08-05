@@ -1,6 +1,5 @@
-import { ArrowUpRightIcon, FolderOpenIcon } from "lucide-react"
-
 import {
+  ArrowUpRightIcon,
   Button,
   Empty,
   EmptyContent,
@@ -8,6 +7,7 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
+  FolderOpenIcon,
 } from "@bidezine/system"
 import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
 import { ApiReference, type ApiRow } from "@/components/ApiReference"

@@ -1,6 +1,14 @@
 import { useState, type ReactNode } from "react"
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon, CopyIcon } from "lucide-react"
-import { Button, Card, CardContent, cn } from "@bidezine/system"
+import {
+  Button,
+  Card,
+  CardContent,
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  cn,
+  CopyIcon,
+} from "@bidezine/system"
 
 export interface ShowcaseExample {
   /** Section name, shown in the filter row. Keep it short — these are chips. */

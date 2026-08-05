@@ -1,10 +1,10 @@
-import { LoaderIcon, Search } from "lucide-react"
-
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
   InputGroupText,
+  LoaderIcon,
+  SearchIcon as Search,
   Spinner,
 } from "@bidezine/system"
 import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
