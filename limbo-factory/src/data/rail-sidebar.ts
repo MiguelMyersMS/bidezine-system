@@ -171,20 +171,28 @@ export interface ProposedToken {
    * authored into tokens/*.tokens.json — naming only, pending your approval alongside the color. */
   proposedVar: string
   usage: string
-  lightAppHex: string
-  darkAppHex: string
+  /** Origin's own value, verbatim, from design-system/src/tokens.ts. Reference only — not a bidezine color. */
+  originLightHex: string
+  originDarkHex: string
+  /** Candidate value if we approve this token: reuses one of bidezine's EXISTING achromatic
+   * lightness stops (the exact oklch() values already defined in src/styles/tokens.css for
+   * --background/--sidebar/--secondary/--accent/--ring/--muted-foreground/--primary/--foreground),
+   * rather than inventing a new number. This is what "strategic, matches bidezine's color balance"
+   * means in practice: the rail's ramp lines up 1:1 with a ramp bidezine already uses elsewhere. */
+  proposedLight: string
+  proposedDark: string
 }
 
 export const proposedDarkRailTokens: ProposedToken[] = [
-  { originName: "darkSurface", proposedVar: "--sidebar-rail-surface", usage: "Rail background", lightAppHex: "#1c2024", darkAppHex: "#111113" },
-  { originName: "darkHoverBg", proposedVar: "--sidebar-rail-hover", usage: "Row hover overlay", lightAppHex: "rgba(255,255,255,0.10)", darkAppHex: "#212225" },
-  { originName: "darkActiveBg", proposedVar: "--sidebar-rail-active", usage: "Row active/selected overlay", lightAppHex: "rgba(255,255,255,0.20)", darkAppHex: "#272a2d" },
-  { originName: "darkPressedBg", proposedVar: "--sidebar-rail-pressed", usage: "Row pressed overlay", lightAppHex: "rgba(255,255,255,0.15)", darkAppHex: "#2e3135" },
-  { originName: "darkBorderStrong", proposedVar: "--sidebar-rail-border-strong", usage: "Visible border on the dark rail", lightAppHex: "rgba(255,255,255,0.6)", darkAppHex: "#5a6169" },
-  { originName: "onDark", proposedVar: "--sidebar-rail-foreground", usage: "Full-strength text/icon on dark rail", lightAppHex: "#ffffff", darkAppHex: "#ffffff" },
-  { originName: "onDarkHover", proposedVar: "--sidebar-rail-foreground-hover", usage: "\u224885% on-dark, hover state", lightAppHex: "rgba(255,255,255,0.85)", darkAppHex: "#edeef0" },
-  { originName: "onDarkSubtle", proposedVar: "--sidebar-rail-foreground-subtle", usage: "\u224850% on-dark, subordinate text", lightAppHex: "rgba(255,255,255,0.5)", darkAppHex: "#696e77" },
-  { originName: "onDarkDisabled", proposedVar: "--sidebar-rail-foreground-disabled", usage: "\u224820% on-dark, disabled", lightAppHex: "rgba(255,255,255,0.2)", darkAppHex: "#3e4348" },
+  { originName: "darkSurface", proposedVar: "--sidebar-rail-surface", usage: "Rail background", originLightHex: "#1c2024", originDarkHex: "#111113", proposedLight: "oklch(0.205 0 0)", proposedDark: "oklch(0.145 0 0)" },
+  { originName: "darkHoverBg", proposedVar: "--sidebar-rail-hover", usage: "Row hover overlay", originLightHex: "rgba(255,255,255,0.10)", originDarkHex: "#212225", proposedLight: "oklch(0.269 0 0)", proposedDark: "oklch(0.205 0 0)" },
+  { originName: "darkPressedBg", proposedVar: "--sidebar-rail-pressed", usage: "Row pressed overlay", originLightHex: "rgba(255,255,255,0.15)", originDarkHex: "#2e3135", proposedLight: "oklch(0.371 0 0)", proposedDark: "oklch(0.269 0 0)" },
+  { originName: "darkActiveBg", proposedVar: "--sidebar-rail-active", usage: "Row active/selected overlay", originLightHex: "rgba(255,255,255,0.20)", originDarkHex: "#272a2d", proposedLight: "oklch(0.439 0 0)", proposedDark: "oklch(0.371 0 0)" },
+  { originName: "darkBorderStrong", proposedVar: "--sidebar-rail-border-strong", usage: "Visible border on the dark rail", originLightHex: "rgba(255,255,255,0.6)", originDarkHex: "#5a6169", proposedLight: "oklch(0.556 0 0)", proposedDark: "oklch(0.439 0 0)" },
+  { originName: "onDark", proposedVar: "--sidebar-rail-foreground", usage: "Full-strength text/icon on dark rail", originLightHex: "#ffffff", originDarkHex: "#ffffff", proposedLight: "oklch(0.985 0 0)", proposedDark: "oklch(0.985 0 0)" },
+  { originName: "onDarkHover", proposedVar: "--sidebar-rail-foreground-hover", usage: "\u224885% on-dark, hover state", originLightHex: "rgba(255,255,255,0.85)", originDarkHex: "#edeef0", proposedLight: "oklch(0.922 0 0)", proposedDark: "oklch(0.922 0 0)" },
+  { originName: "onDarkSubtle", proposedVar: "--sidebar-rail-foreground-subtle", usage: "\u224850% on-dark, subordinate text", originLightHex: "rgba(255,255,255,0.5)", originDarkHex: "#696e77", proposedLight: "oklch(0.708 0 0)", proposedDark: "oklch(0.708 0 0)" },
+  { originName: "onDarkDisabled", proposedVar: "--sidebar-rail-foreground-disabled", usage: "\u224820% on-dark, disabled", originLightHex: "rgba(255,255,255,0.2)", originDarkHex: "#3e4348", proposedLight: "oklch(0.556 0 0)", proposedDark: "oklch(0.556 0 0)" },
 ]
 
 /** clean = never actually diverged; note/decision = still open; resolved = WAS a decision item,
