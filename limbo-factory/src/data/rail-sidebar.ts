@@ -164,22 +164,27 @@ export const blockingQuestions: DecisionQuestion[] = [
  * light/dark theme (confirmed to differ \u2014 see Q2 resolution). Nothing here is written to
  * tokens/*.tokens.json; this is a preview lab for your approval only. */
 export interface ProposedToken {
-  name: string
+  /** Origin project's own token name (design-system/src/tokens.ts) — shown for traceability only. */
+  originName: string
+  /** Proposed bidezine CSS custom property name, extending the existing --sidebar-* family (the
+   * closest existing bidezine token group) rather than inventing a new naming scheme. NOT yet
+   * authored into tokens/*.tokens.json — naming only, pending your approval alongside the color. */
+  proposedVar: string
   usage: string
   lightAppHex: string
   darkAppHex: string
 }
 
 export const proposedDarkRailTokens: ProposedToken[] = [
-  { name: "darkSurface", usage: "Rail background", lightAppHex: "#1c2024", darkAppHex: "#111113" },
-  { name: "darkHoverBg", usage: "Row hover overlay", lightAppHex: "rgba(255,255,255,0.10)", darkAppHex: "#212225" },
-  { name: "darkActiveBg", usage: "Row active/selected overlay", lightAppHex: "rgba(255,255,255,0.20)", darkAppHex: "#272a2d" },
-  { name: "darkPressedBg", usage: "Row pressed overlay", lightAppHex: "rgba(255,255,255,0.15)", darkAppHex: "#2e3135" },
-  { name: "darkBorderStrong", usage: "Visible border on the dark rail", lightAppHex: "rgba(255,255,255,0.6)", darkAppHex: "#5a6169" },
-  { name: "onDark", usage: "Full-strength text/icon on dark rail", lightAppHex: "#ffffff", darkAppHex: "#ffffff" },
-  { name: "onDarkHover", usage: "\u224885% on-dark, hover state", lightAppHex: "rgba(255,255,255,0.85)", darkAppHex: "#edeef0" },
-  { name: "onDarkSubtle", usage: "\u224850% on-dark, subordinate text", lightAppHex: "rgba(255,255,255,0.5)", darkAppHex: "#696e77" },
-  { name: "onDarkDisabled", usage: "\u224820% on-dark, disabled", lightAppHex: "rgba(255,255,255,0.2)", darkAppHex: "#3e4348" },
+  { originName: "darkSurface", proposedVar: "--sidebar-rail-surface", usage: "Rail background", lightAppHex: "#1c2024", darkAppHex: "#111113" },
+  { originName: "darkHoverBg", proposedVar: "--sidebar-rail-hover", usage: "Row hover overlay", lightAppHex: "rgba(255,255,255,0.10)", darkAppHex: "#212225" },
+  { originName: "darkActiveBg", proposedVar: "--sidebar-rail-active", usage: "Row active/selected overlay", lightAppHex: "rgba(255,255,255,0.20)", darkAppHex: "#272a2d" },
+  { originName: "darkPressedBg", proposedVar: "--sidebar-rail-pressed", usage: "Row pressed overlay", lightAppHex: "rgba(255,255,255,0.15)", darkAppHex: "#2e3135" },
+  { originName: "darkBorderStrong", proposedVar: "--sidebar-rail-border-strong", usage: "Visible border on the dark rail", lightAppHex: "rgba(255,255,255,0.6)", darkAppHex: "#5a6169" },
+  { originName: "onDark", proposedVar: "--sidebar-rail-foreground", usage: "Full-strength text/icon on dark rail", lightAppHex: "#ffffff", darkAppHex: "#ffffff" },
+  { originName: "onDarkHover", proposedVar: "--sidebar-rail-foreground-hover", usage: "\u224885% on-dark, hover state", lightAppHex: "rgba(255,255,255,0.85)", darkAppHex: "#edeef0" },
+  { originName: "onDarkSubtle", proposedVar: "--sidebar-rail-foreground-subtle", usage: "\u224850% on-dark, subordinate text", lightAppHex: "rgba(255,255,255,0.5)", darkAppHex: "#696e77" },
+  { originName: "onDarkDisabled", proposedVar: "--sidebar-rail-foreground-disabled", usage: "\u224820% on-dark, disabled", lightAppHex: "rgba(255,255,255,0.2)", darkAppHex: "#3e4348" },
 ]
 
 /** clean = never actually diverged; note/decision = still open; resolved = WAS a decision item,
