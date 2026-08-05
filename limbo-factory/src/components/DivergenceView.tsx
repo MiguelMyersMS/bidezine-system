@@ -18,12 +18,15 @@ import { isRiskResolved } from "@/data/rail-sidebar"
 import { VisualCompare } from "@/components/CompareVisuals"
 
 /** decision = solid/high-contrast (needs a human, don't miss it); note = grey (worth knowing, not
- * blocking); clean = existing secondary look, unchanged. Deliberately distinct at a glance per the
+ * blocking); clean = existing secondary look, unchanged; resolved = a decision item that's now
+ * settled by an already-answered blocking question — distinct from clean (there WAS a decision to
+ * make) and from decision/note (nothing left to decide). Deliberately distinct at a glance per the
  * user's explicit badge-differentiation request. */
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
   clean: { label: "Clean equivalent", className: "bg-secondary text-secondary-foreground" },
   decision: { label: "Needs human decision", className: "bg-foreground text-background" },
   note: { label: "Worth noting", className: "bg-muted text-muted-foreground" },
+  resolved: { label: "Decided", className: "bg-primary text-primary-foreground" },
 }
 
 export function BlockingQuestionCard({ question }: { question: DecisionQuestion }) {
@@ -80,6 +83,7 @@ export function DivergenceCategoriesAccordion({ categories }: { categories: Dive
       {categories.map((cat) => {
         const decisionCount = cat.rows.filter((r) => r.status === "decision").length
         const cleanCount = cat.rows.filter((r) => r.status === "clean").length
+        const resolvedCount = cat.rows.filter((r) => r.status === "resolved").length
         return (
           <AccordionItem key={cat.id} value={cat.id}>
             <AccordionTrigger>
@@ -90,6 +94,9 @@ export function DivergenceCategoriesAccordion({ categories }: { categories: Dive
                 <span className="flex gap-1">
                   {decisionCount > 0 ? (
                     <Badge variant="outline">{decisionCount} need decision</Badge>
+                  ) : null}
+                  {resolvedCount > 0 ? (
+                    <Badge className="bg-primary text-primary-foreground">{resolvedCount} decided</Badge>
                   ) : null}
                   {cleanCount > 0 ? <Badge variant="secondary">{cleanCount} clean</Badge> : null}
                 </span>

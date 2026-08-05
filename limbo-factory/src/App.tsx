@@ -14,9 +14,10 @@ import {
   BIDEZINE_LOGO_PATH,
 } from "@/data/rail-sidebar"
 
-const BIDEZINE_LOGO_DATA_URL = `data:image/svg+xml;utf8,${encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26.064 24"><path fill="currentColor" d="${BIDEZINE_LOGO_PATH}"/></svg>`,
-)}`
+// Label shown in the URL field for the pre-filled default — not a real URL, just a recognizable
+// stand-in so LogoImportSlot knows to render the inline SVG (currentColor, theme-responsive)
+// instead of falling back to <img> for a genuine user-supplied link.
+const BIDEZINE_LOGO_DEFAULT_LABEL = "(bidezine mark — built in, renders as inline SVG)"
 
 /**
  * Limbo Factory Line — the reusable transformation-tracking shell.
@@ -69,8 +70,8 @@ function HumanDecisionsPhase() {
     <Tabs defaultValue="blocking" className="w-full">
       <TabsList>
         <TabsTrigger value="blocking">Blocking questions (4)</TabsTrigger>
-        <TabsTrigger value="categories">Full divergence list (13 categories)</TabsTrigger>
         <TabsTrigger value="colorlab">Color token lab (9)</TabsTrigger>
+        <TabsTrigger value="categories">Full divergence list (13 categories)</TabsTrigger>
         <TabsTrigger value="risks">Notable risks (9)</TabsTrigger>
       </TabsList>
 
@@ -84,8 +85,21 @@ function HumanDecisionsPhase() {
         ))}
         <div className="rounded-md border p-4">
           <p className="mb-2 text-sm font-medium">Q3 — Logo import (standing rule)</p>
-          <LogoImportSlot defaultUrl={BIDEZINE_LOGO_DATA_URL} />
+          <LogoImportSlot
+            defaultUrl={BIDEZINE_LOGO_DEFAULT_LABEL}
+            defaultSvgPath={BIDEZINE_LOGO_PATH}
+            defaultViewBox="0 0 26.064 24"
+          />
         </div>
+      </TabsContent>
+
+      <TabsContent value="colorlab" className="flex flex-col gap-4">
+        <p className="text-sm text-muted-foreground">
+          Resolve this tab before category B (and several of category C) in "Full divergence list" —
+          those rows' "after" column depends on the tokens approved here. Use the theme toggle above to
+          check both light and dark before approving.
+        </p>
+        <ColorTokenLab tokens={proposedDarkRailTokens} />
       </TabsContent>
 
       <TabsContent value="categories" className="flex flex-col gap-4">
@@ -94,10 +108,6 @@ function HumanDecisionsPhase() {
           sub-component, and structural pattern found in RailNav, reconciled against our current system.
         </p>
         <DivergenceCategoriesAccordion categories={divergenceCategories} />
-      </TabsContent>
-
-      <TabsContent value="colorlab" className="flex flex-col gap-4">
-        <ColorTokenLab tokens={proposedDarkRailTokens} />
       </TabsContent>
 
       <TabsContent value="risks" className="flex flex-col gap-4">
