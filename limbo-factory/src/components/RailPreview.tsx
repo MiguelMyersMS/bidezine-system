@@ -51,18 +51,12 @@ function RailMock({
     "--prv-surface": pick("darkSurface"),
     "--prv-hover": pick("darkHoverBg"),
     "--prv-pressed": pick("darkPressedBg"),
+    "--prv-active": pick("darkActiveBg"),
     "--prv-border": pick("darkBorderStrong"),
     "--prv-fg": pick("onDark"),
     "--prv-fg-hover": pick("onDarkHover"),
     "--prv-fg-subtle": pick("onDarkSubtle"),
     "--prv-fg-disabled": pick("onDarkDisabled"),
-    // Selected state: for the ORIGIN rail, stay verbatim to the origin's own darkActiveBg/onDark
-    // overlay (same as every other origin value here) — never substitute bidezine tokens into the
-    // origin side, that rail exists purely as an unmodified reference. Only the BIDEZINE rail gets
-    // the --primary/--primary-foreground treatment, since that's bidezine's own clean equivalent
-    // (flips dark-bg/bright-text in light mode, bright-bg/dark-text in dark mode).
-    "--prv-selected-bg": source === "bidezine" ? "var(--primary)" : pick("darkActiveBg"),
-    "--prv-selected-fg": source === "bidezine" ? "var(--primary-foreground)" : pick("onDark"),
   } as CSSProperties
 
   return (
@@ -86,12 +80,8 @@ function RailMock({
               aria-pressed={isSelected}
               className="flex w-full flex-col items-center gap-1 rounded-lg px-1 py-2 text-[9px] leading-none transition-colors disabled:cursor-not-allowed"
               style={{
-                background: isSelected ? "var(--prv-selected-bg)" : "transparent",
-                color: isDisabled
-                  ? "var(--prv-fg-disabled)"
-                  : isSelected
-                    ? "var(--prv-selected-fg)"
-                    : "var(--prv-fg-subtle)",
+                background: isSelected ? "var(--prv-active)" : "transparent",
+                color: isDisabled ? "var(--prv-fg-disabled)" : isSelected ? "var(--prv-fg)" : "var(--prv-fg-subtle)",
               }}
               onMouseDown={(e) => {
                 if (isDisabled || isSelected) return
