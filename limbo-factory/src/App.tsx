@@ -2,7 +2,21 @@ import { useState } from "react"
 import { ScrollArea, Separator, Tabs, TabsContent, TabsList, TabsTrigger } from "@bidezine/system"
 import { PhaseRail } from "@/components/PhaseRail"
 import { BlockingQuestionCard, DivergenceCategoriesAccordion, RisksList } from "@/components/DivergenceView"
-import { railSidebarPhases, blockingQuestions, divergenceCategories, notableRisks } from "@/data/rail-sidebar"
+import { ThemeToggle } from "@/components/ThemeToggle"
+import { ColorTokenLab } from "@/components/ColorTokenLab"
+import { LogoImportSlot } from "@/components/LogoImportSlot"
+import {
+  railSidebarPhases,
+  blockingQuestions,
+  divergenceCategories,
+  notableRisks,
+  proposedDarkRailTokens,
+  BIDEZINE_LOGO_PATH,
+} from "@/data/rail-sidebar"
+
+const BIDEZINE_LOGO_DATA_URL = `data:image/svg+xml;utf8,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26.064 24"><path fill="currentColor" d="${BIDEZINE_LOGO_PATH}"/></svg>`,
+)}`
 
 /**
  * Limbo Factory Line — the reusable transformation-tracking shell.
@@ -28,13 +42,16 @@ export function App() {
       </aside>
 
       <main className="flex min-w-0 flex-1 flex-col">
-        <header className="border-b px-6 py-4">
-          <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-            Limbo — Rail Sidebar (RailNav)
-          </p>
-          <h1 className="text-lg font-semibold">{activePhase.title}</h1>
-          <p className="text-sm text-muted-foreground">{activePhase.description}</p>
-          <p className="mt-1 text-xs text-muted-foreground">Owner: {activePhase.owner}</p>
+        <header className="flex items-start justify-between gap-4 border-b px-6 py-4">
+          <div>
+            <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              Limbo — Rail Sidebar (RailNav)
+            </p>
+            <h1 className="text-lg font-semibold">{activePhase.title}</h1>
+            <p className="text-sm text-muted-foreground">{activePhase.description}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Owner: {activePhase.owner}</p>
+          </div>
+          <ThemeToggle />
         </header>
 
         <ScrollArea className="min-h-0 flex-1">
@@ -53,6 +70,7 @@ function HumanDecisionsPhase() {
       <TabsList>
         <TabsTrigger value="blocking">Blocking questions (4)</TabsTrigger>
         <TabsTrigger value="categories">Full divergence list (13 categories)</TabsTrigger>
+        <TabsTrigger value="colorlab">Color token lab (9)</TabsTrigger>
         <TabsTrigger value="risks">Notable risks (9)</TabsTrigger>
       </TabsList>
 
@@ -64,6 +82,10 @@ function HumanDecisionsPhase() {
         {blockingQuestions.map((q) => (
           <BlockingQuestionCard key={q.id} question={q} />
         ))}
+        <div className="rounded-md border p-4">
+          <p className="mb-2 text-sm font-medium">Q3 — Logo import (standing rule)</p>
+          <LogoImportSlot defaultUrl={BIDEZINE_LOGO_DATA_URL} />
+        </div>
       </TabsContent>
 
       <TabsContent value="categories" className="flex flex-col gap-4">
@@ -74,10 +96,14 @@ function HumanDecisionsPhase() {
         <DivergenceCategoriesAccordion categories={divergenceCategories} />
       </TabsContent>
 
+      <TabsContent value="colorlab" className="flex flex-col gap-4">
+        <ColorTokenLab tokens={proposedDarkRailTokens} />
+      </TabsContent>
+
       <TabsContent value="risks" className="flex flex-col gap-4">
         <p className="text-sm text-muted-foreground">
-          Contamination risks and structural conflicts flagged by the Intake agent — not per-item
-          decisions, but things to keep in mind once Build starts.
+          Contamination risks and structural conflicts flagged by the Intake agent, each with a concrete
+          action-item checklist. A risk turns from red to green once every item is done.
         </p>
         <RisksList risks={notableRisks} />
       </TabsContent>

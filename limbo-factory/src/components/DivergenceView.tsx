@@ -9,14 +9,21 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CheckIcon,
   Separator,
+  cn,
 } from "@bidezine/system"
 import type { DecisionQuestion, DivergenceCategory, RiskNote } from "@/data/rail-sidebar"
+import { isRiskResolved } from "@/data/rail-sidebar"
+import { VisualCompare } from "@/components/CompareVisuals"
 
-const STATUS_BADGE: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
-  clean: { label: "Clean equivalent", variant: "secondary" },
-  decision: { label: "Needs human decision", variant: "outline" },
-  note: { label: "Worth noting", variant: "outline" },
+/** decision = solid/high-contrast (needs a human, don't miss it); note = grey (worth knowing, not
+ * blocking); clean = existing secondary look, unchanged. Deliberately distinct at a glance per the
+ * user's explicit badge-differentiation request. */
+const STATUS_BADGE: Record<string, { label: string; className: string }> = {
+  clean: { label: "Clean equivalent", className: "bg-secondary text-secondary-foreground" },
+  decision: { label: "Needs human decision", className: "bg-foreground text-background" },
+  note: { label: "Worth noting", className: "bg-muted text-muted-foreground" },
 }
 
 export function BlockingQuestionCard({ question }: { question: DecisionQuestion }) {
@@ -26,6 +33,9 @@ export function BlockingQuestionCard({ question }: { question: DecisionQuestion 
         <div className="flex items-center gap-2">
           <Badge variant="default">Q{question.priority}</Badge>
           <CardTitle>{question.title}</CardTitle>
+          {question.resolution ? (
+            <Badge className="ml-auto bg-foreground text-background">Resolved</Badge>
+          ) : null}
         </div>
         <CardDescription>Blocks: {question.blocks}</CardDescription>
       </CardHeader>
@@ -40,9 +50,25 @@ export function BlockingQuestionCard({ question }: { question: DecisionQuestion 
             </div>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground italic">
-          Awaiting your decision — nothing auto-decided here.
-        </p>
+        {question.visual ? (
+          <div className="rounded-md border bg-muted/30 p-3">
+            <VisualCompare visual={question.visual} />
+          </div>
+        ) : null}
+        {question.resolution ? (
+          <div className="rounded-md border border-foreground/20 bg-foreground/5 p-3">
+            <p className="text-xs font-medium text-foreground">
+              Decided: {question.resolution.chosenLabel}
+            </p>
+            {question.resolution.note ? (
+              <p className="mt-1 text-xs text-muted-foreground">{question.resolution.note}</p>
+            ) : null}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground italic">
+            Awaiting your decision — nothing auto-decided here.
+          </p>
+        )}
       </CardContent>
     </Card>
   )
@@ -79,11 +105,14 @@ export function DivergenceCategoriesAccordion({ categories }: { categories: Dive
                         <p className="text-sm font-medium">
                           {row.id} — {row.what}
                         </p>
-                        <Badge variant={badge.variant} className="shrink-0">
-                          {badge.label}
-                        </Badge>
+                        <Badge className={cn("shrink-0", badge.className)}>{badge.label}</Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">{row.detail}</p>
+                      {row.visual ? (
+                        <div className="mt-2 rounded-md border bg-muted/30 p-3">
+                          <VisualCompare visual={row.visual} />
+                        </div>
+                      ) : null}
                     </div>
                   )
                 })}
@@ -99,19 +128,50 @@ export function DivergenceCategoriesAccordion({ categories }: { categories: Dive
 export function RisksList({ risks }: { risks: RiskNote[] }) {
   return (
     <div className="flex flex-col gap-2">
-      {risks.map((risk) => (
-        <Card key={risk.id}>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Badge variant="destructive">{risk.id}</Badge>
-              <CardTitle className="text-sm">{risk.title}</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">{risk.detail}</p>
-          </CardContent>
-        </Card>
-      ))}
+      {risks.map((risk) => {
+        const resolved = isRiskResolved(risk)
+        const doneCount = risk.actionItems.filter((i) => i.done).length
+        return (
+          <Card key={risk.id} className={cn("border-l-4", resolved ? "border-l-primary" : "border-l-destructive")}>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Badge variant={resolved ? "default" : "destructive"} className={resolved ? "bg-primary" : undefined}>
+                  {resolved ? "Resolved" : "Open"} — {risk.id}
+                </Badge>
+                <CardTitle className="text-sm">{risk.title}</CardTitle>
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {doneCount}/{risk.actionItems.length} done
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              <p className="text-sm text-muted-foreground">{risk.detail}</p>
+              <div className="flex flex-col gap-1.5">
+                {risk.actionItems.map((item) => (
+                  <div key={item.id} className="flex items-start gap-2">
+                    <span
+                      className={cn(
+                        "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border",
+                        item.done ? "border-primary bg-primary text-primary-foreground" : "border-input",
+                      )}
+                    >
+                      {item.done ? <CheckIcon className="h-3 w-3" /> : null}
+                    </span>
+                    <p className={cn("text-xs", item.done ? "text-muted-foreground line-through" : "text-foreground")}>
+                      {item.text}
+                      {item.refs?.length ? (
+                        <span className="ml-1 text-muted-foreground">
+                          ({item.refs.join(", ")})
+                        </span>
+                      ) : null}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )
+      })}
     </div>
   )
 }

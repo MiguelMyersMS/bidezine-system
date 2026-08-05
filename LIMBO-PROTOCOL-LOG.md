@@ -55,7 +55,7 @@ decides each one. This is the same spirit as the Fluent iconography protocol's "
 exists, stop and ask" rule, just generalized to every visual/behavioral aspect of a ported component, not
 only icons.
 
-## Factory-line interface requirements (design target, not yet built)
+## Factory-line interface requirements — live, in `limbo-factory/` (port 4199)
 
 - A dedicated local dev environment, on its own port, distinct from the main showcase (`4188`) and the
   icon-comparison reference tool (`5590`).
@@ -66,6 +66,25 @@ only icons.
   governs the main site's chrome.
 - Must be a **generic, reusable shell** — built once, reused for every future Limbo component, not
   hardcoded to Rail Sidebar specifically.
+- **Whole-app light/dark toggle** (`ThemeToggle.tsx`) so color/elevation divergences can be evaluated in
+  both modes, not just one.
+- **Graphical before/after comparisons for every visual divergence category** (`CompareVisuals.tsx`):
+  icons render as real inline SVG side-by-side; colors as swatches (hardcoded hex for "before", live
+  `var(--token)` for "after" so they track the real theme toggle); typography as rendered text samples;
+  layout/sizing and border-radius as small proportioned shapes; motion as a replayable CSS animation with
+  duration/easing labeled; elevation as a shape+shadow pair that responds to theme; z-index as a rendered
+  stacking example. Spacing (category E) is intentionally exempt — it doesn't need a visual aid. Every
+  value shown is sourced from the real origin project or real bidezine tokens, never invented.
+- **Status badges are visually distinct by severity**: "Needs human decision" = solid/high-contrast
+  (`bg-foreground text-background`); "Worth noting" = grey (`bg-muted text-muted-foreground`); "Clean
+  equivalent" = the existing secondary look, unchanged.
+- **Color Token Lab tab**: proposed-but-unapproved token values get their own approval surface before
+  anything is written to `tokens/*.tokens.json` — draft swatches only, explicitly labeled as pending.
+- **Logo-import slot**: enforces the standing Q3 rule (AI never invents a logo — always asks for an image
+  link; empty if none given) as a real UI element, not just a written rule.
+- **Notable risks carry a concrete action-item checklist** (`isRiskResolved()`), each item cross-referenced
+  to the blocking question or divergence row that resolves it. A risk's status is *computed*, not stored —
+  red while any item is undone, green once every item is done.
 
 ## Source intake record (Rail Sidebar)
 
@@ -77,7 +96,8 @@ only icons.
   clarification, 2 QA reports, a consumer-build prompt, a panel-unification ledger, and evidence
   screenshots) into `limbo/rail-sidebar/reference/` inside this repo, preserving the origin project's
   relative folder structure for traceability. Nothing here is wired into `src/ui/`, `site/`, or any build
-  step — it exists purely for the Intake agent to read.
+  step — it exists purely for the Intake agent to read. **Known gap (see flaws log): `ExpandButton.tsx`
+  was missing from this copy** and had to be read directly from the origin for the Q4 investigation.
 - **Intake/Dissection agent dispatched** to read the full reference set + our own current CLAUDE.md,
   icons manifest, tokens, and existing `src/ui/` primitives (including our already-ported shadcn `Sidebar`
   primitive, in case of behavioral overlap), and produce the itemized divergence list per the rule below.
@@ -94,6 +114,27 @@ friction, anything.)_
   exist, and blocking on it would have stalled real work behind a UI-building side quest. Decoupled:
   dissection can start as soon as the source is gathered; the factory-line UI is built in parallel and
   simply *displays* phase progress after the fact, it never gates the underlying work.
+
+- **Documentation-vs-code drift caught by the human, not the AI (Q4):** the Intake agent's original
+  investigation into the panel-collapse icon trusted a QA doc (`docs/qa/railnav-visual-qa.md`) claiming
+  `IconChevronDoubleLeft` was implemented and "visually approved." The user flagged this as wrong from
+  memory and attached screenshots. Re-investigation found the actual live component
+  (`ExpandButton.tsx`, which the self-contained reference copy was missing entirely) imports
+  `IconPanelLeftContract` — the docs were stale relative to the real, currently-shipping source file.
+  **Lesson for the protocol:** the Intake/Dissection agent must verify claims against the actual current
+  source file, never against accompanying docs/QA notes alone — docs can lag behind real implementation,
+  and a stale doc that "sounds authoritative" is exactly the kind of trap this protocol exists to catch.
+  Also surfaced a secondary gap: the self-contained reference copy (`limbo/rail-sidebar/reference/`) was
+  missing a component the intake report depended on (`ExpandButton.tsx`) — the copy-in step needs a
+  completeness check against every import the source docs/behavior descriptions reference, not just the
+  files that seemed obviously relevant at copy time.
+
+- **"No auto-deciding" extended to visual mockups, not just decisions:** when building the factory line's
+  before/after visual comparisons, one value (`statusRedText`) was initially guessed from a common Radix
+  scale value without checking source, then caught and corrected against the real `tokens.ts` before
+  being shown to the user. Lesson: the same anti-fabrication discipline applied to written divergence
+  rows must also apply to anything rendered as a visual aid — a plausible-looking but unverified swatch
+  is just as much an auto-decision as an unverified prose claim.
 
 ## Exit condition
 
