@@ -1,0 +1,25 @@
+/*
+ * Limbo Factory Line — stylesheet entry.
+ *
+ * Consumes the BUILT @bidezine/system stylesheet (tokens + component classes),
+ * then adds Tailwind for this tool's own layout — same pattern as site/src/index.css,
+ * since this app is itself a real consumer of the design system, per protocol.
+ */
+@import "tailwindcss";
+@import "@bidezine/system/styles.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: 14px;
+  }
+}

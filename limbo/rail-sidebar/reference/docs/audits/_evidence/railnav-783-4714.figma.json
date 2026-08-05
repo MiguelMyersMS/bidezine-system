@@ -1,0 +1,2508 @@
+NAME: "Single shape"
+
+GLOBAL_VARS:
+fill_658ab2fa:
+  - '#FFFFFF'
+fill_02f03579:
+  - '#1C2024'
+layout_78eb62b7:
+  mode: row
+  alignSelf: stretch
+  justifyContent: center
+  alignItems: center
+  gap: 10px
+  sizing:
+    horizontal: fill
+    vertical: fixed
+  dimensions:
+    height: 38
+layout_4e75fd8f:
+  mode: row
+  padding: 2px 3px
+  justifyContent: center
+  alignItems: center
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 21
+    height: 21
+fill_97d170e1: []
+layout_622b8741:
+  mode: none
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 14.7
+    height: 16.8
+fill_5222c42a:
+  - rgba(255, 255, 255, 0.5)
+fill_5a1a324a:
+  - rgba(255, 255, 255, 0.2)
+layout_ee016964:
+  mode: row
+  padding: 3px 2px
+  justifyContent: center
+  alignItems: center
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 21
+    height: 21
+layout_c5112bbf:
+  mode: row
+  padding: 3px
+  justifyContent: center
+  alignItems: center
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 21
+    height: 21
+layout_6586a818:
+  mode: row
+  padding: 2px
+  justifyContent: center
+  alignItems: center
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 21
+    height: 21
+layout_c3477fa7:
+  mode: row
+  padding: 2px 1px 1px 2px
+  justifyContent: center
+  alignItems: center
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 21
+    height: 21
+elevation.mid:
+  boxShadow: 0px 2px 8px 0px rgba(28, 32, 36, 0.1)
+layout_203ceb1a:
+  mode: row
+  justifyContent: center
+  alignItems: center
+  gap: 10px
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 20
+    height: 20
+layout_56d3c81c:
+  mode: none
+  sizing:
+    horizontal: fill
+    vertical: hug
+TYPE/headingS:
+  fontFamily: Inter
+  fontStyle: Medium
+  fontWeight: 500
+  fontSize: 16
+  lineHeight: 1.3em
+  textAlignHorizontal: LEFT
+  textAlignVertical: TOP
+layout_cd7a811e:
+  mode: row
+  justifyContent: center
+  alignItems: center
+  gap: 10px
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 28
+    height: 28
+fill_e3738f4c:
+  - '#60646C'
+TYPE/bodyM:
+  fontFamily: Inter
+  fontStyle: Regular
+  fontWeight: 400
+  fontSize: 14
+  lineHeight: 1.55em
+  textAlignHorizontal: LEFT
+  textAlignVertical: TOP
+fill_5a6c1526:
+  - '#8B8D98'
+fill_1a66c7bd:
+  - '#D9D9E0'
+layout_5c79c5b1:
+  mode: column
+  alignSelf: stretch
+  alignItems: stretch
+  sizing:
+    horizontal: fill
+    vertical: hug
+layout_b67e0ff0:
+  mode: row
+  justifyContent: center
+  alignItems: center
+  gap: 10px
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 18
+    height: 18
+layout_18998d4f:
+  mode: row
+  padding: 2px 1px 1px 2px
+  justifyContent: center
+  alignItems: center
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 16
+    height: 16
+layout_b08c3ce1:
+  mode: column
+  alignSelf: stretch
+  padding: 4px 8px
+  justifyContent: center
+  alignItems: stretch
+  sizing:
+    horizontal: fill
+    vertical: hug
+layout_d4948b8d:
+  mode: none
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 5.78
+    height: 10.5
+layout_9a16b0d3:
+  mode: row
+  padding: 4px 2px
+  justifyContent: center
+  alignItems: center
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 21
+    height: 21
+layout_7e99b84f:
+  mode: row
+  padding: 0px 6px
+  justifyContent: center
+  alignItems: center
+  sizing:
+    horizontal: hug
+    vertical: fixed
+  dimensions:
+    height: 18
+fill_7b8f068f:
+  - '#F9F9FB'
+layout_177c5efc:
+  mode: none
+  sizing:
+    horizontal: hug
+    vertical: hug
+TYPE/caption:
+  fontFamily: Inter
+  fontStyle: Regular
+  fontWeight: 400
+  fontSize: 12
+  lineHeight: 1.5em
+  textAlignHorizontal: LEFT
+  textAlignVertical: TOP
+layout_f049a652:
+  mode: none
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 10.5
+    height: 5.78
+layout_61c1f248:
+  mode: row
+  padding: 2px 4px
+  justifyContent: center
+  alignItems: center
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 21
+    height: 21
+layout_84bab524:
+  mode: none
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 12
+    height: 16
+TYPE/labelL:
+  fontFamily: Inter
+  fontStyle: Medium
+  fontWeight: 500
+  fontSize: 14
+  lineHeight: 1.55em
+  textAlignHorizontal: LEFT
+  textAlignVertical: TOP
+layout_e4b6f33f:
+  mode: none
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 16
+    height: 16
+layout_595e11ec:
+  mode: none
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 14
+    height: 14
+fill_34b5c1e3:
+  - '#B9BBC6'
+layout_59fd338e:
+  mode: none
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 14
+    height: 16
+layout_f9f3928f:
+  mode: row
+  padding: 2.5px 1px 1px 1.5px
+  justifyContent: center
+  alignItems: center
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 21
+    height: 21
+layout_5407f4cd:
+  mode: column
+  alignSelf: stretch
+  padding: 4px
+  justifyContent: center
+  sizing:
+    horizontal: fill
+    vertical: hug
+fill_88970818:
+  - rgba(255, 255, 255, 0.85)
+TYPE/labelM:
+  fontFamily: Inter
+  fontStyle: Medium
+  fontWeight: 500
+  fontSize: 13
+  lineHeight: 1.4em
+  textAlignHorizontal: LEFT
+  textAlignVertical: TOP
+layout_02f3dcac:
+  mode: row
+  padding: 3px 1px
+  justifyContent: center
+  alignItems: center
+  sizing:
+    horizontal: fixed
+    vertical: fixed
+  dimensions:
+    width: 16
+    height: 16
+TYPE/bodyS:
+  fontFamily: Inter
+  fontStyle: Regular
+  fontWeight: 400
+  fontSize: 13
+  lineHeight: 1.5em
+  textAlignHorizontal: LEFT
+  textAlignVertical: TOP
+
+ELEMENTS:
+EL-1b884390:
+  type: INSTANCE
+  layout: layout_78eb62b7
+  borderRadius: 8px
+  componentId: 165:4189
+EL-2da34c44:
+  type: IMAGE-SVG
+  layout: layout_622b8741
+  fills: fill_5222c42a
+EL-9356017f:
+  type: IMAGE-SVG
+  layout:
+    mode: none
+    sizing:
+      horizontal: fixed
+      vertical: fixed
+    dimensions:
+      width: 16.8
+      height: 16.8
+  fills: fill_5222c42a
+EL-27615149:
+  type: FRAME
+  layout:
+    mode: column
+    alignSelf: stretch
+    padding: 8px
+    alignItems: stretch
+    gap: 10px
+    sizing:
+      horizontal: fill
+      vertical: hug
+  borderRadius: 12px
+EL-5391b6c3:
+  type: INSTANCE
+  layout:
+    mode: column
+    alignSelf: stretch
+    padding: 4px
+    justifyContent: center
+    alignItems: stretch
+    gap: 4px
+    sizing:
+      horizontal: fill
+      vertical: hug
+  borderRadius: 8px
+  componentId: 209:3959
+EL-4ba91fca:
+  type: FRAME
+  layout:
+    mode: row
+    alignSelf: stretch
+    alignItems: center
+    gap: 8px
+    sizing:
+      horizontal: fill
+      vertical: fixed
+    dimensions:
+      height: 28
+EL-c5338376:
+  type: INSTANCE
+  layout: layout_203ceb1a
+  borderRadius: 4px
+  componentId: 136:10932
+EL-adaddf12:
+  type: INSTANCE
+  layout: layout_cd7a811e
+  borderRadius: 4px
+  componentId: 297:5800
+EL-c8421421:
+  type: INSTANCE
+  layout:
+    mode: row
+    padding: 7.350000381469727px 3.1500000953674316px
+    justifyContent: center
+    alignItems: center
+    sizing:
+      horizontal: fixed
+      vertical: fixed
+    dimensions:
+      width: 16.8
+      height: 16.8
+  componentId: 168:3125
+EL-56b9808c:
+  type: IMAGE-SVG
+  layout:
+    mode: none
+    sizing:
+      horizontal: fixed
+      vertical: fixed
+    dimensions:
+      width: 10.5
+      height: 2.1
+  fills: fill_e3738f4c
+EL-c8a01777:
+  type: INSTANCE
+  layout: layout_cd7a811e
+  borderRadius: 4px
+  componentId: 297:5846
+EL-d3da388c:
+  type: INSTANCE
+  layout:
+    mode: row
+    padding: 4.200000286102295px 2.1000001430511475px
+    justifyContent: center
+    alignItems: center
+    sizing:
+      horizontal: fixed
+      vertical: fixed
+    dimensions:
+      width: 21
+      height: 21
+  componentId: 209:4087
+EL-ba7d07eb:
+  type: IMAGE-SVG
+  layout:
+    mode: none
+    sizing:
+      horizontal: fixed
+      vertical: fixed
+    dimensions:
+      width: 16.8
+      height: 12.6
+  fills: fill_e3738f4c
+EL-1737a001:
+  type: FRAME
+  layout:
+    mode: row
+    alignSelf: stretch
+    padding: 0px 0px 4px 28px
+    justifyContent: center
+    alignItems: center
+    gap: 10px
+    sizing:
+      horizontal: fill
+      vertical: hug
+EL-84adc003:
+  type: TEXT
+  layout: layout_56d3c81c
+  text: Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+  textStyle: TYPE/bodyM
+  fills: fill_5a6c1526
+EL-221e2291:
+  type: IMAGE-SVG
+  layout:
+    mode: none
+    sizing:
+      horizontal: fill
+      vertical: fixed
+    dimensions:
+      height: 0.5
+  componentId: 138:2829
+EL-46aa0c94:
+  type: FRAME
+  layout:
+    mode: column
+    alignSelf: stretch
+    padding: 4px 8px
+    alignItems: stretch
+    gap: 10px
+    sizing:
+      horizontal: fill
+      vertical: hug
+  borderRadius: 12px
+EL-081d6b1c:
+  type: INSTANCE
+  layout: layout_5c79c5b1
+  componentId: 139:3052
+EL-d143ab90:
+  type: FRAME
+  layout:
+    mode: row
+    alignSelf: stretch
+    padding: 4px
+    alignItems: center
+    gap: 8px
+    sizing:
+      horizontal: fill
+      vertical: hug
+  fills: fill_658ab2fa
+EL-a7983845:
+  type: INSTANCE
+  layout: layout_b67e0ff0
+  borderRadius: 4px
+  componentId: 136:10924
+EL-18880952:
+  type: INSTANCE
+  layout: layout_18998d4f
+  fills: fill_97d170e1
+  componentId: 139:3019
+EL-de27874d:
+  type: IMAGE-SVG
+  layout:
+    mode: none
+    sizing:
+      horizontal: fixed
+      vertical: fixed
+    dimensions:
+      width: 13.65
+      height: 13.65
+  fills: fill_5a6c1526
+EL-80915100:
+  type: TEXT
+  layout: layout_56d3c81c
+  text: Search...
+  textStyle: TYPE/bodyM
+  fills: fill_5a6c1526
+EL-dd46e792:
+  type: INSTANCE
+  layout:
+    mode: row
+    justifyContent: center
+    alignItems: center
+    gap: 10px
+    sizing:
+      horizontal: fixed
+      vertical: fixed
+    dimensions:
+      width: 24
+      height: 24
+  borderRadius: 4px
+  componentId: 292:4103
+EL-f96bbce8:
+  type: FRAME
+  layout:
+    mode: row
+    alignSelf: stretch
+    gap: 8px
+    sizing:
+      horizontal: fill
+      vertical: hug
+EL-3fcf4831:
+  type: FRAME
+  layout:
+    mode: column
+    alignItems: stretch
+    gap: 2px
+    sizing:
+      horizontal: fill
+      vertical: hug
+EL-807ec7a2:
+  type: INSTANCE
+  layout: layout_b08c3ce1
+  borderRadius: 8px
+  componentId: 207:3407
+EL-5b0857e6:
+  type: FRAME
+  layout:
+    mode: row
+    alignSelf: stretch
+    alignItems: center
+    gap: 4px
+    sizing:
+      horizontal: fill
+      vertical: fixed
+    dimensions:
+      height: 20
+EL-4a044ac4:
+  type: INSTANCE
+  layout: layout_203ceb1a
+  borderRadius: 4px
+  componentId: 293:4735
+EL-3ea1955e:
+  type: INSTANCE
+  layout:
+    mode: row
+    padding: 3.1500000953674316px 5.250000476837158px 3.1500000953674316px 5.77500057220459px
+    justifyContent: center
+    alignItems: center
+    sizing:
+      horizontal: fixed
+      vertical: fixed
+    dimensions:
+      width: 16.8
+      height: 16.8
+  componentId: 126:2397
+EL-0ff78b82:
+  type: IMAGE-SVG
+  layout: layout_d4948b8d
+  fills: fill_5a6c1526
+EL-45d1cddb:
+  type: FRAME
+  layout:
+    mode: row
+    alignItems: center
+    gap: 8px
+    sizing:
+      horizontal: fill
+      vertical: hug
+EL-ce9c4acd:
+  type: INSTANCE
+  layout: layout_203ceb1a
+  borderRadius: 4px
+  componentId: 136:10929
+EL-6dc60cfd:
+  type: IMAGE-SVG
+  layout:
+    mode: none
+    sizing:
+      horizontal: fixed
+      vertical: fixed
+    dimensions:
+      width: 16
+      height: 12
+  fills: fill_e3738f4c
+EL-d82b3835:
+  type: INSTANCE
+  layout: layout_b08c3ce1
+  borderRadius: 8px
+  componentId: 209:3594
+EL-cf571987:
+  type: INSTANCE
+  layout: layout_203ceb1a
+  borderRadius: 4px
+  componentId: 292:4048
+EL-2ca6f82a:
+  type: INSTANCE
+  layout:
+    mode: row
+    padding: 5.77500057220459px 3.1500000953674316px 5.250000476837158px
+    justifyContent: center
+    alignItems: center
+    sizing:
+      horizontal: fixed
+      vertical: fixed
+    dimensions:
+      width: 16.8
+      height: 16.8
+  componentId: 126:2421
+EL-135c15f1:
+  type: IMAGE-SVG
+  layout: layout_f049a652
+  fills: fill_02f03579
+EL-68e3c805:
+  type: INSTANCE
+  layout: layout_b08c3ce1
+  borderRadius: 8px
+  componentId: 207:3697
+EL-76ea8482:
+  type: INSTANCE
+  layout:
+    mode: row
+    alignSelf: stretch
+    justifyContent: center
+    alignItems: stretch
+    gap: 10px
+    sizing:
+      horizontal: fixed
+      vertical: fill
+    dimensions:
+      width: 18
+  componentId: 207:3583
+EL-4e170441:
+  type: RECTANGLE
+  layout:
+    mode: none
+    sizing:
+      horizontal: fixed
+      vertical: fill
+    dimensions:
+      width: 0.5
+  fills: fill_1a66c7bd
+  strokes: fill_1a66c7bd
+  strokeWeight: 10px 0px
+  strokeAlign: OUTSIDE
+EL-c0c859ef:
+  type: INSTANCE
+  layout: layout_203ceb1a
+  borderRadius: 4px
+  componentId: 292:4032
+EL-f1e1eb2f:
+  type: IMAGE-SVG
+  layout: layout_e4b6f33f
+  fills: fill_e3738f4c
+EL-dc3303ef:
+  type: INSTANCE
+  layout: layout_c5112bbf
+  componentId: 209:3479
+EL-5392cb8c:
+  type: IMAGE-SVG
+  layout: layout_595e11ec
+  fills: fill_e3738f4c
+EL-748a694b:
+  type: IMAGE-SVG
+  layout: layout_595e11ec
+  fills: fill_02f03579
+EL-b6a3870f:
+  type: INSTANCE
+  layout:
+    mode: column
+    alignSelf: stretch
+    alignItems: stretch
+    gap: 2px
+    sizing:
+      horizontal: fixed
+      vertical: fill
+    dimensions:
+      width: 4
+  componentId: 162:3074
+EL-8cc4b764:
+  type: REGULAR_POLYGON
+  layout:
+    mode: none
+    sizing:
+      horizontal: fill
+      vertical: fixed
+    dimensions:
+      height: 4
+  fills: fill_1a66c7bd
+  strokes: fill_1a66c7bd
+  strokeWeight: 0.5px
+  strokeAlign: OUTSIDE
+  borderRadius: 0.30000001192092896px
+EL-10d81b04:
+  type: FRAME
+  layout:
+    mode: row
+    alignSelf: stretch
+    justifyContent: center
+    gap: 10px
+    sizing:
+      horizontal: fill
+      vertical: fill
+EL-3b050ec5:
+  type: RECTANGLE
+  layout:
+    mode: none
+    sizing:
+      horizontal: fill
+      vertical: fixed
+    dimensions:
+      height: 43.74
+  fills: fill_1a66c7bd
+  borderRadius: 4px
+EL-2eda2466:
+  type: INSTANCE
+  layout: layout_203ceb1a
+  borderRadius: 4px
+  componentId: 296:5391
+EL-6efdcb53:
+  type: IMAGE-SVG
+  layout: layout_f049a652
+  fills: fill_5a6c1526
+EL-2f634247:
+  type: IMAGE-SVG
+  layout: layout_59fd338e
+  fills: fill_e3738f4c
+EL-57fd4948:
+  type: IMAGE-SVG
+  layout:
+    mode: none
+    sizing:
+      horizontal: fixed
+      vertical: fixed
+    dimensions:
+      width: 17.5
+      height: 16.5
+  fills: fill_e3738f4c
+EL-6e926975:
+  type: FRAME
+  layout:
+    mode: column
+    alignSelf: stretch
+    alignItems: stretch
+    gap: 2px
+    sizing:
+      horizontal: fill
+      vertical: hug
+EL-cfa2cba1:
+  type: INSTANCE
+  layout: layout_5407f4cd
+  borderRadius: 8px
+  componentId: 194:3129
+EL-8f66df1c:
+  type: FRAME
+  layout:
+    mode: row
+    alignSelf: stretch
+    alignItems: center
+    gap: 8px
+    sizing:
+      horizontal: fill
+      vertical: fixed
+    dimensions:
+      height: 20
+EL-b9e2f927:
+  type: INSTANCE
+  layout: layout_203ceb1a
+  borderRadius: 4px
+  componentId: 292:4035
+EL-5085833c:
+  type: IMAGE-SVG
+  layout: layout_d4948b8d
+  fills: fill_88970818
+EL-503072af:
+  type: INSTANCE
+  layout: layout_b67e0ff0
+  borderRadius: 4px
+  componentId: 136:10926
+EL-269ac8f6:
+  type: INSTANCE
+  layout: layout_5407f4cd
+  borderRadius: 8px
+  componentId: 139:3595
+EL-e7697904:
+  type: IMAGE-SVG
+  layout:
+    mode: none
+    sizing:
+      horizontal: fixed
+      vertical: fixed
+    dimensions:
+      width: 14
+      height: 10
+  fills: fill_e3738f4c
+
+COMPONENTS:
+166:4217:
+  id: 166:4217
+  key: 51bcc467cb0f0a80453dd509ccb8d9da08ab21a9
+  name: state=default, interactive=false
+  componentSetId: 166:4216
+165:4189:
+  id: 165:4189
+  key: 1874973d96f240c21356bc15d8d7bac77945383f
+  name: state=default
+  componentSetId: 165:4188
+168:3145:
+  id: 168:3145
+  key: 66f890d0090b321c57a4d643ef277b771896406d
+  name: Size=20, Theme=Regular
+  componentSetId: 168:3142
+165:4195:
+  id: 165:4195
+  key: 93dc9dfe124734c8398a2c5dbb761e9da51fd802
+  name: state=active
+  componentSetId: 165:4188
+169:3120:
+  id: 169:3120
+  key: 2b71064c1d7b946a1be8867226dd88934d27a821
+  name: Size=20, Theme=Filled
+  componentSetId: 169:3116
+168:3207:
+  id: 168:3207
+  key: fefdbfc911293e1c00a9b62c9002b96c7a713963
+  name: Size=20, Theme=Regular
+  componentSetId: 168:3204
+168:3223:
+  id: 168:3223
+  key: db0df1853f5f695ff7ebe9801415abd4a39e5627
+  name: Size=20, Theme=Regular
+  componentSetId: 168:3222
+258:3809:
+  id: 258:3809
+  key: 67cb327195423ab2a82ba08cf990c3d7ec8ec250
+  name: Size=20, Theme=Regular
+  componentSetId: 258:3806
+258:3826:
+  id: 258:3826
+  key: 8ca22d05709d3f32a9510b78e3edc62dac79bff8
+  name: Size=20, Theme=Regular
+  componentSetId: 258:3824
+258:3845:
+  id: 258:3845
+  key: 56d3805c3b6a12ea7269fdaa86bb9696a80dff0d
+  name: Size=20, Theme=Regular
+  componentSetId: 258:3842
+258:3859:
+  id: 258:3859
+  key: 7bc2b0735d1cda64112fed9d62e9ca973d9008b0
+  name: Size=20, Theme=Regular
+  componentSetId: 258:3852
+258:3883:
+  id: 258:3883
+  key: db810be9efe76e3fadb6c169e6b88f7b7a774dbf
+  name: Size=20, Theme=Regular
+  componentSetId: 258:3880
+258:3897:
+  id: 258:3897
+  key: e9e966902eb5a4f6e152299a3e40e19c8e39ac7a
+  name: Size=20, Theme=Regular
+  componentSetId: 258:3894
+258:3953:
+  id: 258:3953
+  key: b4ba73731e342a5b5d304a36e43dcaded7c818cc
+  name: Size=20, Theme=Regular
+  componentSetId: 258:3950
+258:3963:
+  id: 258:3963
+  key: aeda7c4e0c216aaf4e6876dd989d50a93a3adfe8
+  name: Size=20, Theme=Regular
+  componentSetId: 258:3962
+168:3123:
+  id: 168:3123
+  key: 361ce9430561d05ce2cd82f401359b5a2e21d068
+  name: Size=20, Theme=Regular
+  componentSetId: 168:3116
+169:3134:
+  id: 169:3134
+  key: b2902ad21d45e3ea819743706dc8090950ca28a7
+  name: state=disabled
+  componentSetId: 165:4188
+171:3125:
+  id: 171:3125
+  key: 02a1346b3ee0e7c546067e54d1ea680d00bbeb37
+  name: Size=20, Theme=Regular
+  componentSetId: 171:3118
+171:3155:
+  id: 171:3155
+  key: 710ea556be7a5307788ba0a7fc45b48d6ab0b3a6
+  name: Size=20, Theme=Regular
+  componentSetId: 171:3150
+209:3959:
+  id: 209:3959
+  key: 34dadb2442ef43af8acfda5780c69968fe7b8789
+  name: state=default
+  componentSetId: 209:3944
+136:10932:
+  id: 136:10932
+  key: 07d64d82454c38eaaec1ebd4f95b688dd1fa2a4d
+  name: size=20, iconStyle=filled
+  componentSetId: 136:10925
+297:5800:
+  id: 297:5800
+  key: b8d779b8f78c76bd7f9ea148b93b188d255996e1
+  name: state=default, size=16
+  componentSetId: 297:5797
+168:3125:
+  id: 168:3125
+  key: a583fdcbdab84eba766e85172e1c880ef13a60d0
+  name: Size=16, Theme=Regular
+  componentSetId: 168:3116
+297:5846:
+  id: 297:5846
+  key: 4a0a77056b71735d0c33e31d117a6a0b95984635
+  name: state=default, size=20
+  componentSetId: 297:5843
+209:4087:
+  id: 209:4087
+  key: 758be81b9c051b2c03ad88e3c225244e426a770f
+  name: Side=Left, Action=Contract, Size=20, Theme=Regular
+  componentSetId: 209:4032
+138:2829:
+  id: 138:2829
+  key: 9c51b2d8b1394b30d76d8ec44dc81d5ed1820e0b
+  name: weight=hairline
+  componentSetId: 138:2830
+139:3052:
+  id: 139:3052
+  key: 6c1b702692cae4ba0aa02ce6993774a61c0b1259
+  name: state=empty
+  componentSetId: 139:3053
+136:10924:
+  id: 136:10924
+  key: bbb1300ff76b2d6acaf0bb7f7c416e21e058176f
+  name: size=16, iconStyle=regular
+  componentSetId: 136:10925
+139:3019:
+  id: 139:3019
+  key: 128856cfb2f90da7a7adb6a461a0525a312ed55c
+  name: Size=16, Theme=Regular
+  componentSetId: 139:3012
+292:4103:
+  id: 292:4103
+  key: 47f6c18a79b3ae317d98073f5ade9c463927f36c
+  name: state=hidden, size=16
+  componentSetId: 292:4102
+126:2170:
+  id: 126:2170
+  key: e383d6178fc3963ee8d34e34b44a38e77f0caf13
+  name: Size=16, Theme=Regular
+  componentSetId: 126:2163
+207:3407:
+  id: 207:3407
+  key: 95c3c1686eddd55796f08ba71b6d089f736996cf
+  name: depth=0, state=default
+  componentSetId: 207:3406
+293:4735:
+  id: 293:4735
+  key: c3ead10e0107750881254a859bcd4f7bbb98ee7f
+  name: direction=right, state=default, size=16, expanded=false
+  componentSetId: 292:3970
+126:2397:
+  id: 126:2397
+  key: c0e18ed5de598955194a9c0a100f1e621d181a39
+  name: Direction=Right, Size=16, Theme=Regular
+  componentSetId: 126:2376
+136:10929:
+  id: 136:10929
+  key: acf4ae79178bc269d28eb3ee46791f42790574f7
+  name: size=20, iconStyle=regular
+  componentSetId: 136:10925
+208:4013:
+  id: 208:4013
+  key: b913155cf948f36c1cecc11a4b1882173237d6cf
+  name: Size=20, Theme=Regular
+  componentSetId: 208:4008
+435:1713:
+  id: 435:1713
+  key: 4d82c159401d64781e96c05cf0eb1da25faf887d
+  name: variant=neutral, size=compact
+  componentSetId: 433:1699
+208:4057:
+  id: 208:4057
+  key: 9b90e614eef05d5ff6cf2ef516b96579e64cc0d5
+  name: Size=20, Theme=Regular
+  componentSetId: 208:4048
+208:4091:
+  id: 208:4091
+  key: 6c8f21f290d9a0145e025f9baf0a5e401dca21df
+  name: Size=20, Theme=Regular
+  componentSetId: 208:4086
+209:3594:
+  id: 209:3594
+  key: 074e7bb2a3d1094499779af66fe065a4b3391e27
+  name: depth=0, state=activeExpanded
+  componentSetId: 207:3406
+292:4048:
+  id: 292:4048
+  key: b07253dc3102ff8c26d7871afa18a93435d7978d
+  name: direction=right, state=selected, size=16, expanded=true
+  componentSetId: 292:3970
+126:2421:
+  id: 126:2421
+  key: b167a86fa5002c5d52e2f66d0376651e1b5a1f95
+  name: Direction=Down, Size=16, Theme=Regular
+  componentSetId: 126:2376
+208:4183:
+  id: 208:4183
+  key: 770aec99642d584a236ba5873d1673ad58120315
+  name: Size=20, Theme=Filled
+  componentSetId: 208:4181
+433:1691:
+  id: 433:1691
+  key: c3cff6eae386e3a558f7c2fa775a661ae30ba374
+  name: variant=info, size=compact
+  componentSetId: 433:1699
+207:3697:
+  id: 207:3697
+  key: 0825cffabe4825b1878c29419c99228cf7cf39bb
+  name: depth=1, state=default
+  componentSetId: 207:3406
+207:3583:
+  id: 207:3583
+  key: 822e9c2e3b358ca7dc33b46521b1a60cb3a50cb6
+  name: weight=hairline
+  componentSetId: 207:3584
+292:4032:
+  id: 292:4032
+  key: f55f1767742b7d46c87770c0e7ffd4f0b8001845
+  name: direction=right, state=hidden, size=16, expanded=false
+  componentSetId: 292:3970
+208:4194:
+  id: 208:4194
+  key: 36820eaf4342b59a980df022b28834c1c59ad3c5
+  name: Size=20, Theme=Regular
+  componentSetId: 208:4191
+208:4202:
+  id: 208:4202
+  key: 4dff0e23fec8f1866ca1695a05d586036b33955b
+  name: Size=20, Theme=Regular
+  componentSetId: 208:4201
+209:3607:
+  id: 209:3607
+  key: 45bf267cde1edd0869af464e0a3e26fd010f720e
+  name: depth=1, state=activeExpanded
+  componentSetId: 207:3406
+208:4215:
+  id: 208:4215
+  key: 1b4318af5a2a16bdd3a4728684d31b66f53bb230
+  name: Size=20, Theme=Filled
+  componentSetId: 208:4211
+207:3718:
+  id: 207:3718
+  key: ffd113fc467a6f7a1b52ce85f324f512556d41b7
+  name: depth=2, state=default
+  componentSetId: 207:3406
+209:3479:
+  id: 209:3479
+  key: 63caa72e818e1dff49da7fed00772ff4a7fec18c
+  name: Size=20, Theme=Regular
+  componentSetId: 209:3474
+207:3860:
+  id: 207:3860
+  key: 3c9b2e9b11a4f045f911c3365c144e08b9395a70
+  name: depth=2, state=active
+  componentSetId: 207:3406
+209:3480:
+  id: 209:3480
+  key: 5c5560ad4f10bbef8fdb23b431de5fe25ee9c9cb
+  name: Size=20, Theme=Filled
+  componentSetId: 209:3474
+207:3921:
+  id: 207:3921
+  key: b5a9b69b402bc357ce96eb206a4204e7918ffad8
+  name: depth=2, state=disabled
+  componentSetId: 207:3406
+207:3777:
+  id: 207:3777
+  key: 429fe6ae98d13be226670ca3de49d5877fdfe15f
+  name: depth=0, state=hover
+  componentSetId: 207:3406
+209:4604:
+  id: 209:4604
+  key: 390f57d15b21970ec495b3f99ba3ddcbca411bff
+  name: Size=20, Theme=Filled
+  componentSetId: 209:4602
+162:3074:
+  id: 162:3074
+  key: 6d4c3e86cbdf802b13f49f90bb10a37aaa6fcaec
+  name: state=default
+  componentSetId: 162:3082
+168:3146:
+  id: 168:3146
+  key: 610c369d43cca082b5c5318bd04d39c19cfceb13
+  name: Size=20, Theme=Filled
+  componentSetId: 168:3142
+225:3837:
+  id: 225:3837
+  key: c9a7a74f725992bb63a1986d78a7eb343e0ecb8d
+  name: Size=20, Theme=Regular
+  componentSetId: 225:3832
+296:5391:
+  id: 296:5391
+  key: 243785589f557239cf93d83da25a636c712dbe97
+  name: direction=right, state=default, size=16, expanded=true
+  componentSetId: 292:3970
+225:3864:
+  id: 225:3864
+  key: d088155bbe5c1c99bb26e291b5b4440a11fbd67e
+  name: Size=20, Theme=Regular
+  componentSetId: 225:3859
+225:3901:
+  id: 225:3901
+  key: eb4e7af7115a5fcce3ac46e1ed87c692aa1d2abc
+  name: Size=20, Theme=Regular
+  componentSetId: 225:3900
+225:3926:
+  id: 225:3926
+  key: 371f67632a87ebd0eecba09bcc622fcf85c4d599
+  name: Size=20, Theme=Regular
+  componentSetId: 225:3923
+225:3957:
+  id: 225:3957
+  key: b5e91e2d62cd3a47744b60fa1e07785bdff75f14
+  name: State=Default, Size=20, Theme=Regular
+  componentSetId: 225:3954
+225:3987:
+  id: 225:3987
+  key: 3793a4fd35194f298a074bd7f8da2605f21e75b2
+  name: Size=20, Theme=Regular
+  componentSetId: 225:3986
+225:4032:
+  id: 225:4032
+  key: 20a29283366e3d073d2373c32856cea322c13efe
+  name: Size=20, Theme=Regular
+  componentSetId: 225:4025
+225:4057:
+  id: 225:4057
+  key: 98a684be1b27c8cc5a7a171684be74e93bb848c8
+  name: Size=20, Theme=Regular
+  componentSetId: 225:4056
+225:4092:
+  id: 225:4092
+  key: 85722630a45d4b7ee9a98bbf26fc1d5b2cdd0825
+  name: Size=20, Theme=Regular
+  componentSetId: 225:4087
+225:4121:
+  id: 225:4121
+  key: 7b1c08484b906f6b801fc41d6a01db3bd956da33
+  name: Direction=LTR, Size=20, Theme=Regular
+  componentSetId: 225:4114
+225:4146:
+  id: 225:4146
+  key: a39dab169df744707ab5a874dee9c837ba31bdf8
+  name: Size=20, Theme=Filled
+  componentSetId: 225:4142
+225:4159:
+  id: 225:4159
+  key: 83418ba5a5bd34881a3c1370a821d7d1bba83c24
+  name: Size=20, Theme=Regular
+  componentSetId: 225:4156
+225:4173:
+  id: 225:4173
+  key: 95066668444bded820d304dd28c1abe8800945fd
+  name: Size=20, Theme=Regular
+  componentSetId: 225:4170
+207:3840:
+  id: 207:3840
+  key: 4e150c9a252335de9f116dbce1c4b0caf2580767
+  name: depth=1, state=active
+  componentSetId: 207:3406
+225:4307:
+  id: 225:4307
+  key: 73fa8cdce8a2ab8b0f4edf79c09be3189216e229
+  name: Size=20, Theme=Filled
+  componentSetId: 225:4302
+225:4261:
+  id: 225:4261
+  key: fda14e075c19e15a5330022dcd551ae4b33f62f9
+  name: Size=20, Theme=Regular
+  componentSetId: 225:4258
+225:4330:
+  id: 225:4330
+  key: 31a397b45be471584586cbb05e5e48abf89539b2
+  name: Size=20, Theme=Regular
+  componentSetId: 225:4328
+225:4343:
+  id: 225:4343
+  key: 6eb6c1ab42f203f18a455c46b8f003080d76eb0a
+  name: Size=20, Theme=Regular
+  componentSetId: 225:4342
+225:4357:
+  id: 225:4357
+  key: efe5055c1d58ed66faa03f9e439d76bd84ce5193
+  name: Size=20, Theme=Regular
+  componentSetId: 225:4356
+225:4421:
+  id: 225:4421
+  key: c5646aad968a9f3322732c61c1423e7517922d6c
+  name: Size=20, Theme=Regular
+  componentSetId: 225:4414
+225:4462:
+  id: 225:4462
+  key: e9284f1454d18ede069bd623e5e298b30dedea48
+  name: Size=20, Theme=Regular
+  componentSetId: 225:4459
+225:4476:
+  id: 225:4476
+  key: 8bc4ec75bf924b6ad7424dab5e104270268efa40
+  name: Size=20, Theme=Regular
+  componentSetId: 225:4473
+225:4496:
+  id: 225:4496
+  key: 8f13e1fe2d293ecfad195332292466ba762fd7c9
+  name: Size=20, Theme=Regular
+  componentSetId: 225:4493
+225:4520:
+  id: 225:4520
+  key: db0c9b9928ebe57543d2afe118b126e9ed6bc61d
+  name: Size=20, Theme=Regular
+  componentSetId: 225:4517
+194:3129:
+  id: 194:3129
+  key: 72d64d2d12af4189d25b2c278df378f1c61abb82
+  name: state=default
+  componentSetId: 194:3128
+195:3389:
+  id: 195:3389
+  key: 34c8a5ce036e43b4ed92b96e3f0c078581e62abf
+  name: Size=20, Theme=Regular
+  componentSetId: 195:3386
+194:3171:
+  id: 194:3171
+  key: 04030c4983c807102a6bde7b5e429f5a3fb9651b
+  name: state=browsing
+  componentSetId: 194:3128
+195:3408:
+  id: 195:3408
+  key: d2f689ff71c8682fb8eb182c948194ac15efac56
+  name: Size=20, Theme=Regular
+  componentSetId: 195:3403
+292:4035:
+  id: 292:4035
+  key: 8f6f3f23227a3c890329fab87d0bb3692ced781f
+  name: direction=right, state=hover, size=16, expanded=false
+  componentSetId: 292:3970
+195:3428:
+  id: 195:3428
+  key: b44c0e2ea5b5918ecb62ea3190bc10c0bf4e8e2f
+  name: Size=20, Theme=Regular
+  componentSetId: 195:3425
+194:3136:
+  id: 194:3136
+  key: d9f7fc25f7d0c3ffd735ad8b746922e31e5758f5
+  name: state=hover
+  componentSetId: 194:3128
+195:3474:
+  id: 195:3474
+  key: 0162b555c942504b7bd5732e8e6aa10cee1abcc4
+  name: Size=20, Theme=Filled
+  componentSetId: 195:3472
+139:3684:
+  id: 139:3684
+  key: 4943ba39073ac24038b69a11e70435fe0c8a24c0
+  name: state=selected
+  componentSetId: 139:3594
+136:10926:
+  id: 136:10926
+  key: 13179e2f6b0eea04918c89cde3e7fb60fc9baa14
+  name: size=16, iconStyle=filled
+  componentSetId: 136:10925
+139:3020:
+  id: 139:3020
+  key: c57997d1e6b5383ab23efdb470bf8641137ed112
+  name: Size=16, Theme=Filled
+  componentSetId: 139:3012
+139:2879:
+  id: 139:2879
+  key: 7abe316f89e9c467500405a1423e43a1b4124816
+  name: Size=16, Theme=Filled
+  componentSetId: 139:2869
+139:3595:
+  id: 139:3595
+  key: a6598344490b8d3fa1a538c3a747347ea4a1b648
+  name: state=default
+  componentSetId: 139:3594
+225:3807:
+  id: 225:3807
+  key: 28188b93097be706795319feefad066a89efa193
+  name: Size=16, Theme=Regular
+  componentSetId: 225:3802
+225:3822:
+  id: 225:3822
+  key: 70a56d0bd053aa776c18d83fc708c959d471d598
+  name: Size=16, Theme=Regular
+  componentSetId: 225:3817
+
+COMPONENT_SETS:
+166:4216:
+  id: 166:4216
+  key: 470c60cce40b5287b197a54282906a67d255cb64
+  name: AtomDark.LogoSlot
+  description: ''
+165:4188:
+  id: 165:4188
+  key: 1fe6c1523e7af3572e087c3797d49d37191c69ee
+  name: AtomDark.RailButton
+  description: ''
+168:3142:
+  id: 168:3142
+  key: 3c62363617b1f1dc79cfd94cd2d9564baa0c0a90
+  name: Document Folder
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: folder, collection, files, file;
+
+    Used to represent an open folder of documents.
+169:3116:
+  id: 169:3116
+  key: c6738ecbd454f629acb72df2bfe4c620332ba951
+  name: Slide Text Multiple
+  description: |-
+    Keyword: fluent-icon, powerpoint;
+    Metaphor: slide, landscape, document, presentation;
+
+    Used in slide ui scenarios.
+168:3204:
+  id: 168:3204
+  key: b00a70cf2365612c6657091209a1a2bea9896300
+  name: Data Histogram
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: data viz, visualization, chart, map, trending, graph.
+
+    Used in data viz scenarios.
+168:3222:
+  id: 168:3222
+  key: 4c9af388ca4ecf4bbd945f36fd2a889816a477e4
+  name: Food Grains
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: meal, travel, restaurant, eat;
+
+    Used to represent food based scenarios (restaurant, meals, etc).
+258:3806:
+  id: 258:3806
+  key: 437e403dcc4c5f8d4eefce5744cbc4db4a3d97ad
+  name: Savings
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: piggy bank, money, currency, animal, storage;
+
+    Used to represent personal savings.
+258:3824:
+  id: 258:3824
+  key: 8d255af5687b94814fa7e30160701379d5131b71
+  name: Gauge
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: top speed, measure, limit, scale, analog;
+
+    Used to represent moments that need measurement.
+258:3842:
+  id: 258:3842
+  key: 135a801158fb2df03bd2faf5af735004a19916c2
+  name: Globe Location
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: web, world, earth, global;
+
+    Used in scenarios representing the internet & global representation scenarios.
+258:3852:
+  id: 258:3852
+  key: c9223094153ed65501a7957ce98717bf0ed6c2a7
+  name: Flag
+  description: |-
+    Keyword: fluent-icon, outlook;
+    Metaphor: urgent, important, look;
+
+    Used in mail to mark as important.
+258:3880:
+  id: 258:3880
+  key: 73b55fce73e1216909ef154e712ab3ae74f756d9
+  name: Gift
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: present, birthday, celebration, appreciation;
+
+    Used in celebration scenarios - birthdays, etc
+258:3894:
+  id: 258:3894
+  key: cedecd321253ef2594763178aa824236060d19b8
+  name: Hat Graduation
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: celebration, event, school, knowledge;
+
+    Used to represent graduating school.
+258:3950:
+  id: 258:3950
+  key: 145311efb361f393f3f3392d7081f9250c5beb46
+  name: Image Shadow
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: photo, picture, snapshot, content;
+
+    Used to represent images in content and photo editing scenarios.
+258:3962:
+  id: 258:3962
+  key: 8bbb7133fd2717be4ec1b94ae008af80a7a48485
+  name: Receipt Search
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: purchase, retail, invoice, line item, po, money, currency;
+
+    Used to represent a receipt, purchase order, line items or an invoice.
+168:3116:
+  id: 168:3116
+  key: 96e3fe1e5ced62dea0e6fe506e6a712b958336ff
+  name: More Horizontal
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: overflow, menu, navigation;
+
+    Used in overflow menus.
+
+    The question I have for you is, do you need this? Can you design a cleaner solution that doesn't require 5 billion choices?
+171:3118:
+  id: 171:3118
+  key: 2278187bec52ba24286334dc418179308f50396f
+  name: Person
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: human, patient, contact, guest, avatar, people;
+
+
+    Used in a wide range of scenarios - representing a general person, a contact, contact lists, sharing, and managing access.
+171:3150:
+  id: 171:3150
+  key: 8b662c9bc3ead4ae5f15033ae4fa34f805c78c12
+  name: Settings
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: gear, options, cog;
+
+    Used in all settings scenarios.
+209:3944:
+  id: 209:3944
+  key: a231feaa3c18e7e918f95f63f14c43ecc5f8b5be
+  name: Molecule.PanelHeader
+  description: ''
+136:10925:
+  id: 136:10925
+  key: 1249fc4e19e9978203eb5b3fbd747a4e37c42c2d
+  name: Atom.IconSlot
+  description: ''
+297:5797:
+  id: 297:5797
+  key: 22fef8bce79e9bd12bdcb2ecdd7d2acd90e8dea3
+  name: Atom.EllipsisButton
+  description: ''
+297:5843:
+  id: 297:5843
+  key: fd2cf28b6d086b1d878aa3a20cba7b5e9b66f3da
+  name: Atom.ExpandButton
+  description: ''
+209:4032:
+  id: 209:4032
+  key: f90537ef6b582b2ddf454d81f99070c728d40fb9
+  name: Panel
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: pane, sidebar, modal, elevate;
+
+    Used to represent the plethora of secondary, elevated panels in UI. Contains direction and action variants.
+138:2830:
+  id: 138:2830
+  key: c9591e3c058fa737b602c4ae328111f0aadf516e
+  name: Atom.Divider
+  description: ''
+139:3053:
+  id: 139:3053
+  key: 18be1b2d9a4d8d521815a25a9dbf612a24bc342a
+  name: Molecule.SearchBar
+  description: ''
+139:3012:
+  id: 139:3012
+  key: 580f90f6bb4c20f8326b1a21d9fd6ccb6d62c524
+  name: Search
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: magnifying glass, zoom, inspect, review;
+
+    Used in general search scenarios.
+
+    ⚠️ Please note, Fluent updates have pushed for unified direction. So no more right leaning magnifying glasses, mmmkay?
+292:4102:
+  id: 292:4102
+  key: c04e8816c7f759773193ded15f9b157d19db610b
+  name: Atom.ClearButton
+  description: ''
+126:2163:
+  id: 126:2163
+  key: 39fbcabca4bf5510758a37c3de2709d0ca544532
+  name: Dismiss
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: x, close, cancel, remove;
+
+    Used in scenarios where UI is closed, dismissed, or removed.
+207:3406:
+  id: 207:3406
+  key: ef84d698ff2b42d4639983b214f7a395dea11af1
+  name: Molecule.NavRow
+  description: ''
+292:3970:
+  id: 292:3970
+  key: e590eb8f3ba98712adb6819c9946dce08a2cd4ab
+  name: Atom.ChevronTrigger
+  description: ''
+126:2376:
+  id: 126:2376
+  key: 7505083b7a4d35f9a89964ea8e62b07489695750
+  name: Chevron
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: arrow, dropdown, direction, expand, contract;
+
+    Used in dropdown & expanding contracting scenarios. Contains directional variants.
+208:4008:
+  id: 208:4008
+  key: d737c45b3c731597aba545d0d06e0d75d0ad5244
+  name: Video
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: video, film, clip, media, content, camera, recording, capture;
+
+    Used to represent general video content scenarios.
+433:1699:
+  id: 433:1699
+  key: a7fdf9b2afa73454824956ebb0d016e91cb2e219
+  name: Atom.Badge
+  description: ''
+208:4048:
+  id: 208:4048
+  key: 068b1ba8495a5d79096cc89db8199494185a48b4
+  name: Video Settings
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: video, film, clip, media, content, camera, recording, capture;
+
+    Used to represent general video content scenarios.
+208:4086:
+  id: 208:4086
+  key: 441477318a6d13a860eec2531f8c78dba43507a9
+  name: People Community
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: group, team, organization, contact, guest;
+
+    Used in a wide range of scenarios - representing a general group, contacts, contact lists, sharing, and managing access.
+208:4181:
+  id: 208:4181
+  key: 5c5dabcc0180e63a7c639a3a6c6306f8fe7f9484
+  name: Cube Tree
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: package, shipping, cargo, production, branch;
+
+    Used for shipping, production scenarios.
+207:3584:
+  id: 207:3584
+  key: 2827e5497467b21db7a92415ee38198687cde8d7
+  name: Atom.NavIndentLine
+  description: ''
+208:4191:
+  id: 208:4191
+  key: 7b3df2e0ca078f04eb98504d5f542fdeb86b2333
+  name: Engine
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: vehicle, block, gas;
+
+    Used for a more technical view of car internals.
+208:4201:
+  id: 208:4201
+  key: 1ceb4964285937d5e8be1303cbdb780fbdf284a0
+  name: Sync Off
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: sync, circle, disconnect;
+
+    Used in scenarios where data syncing has stopped.
+208:4211:
+  id: 208:4211
+  key: fc742cdee66127016c00ee6eb0405bacd745dc33
+  name: Calendar Clock
+  description: |-
+    Keyword: fluent-icon, outlook, teams;
+    Metaphor: time, date, planning;
+
+    Used in calendar scenarios.
+209:3474:
+  id: 209:3474
+  key: 997c62e7d52ac93b07390bf2adf71e30b2cbccce
+  name: Calendar Month
+  description: |-
+    Keyword: fluent-icon, outlook, teams;
+    Metaphor: time, date, planning, dataset;
+
+    Used to change view to month view in calendar.
+209:4602:
+  id: 209:4602
+  key: dfcc1586f45550a2255aeb54896ed73ce042a272
+  name: Content View
+  description: |-
+    Keyword: fluent-icon, teams;
+    Metaphor: window, feed;
+
+    Used in generic content representation.
+162:3082:
+  id: 162:3082
+  key: e91dd9925ac905df51202dc50f8041154e414263
+  name: Atom.Scrollbar
+  description: ''
+225:3832:
+  id: 225:3832
+  key: 594d53c916e7cede2afa743eda3c94b12c11e480
+  name: Apps
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: plugin, square, stack;
+
+    Used for plugins, apps, tools.
+225:3859:
+  id: 225:3859
+  key: 6abbf5bf4237f803cb9f7bc71394b128f41af62b
+  name: Grid
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: margins, collect, view;
+
+    Used to represent grid view in products. Not a Microsoft logo.
+225:3900:
+  id: 225:3900
+  key: a08b93a10dfdb54faa999fb1251bffeb6d596d88
+  name: Food Apple
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: meal, travel, restaurant, eat;
+
+    Used to represent food based scenarios (restaurant, meals, etc).
+225:3923:
+  id: 225:3923
+  key: c569ca7242142417fba0693b42ce6b26dbf1494f
+  name: Clothes Hanger
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: clothing, closet, wardrobe;
+
+
+    Used to represent clothing or closet.
+225:3954:
+  id: 225:3954
+  key: d342c20f15bff17eb3eb8e5733314ed115d8dcfd
+  name: Sport
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: ball, event, activity, exercise;
+
+    Used in exercise & sport events. Contains ball variants.
+225:3986:
+  id: 225:3986
+  key: 2fb86b91815b7b913e139c21573a1a02287a4f3d
+  name: Desk
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: appliance, home, house, office, work, utility, physical, workspace;
+
+    Represents a desk workspace.
+225:4025:
+  id: 225:4025
+  key: a58955c2b221a5e61306b6b3eb12d5a5d7cd6ae1
+  name: Oven
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: appliance, home, house, utility, cook, food, heat, kitchen;
+
+    Represents an oven or range.
+225:4056:
+  id: 225:4056
+  key: 2fef473ce3b1a4c938e030a4cfeddda6437dd792
+  name: Fireplace
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: fire, home, house, heat, warmth;
+
+    Used to represent a fireplace.
+225:4087:
+  id: 225:4087
+  key: f00b9c565dcb4f47214935ac69864de078fcb401
+  name: Plant Grass
+  description: |-
+    Keyword: fluent-icon, bing;
+    Metaphor: allergies, allergens, plant, weed;
+
+    Used to represent a type of allergen around grass.
+225:4114:
+  id: 225:4114
+  key: 886eb922db2d935046e6b89bc1f35331f29b9f1c
+  name: Vehicle Car Profile
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: travel, ride, map, commute, distance, event, vehicle, car, truck, automobile;
+
+    Used to represent vehicle travel scenarios.
+225:4142:
+  id: 225:4142
+  key: 6209e66802860d9e427cff8e2909f15facddf99b
+  name: Cart
+  description: |-
+    Keyword: fluent-icon, teams;
+    Metaphor: shopping, purchase, collection;
+
+    Used in shopping scenarios.
+225:4156:
+  id: 225:4156
+  key: f5a012ef5480a089b923875d12ce33b521d739df
+  name: Document Multiple
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: paper, work, file, analog, vertical, library, stack;
+
+    Used to represent a file collection and actions.
+225:4170:
+  id: 225:4170
+  key: 73201e3a94e43f3ed8f4fbfe30fa22780c573630
+  name: Box Arrow Left
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: package, shipping, cargo, production;
+
+    Used for shipping, production scenarios.
+225:4302:
+  id: 225:4302
+  key: e73c432d2f67a0e220883f96cfe7e1a46da89e2f
+  name: Vehicle Truck Profile
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: travel, ride, map, commute, pedal, truck, manufacture, cargo;
+
+    Used to represent general cargo scenarios.
+225:4258:
+  id: 225:4258
+  key: 569223423300581f8b76af4240eb45af6770ce6b
+  name: Money
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: currency, retail, cash, purchase;
+
+    Used in retail, purchase and invoicing scenarios.
+225:4328:
+  id: 225:4328
+  key: 8a9c79b6e5784ff0040cb1bbb2bad78d47d39bac
+  name: Receipt Money
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: purchase, retail, invoice, line item, po, money, currency;
+
+    Used to represent a receipt, purchase order, line items or an invoice.
+225:4342:
+  id: 225:4342
+  key: 77b3a18538c62df5205d6cbaba58b1aea6233013
+  name: Money Hand
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: currency, retail, cash, purchase;
+
+    Used in retail, purchase and invoicing scenarios.
+225:4356:
+  id: 225:4356
+  key: bf9ccd5fca1ec5873936eb86531aecfcb71e61be
+  name: Money Calculator
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: currency, retail, cash, purchase;
+
+    Used in retail, purchase and invoicing scenarios.
+225:4414:
+  id: 225:4414
+  key: 8d65e49f8c135eedafb7c59681508e41d73c2b91
+  name: People
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: group, team, organization, contact, guest;
+
+    Used in a wide range of scenarios - representing a general group, contacts, contact lists, sharing, and managing access.
+225:4459:
+  id: 225:4459
+  key: 309f9e62488f916b9d0e19c25a216cdf0fe101c6
+  name: Medal
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: olympics, gold, silver, bronze, accolade, award, winner;
+
+    Represents Olympic medal.
+225:4473:
+  id: 225:4473
+  key: 6896b610ab2c9715d4bebfe930887a7e96542fd6
+  name: People Checkmark
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: group, team, organization, contact, guest;
+
+    Used in a wide range of scenarios - representing a general group, contacts, contact lists, sharing, and managing access.
+225:4493:
+  id: 225:4493
+  key: 68e25f84a7980efc66909d0285f9c5d62cbc39d4
+  name: People Add
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: group, team, organization, contact, guest, plus, new;
+
+    Used in a wide range of scenarios - representing a general group, contacts, contact lists, sharing, and managing access.
+225:4517:
+  id: 225:4517
+  key: 4ca92c939560ea81d2092ad9ceb9c851c69c2c1b
+  name: Person Heart
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: people, avatar, heart, insider;
+
+    Used to represent insiders account in a product.
+194:3128:
+  id: 194:3128
+  key: 18f11ef8342c212f22fd86e2d877fea784d08472
+  name: Molecule.MenuItemDark
+  description: ''
+195:3386:
+  id: 195:3386
+  key: 4d82862035d0b7171691870b0236f07c43cfa724
+  name: Data Usage Sparkle
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: data viz, visualization, chart, map, trending, graph.
+
+    Used in data usage scenarios.
+195:3403:
+  id: 195:3403
+  key: 5d348352653826a84318d50460dbdaf9276e0cb6
+  name: Megaphone
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: announcement, shout;
+
+    Used to represent general announcements and news.
+195:3425:
+  id: 195:3425
+  key: ba6a152a616306804c5de70ce01456451079a88f
+  name: Ribbon
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: medal, earn, accolade, award, benefit, bonus;
+
+    Used to represent a reward or a certificate (physical or digital).
+195:3472:
+  id: 195:3472
+  key: 4d1ca429f1c73a6d8a255f7503a5b35ec41742a7
+  name: Mail Template
+  description: |-
+    Keyword: fluent-icon, outlook;
+    Metaphor: envelope, email, delivery, message;
+
+    Used to represent mail templates.
+139:3594:
+  id: 139:3594
+  key: 245e8faf3e937c485e3d8dbc9eab89a234611931
+  name: Molecule.MenuItem
+  description: ''
+139:2869:
+  id: 139:2869
+  key: 2eb981579c04963a38de76fcc4770e66adbdbe72
+  name: Checkmark
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: approval, selected;
+
+    Used for toggle selection states or approvals.
+225:3802:
+  id: 225:3802
+  key: 9d34ab4cc74e4cd3d534d245b023b52fa5240546
+  name: Arrow Expand All
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: arrow, point, direction, keyboard, text;
+    Direction: mirror;
+
+
+    Used for content expanding.
+225:3817:
+  id: 225:3817
+  key: 41b4a6b749859023ac92c2af0c7bac7ddae84043
+  name: Arrow Collapse All
+  description: |-
+    Keyword: fluent-icon;
+    Metaphor: arrow, point, direction, keyboard, text;
+    Direction: mirror;
+
+    Used for content collapsing.
+
+NODES:
+[FRAME] "RailNav" #783:4714 layout={"mode":"none","sizing":{}} fills=["#F5F5F5"] strokes=fill_658ab2fa strokeWeight=7px
+  [FRAME] "RailNav" #783:4715 layout={"mode":"row","alignItems":"center","gap":"8px","sizing":{"horizontal":"hug","vertical":"hug"},"locationRelativeToParent":{"x":19,"y":15.5}}
+    [FRAME] "RailNav" #783:4716 layout={"mode":"column","padding":"8px","gap":"16px","sizing":{"horizontal":"hug","vertical":"fixed"},"dimensions":{"height":730}} fills=fill_02f03579 borderRadius=12px
+      [INSTANCE] "AtomDark.LogoSlot" #783:4717 layout={"mode":"row","justifyContent":"center","alignItems":"center","gap":"10px","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":38,"height":38}} borderRadius=8px componentId=166:4217
+        [IMAGE-SVG] "Slot.LogoGlyph" #I783:4717;166:4235 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":26.06,"height":24}}
+      [FRAME] "RailNav" #783:4718 layout={"mode":"column","alignItems":"stretch","gap":"4px","sizing":{"horizontal":"fixed","vertical":"fill"},"dimensions":{"width":38}}
+        [INSTANCE] "AtomDark.RailButton" #783:4719 template=EL-1b884390
+          [INSTANCE] "Document Folder" #I783:4719;165:4190 layout=layout_4e75fd8f fills=fill_97d170e1 componentId=168:3145
+            [IMAGE-SVG] "Shape" #I783:4719;165:4190;235261:1839 template=EL-2da34c44
+        [INSTANCE] "AtomDark.RailButton" #783:4720 layout=layout_78eb62b7 fills=fill_5a1a324a borderRadius=8px componentId=165:4195
+          [INSTANCE] "Slide Text Multiple" #I783:4720;165:4196 layout=layout_ee016964 fills=fill_97d170e1 componentId=169:3120
+            [IMAGE-SVG] "Shape" #I783:4720;165:4196;220930:1825 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":16.8,"height":14.7}} fills=fill_658ab2fa
+        [INSTANCE] "AtomDark.RailButton" #783:4721 template=EL-1b884390
+          [INSTANCE] "Data Histogram" #I783:4721;165:4190 layout=layout_c5112bbf fills=fill_97d170e1 componentId=168:3207
+            [IMAGE-SVG] "Shape" #I783:4721;165:4190;169326:1290 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":14.7,"height":14.7}} fills=fill_5222c42a
+        [INSTANCE] "AtomDark.RailButton" #783:4722 template=EL-1b884390
+          [INSTANCE] "Food Grains" #I783:4722;165:4190 layout={"mode":"row","padding":"2.049999952316284px 3.009999990463257px 2px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} fills=fill_97d170e1 componentId=168:3223
+            [IMAGE-SVG] "Shape" #I783:4722;165:4190;159887:858 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":14.67,"height":16.75}} fills=fill_5222c42a
+        [INSTANCE] "AtomDark.RailButton" #783:4723 template=EL-1b884390
+          [INSTANCE] "Savings" #I783:4723;165:4190 layout={"mode":"row","padding":"2.4000000953674316px 2px 2px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} fills=fill_97d170e1 componentId=258:3809
+            [IMAGE-SVG] "Shape" #I783:4723;165:4190;15214:203 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":16.8,"height":16.38}} fills=fill_5222c42a
+        [INSTANCE] "AtomDark.RailButton" #783:4724 template=EL-1b884390
+          [INSTANCE] "Gauge" #I783:4724;165:4190 layout=layout_6586a818 fills=fill_97d170e1 componentId=258:3826
+            [IMAGE-SVG] "Shape" #I783:4724;165:4190;116090:573 template=EL-9356017f
+        [INSTANCE] "AtomDark.RailButton" #783:4725 template=EL-1b884390
+          [INSTANCE] "Globe Location" #I783:4725;165:4190 layout=layout_c3477fa7 fills=fill_97d170e1 componentId=258:3845
+            [IMAGE-SVG] "Shape" #I783:4725;165:4190;173960:1055 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":17.85,"height":17.85}} fills=fill_5222c42a
+        [INSTANCE] "AtomDark.RailButton" #783:4726 template=EL-1b884390
+          [INSTANCE] "Flag" #I783:4726;165:4190 layout={"mode":"row","padding":"3px 3px 2px 4px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} fills=fill_97d170e1 componentId=258:3859
+            [IMAGE-SVG] "Shape" #I783:4726;165:4190;311909:2166 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":13.65,"height":15.75}} fills=fill_5222c42a
+        [INSTANCE] "AtomDark.RailButton" #783:4727 template=EL-1b884390
+          [INSTANCE] "Gift" #I783:4727;165:4190 layout=layout_4e75fd8f fills=fill_97d170e1 componentId=258:3883
+            [IMAGE-SVG] "Shape" #I783:4727;165:4190;5409:1499 template=EL-2da34c44
+        [INSTANCE] "AtomDark.RailButton" #783:4728 template=EL-1b884390
+          [INSTANCE] "Hat Graduation" #I783:4728;165:4190 layout={"mode":"row","padding":"3px 1px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} fills=fill_97d170e1 componentId=258:3897
+            [IMAGE-SVG] "Shape" #I783:4728;165:4190;79241:269 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":18.9,"height":14.7}} fills=fill_5222c42a
+        [INSTANCE] "AtomDark.RailButton" #783:4729 template=EL-1b884390
+          [INSTANCE] "Image Shadow" #I783:4729;165:4190 layout=layout_6586a818 fills=fill_97d170e1 componentId=258:3953
+            [IMAGE-SVG] "Shape" #I783:4729;165:4190;176589:4444 template=EL-9356017f
+        [INSTANCE] "AtomDark.RailButton" #783:4730 template=EL-1b884390
+          [INSTANCE] "Receipt Search" #I783:4730;165:4190 layout={"mode":"row","padding":"3px 2px 1px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} fills=fill_97d170e1 componentId=258:3963
+            [IMAGE-SVG] "Shape" #I783:4730;165:4190;244421:1972 template=EL-9356017f
+        [INSTANCE] "OverflowMenu" #783:4731 template=EL-1b884390
+          [INSTANCE] "More Horizontal" #I783:4731;165:4190 layout={"mode":"row","padding":"8.75px 3.75px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} fills=fill_97d170e1 componentId=168:3123
+            [IMAGE-SVG] "Shape" #I783:4731;165:4190;89961:104 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":13.13,"height":2.63}} fills=fill_5222c42a
+      [FRAME] "FooterSlot" #783:4732 layout={"mode":"column","alignItems":"stretch","gap":"4px","sizing":{"horizontal":"fixed","vertical":"hug"},"dimensions":{"width":38}}
+        [INSTANCE] "AtomDark.RailButton" #783:4733 layout=layout_78eb62b7 borderRadius=8px componentId=169:3134
+          [INSTANCE] "Person" #I783:4733;169:3135 layout=layout_4e75fd8f fills=fill_97d170e1 componentId=171:3125
+            [IMAGE-SVG] "Shape" #I783:4733;169:3135;8212:92 layout=layout_622b8741 fills=fill_5a1a324a
+        [INSTANCE] "AtomDark.RailButton" #783:4734 template=EL-1b884390
+          [INSTANCE] "Settings" #I783:4734;165:4190 layout={"mode":"row","padding":"1.5px 1.8899999856948853px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} fills=fill_97d170e1 componentId=171:3155
+            [IMAGE-SVG] "Shape" #I783:4734;165:4190;70119:14 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":17.04,"height":17.85}} fills=fill_5222c42a
+    [FRAME] "SidebarPanel" #783:4735 layout={"mode":"column","alignItems":"stretch","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":300,"height":730}} fills=fill_658ab2fa effects=elevation.mid borderRadius=12px
+      [FRAME] "PanelHeader" #783:4736 template=EL-27615149
+        [INSTANCE] "Molecule.PanelHeader" #783:4737 template=EL-5391b6c3
+          [FRAME] "Row.Header" #I783:4737;209:3960 template=EL-4ba91fca
+            [INSTANCE] "Atom.IconSlot" #I783:4737;209:3961 template=EL-c5338376
+              [INSTANCE] "Slide Text Multiple" #I783:4737;209:3961;136:10933 layout=layout_ee016964 componentId=169:3120
+                [IMAGE-SVG] "Shape" #I783:4737;209:3961;136:10933;220930:1825 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":16,"height":14}} fills=fill_02f03579
+            [TEXT] #I783:4737;209:3962 layout=layout_56d3c81c fills=fill_02f03579 textStyle=TYPE/headingS text="Slides"
+            [INSTANCE] "Atom.EllipsisButton" #I783:4737;297:5822 template=EL-adaddf12
+              [INSTANCE] "Slot.IconEllipsis" #I783:4737;297:5822;297:5801 template=EL-c8421421
+                [IMAGE-SVG] "Shape" #I783:4737;297:5822;297:5801;11435:1 template=EL-56b9808c
+            [INSTANCE] "Atom.ExpandButton" #I783:4737;297:5880 template=EL-c8a01777
+              [INSTANCE] "Slot.IconPanelLeft" #I783:4737;297:5880;297:5847 template=EL-d3da388c
+                [IMAGE-SVG] "Shape" #I783:4737;297:5880;297:5847;12435:51 template=EL-ba7d07eb
+          [FRAME] "Row.Subtitle" #I783:4737;209:3964 template=EL-1737a001
+            [TEXT] #I783:4737;209:3965 template=EL-84adc003
+      [IMAGE-SVG] "Atom.Divider" #783:4738 template=EL-221e2291
+      [FRAME] "PanelSearchBar" #783:4739 template=EL-46aa0c94
+        [INSTANCE] "Molecule.SearchBar" #783:4740 template=EL-081d6b1c
+          [FRAME] "Row.Search" #I783:4740;139:3045 template=EL-d143ab90
+            [INSTANCE] "Search/Icon" #I783:4740;139:3009 template=EL-a7983845
+              [INSTANCE] "Search/Icon" #I783:4740;139:3009;136:10892 template=EL-18880952
+                [IMAGE-SVG] "Shape" #I783:4740;139:3009;136:10892;504728:18 template=EL-de27874d
+            [TEXT] #I783:4740;139:3044 template=EL-80915100
+            [INSTANCE] "Atom.ClearButton" #I783:4740;297:5746 template=EL-dd46e792
+      [IMAGE-SVG] "Atom.Divider" #783:4741 template=EL-221e2291
+      [FRAME] "NavPanelShell" #783:4742 template=EL-27615149
+        [FRAME] "NavPanelScroll" #783:4743 template=EL-f96bbce8
+          [FRAME] "NavPanel" #783:4744 template=EL-3fcf4831
+            [INSTANCE] "Molecule.NavRow" #783:4745 template=EL-807ec7a2
+              [FRAME] "Slot.Leading" #I783:4745;207:3408 template=EL-5b0857e6
+                [INSTANCE] "Atom.ChevronTrigger" #I783:4745;297:5550 template=EL-4a044ac4
+                  [INSTANCE] "Slot.Chevron" #I783:4745;297:5550;293:4736 template=EL-3ea1955e
+                    [IMAGE-SVG] "Shape" #I783:4745;297:5550;293:4736;68174:573 template=EL-0ff78b82
+                [FRAME] "Row/Content" #I783:4745;207:3574 template=EL-45d1cddb
+                  [INSTANCE] "Atom.IconSlot" #I783:4745;207:3409 template=EL-ce9c4acd
+                    [INSTANCE] "Video" #I783:4745;207:3409;136:10930 layout=layout_9a16b0d3 componentId=208:4013
+                      [IMAGE-SVG] "Shape" #I783:4745;207:3409;136:10930;318507:547 template=EL-6dc60cfd
+                  [TEXT] #I783:4745;207:3410 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Activity stream"
+                  [INSTANCE] "Atom.Badge" #I783:4745;591:5023 layout=layout_7e99b84f fills=fill_7b8f068f strokes=fill_1a66c7bd strokeWeight=1px borderRadius=99px componentId=435:1713 componentProperties={"Label":"+23"}
+                    [TEXT] #I783:4745;591:5023;435:1714 layout=layout_177c5efc fills=fill_e3738f4c componentPropertyReferences={"text":"Label"} textStyle=TYPE/caption text="+23"
+            [INSTANCE] "Molecule.NavRow" #783:4746 template=EL-807ec7a2
+              [FRAME] "Slot.Leading" #I783:4746;207:3408 template=EL-5b0857e6
+                [INSTANCE] "Atom.ChevronTrigger" #I783:4746;297:5550 template=EL-4a044ac4
+                  [INSTANCE] "Slot.Chevron" #I783:4746;297:5550;293:4736 template=EL-3ea1955e
+                    [IMAGE-SVG] "Shape" #I783:4746;297:5550;293:4736;68174:573 template=EL-0ff78b82
+                [FRAME] "Row/Content" #I783:4746;207:3574 template=EL-45d1cddb
+                  [INSTANCE] "Atom.IconSlot" #I783:4746;207:3409 template=EL-ce9c4acd
+                    [INSTANCE] "Video Settings" #I783:4746;207:3409;136:10930 layout={"mode":"row","padding":"3px 2px 1.3899999856948853px 1.149999976158142px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} componentId=208:4057
+                      [IMAGE-SVG] "Shape" #I783:4746;207:3409;136:10930;406179:192 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":16.85,"height":15.61}} fills=fill_e3738f4c
+                  [TEXT] #I783:4746;207:3410 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Live operations"
+            [INSTANCE] "Molecule.NavRow" #783:4747 template=EL-807ec7a2
+              [FRAME] "Slot.Leading" #I783:4747;207:3408 template=EL-5b0857e6
+                [INSTANCE] "Atom.ChevronTrigger" #I783:4747;297:5550 template=EL-4a044ac4
+                  [INSTANCE] "Slot.Chevron" #I783:4747;297:5550;293:4736 template=EL-3ea1955e
+                    [IMAGE-SVG] "Shape" #I783:4747;297:5550;293:4736;68174:573 template=EL-0ff78b82
+                [FRAME] "Row/Content" #I783:4747;207:3574 template=EL-45d1cddb
+                  [INSTANCE] "Atom.IconSlot" #I783:4747;207:3409 template=EL-ce9c4acd
+                    [INSTANCE] "People Community" #I783:4747;207:3409;136:10930 layout={"mode":"row","padding":"2px 1px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} componentId=208:4091
+                      [IMAGE-SVG] "Shape" #I783:4747;207:3409;136:10930;398762:178 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":18,"height":16}} fills=fill_e3738f4c
+                  [TEXT] #I783:4747;207:3410 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Participants"
+            [INSTANCE] "Molecule.NavRow" #783:4748 template=EL-d82b3835
+              [FRAME] "Slot.Leading" #I783:4748;209:3595 template=EL-5b0857e6
+                [INSTANCE] "Atom.ChevronTrigger" #I783:4748;297:5592 template=EL-cf571987
+                  [INSTANCE] "Slot.Chevron" #I783:4748;297:5592;292:4049 template=EL-2ca6f82a
+                    [IMAGE-SVG] "Shape" #I783:4748;297:5592;292:4049;68174:477 template=EL-135c15f1
+                [FRAME] "Row/Content" #I783:4748;209:3597 template=EL-45d1cddb
+                  [INSTANCE] "Atom.IconSlot" #I783:4748;209:3598 template=EL-c5338376
+                    [INSTANCE] "Cube Tree" #I783:4748;209:3598;136:10933 layout=layout_61c1f248 componentId=208:4183
+                      [IMAGE-SVG] "Shape" #I783:4748;209:3598;136:10933;159887:696 layout=layout_84bab524 fills=fill_02f03579
+                  [TEXT] #I783:4748;209:3599 layout=layout_56d3c81c fills=fill_02f03579 textStyle=TYPE/labelL text="System logic"
+                  [INSTANCE] "Atom.Badge" #I783:4748;591:5055 layout=layout_7e99b84f fills=["#EDEEF9"] borderRadius=99px componentId=433:1691 componentProperties={"Label":"New"}
+                    [TEXT] #I783:4748;591:5055;433:1692 layout=layout_177c5efc fills=["#3A5BC7"] componentPropertyReferences={"text":"Label"} textStyle=TYPE/caption text="New"
+            [INSTANCE] "Molecule.NavRow" #783:4749 template=EL-68e3c805
+              [FRAME] "Slot.Leading" #I783:4749;207:3698 template=EL-5b0857e6
+                [INSTANCE] "Atom.NavIndentLine" #I783:4749;207:3710 template=EL-76ea8482
+                  [RECTANGLE] "Slot.Line" #I783:4749;207:3710;207:3582 template=EL-4e170441
+                [INSTANCE] "Atom.ChevronTrigger" #I783:4749;297:5627 template=EL-c0c859ef
+                [FRAME] "Row/Content" #I783:4749;207:3700 template=EL-45d1cddb
+                  [INSTANCE] "Atom.IconSlot" #I783:4749;207:3701 template=EL-ce9c4acd
+                    [INSTANCE] "Engine" #I783:4749;207:3701;136:10930 layout={"mode":"row","padding":"2.5px 2px 3px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} componentId=208:4194
+                      [IMAGE-SVG] "Shape" #I783:4749;207:3701;136:10930;173960:807 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":16,"height":14.5}} fills=fill_e3738f4c
+                  [TEXT] #I783:4749;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Rules engine"
+            [INSTANCE] "Molecule.NavRow" #783:4750 template=EL-68e3c805
+              [FRAME] "Slot.Leading" #I783:4750;207:3698 template=EL-5b0857e6
+                [INSTANCE] "Atom.NavIndentLine" #I783:4750;207:3710 template=EL-76ea8482
+                  [RECTANGLE] "Slot.Line" #I783:4750;207:3710;207:3582 template=EL-4e170441
+                [INSTANCE] "Atom.ChevronTrigger" #I783:4750;297:5627 template=EL-c0c859ef
+                [FRAME] "Row/Content" #I783:4750;207:3700 template=EL-45d1cddb
+                  [INSTANCE] "Atom.IconSlot" #I783:4750;207:3701 template=EL-ce9c4acd
+                    [INSTANCE] "Sync Off" #I783:4750;207:3701;136:10930 layout=layout_6586a818 componentId=208:4202
+                      [IMAGE-SVG] "Shape" #I783:4750;207:3701;136:10930;73219:3912 template=EL-f1e1eb2f
+                  [TEXT] #I783:4750;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Triggers"
+            [INSTANCE] "Molecule.NavRow" #783:4751 layout=layout_b08c3ce1 borderRadius=8px componentId=209:3607
+              [FRAME] "Slot.Leading" #I783:4751;209:3608 template=EL-5b0857e6
+                [INSTANCE] "Atom.NavIndentLine" #I783:4751;209:3609 template=EL-76ea8482
+                  [RECTANGLE] "Slot.Line" #I783:4751;209:3609;207:3582 template=EL-4e170441
+                [INSTANCE] "Atom.ChevronTrigger" #I783:4751;297:5700 template=EL-cf571987
+                  [INSTANCE] "Slot.Chevron" #I783:4751;297:5700;292:4049 template=EL-2ca6f82a
+                    [IMAGE-SVG] "Shape" #I783:4751;297:5700;292:4049;68174:477 template=EL-135c15f1
+                [FRAME] "Row/Content" #I783:4751;209:3611 template=EL-45d1cddb
+                  [INSTANCE] "Atom.IconSlot" #I783:4751;209:3612 template=EL-c5338376
+                    [INSTANCE] "Calendar Clock" #I783:4751;209:3612;136:10933 layout={"mode":"row","padding":"3px 1px 1px 3px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} componentId=208:4215
+                      [IMAGE-SVG] "Shape" #I783:4751;209:3612;136:10933;69330:545 layout=layout_e4b6f33f fills=fill_02f03579
+                  [TEXT] #I783:4751;209:3613 layout=layout_56d3c81c fills=fill_02f03579 textStyle=TYPE/labelL text="Schedules"
+            [INSTANCE] "Molecule.NavRow" #783:4752 layout=layout_b08c3ce1 borderRadius=8px componentId=207:3718
+              [FRAME] "Slot.Leading" #I783:4752;207:3719 template=EL-5b0857e6
+                [INSTANCE] "Atom.NavIndentLine" #I783:4752;207:3720 template=EL-76ea8482
+                  [RECTANGLE] "Slot.Line" #I783:4752;207:3720;207:3582 template=EL-4e170441
+                [INSTANCE] "Atom.NavIndentLine" #I783:4752;207:3733 template=EL-76ea8482
+                  [RECTANGLE] "Slot.Line" #I783:4752;207:3733;207:3582 template=EL-4e170441
+                [INSTANCE] "Atom.ChevronTrigger" #I783:4752;297:5739 template=EL-c0c859ef
+                [FRAME] "Row/Content" #I783:4752;207:3722 template=EL-45d1cddb
+                  [INSTANCE] "Atom.IconSlot" #I783:4752;207:3723 template=EL-ce9c4acd
+                    [INSTANCE] "Calendar Month" #I783:4752;207:3723;136:10930 template=EL-dc3303ef
+                      [IMAGE-SVG] "Shape" #I783:4752;207:3723;136:10930;5409:495 template=EL-5392cb8c
+                  [TEXT] #I783:4752;207:3724 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Daily"
+                  [INSTANCE] "Atom.Badge" #I783:4752;591:5148 layout=layout_7e99b84f fills=fill_7b8f068f strokes=fill_1a66c7bd strokeWeight=1px borderRadius=99px componentId=435:1713 componentProperties={"Label":"+5"}
+                    [TEXT] #I783:4752;591:5148;435:1714 layout=layout_177c5efc fills=fill_e3738f4c componentPropertyReferences={"text":"Label"} textStyle=TYPE/caption text="+5"
+            [INSTANCE] "Molecule.NavRow" #783:4753 layout=layout_b08c3ce1 fills=fill_02f03579 borderRadius=8px componentId=207:3860
+              [FRAME] "Slot.Leading" #I783:4753;207:3861 template=EL-5b0857e6
+                [INSTANCE] "Atom.NavIndentLine" #I783:4753;207:3862 template=EL-76ea8482
+                  [RECTANGLE] "Slot.Line" #I783:4753;207:3862;207:3582 template=EL-4e170441
+                [INSTANCE] "Atom.NavIndentLine" #I783:4753;207:3875 template=EL-76ea8482
+                  [RECTANGLE] "Slot.Line" #I783:4753;207:3875;207:3582 template=EL-4e170441
+                [INSTANCE] "Atom.ChevronTrigger" #I783:4753;297:5730 template=EL-c0c859ef
+                [FRAME] "Row/Content" #I783:4753;207:3864 template=EL-45d1cddb
+                  [INSTANCE] "Atom.IconSlot" #I783:4753;207:3865 template=EL-c5338376
+                    [INSTANCE] "Calendar Month" #I783:4753;207:3865;136:10933 layout=layout_c5112bbf componentId=209:3480
+                      [IMAGE-SVG] "Shape" #I783:4753;207:3865;136:10933;5409:493 template=EL-748a694b
+                  [TEXT] #I783:4753;207:3866 layout=layout_56d3c81c fills=fill_658ab2fa textStyle=TYPE/labelL text="Monthly"
+                  [INSTANCE] "Atom.Badge" #I783:4753;591:5199 layout=layout_7e99b84f fills=fill_7b8f068f strokes=fill_1a66c7bd strokeWeight=1px borderRadius=99px componentId=435:1713 componentProperties={"Label":"+11"}
+                    [TEXT] #I783:4753;591:5199;435:1714 layout=layout_177c5efc fills=fill_e3738f4c componentPropertyReferences={"text":"Label"} textStyle=TYPE/caption text="+11"
+            [INSTANCE] "Molecule.NavRow" #783:4754 layout=layout_b08c3ce1 borderRadius=8px componentId=207:3921
+              [FRAME] "Slot.Leading" #I783:4754;207:3922 template=EL-5b0857e6
+                [INSTANCE] "Atom.NavIndentLine" #I783:4754;207:3923 template=EL-76ea8482
+                  [RECTANGLE] "Slot.Line" #I783:4754;207:3923;207:3582 template=EL-4e170441
+                [INSTANCE] "Atom.NavIndentLine" #I783:4754;207:3936 template=EL-76ea8482
+                  [RECTANGLE] "Slot.Line" #I783:4754;207:3936;207:3582 template=EL-4e170441
+                [INSTANCE] "Atom.ChevronTrigger" #I783:4754;297:5719 template=EL-c0c859ef
+                [FRAME] "Row/Content" #I783:4754;207:3925 template=EL-45d1cddb
+                  [INSTANCE] "Atom.IconSlot" #I783:4754;207:3926 template=EL-ce9c4acd
+                    [INSTANCE] "Calendar Month" #I783:4754;207:3926;136:10930 template=EL-dc3303ef
+                      [IMAGE-SVG] "Shape" #I783:4754;207:3926;136:10930;5409:495 layout=layout_595e11ec fills=fill_34b5c1e3
+                  [TEXT] #I783:4754;207:3927 layout=layout_56d3c81c fills=fill_34b5c1e3 textStyle=TYPE/bodyM text="Yearly"
+            [INSTANCE] "Molecule.NavRow" #783:4755 layout=layout_b08c3ce1 fills=["#F0F0F3"] borderRadius=8px componentId=207:3777
+              [FRAME] "Slot.Leading" #I783:4755;207:3778 template=EL-5b0857e6
+                [INSTANCE] "Atom.ChevronTrigger" #I783:4755;297:5575 template=EL-c0c859ef
+                [FRAME] "Row/Content" #I783:4755;207:3780 template=EL-45d1cddb
+                  [INSTANCE] "Atom.IconSlot" #I783:4755;207:3781 template=EL-c5338376
+                    [INSTANCE] "Content View" #I783:4755;207:3781;136:10933 layout=layout_c5112bbf componentId=209:4604
+                      [IMAGE-SVG] "Shape" #I783:4755;207:3781;136:10933;90027:69 template=EL-748a694b
+                  [TEXT] #I783:4755;207:3782 layout=layout_56d3c81c fills=fill_02f03579 textStyle=TYPE/bodyM text="Content"
+          [INSTANCE] "Atom.Scrollbar" #783:4756 template=EL-b6a3870f
+            [REGULAR_POLYGON] #I783:4756;162:3069 template=EL-8cc4b764
+            [FRAME] "Slot.Track" #I783:4756;162:3071 template=EL-10d81b04
+              [RECTANGLE] "Slot.Thumb" #I783:4756;162:3070 template=EL-3b050ec5
+            [REGULAR_POLYGON] #I783:4756;162:3096 template=EL-8cc4b764
+  [FRAME] "SidebarPanel" #783:4757 layout={"mode":"column","alignItems":"stretch","sizing":{"horizontal":"fixed","vertical":"fixed"},"locationRelativeToParent":{"x":394.5,"y":15.5},"dimensions":{"width":300,"height":730}} fills=fill_658ab2fa effects=elevation.mid borderRadius=12px
+    [FRAME] "PanelHeader" #783:4758 template=EL-27615149
+      [INSTANCE] "Molecule.PanelHeader" #783:4759 template=EL-5391b6c3
+        [FRAME] "Row.Header" #I783:4759;209:3960 template=EL-4ba91fca
+          [INSTANCE] "Atom.IconSlot" #I783:4759;209:3961 template=EL-c5338376
+            [INSTANCE] "Document Folder" #I783:4759;209:3961;136:10933 layout=layout_4e75fd8f componentId=168:3146
+              [IMAGE-SVG] "Shape" #I783:4759;209:3961;136:10933;235261:1841 layout=layout_59fd338e fills=fill_02f03579
+          [TEXT] #I783:4759;209:3962 layout=layout_56d3c81c fills=fill_02f03579 textStyle=TYPE/headingS text="Documents"
+          [INSTANCE] "Atom.EllipsisButton" #I783:4759;297:5822 template=EL-adaddf12
+            [INSTANCE] "Slot.IconEllipsis" #I783:4759;297:5822;297:5801 template=EL-c8421421
+              [IMAGE-SVG] "Shape" #I783:4759;297:5822;297:5801;11435:1 template=EL-56b9808c
+          [INSTANCE] "Atom.ExpandButton" #I783:4759;297:5880 template=EL-c8a01777
+            [INSTANCE] "Slot.IconPanelLeft" #I783:4759;297:5880;297:5847 template=EL-d3da388c
+              [IMAGE-SVG] "Shape" #I783:4759;297:5880;297:5847;12435:51 template=EL-ba7d07eb
+        [FRAME] "Row.Subtitle" #I783:4759;209:3964 template=EL-1737a001
+          [TEXT] #I783:4759;209:3965 template=EL-84adc003
+    [IMAGE-SVG] "Atom.Divider" #783:4760 template=EL-221e2291
+    [FRAME] "PanelSearchBar" #783:4761 template=EL-46aa0c94
+      [INSTANCE] "Molecule.SearchBar" #783:4762 template=EL-081d6b1c
+        [FRAME] "Row.Search" #I783:4762;139:3045 template=EL-d143ab90
+          [INSTANCE] "Search/Icon" #I783:4762;139:3009 template=EL-a7983845
+            [INSTANCE] "Search/Icon" #I783:4762;139:3009;136:10892 template=EL-18880952
+              [IMAGE-SVG] "Shape" #I783:4762;139:3009;136:10892;504728:18 template=EL-de27874d
+          [TEXT] #I783:4762;139:3044 template=EL-80915100
+          [INSTANCE] "Atom.ClearButton" #I783:4762;297:5746 template=EL-dd46e792
+    [IMAGE-SVG] "Atom.Divider" #783:4763 template=EL-221e2291
+    [FRAME] "NavPanelShell" #783:4764 template=EL-27615149
+      [FRAME] "NavPanelScroll" #783:4765 template=EL-f96bbce8
+        [FRAME] "NavPanel" #783:4766 template=EL-3fcf4831
+          [INSTANCE] "Molecule.NavRow" #783:4767 template=EL-807ec7a2
+            [FRAME] "Slot.Leading" #I783:4767;207:3408 template=EL-5b0857e6
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4767;297:5550 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4767;207:3574 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4767;207:3409 template=EL-ce9c4acd
+                  [INSTANCE] "Apps" #I783:4767;207:3409;136:10930 layout={"mode":"row","padding":"2.0299999713897705px 1.9900000095367432px 3px 3px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} componentId=225:3837
+                    [IMAGE-SVG] "Shape" #I783:4767;207:3409;136:10930;6732:14 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":15.01,"height":14.97}} fills=fill_e3738f4c
+                [TEXT] #I783:4767;207:3410 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Apps"
+          [INSTANCE] "Molecule.NavRow" #783:4768 template=EL-807ec7a2
+            [FRAME] "Slot.Leading" #I783:4768;207:3408 template=EL-5b0857e6
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4768;297:5550 template=EL-2eda2466
+                [INSTANCE] "Slot.Chevron" #I783:4768;297:5550;296:5392 template=EL-2ca6f82a
+                  [IMAGE-SVG] "Shape" #I783:4768;297:5550;296:5392;68174:477 template=EL-6efdcb53
+              [FRAME] "Row/Content" #I783:4768;207:3574 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4768;207:3409 template=EL-ce9c4acd
+                  [INSTANCE] "Grid" #I783:4768;207:3409;136:10930 layout=layout_6586a818 componentId=225:3864
+                    [IMAGE-SVG] "Shape" #I783:4768;207:3409;136:10930;5409:1519 template=EL-f1e1eb2f
+                [TEXT] #I783:4768;207:3410 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Products"
+          [INSTANCE] "Molecule.NavRow" #783:4769 template=EL-68e3c805
+            [FRAME] "Slot.Leading" #I783:4769;207:3698 template=EL-5b0857e6
+              [INSTANCE] "Atom.NavIndentLine" #I783:4769;207:3710 template=EL-76ea8482
+                [RECTANGLE] "Slot.Line" #I783:4769;207:3710;207:3582 template=EL-4e170441
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4769;297:5627 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4769;207:3700 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4769;207:3701 template=EL-ce9c4acd
+                  [INSTANCE] "Food Apple" #I783:4769;207:3701;136:10930 layout={"mode":"row","padding":"2px 3.1600000858306885px 2.180000066757202px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} componentId=225:3901
+                    [IMAGE-SVG] "Shape" #I783:4769;207:3701;136:10930;157531:804 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":13.67,"height":15.82}} fills=fill_e3738f4c
+                [TEXT] #I783:4769;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Food"
+          [INSTANCE] "Molecule.NavRow" #783:4770 template=EL-68e3c805
+            [FRAME] "Slot.Leading" #I783:4770;207:3698 template=EL-5b0857e6
+              [INSTANCE] "Atom.NavIndentLine" #I783:4770;207:3710 template=EL-76ea8482
+                [RECTANGLE] "Slot.Line" #I783:4770;207:3710;207:3582 template=EL-4e170441
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4770;297:5627 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4770;207:3700 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4770;207:3701 template=EL-ce9c4acd
+                  [INSTANCE] "Clothes Hanger" #I783:4770;207:3701;136:10930 layout={"mode":"row","padding":"3px 2px 5px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} componentId=225:3926
+                    [IMAGE-SVG] "Shape" #I783:4770;207:3701;136:10930;378110:234 template=EL-6dc60cfd
+                [TEXT] #I783:4770;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Clothes"
+          [INSTANCE] "Molecule.NavRow" #783:4771 template=EL-68e3c805
+            [FRAME] "Slot.Leading" #I783:4771;207:3698 template=EL-5b0857e6
+              [INSTANCE] "Atom.NavIndentLine" #I783:4771;207:3710 template=EL-76ea8482
+                [RECTANGLE] "Slot.Line" #I783:4771;207:3710;207:3582 template=EL-4e170441
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4771;297:5627 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4771;207:3700 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4771;207:3701 template=EL-ce9c4acd
+                  [INSTANCE] "Sport" #I783:4771;207:3701;136:10930 layout=layout_6586a818 componentId=225:3957
+                    [IMAGE-SVG] "Shape" #I783:4771;207:3701;136:10930;247604:2027 template=EL-f1e1eb2f
+                [TEXT] #I783:4771;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Sport and fitness"
+          [INSTANCE] "Molecule.NavRow" #783:4772 template=EL-68e3c805
+            [FRAME] "Slot.Leading" #I783:4772;207:3698 template=EL-5b0857e6
+              [INSTANCE] "Atom.NavIndentLine" #I783:4772;207:3710 template=EL-76ea8482
+                [RECTANGLE] "Slot.Line" #I783:4772;207:3710;207:3582 template=EL-4e170441
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4772;297:5627 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4772;207:3700 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4772;207:3701 template=EL-ce9c4acd
+                  [INSTANCE] "Desk" #I783:4772;207:3701;136:10930 layout=layout_9a16b0d3 componentId=225:3987
+                    [IMAGE-SVG] "Shape" #I783:4772;207:3701;136:10930;259771:1809 template=EL-6dc60cfd
+                [TEXT] #I783:4772;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Office supplies"
+          [INSTANCE] "Molecule.NavRow" #783:4773 template=EL-68e3c805
+            [FRAME] "Slot.Leading" #I783:4773;207:3698 template=EL-5b0857e6
+              [INSTANCE] "Atom.NavIndentLine" #I783:4773;207:3710 template=EL-76ea8482
+                [RECTANGLE] "Slot.Line" #I783:4773;207:3710;207:3582 template=EL-4e170441
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4773;297:5627 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4773;207:3700 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4773;207:3701 template=EL-ce9c4acd
+                  [INSTANCE] "Oven" #I783:4773;207:3701;136:10930 layout=layout_c5112bbf componentId=225:4032
+                    [IMAGE-SVG] "Shape" #I783:4773;207:3701;136:10930;218548:1763 template=EL-5392cb8c
+                [TEXT] #I783:4773;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Kitchen"
+          [INSTANCE] "Molecule.NavRow" #783:4774 template=EL-68e3c805
+            [FRAME] "Slot.Leading" #I783:4774;207:3698 template=EL-5b0857e6
+              [INSTANCE] "Atom.NavIndentLine" #I783:4774;207:3710 template=EL-76ea8482
+                [RECTANGLE] "Slot.Line" #I783:4774;207:3710;207:3582 template=EL-4e170441
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4774;297:5627 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4774;207:3700 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4774;207:3701 template=EL-ce9c4acd
+                  [INSTANCE] "Fireplace" #I783:4774;207:3701;136:10930 layout={"mode":"row","padding":"2px 2px 3px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} componentId=225:4057
+                    [IMAGE-SVG] "Shape" #I783:4774;207:3701;136:10930;218548:1767 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":16,"height":15}} fills=fill_e3738f4c
+                [TEXT] #I783:4774;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Outdoors"
+          [INSTANCE] "Molecule.NavRow" #783:4775 template=EL-68e3c805
+            [FRAME] "Slot.Leading" #I783:4775;207:3698 template=EL-5b0857e6
+              [INSTANCE] "Atom.NavIndentLine" #I783:4775;207:3710 template=EL-76ea8482
+                [RECTANGLE] "Slot.Line" #I783:4775;207:3710;207:3582 template=EL-4e170441
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4775;297:5627 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4775;207:3700 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4775;207:3701 template=EL-ce9c4acd
+                  [INSTANCE] "Plant Grass" #I783:4775;207:3701;136:10930 layout=layout_c5112bbf componentId=225:4092
+                    [IMAGE-SVG] "Shape" #I783:4775;207:3701;136:10930;251863:2430 template=EL-5392cb8c
+                [TEXT] #I783:4775;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Garden"
+          [INSTANCE] "Molecule.NavRow" #783:4776 template=EL-68e3c805
+            [FRAME] "Slot.Leading" #I783:4776;207:3698 template=EL-5b0857e6
+              [INSTANCE] "Atom.NavIndentLine" #I783:4776;207:3710 template=EL-76ea8482
+                [RECTANGLE] "Slot.Line" #I783:4776;207:3710;207:3582 template=EL-4e170441
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4776;297:5627 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4776;207:3700 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4776;207:3701 template=EL-ce9c4acd
+                  [INSTANCE] "Vehicle Car Profile" #I783:4776;207:3701;136:10930 layout=layout_9a16b0d3 componentId=225:4121
+                    [IMAGE-SVG] "Shape" #I783:4776;207:3701;136:10930;135009:221 template=EL-6dc60cfd
+                [TEXT] #I783:4776;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Auto"
+          [INSTANCE] "Molecule.NavRow" #783:4777 template=EL-d82b3835
+            [FRAME] "Slot.Leading" #I783:4777;209:3595 template=EL-5b0857e6
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4777;297:5592 template=EL-cf571987
+                [INSTANCE] "Slot.Chevron" #I783:4777;297:5592;292:4049 template=EL-2ca6f82a
+                  [IMAGE-SVG] "Shape" #I783:4777;297:5592;292:4049;68174:477 template=EL-135c15f1
+              [FRAME] "Row/Content" #I783:4777;209:3597 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4777;209:3598 template=EL-c5338376
+                  [INSTANCE] "Cart" #I783:4777;209:3598;136:10933 layout=layout_c5112bbf componentId=225:4146
+                    [IMAGE-SVG] "Shape" #I783:4777;209:3598;136:10933;76865:135 template=EL-748a694b
+                [TEXT] #I783:4777;209:3599 layout=layout_56d3c81c fills=fill_02f03579 textStyle=TYPE/labelL text="Orders"
+                [INSTANCE] "Atom.Badge" #I783:4777;591:5055 layout=layout_7e99b84f fills=fill_7b8f068f strokes=fill_1a66c7bd strokeWeight=1px borderRadius=99px componentId=435:1713 componentProperties={"Label":"+348"}
+                  [TEXT] #I783:4777;591:5055;435:1714 layout=layout_177c5efc fills=fill_e3738f4c componentPropertyReferences={"text":"Label"} textStyle=TYPE/caption text="+348"
+          [INSTANCE] "Molecule.NavRow" #783:4778 template=EL-68e3c805
+            [FRAME] "Slot.Leading" #I783:4778;207:3698 template=EL-5b0857e6
+              [INSTANCE] "Atom.NavIndentLine" #I783:4778;207:3710 template=EL-76ea8482
+                [RECTANGLE] "Slot.Line" #I783:4778;207:3710;207:3582 template=EL-4e170441
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4778;297:5627 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4778;207:3700 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4778;207:3701 template=EL-ce9c4acd
+                  [INSTANCE] "Document Multiple" #I783:4778;207:3701;136:10930 layout={"mode":"row","padding":"2px 3px 2px 4px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} componentId=225:4159
+                    [IMAGE-SVG] "Shape" #I783:4778;207:3701;136:10930;128694:259 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":13,"height":16}} fills=fill_e3738f4c
+                [TEXT] #I783:4778;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="All orders"
+          [INSTANCE] "Molecule.NavRow" #783:4779 template=EL-68e3c805
+            [FRAME] "Slot.Leading" #I783:4779;207:3698 template=EL-5b0857e6
+              [INSTANCE] "Atom.NavIndentLine" #I783:4779;207:3710 template=EL-76ea8482
+                [RECTANGLE] "Slot.Line" #I783:4779;207:3710;207:3582 template=EL-4e170441
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4779;297:5627 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4779;207:3700 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4779;207:3701 template=EL-ce9c4acd
+                  [INSTANCE] "Box Arrow Left" #I783:4779;207:3701;136:10930 layout={"mode":"row","padding":"2.2300000190734863px 1px 1px 2px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} componentId=225:4173
+                    [IMAGE-SVG] "Shape" #I783:4779;207:3701;136:10930;164156:802 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":17,"height":16.77}} fills=fill_e3738f4c
+                [TEXT] #I783:4779;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Returns"
+          [INSTANCE] "Molecule.NavRow" #783:4780 layout=layout_b08c3ce1 fills=fill_02f03579 borderRadius=8px componentId=207:3840
+            [FRAME] "Slot.Leading" #I783:4780;207:3841 template=EL-5b0857e6
+              [INSTANCE] "Atom.NavIndentLine" #I783:4780;207:3854 template=EL-76ea8482
+                [RECTANGLE] "Slot.Line" #I783:4780;207:3854;207:3582 template=EL-4e170441
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4780;297:5695 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4780;207:3843 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4780;207:3844 template=EL-c5338376
+                  [INSTANCE] "Vehicle Truck Profile" #I783:4780;207:3844;136:10933 layout={"mode":"row","padding":"3px 2px 2px 2.0399999618530273px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} componentId=225:4307
+                    [IMAGE-SVG] "Shape" #I783:4780;207:3844;136:10933;128694:291 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":15.96,"height":15}} fills=fill_02f03579
+                [TEXT] #I783:4780;207:3845 layout=layout_56d3c81c fills=fill_658ab2fa textStyle=TYPE/labelL text="Order tracking"
+          [INSTANCE] "Molecule.NavRow" #783:4781 template=EL-807ec7a2
+            [FRAME] "Slot.Leading" #I783:4781;207:3408 template=EL-5b0857e6
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4781;297:5550 template=EL-2eda2466
+                [INSTANCE] "Slot.Chevron" #I783:4781;297:5550;296:5392 template=EL-2ca6f82a
+                  [IMAGE-SVG] "Shape" #I783:4781;297:5550;296:5392;68174:477 template=EL-6efdcb53
+              [FRAME] "Row/Content" #I783:4781;207:3574 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4781;207:3409 template=EL-ce9c4acd
+                  [INSTANCE] "Money" #I783:4781;207:3409;136:10930 layout=layout_9a16b0d3 componentId=225:4261
+                    [IMAGE-SVG] "Shape" #I783:4781;207:3409;136:10930;74166:453 template=EL-6dc60cfd
+                [TEXT] #I783:4781;207:3410 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Sales"
+          [INSTANCE] "Molecule.NavRow" #783:4782 template=EL-68e3c805
+            [FRAME] "Slot.Leading" #I783:4782;207:3698 template=EL-5b0857e6
+              [INSTANCE] "Atom.NavIndentLine" #I783:4782;207:3710 template=EL-76ea8482
+                [RECTANGLE] "Slot.Line" #I783:4782;207:3710;207:3582 template=EL-4e170441
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4782;297:5627 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4782;207:3700 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4782;207:3701 template=EL-ce9c4acd
+                  [INSTANCE] "Receipt Money" #I783:4782;207:3701;136:10930 layout={"mode":"row","padding":"3px 2px 2px 1px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} componentId=225:4330
+                    [IMAGE-SVG] "Shape" #I783:4782;207:3701;136:10930;235309:1796 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":17,"height":15}} fills=fill_e3738f4c
+                [TEXT] #I783:4782;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Gross margin"
+          [INSTANCE] "Molecule.NavRow" #783:4783 template=EL-68e3c805
+            [FRAME] "Slot.Leading" #I783:4783;207:3698 template=EL-5b0857e6
+              [INSTANCE] "Atom.NavIndentLine" #I783:4783;207:3710 template=EL-76ea8482
+                [RECTANGLE] "Slot.Line" #I783:4783;207:3710;207:3582 template=EL-4e170441
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4783;297:5627 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4783;207:3700 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4783;207:3701 template=EL-ce9c4acd
+                  [INSTANCE] "Money Hand" #I783:4783;207:3701;136:10930 layout=layout_4e75fd8f componentId=225:4343
+                    [IMAGE-SVG] "Shape" #I783:4783;207:3701;136:10930;159887:850 template=EL-2f634247
+                [TEXT] #I783:4783;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Expenses"
+          [INSTANCE] "Molecule.NavRow" #783:4784 template=EL-68e3c805
+            [FRAME] "Slot.Leading" #I783:4784;207:3698 template=EL-5b0857e6
+              [INSTANCE] "Atom.NavIndentLine" #I783:4784;207:3710 template=EL-76ea8482
+                [RECTANGLE] "Slot.Line" #I783:4784;207:3710;207:3582 template=EL-4e170441
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4784;297:5627 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4784;207:3700 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4784;207:3701 template=EL-ce9c4acd
+                  [INSTANCE] "Money Calculator" #I783:4784;207:3701;136:10930 layout={"mode":"row","padding":"3px 1px 1px 2px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} componentId=225:4357
+                    [IMAGE-SVG] "Shape" #I783:4784;207:3701;136:10930;143719:520 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":17,"height":16}} fills=fill_e3738f4c
+                [TEXT] #I783:4784;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Costs"
+          [INSTANCE] "Molecule.NavRow" #783:4785 template=EL-807ec7a2
+            [FRAME] "Slot.Leading" #I783:4785;207:3408 template=EL-5b0857e6
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4785;297:5550 template=EL-2eda2466
+                [INSTANCE] "Slot.Chevron" #I783:4785;297:5550;296:5392 template=EL-2ca6f82a
+                  [IMAGE-SVG] "Shape" #I783:4785;297:5550;296:5392;68174:477 template=EL-6efdcb53
+              [FRAME] "Row/Content" #I783:4785;207:3574 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4785;207:3409 template=EL-ce9c4acd
+                  [INSTANCE] "People" #I783:4785;207:3409;136:10930 layout={"mode":"row","padding":"3.5px 1.5px 3px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} componentId=225:4421
+                    [IMAGE-SVG] "Shape" #I783:4785;207:3409;136:10930;188972:1037 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":17,"height":13.5}} fills=fill_e3738f4c
+                [TEXT] #I783:4785;207:3410 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Customers"
+          [INSTANCE] "Molecule.NavRow" #783:4786 template=EL-68e3c805
+            [FRAME] "Slot.Leading" #I783:4786;207:3698 template=EL-5b0857e6
+              [INSTANCE] "Atom.NavIndentLine" #I783:4786;207:3710 template=EL-76ea8482
+                [RECTANGLE] "Slot.Line" #I783:4786;207:3710;207:3582 template=EL-4e170441
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4786;297:5627 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4786;207:3700 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4786;207:3701 template=EL-ce9c4acd
+                  [INSTANCE] "Medal" #I783:4786;207:3701;136:10930 layout=layout_4e75fd8f componentId=225:4462
+                    [IMAGE-SVG] "Shape" #I783:4786;207:3701;136:10930;531034:2667 template=EL-2f634247
+                [TEXT] #I783:4786;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Loyalty programs"
+          [INSTANCE] "Molecule.NavRow" #783:4787 template=EL-68e3c805
+            [FRAME] "Slot.Leading" #I783:4787;207:3698 template=EL-5b0857e6
+              [INSTANCE] "Atom.NavIndentLine" #I783:4787;207:3710 template=EL-76ea8482
+                [RECTANGLE] "Slot.Line" #I783:4787;207:3710;207:3582 template=EL-4e170441
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4787;297:5627 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4787;207:3700 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4787;207:3701 template=EL-ce9c4acd
+                  [INSTANCE] "People Checkmark" #I783:4787;207:3701;136:10930 layout=layout_f9f3928f componentId=225:4476
+                    [IMAGE-SVG] "Shape" #I783:4787;207:3701;136:10930;188972:1111 template=EL-57fd4948
+                [TEXT] #I783:4787;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Customer attrition"
+          [INSTANCE] "Molecule.NavRow" #783:4788 template=EL-68e3c805
+            [FRAME] "Slot.Leading" #I783:4788;207:3698 template=EL-5b0857e6
+              [INSTANCE] "Atom.NavIndentLine" #I783:4788;207:3710 template=EL-76ea8482
+                [RECTANGLE] "Slot.Line" #I783:4788;207:3710;207:3582 template=EL-4e170441
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4788;297:5627 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4788;207:3700 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4788;207:3701 template=EL-ce9c4acd
+                  [INSTANCE] "People Add" #I783:4788;207:3701;136:10930 layout=layout_f9f3928f componentId=225:4496
+                    [IMAGE-SVG] "Shape" #I783:4788;207:3701;136:10930;188972:1079 template=EL-57fd4948
+                [TEXT] #I783:4788;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="New customers"
+          [INSTANCE] "Molecule.NavRow" #783:4789 template=EL-68e3c805
+            [FRAME] "Slot.Leading" #I783:4789;207:3698 template=EL-5b0857e6
+              [INSTANCE] "Atom.NavIndentLine" #I783:4789;207:3710 template=EL-76ea8482
+                [RECTANGLE] "Slot.Line" #I783:4789;207:3710;207:3582 template=EL-4e170441
+              [INSTANCE] "Atom.ChevronTrigger" #I783:4789;297:5627 template=EL-c0c859ef
+              [FRAME] "Row/Content" #I783:4789;207:3700 template=EL-45d1cddb
+                [INSTANCE] "Atom.IconSlot" #I783:4789;207:3701 template=EL-ce9c4acd
+                  [INSTANCE] "Person Heart" #I783:4789;207:3701;136:10930 layout=layout_c3477fa7 componentId=225:4520
+                    [IMAGE-SVG] "Shape" #I783:4789;207:3701;136:10930;199325:708 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":17,"height":17}} fills=fill_e3738f4c
+                [TEXT] #I783:4789;207:3702 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyM text="Customer satisfaction"
+        [INSTANCE] "Atom.Scrollbar" #783:4790 template=EL-b6a3870f
+          [REGULAR_POLYGON] #I783:4790;162:3069 template=EL-8cc4b764
+          [FRAME] "Slot.Track" #I783:4790;162:3071 template=EL-10d81b04
+            [RECTANGLE] "Slot.Thumb" #I783:4790;162:3070 template=EL-3b050ec5
+          [REGULAR_POLYGON] #I783:4790;162:3096 template=EL-8cc4b764
+  [FRAME] "OverflowMenu" #783:4791 layout={"mode":"column","padding":"8px","alignItems":"stretch","sizing":{"horizontal":"fixed","vertical":"hug"},"locationRelativeToParent":{"x":76.5,"y":582.5},"dimensions":{"width":180}} fills=fill_02f03579 effects=elevation.mid borderRadius=12px
+    [FRAME] "ScrollRegion" #783:4792 layout={"mode":"row","alignSelf":"stretch","gap":"4px","sizing":{"horizontal":"fill","vertical":"hug"}}
+      [FRAME] "ListColumn" #783:4793 layout={"mode":"column","alignItems":"stretch","gap":"4px","sizing":{"horizontal":"fill","vertical":"hug"}}
+        [FRAME] "SectionContainer" #783:4794 layout=layout_5c79c5b1
+          [FRAME] "SectionList" #783:4795 template=EL-6e926975
+            [INSTANCE] "Molecule.MenuItemDark" #783:4796 template=EL-cfa2cba1
+              [FRAME] "Row.Content" #I783:4796;194:3130 template=EL-8f66df1c
+                [INSTANCE] "Atom.IconSlot" #I783:4796;194:3131 template=EL-ce9c4acd
+                  [INSTANCE] "Data Usage Sparkle" #I783:4796;194:3131;136:10930 layout={"mode":"row","padding":"0px 1px 3px 3px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} componentId=195:3389
+                    [IMAGE-SVG] "Shape" #I783:4796;194:3131;136:10930;422654:3658 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":16,"height":17}} fills=fill_5222c42a
+                [TEXT] #I783:4796;194:3132 layout=layout_56d3c81c fills=fill_5222c42a textStyle=TYPE/bodyM text="Analytics"
+                [INSTANCE] "Atom.ChevronTrigger" #I783:4796;297:5506 template=EL-4a044ac4
+                  [INSTANCE] "Slot.Chevron" #I783:4796;297:5506;293:4736 template=EL-3ea1955e
+                    [IMAGE-SVG] "Shape" #I783:4796;297:5506;293:4736;68174:573 template=EL-0ff78b82
+            [INSTANCE] "Molecule.MenuItemDark" #783:4797 layout=layout_5407f4cd strokes=["rgba(255, 255, 255, 0.6)"] strokeWeight=1.5px borderRadius=8px componentId=194:3171
+              [FRAME] "Row.Content" #I783:4797;194:3172 template=EL-8f66df1c
+                [INSTANCE] "Atom.IconSlot" #I783:4797;194:3173 template=EL-ce9c4acd
+                  [INSTANCE] "Megaphone" #I783:4797;194:3173;136:10930 layout={"mode":"row","padding":"3.299999952316284px 2px 3px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":21,"height":21}} componentId=195:3408
+                    [IMAGE-SVG] "Shape" #I783:4797;194:3173;136:10930;69827:105 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":16,"height":13.7}} fills=fill_88970818
+                [TEXT] #I783:4797;194:3174 layout=layout_56d3c81c fills=fill_88970818 textStyle=TYPE/bodyM text="Advertising"
+                [INSTANCE] "Atom.ChevronTrigger" #I783:4797;297:5535 template=EL-b9e2f927
+                  [INSTANCE] "Slot.Chevron" #I783:4797;297:5535;292:4036 template=EL-3ea1955e
+                    [IMAGE-SVG] "Shape" #I783:4797;297:5535;292:4036;68174:573 template=EL-5085833c
+            [INSTANCE] "Molecule.MenuItemDark" #783:4798 template=EL-cfa2cba1
+              [FRAME] "Row.Content" #I783:4798;194:3130 template=EL-8f66df1c
+                [INSTANCE] "Atom.IconSlot" #I783:4798;194:3131 template=EL-ce9c4acd
+                  [INSTANCE] "Ribbon" #I783:4798;194:3131;136:10930 layout=layout_61c1f248 componentId=195:3428
+                    [IMAGE-SVG] "Shape" #I783:4798;194:3131;136:10930;87806:221 layout=layout_84bab524 fills=fill_5222c42a
+                [TEXT] #I783:4798;194:3132 layout=layout_56d3c81c fills=fill_5222c42a textStyle=TYPE/bodyM text="Quality"
+                [INSTANCE] "Atom.ChevronTrigger" #I783:4798;297:5506 template=EL-4a044ac4
+                  [INSTANCE] "Slot.Chevron" #I783:4798;297:5506;293:4736 template=EL-3ea1955e
+                    [IMAGE-SVG] "Shape" #I783:4798;297:5506;293:4736;68174:573 template=EL-0ff78b82
+            [INSTANCE] "Molecule.MenuItemDark" #783:4799 layout=layout_5407f4cd fills=["rgba(255, 255, 255, 0.1)"] borderRadius=8px componentId=194:3136
+              [FRAME] "Row.Content" #I783:4799;194:3137 template=EL-8f66df1c
+                [INSTANCE] "Atom.IconSlot" #I783:4799;194:3138 template=EL-c5338376
+                  [INSTANCE] "Mail Template" #I783:4799;194:3138;136:10933 layout=layout_6586a818 componentId=195:3474
+                    [IMAGE-SVG] "Shape" #I783:4799;194:3138;136:10933;116090:113 layout=layout_e4b6f33f fills=fill_88970818
+                [TEXT] #I783:4799;194:3139 layout=layout_56d3c81c fills=fill_88970818 textStyle=TYPE/bodyM text="Emailing"
+                [INSTANCE] "Atom.ChevronTrigger" #I783:4799;297:5516 template=EL-b9e2f927
+                  [INSTANCE] "Slot.Chevron" #I783:4799;297:5516;292:4036 template=EL-3ea1955e
+                    [IMAGE-SVG] "Shape" #I783:4799;297:5516;292:4036;68174:573 template=EL-5085833c
+      [FRAME] "ScrollbarWrapper" #783:4800 layout={"mode":"row","alignSelf":"stretch","alignItems":"stretch","gap":"10px","sizing":{"horizontal":"hug","vertical":"fill"}}
+        [INSTANCE] "Atom.Scrollbar" #783:4801 template=EL-b6a3870f
+          [REGULAR_POLYGON] #I783:4801;162:3069 template=EL-8cc4b764
+          [FRAME] "Slot.Track" #I783:4801;162:3071 template=EL-10d81b04
+            [RECTANGLE] "Slot.Thumb" #I783:4801;162:3070 template=EL-3b050ec5
+          [REGULAR_POLYGON] #I783:4801;162:3096 template=EL-8cc4b764
+  [FRAME] "ActionMenu" #783:4802 layout={"mode":"column","alignItems":"stretch","sizing":{"horizontal":"fixed","vertical":"hug"},"locationRelativeToParent":{"x":584,"y":27.5},"dimensions":{"width":240}} fills=fill_658ab2fa effects=elevation.mid borderRadius=12px
+    [FRAME] "ActionMenu/Container" #783:4803 layout={"mode":"column","alignSelf":"stretch","padding":"4px","alignItems":"stretch","gap":"10px","sizing":{"horizontal":"fill","vertical":"hug"}} borderRadius=12px
+      [FRAME] "Section/List" #783:4804 template=EL-6e926975
+        [INSTANCE] "Molecule.MenuItem" #783:4805 layout=layout_5407f4cd fills=fill_7b8f068f borderRadius=8px componentId=139:3684
+          [FRAME] "Row.Content" #I783:4805;139:3685 template=EL-8f66df1c
+            [INSTANCE] "Atom.IconSlot" #I783:4805;139:3686 template=EL-503072af
+              [INSTANCE] "Search" #I783:4805;139:3686;136:10927 layout=layout_18998d4f fills=fill_97d170e1 componentId=139:3020
+                [IMAGE-SVG] "Shape" #I783:4805;139:3686;136:10927;504728:20 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":13,"height":13}} fills=["#242424"]
+            [TEXT] #I783:4805;139:3687 layout=layout_56d3c81c fills=fill_02f03579 textStyle=TYPE/labelM text="Search box"
+            [INSTANCE] "Atom.IconSlot" #I783:4805;139:3688 template=EL-503072af
+              [INSTANCE] "Checkmark" #I783:4805;139:3688;136:10927 layout={"mode":"row","padding":"3.25px 1.75px 3.75px 2px","justifyContent":"center","alignItems":"center","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":16,"height":16}} fills=fill_97d170e1 componentId=139:2879
+                [IMAGE-SVG] "Shape" #I783:4805;139:3688;136:10927;85491:7 layout={"mode":"none","sizing":{"horizontal":"fixed","vertical":"fixed"},"dimensions":{"width":12.86,"height":9.45}} fills=fill_02f03579
+        [INSTANCE] "Molecule.MenuItem" #783:4806 template=EL-269ac8f6
+          [FRAME] "Row.Content" #I783:4806;139:3657 template=EL-8f66df1c
+            [INSTANCE] "Atom.IconSlot" #I783:4806;139:3596 template=EL-a7983845
+              [INSTANCE] "Arrow Expand All" #I783:4806;139:3596;136:10892 layout=layout_02f3dcac fills=fill_97d170e1 componentId=225:3807
+                [IMAGE-SVG] "Shape" #I783:4806;139:3596;136:10892;350233:158 template=EL-e7697904
+            [TEXT] #I783:4806;139:3597 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyS text="Expand all"
+            [INSTANCE] "Atom.ChevronTrigger" #I783:4806;297:5445 template=EL-c0c859ef
+        [INSTANCE] "Molecule.MenuItem" #783:4807 template=EL-269ac8f6
+          [FRAME] "Row.Content" #I783:4807;139:3657 template=EL-8f66df1c
+            [INSTANCE] "Atom.IconSlot" #I783:4807;139:3596 template=EL-a7983845
+              [INSTANCE] "Arrow Collapse All" #I783:4807;139:3596;136:10892 layout=layout_02f3dcac componentId=225:3822
+                [IMAGE-SVG] "Shape" #I783:4807;139:3596;136:10892;350233:162 template=EL-e7697904
+            [TEXT] #I783:4807;139:3597 layout=layout_56d3c81c fills=fill_e3738f4c textStyle=TYPE/bodyS text="Collapse all"
+            [INSTANCE] "Atom.ChevronTrigger" #I783:4807;297:5445 template=EL-c0c859ef
