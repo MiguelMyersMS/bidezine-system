@@ -51,12 +51,16 @@ function RailMock({
     "--prv-surface": pick("darkSurface"),
     "--prv-hover": pick("darkHoverBg"),
     "--prv-pressed": pick("darkPressedBg"),
-    "--prv-active": pick("darkActiveBg"),
     "--prv-border": pick("darkBorderStrong"),
     "--prv-fg": pick("onDark"),
     "--prv-fg-hover": pick("onDarkHover"),
     "--prv-fg-subtle": pick("onDarkSubtle"),
     "--prv-fg-disabled": pick("onDarkDisabled"),
+    // Selected state deliberately does NOT come from the candidate ramp — bidezine already has a
+    // clean equivalent that flips per app theme (dark bg/bright text in light mode, bright bg/dark
+    // text in dark mode): --primary / --primary-foreground. No new token needed here.
+    "--prv-selected-bg": "var(--primary)",
+    "--prv-selected-fg": "var(--primary-foreground)",
   } as CSSProperties
 
   return (
@@ -80,24 +84,30 @@ function RailMock({
               aria-pressed={isSelected}
               className="flex w-full flex-col items-center gap-1 rounded-lg px-1 py-2 text-[9px] leading-none transition-colors disabled:cursor-not-allowed"
               style={{
-                background: isSelected ? "var(--prv-active)" : "transparent",
-                color: isDisabled ? "var(--prv-fg-disabled)" : isSelected ? "var(--prv-fg)" : "var(--prv-fg-subtle)",
+                background: isSelected ? "var(--prv-selected-bg)" : "transparent",
+                color: isDisabled
+                  ? "var(--prv-fg-disabled)"
+                  : isSelected
+                    ? "var(--prv-selected-fg)"
+                    : "var(--prv-fg-subtle)",
               }}
               onMouseDown={(e) => {
-                if (!isDisabled) e.currentTarget.style.background = "var(--prv-pressed)"
+                if (isDisabled || isSelected) return
+                e.currentTarget.style.background = "var(--prv-pressed)"
               }}
               onMouseUp={(e) => {
-                if (!isDisabled) e.currentTarget.style.background = isSelected ? "var(--prv-active)" : ""
+                if (isDisabled || isSelected) return
+                e.currentTarget.style.background = "var(--prv-hover)"
               }}
               onMouseEnter={(e) => {
-                if (isDisabled) return
-                if (!isSelected) e.currentTarget.style.background = "var(--prv-hover)"
+                if (isDisabled || isSelected) return
+                e.currentTarget.style.background = "var(--prv-hover)"
                 e.currentTarget.style.color = "var(--prv-fg-hover)"
               }}
               onMouseLeave={(e) => {
-                if (isDisabled) return
-                e.currentTarget.style.background = isSelected ? "var(--prv-active)" : "transparent"
-                e.currentTarget.style.color = isSelected ? "var(--prv-fg)" : "var(--prv-fg-subtle)"
+                if (isDisabled || isSelected) return
+                e.currentTarget.style.background = "transparent"
+                e.currentTarget.style.color = "var(--prv-fg-subtle)"
               }}
             >
               <svg viewBox="0 0 20 20" className="h-4 w-4" fill="currentColor" aria-hidden="true">
