@@ -56,11 +56,13 @@ function RailMock({
     "--prv-fg-hover": pick("onDarkHover"),
     "--prv-fg-subtle": pick("onDarkSubtle"),
     "--prv-fg-disabled": pick("onDarkDisabled"),
-    // Selected state deliberately does NOT come from the candidate ramp — bidezine already has a
-    // clean equivalent that flips per app theme (dark bg/bright text in light mode, bright bg/dark
-    // text in dark mode): --primary / --primary-foreground. No new token needed here.
-    "--prv-selected-bg": "var(--primary)",
-    "--prv-selected-fg": "var(--primary-foreground)",
+    // Selected state: for the ORIGIN rail, stay verbatim to the origin's own darkActiveBg/onDark
+    // overlay (same as every other origin value here) — never substitute bidezine tokens into the
+    // origin side, that rail exists purely as an unmodified reference. Only the BIDEZINE rail gets
+    // the --primary/--primary-foreground treatment, since that's bidezine's own clean equivalent
+    // (flips dark-bg/bright-text in light mode, bright-bg/dark-text in dark mode).
+    "--prv-selected-bg": source === "bidezine" ? "var(--primary)" : pick("darkActiveBg"),
+    "--prv-selected-fg": source === "bidezine" ? "var(--primary-foreground)" : pick("onDark"),
   } as CSSProperties
 
   return (
