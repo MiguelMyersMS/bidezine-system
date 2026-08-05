@@ -8,18 +8,17 @@ import type { ProposedToken } from "@/data/rail-sidebar"
  * a copy of the origin; it's one of bidezine's OWN existing achromatic lightness stops (the same
  * oklch() values already used by --background/--sidebar/--secondary/--accent/--ring/etc in
  * src/styles/tokens.css), chosen so the rail's ramp lines up with a ramp bidezine already uses
- * elsewhere. Nothing here is written to tokens/*.tokens.json until you approve both the name and
- * the candidate value. Toggle the header's light/dark switch to preview both app-theme variants.
+ * elsewhere. All 9 are tentatively approved (per your review) — final sign-off is gated on seeing
+ * them composed together in RailPreview above, not just as isolated swatches.
  */
 export function ColorTokenLab({ tokens }: { tokens: ProposedToken[] }) {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted-foreground">
         Left = the origin's own color, verbatim (reference only, not a bidezine color). Right ={" "}
-        <strong>a bidezine candidate</strong> — reuses one of bidezine's existing lightness stops
-        rather than copying the origin, so the rail's ramp matches the rest of the system. Neither
-        the name nor the candidate is final until you approve it here. Toggle light/dark in the
-        header to preview both app-theme variants.
+        <strong>a bidezine candidate, tentatively approved</strong> — reuses one of bidezine's
+        existing lightness stops rather than copying the origin, so the rail's ramp matches the rest
+        of the system. Toggle light/dark in the header to preview both app-theme variants.
       </p>
       <div className="flex flex-col gap-3">
         {tokens.map((t) => (
@@ -65,11 +64,12 @@ export function ColorTokenLab({ tokens }: { tokens: ProposedToken[] }) {
                     <span className="dark:hidden">{t.proposedLight}</span>
                     <span className="hidden dark:inline">{t.proposedDark}</span>
                   </p>
-                  <Badge className="text-[9px]">candidate</Badge>
+                  <Badge className="text-[9px]">tentatively approved</Badge>
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                Draft — pending your approval before authoring into tokens/base.tokens.json.
+                Tentatively approved — final sign-off pending against the full rail preview above,
+                before authoring into tokens/base.tokens.json.
               </p>
             </CardContent>
           </Card>

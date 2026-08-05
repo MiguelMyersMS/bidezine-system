@@ -4,6 +4,7 @@ import { PhaseRail } from "@/components/PhaseRail"
 import { BlockingQuestionCard, DivergenceCategoriesAccordion, RisksList } from "@/components/DivergenceView"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { ColorTokenLab } from "@/components/ColorTokenLab"
+import { RailPreview } from "@/components/RailPreview"
 import { LogoImportSlot } from "@/components/LogoImportSlot"
 import {
   railSidebarPhases,
@@ -12,6 +13,7 @@ import {
   notableRisks,
   proposedDarkRailTokens,
   BIDEZINE_LOGO_PATH,
+  BIDEZINE_LOGO_VIEWBOX,
 } from "@/data/rail-sidebar"
 
 // Label shown in the URL field for the pre-filled default — not a real URL, just a recognizable
@@ -88,7 +90,7 @@ function HumanDecisionsPhase() {
           <LogoImportSlot
             defaultUrl={BIDEZINE_LOGO_DEFAULT_LABEL}
             defaultSvgPath={BIDEZINE_LOGO_PATH}
-            defaultViewBox="0 0 26.064 24"
+            defaultViewBox={BIDEZINE_LOGO_VIEWBOX}
           />
         </div>
       </TabsContent>
@@ -99,6 +101,16 @@ function HumanDecisionsPhase() {
           those rows' "after" column depends on the tokens approved here. Use the theme toggle above to
           check both light and dark before approving.
         </p>
+        <div className="flex items-center gap-2 rounded-md border border-dashed p-3">
+          <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
+            Tentatively approved
+          </span>
+          <p className="text-xs text-muted-foreground">
+            All 9 candidates below are provisionally OK'd — final sign-off is pending seeing them
+            composed together in a full rail shape (see the preview above the swatches).
+          </p>
+        </div>
+        <RailPreview tokens={proposedDarkRailTokens} />
         <ColorTokenLab tokens={proposedDarkRailTokens} />
       </TabsContent>
 

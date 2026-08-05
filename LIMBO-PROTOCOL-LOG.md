@@ -170,6 +170,26 @@ friction, anything.)_
   the order they happened to be built in — this is a recurring risk for the *next* Limbo occupant's
   factory line too, not a one-off fix specific to Rail Sidebar.
 
+- **Isolated swatches are not sufficient evidence for color sign-off, even after the human explicitly
+  approves them:** the human tentatively approved all 9 candidate tokens from the swatch-only view, but
+  immediately qualified it — full sign-off requires seeing them composed together in an actual rail shape
+  (background + border + hover/active/pressed + on-color text all adjacent at once). A swatch grid cannot
+  surface real problems like a candidate `--sidebar-rail-surface` being nearly indistinguishable from the
+  app's own `--background` in dark mode — that only became visible once RailPreview was built and toggled
+  to dark. **Lesson:** for any token family gating a *composed* UI element (not a single flat surface), the
+  Human Decisions phase should default to building a lightweight, real-DOM composed preview (interactive
+  hover/press, not simulated) alongside the swatch lab from the start, rather than treating swatch approval
+  as sufficient and adding the composed view only after being asked. Approval status should also have an
+  explicit "tentative, pending composed preview" tier distinct from a final "resolved" — don't let a
+  provisional yes get recorded or read back as a final one.
+
+- **"Resolved" note text needs to be rewritten at each approval-tier change, not just the badge:** the Q2
+  resolution note and the per-row footer copy in Color Token Lab both said "pending your approval" even
+  after the human tentatively approved everything — the badge/tier changed but the prose describing it
+  didn't, which is its own source of the same staleness problem noted above for status badges. **Lesson:**
+  every place a resolution status is surfaced (badge AND explanatory prose AND blocking-question note)
+  needs to be treated as one unit that changes together, not three independent copies that can drift.
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given
