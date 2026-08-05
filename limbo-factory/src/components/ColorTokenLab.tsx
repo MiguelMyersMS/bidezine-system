@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@bidezine/system"
+import { Card, CardContent } from "@bidezine/system"
 import type { ProposedToken } from "@/data/rail-sidebar"
 
 /**
@@ -14,15 +14,11 @@ export function ColorTokenLab({ tokens }: { tokens: ProposedToken[] }) {
         Draft values only — sourced verbatim from the origin project's tokens.ts. Nothing here has been
         written to tokens/*.tokens.json. Toggle light/dark in the header to preview both.
       </p>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="flex flex-col gap-3">
         {tokens.map((t) => (
           <Card key={t.name}>
-            <CardHeader>
-              <CardTitle className="font-mono text-sm">{t.name}</CardTitle>
-              <p className="text-xs text-muted-foreground">{t.usage}</p>
-            </CardHeader>
-            <CardContent className="flex items-center gap-3">
-              <div className="flex flex-col items-center gap-1">
+            <CardContent className="flex flex-wrap items-center gap-4 py-4">
+              <div className="flex shrink-0 flex-col items-center gap-1">
                 <div
                   className="h-12 w-12 rounded-md border dark:hidden"
                   style={{ background: t.lightAppHex }}
@@ -36,7 +32,11 @@ export function ColorTokenLab({ tokens }: { tokens: ProposedToken[] }) {
                   <span className="hidden dark:inline">{t.darkAppHex}</span>
                 </p>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <div className="min-w-0 flex-1">
+                <p className="font-mono text-sm">{t.name}</p>
+                <p className="text-xs text-muted-foreground">{t.usage}</p>
+              </div>
+              <p className="w-full shrink-0 text-xs text-muted-foreground sm:w-56">
                 Draft — pending your approval before authoring into tokens/base.tokens.json.
               </p>
             </CardContent>
