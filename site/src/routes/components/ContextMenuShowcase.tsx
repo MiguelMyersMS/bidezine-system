@@ -17,22 +17,13 @@ import {
 import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
 import { ApiReference, type ApiRow } from "@/components/ApiReference"
 
-function DemoTrigger() {
-  return (
-    <div className="flex aspect-video w-full max-w-xs items-center justify-center rounded-xl border border-dashed text-sm">
-      <span className="hidden pointer-fine:inline-block">Right click here</span>
-      <span className="hidden pointer-coarse:inline-block">Long press here</span>
-    </div>
-  )
-}
-
 const examples: ShowcaseExample[] = [
   {
     label: "Demo",
     render: () => (
       <ContextMenu>
-        <ContextMenuTrigger>
-          <DemoTrigger />
+        <ContextMenuTrigger className="flex h-[150px] w-[300px] items-center justify-center rounded-md border border-dashed text-sm">
+          Right click here
         </ContextMenuTrigger>
         <ContextMenuContent className="w-48">
           <ContextMenuGroup>
@@ -95,8 +86,8 @@ const examples: ShowcaseExample[] = [
     label: "Checkboxes",
     render: () => (
       <ContextMenu>
-        <ContextMenuTrigger>
-          <DemoTrigger />
+        <ContextMenuTrigger className="flex h-[150px] w-[300px] items-center justify-center rounded-md border border-dashed text-sm">
+          Right click here
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuGroup>
