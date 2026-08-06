@@ -117,7 +117,7 @@ export const blockingQuestions: DecisionQuestion[] = [
     ],
     resolution: {
       chosenLabel: "(a) Author a new dark-surface token group",
-      note: "The 9-token candidate set (matching bidezine's own achromatic lightness stops, plus 5 tokens later refined against the user's own hex picks for hover/pressed/active/border-strong/foreground-disabled) has FINAL sign-off \u2014 see the \u201cColor token lab\u201d tab and the composed mock rail (RailPreview). Ready to be authored into tokens/base.tokens.json at Build time.",
+      note: "The original 9-token candidate set (matching bidezine's own achromatic lightness stops, plus 5 tokens later refined against the user's own hex picks for hover/pressed/active/border-strong/foreground-disabled) has FINAL sign-off \u2014 see the \u201cColor token lab\u201d tab and the composed mock rail (RailPreview). A 10th candidate (select-hover, for hovering an already-selected row) was proposed afterward and awaits a decision \u2014 doesn't reopen Q2 itself, just extends the same token family. Approved tokens are ready to be authored into tokens/base.tokens.json at Build time; the 10th joins them once decided.",
     },
   },
   {
@@ -184,9 +184,16 @@ export interface ProposedToken {
    * authored into tokens/*.tokens.json — naming only, pending your approval alongside the color. */
   proposedVar: string
   usage: string
-  /** Origin's own value, verbatim, from design-system/src/tokens.ts. Reference only — not a bidezine color. */
+  /** Origin's own value, verbatim, from design-system/src/tokens.ts. Reference only — not a bidezine color.
+   * Leave both hex fields as "" when `noOriginEquivalent` is true — this is a state the origin project
+   * never modeled at all, not an unset/forgotten value. */
   originLightHex: string
   originDarkHex: string
+  /** True when the origin project has no concept of this state whatsoever (confirmed by reading its
+   * source/docs, not assumed) — e.g. a state inspired by one of bidezine's OWN existing component
+   * conventions rather than ported from the origin at all. ColorTokenLab renders an explicit
+   * "no origin equivalent" placeholder instead of a fabricated swatch. */
+  noOriginEquivalent?: boolean
   /** Candidate value if we approve this token: reuses one of bidezine's EXISTING achromatic
    * lightness stops (the exact oklch() values already defined in src/styles/tokens.css for
    * --background/--sidebar/--secondary/--accent/--ring/--muted-foreground/--primary/--foreground),
@@ -194,6 +201,11 @@ export interface ProposedToken {
    * means in practice: the rail's ramp lines up 1:1 with a ramp bidezine already uses elsewhere. */
   proposedLight: string
   proposedDark: string
+  /** false = still awaiting your decision (default true, since the first 9 all have final sign-off).
+   * Kept per-token rather than assumed, so a newly-added candidate never silently inherits "approved". */
+  approved?: boolean
+  /** Extra context shown only for not-yet-approved candidates — why it's proposed, what it's based on. */
+  proposalNote?: string
 }
 
 export const proposedDarkRailTokens: ProposedToken[] = [
@@ -206,6 +218,34 @@ export const proposedDarkRailTokens: ProposedToken[] = [
   { originName: "onDarkHover", proposedVar: "--sidebar-rail-foreground-hover", usage: "\u224885% on-dark, hover state", originLightHex: "rgba(255,255,255,0.85)", originDarkHex: "#edeef0", proposedLight: "oklch(0.922 0 0)", proposedDark: "oklch(0.922 0 0)" },
   { originName: "onDarkSubtle", proposedVar: "--sidebar-rail-foreground-subtle", usage: "\u224850% on-dark, subordinate text", originLightHex: "rgba(255,255,255,0.5)", originDarkHex: "#696e77", proposedLight: "oklch(0.708 0 0)", proposedDark: "oklch(0.708 0 0)" },
   { originName: "onDarkDisabled", proposedVar: "--sidebar-rail-foreground-disabled", usage: "\u224820% on-dark, disabled", originLightHex: "rgba(255,255,255,0.2)", originDarkHex: "#3e4348", proposedLight: "oklch(0.42 0 0)", proposedDark: "oklch(0.375 0 0)" },
+  {
+    originName: "darkActiveHoverBg",
+    proposedVar: "--sidebar-rail-active-hover",
+    usage: "Select-hover overlay — the ALREADY-selected row, additionally hovered",
+    originLightHex: "",
+    originDarkHex: "",
+    noOriginEquivalent: true,
+    // Confirmed against limbo/rail-sidebar/reference/docs: the origin's dark rail (MenuItemDark)
+    // differentiates hover vs. selected (darkHoverBg vs. darkActiveBg), but never modeled a THIRD
+    // tone for "selected AND hovered" — hovering an already-selected row is currently a no-op there.
+    // This candidate is inspired by a pattern our OWN design system already uses elsewhere for this
+    // exact situation: src/ui/navigation-menu.tsx's `data-[active=true]:hover:bg-accent` gives the
+    // active/selected item a distinct, brighter tone specifically when it's also hovered — proving
+    // "selected + hover" is already a recognized third state in bidezine, just not yet given a rail
+    // token. Value continues the same solid lightness ramp already approved for hover→pressed→active
+    // (Light: 0.301→0.348→0.39, step ≈0.04; Dark: 0.191→0.222→0.252, step ≈0.03) one further step:
+    // Light 0.43 (#505050), Dark 0.282 (#292929) — not an arbitrary guess, the next rung on the same
+    // ladder. Toggle light/dark and hover the already-selected "Projects" row in RailPreview's
+    // bidezine side to see it live; the origin side intentionally shows no change on the same hover,
+    // matching its real, undifferentiated behavior.
+    proposalNote:
+      "Proposed, not yet approved — extends the already-approved hover→pressed→active ramp one more " +
+      "step, inspired by navigation-menu.tsx's own data-[active=true]:hover:bg-accent precedent. " +
+      "Give me a hex (like the last 3 rounds) if you want to adjust it, or approve as-is.",
+    proposedLight: "oklch(0.43 0 0)",
+    proposedDark: "oklch(0.282 0 0)",
+    approved: false,
+  },
 ]
 
 /** clean = never actually diverged; note/decision = still open; resolved = WAS a decision item,
@@ -509,7 +549,7 @@ export const notableRisks: RiskNote[] = [
     actionItems: [
       { id: "R-2a", text: "Q2 answered \u2014 author new tokens (option a)", done: true, refs: ["Q2"] },
       { id: "R-2b", text: "Color Token Lab built so proposed values can be visually approved before authoring", done: false, refs: ["proposedDarkRailTokens"] },
-      { id: "R-2c", text: "User approves each of the 9 proposed dark-rail tokens in the lab", done: false, refs: ["proposedDarkRailTokens"] },
+      { id: "R-2c", text: "User approves each of the 10 proposed dark-rail tokens in the lab (9 approved, 1 pending: select-hover)", done: false, refs: ["proposedDarkRailTokens"] },
       { id: "R-2d", text: "Approved tokens written to tokens/*.tokens.json (Build phase only)", done: false },
     ],
   },

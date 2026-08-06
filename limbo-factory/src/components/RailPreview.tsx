@@ -17,6 +17,12 @@ import {
  * people/settings) so color is the only variable being compared — this is a compositional mock only
  * (not the real RailNav component; that build happens in the Transformation/Build phase), but real
  * enough DOM + CSS that hover/pressed states are genuinely interactive, not simulated.
+ *
+ * "Projects" is the persistent selected row on both sides — hover it to compare select-hover
+ * behavior: the bidezine side previews the newly proposed --sidebar-rail-active-hover candidate
+ * (not yet approved, see Color Token Lab), inspired by src/ui/navigation-menu.tsx's own
+ * data-[active=true]:hover:bg-accent pattern. The origin side intentionally shows no change on the
+ * same hover — confirmed against its docs, it never modeled a distinct "selected + hovered" tone.
  */
 
 const NAV_ITEMS = [
@@ -47,11 +53,19 @@ function RailMock({
     return variant === "light" ? t.proposedLight : t.proposedDark
   }
 
+  // The origin project has no "selected + hovered" state at all (confirmed against its docs) — its
+  // dark rail only differentiates plain hover vs. plain selected. So on the origin side, hovering an
+  // already-selected row falls back to the same active tone (no visible change, matching its real,
+  // undifferentiated behavior). On the bidezine side, this previews the newly proposed
+  // --sidebar-rail-active-hover candidate (not yet approved — see Color Token Lab).
+  const activeHoverBg = source === "bidezine" ? pick("darkActiveHoverBg") : pick("darkActiveBg")
+
   const vars = {
     "--prv-surface": pick("darkSurface"),
     "--prv-hover": pick("darkHoverBg"),
     "--prv-pressed": pick("darkPressedBg"),
     "--prv-active": pick("darkActiveBg"),
+    "--prv-active-hover": activeHoverBg,
     "--prv-border": pick("darkBorderStrong"),
     "--prv-fg": pick("onDark"),
     "--prv-fg-hover": pick("onDarkHover"),
@@ -92,12 +106,22 @@ function RailMock({
                 e.currentTarget.style.background = "var(--prv-hover)"
               }}
               onMouseEnter={(e) => {
-                if (isDisabled || isSelected) return
+                if (isDisabled) return
+                if (isSelected) {
+                  // Select-hover: the row is already active, hovering it further should still give
+                  // feedback rather than doing nothing (see --prv-active-hover above).
+                  e.currentTarget.style.background = "var(--prv-active-hover)"
+                  return
+                }
                 e.currentTarget.style.background = "var(--prv-hover)"
                 e.currentTarget.style.color = "var(--prv-fg-hover)"
               }}
               onMouseLeave={(e) => {
-                if (isDisabled || isSelected) return
+                if (isDisabled) return
+                if (isSelected) {
+                  e.currentTarget.style.background = "var(--prv-active)"
+                  return
+                }
                 e.currentTarget.style.background = "transparent"
                 e.currentTarget.style.color = "var(--prv-fg-subtle)"
               }}
@@ -134,8 +158,10 @@ export function RailPreview({ tokens }: { tokens: ProposedToken[] }) {
       <p className="max-w-lg text-center text-xs text-muted-foreground">
         Same structure, same real Fluent icons (home / folder / people / settings) on both sides —
         color is the only thing being compared. Hover and click the rows, they're genuinely
-        interactive. "Projects" is the persistent selected state; "Settings" is disabled. Toggle
-        light/dark in the header to see both app-theme variants.
+        interactive. "Projects" is the persistent selected state; "Settings" is disabled. Hover
+        "Projects" itself to compare select-hover — bidezine previews a newly proposed candidate
+        token there (not yet approved, see Color Token Lab), the origin side stays unchanged since
+        it never modeled that state. Toggle light/dark in the header to see both app-theme variants.
       </p>
       <div className="flex items-start justify-center gap-10 py-2">
         <div className="flex flex-col items-center gap-2">

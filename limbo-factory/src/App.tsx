@@ -72,7 +72,7 @@ function HumanDecisionsPhase() {
     <Tabs defaultValue="blocking" className="w-full">
       <TabsList>
         <TabsTrigger value="blocking">Blocking questions (4)</TabsTrigger>
-        <TabsTrigger value="colorlab">Color token lab (9)</TabsTrigger>
+        <TabsTrigger value="colorlab">Color token lab (10)</TabsTrigger>
         <TabsTrigger value="categories">Full divergence list (13 categories)</TabsTrigger>
         <TabsTrigger value="risks">Notable risks (9)</TabsTrigger>
       </TabsList>
@@ -102,10 +102,12 @@ function HumanDecisionsPhase() {
           check both light and dark before approving.
         </p>
         <div className="flex items-center gap-2 rounded-md border p-3">
-          <Badge className="bg-primary text-primary-foreground">Approved</Badge>
+          <Badge className="bg-primary text-primary-foreground">9/10 approved</Badge>
           <p className="text-xs text-muted-foreground">
-            All 9 candidates below have final sign-off, composed and reviewed together in the full
-            rail shape below (including two follow-up hex-based revisions to hover/pressed/border).
+            9 candidates have final sign-off, composed and reviewed together in the full rail shape
+            below (including two follow-up hex-based revisions to hover/pressed/border). A 10th
+            candidate — select-hover, for hovering an already-selected row — was just proposed and
+            is awaiting your decision; hover the "Projects" row in the preview to see it live.
           </p>
         </div>
         <RailPreview tokens={proposedDarkRailTokens} />
