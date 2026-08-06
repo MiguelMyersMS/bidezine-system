@@ -5,6 +5,7 @@ import { BlockingQuestionCard, DivergenceCategoriesAccordion, RisksList } from "
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { ColorTokenLab } from "@/components/ColorTokenLab"
 import { RailPreview } from "@/components/RailPreview"
+import { FullRailPreview } from "@/components/FullRailPreview"
 import { LogoImportSlot } from "@/components/LogoImportSlot"
 import { NEGATIVE_BADGE, POSITIVE_BADGE, POSITIVE_BORDER, POSITIVE_WASH } from "@/lib/status-colors"
 import {
@@ -126,6 +127,7 @@ function HumanDecisionsPhase() {
           Every icon, color, spacing, layout, radius, motion, elevation, z-index, focus/scrollbar,
           sub-component, and structural pattern found in RailNav, reconciled against our current system.
         </p>
+        <FullRailPreview tokens={proposedDarkRailTokens} />
         <DivergenceCategoriesAccordion categories={divergenceCategories} />
       </TabsContent>
 
