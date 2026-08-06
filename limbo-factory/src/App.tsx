@@ -50,11 +50,10 @@ export function App() {
         <header className="flex items-start justify-between gap-4 border-b px-6 py-4">
           <div>
             <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-              Limbo — Rail Sidebar (RailNav)
+              Rail Sidebar
             </p>
             <h1 className="text-lg font-semibold">{activePhase.title}</h1>
             <p className="text-sm text-muted-foreground">{activePhase.description}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Owner: {activePhase.owner}</p>
           </div>
           <ThemeToggle />
         </header>
