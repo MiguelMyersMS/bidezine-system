@@ -63,7 +63,7 @@ export function App() {
             </div>
           ) : (
             <ScrollArea className="h-full">
-              <div className="p-6">
+              <div className="p-6 pr-8">
                 <PlaceholderPhase />
               </div>
             </ScrollArea>
@@ -79,7 +79,7 @@ function QuadrantLayout({ children, right }: { children: React.ReactNode; right:
     <div className="grid h-full grid-cols-2 gap-6">
       <div className="h-full min-h-0 overflow-hidden">
         <ScrollArea className="h-full">
-          <div className="flex flex-col gap-4">{children}</div>
+          <div className="flex flex-col gap-4 pr-3">{children}</div>
         </ScrollArea>
       </div>
       <div className="flex h-full items-center justify-center overflow-hidden">{right}</div>
