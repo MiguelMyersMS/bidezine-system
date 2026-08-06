@@ -84,7 +84,12 @@ export function OriginRailNavLive({
     doc.open();
     doc.write(
       "<!DOCTYPE html><html><head><meta charset=\"utf-8\" />" +
-        "<style>html,body{margin:0;padding:0;height:100%;background:#fff;}#root{height:100%;}" +
+        // `background:transparent` (not `#fff`) — the iframe's own page canvas has no rail content
+        // of its own once `main` is hidden below, so a solid white backdrop here just reads as a
+        // bright rectangle behind the rail when embedded against our stage's own (often dark or
+        // muted-gray) background. Transparent lets the embedding page's own background show
+        // through instead, matching how the bidezine mock sits flush against the stage.
+        "<style>html,body{margin:0;padding:0;height:100%;background:transparent;}#root{height:100%;}" +
         // Hide DefaultShell's own placeholder "Content area" panel (its stand-in for a real app's
         // main content, not part of RailNav itself) — this is a display-only override at the
         // embedding-shim level, not an edit to the vendored DefaultDemo.tsx source.
