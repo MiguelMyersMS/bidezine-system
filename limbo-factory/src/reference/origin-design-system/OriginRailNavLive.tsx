@@ -46,6 +46,17 @@ import { ThemeContext } from "./theme";
 import { TOKENS_LIGHT, TOKENS_DARK } from "./tokens";
 import DefaultShell from "./gallery/DefaultDemo";
 
+// The panel's own `box-shadow: 0 2px 8px rgba(...)` (see RailNav's panel styling) needs ~8px of
+// blur + 2px of vertical offset of transparent room around the rail/panel content to render
+// un-clipped — an iframe is its own hard viewport boundary, so anything drawn outside its
+// physical box is simply never painted, regardless of `overflow` CSS on any wrapper. Rather than
+// changing this component's public `width`/`height` meaning (still "the visible rail/panel
+// size"), the iframe itself is made `SHADOW_BLEED` px larger on every side and pulled back with an
+// equal negative margin — the layout box other elements see is unchanged, but the enlarged,
+// transparent canvas gives the shadow somewhere to bleed into instead of being cut off flush at
+// the rail/panel's own edge.
+const SHADOW_BLEED = 12;
+
 export function OriginRailNavLive({
   variant,
   height = 860,
@@ -85,7 +96,11 @@ export function OriginRailNavLive({
           // filling it edge-to-edge like the bidezine mock does. Neutralizing it is display-only (same
           // embedding-shim rule as the `main` hide above) — RailNav's own markup/tokens are untouched.
           "#root>div{background:transparent !important;padding:0 !important;}" +
-          "#root>div>aside{padding:0 !important;}</style>" +
+          // The panel's own `box-shadow: 0 2px 8px rgba(...)` needs room to render — replaced the
+          // zero padding with `SHADOW_BLEED` (transparent, still no visible border/background) so the
+          // shadow isn't hard-clipped by the iframe's own edge. See `SHADOW_BLEED` below for how the
+          // iframe's physical size + negative margin keep the VISIBLE rail/panel position unchanged.
+          `#root>div>aside{padding:${SHADOW_BLEED}px !important;}</style>` +
         "</head><body><div id=\"root\"></div></body></html>"
     );
     doc.close();
@@ -115,8 +130,12 @@ export function OriginRailNavLive({
       ref={iframeRef}
       title="Origin RailNav — Default story (live)"
       style={{
-        height,
-        width,
+        // Physically larger than the visible rail/panel (see `SHADOW_BLEED`), pulled back by an
+        // equal negative margin so the layout box every ancestor sees is still exactly
+        // `height`×`width` — only the transparent bleed margin is new, nothing shifts.
+        height: height + SHADOW_BLEED * 2,
+        width: width + SHADOW_BLEED * 2,
+        margin: -SHADOW_BLEED,
         maxWidth: "100%",
         border: "none",
         display: "block",
