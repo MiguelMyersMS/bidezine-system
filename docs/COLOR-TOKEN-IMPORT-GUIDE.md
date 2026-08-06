@@ -123,11 +123,21 @@ in front of them, not discover it after the fact.
 
 This one isn't about token values, but is closely related and easy to get wrong while building a factory
 line / comparison tool: **any UI you build to host this process must be composed entirely from real
-`@bidezine/system` components** (`Badge`, `Card`, etc.), not hand-rolled `<span>`/`<div>` elements with
-inline Tailwind classes that approximate a component's look. A hand-rolled approximation will drift from
-the real component's actual recipe (missing `inline-flex items-center justify-center`, missing focus/aria
-states, etc.) in ways that are easy to miss visually until a human points them out. If a real component
-already exists for what you're building, import and use it — don't re-derive its styling by hand.
+`@bidezine/system` components** (`Badge`, `Button`, `Checkbox`, `Card`, etc.), not hand-rolled
+`<span>`/`<div>`/`<button>` elements with inline Tailwind classes that approximate a component's look. This
+is now a repo-wide rule stated in `CLAUDE.md`, not a Limbo-only convention — treat it as absolute.
+
+A hand-rolled approximation will drift from the real component's actual recipe (missing `inline-flex
+items-center justify-center`, missing focus/aria states, missing disabled handling, etc.) in ways that
+range from **visually broken** (a Badge missing centering — obvious the moment someone looks at a
+screenshot) to **merely duplicated and still looking fine** (a nav button or checkbox that LGTMs visually
+but is a silent maintenance-drift risk, since it doesn't track the real component if that component's
+recipe changes later). The second kind is much easier to miss — a render/screenshot check alone won't catch
+it, because it looks correct. Finding one hand-rolled violation should always trigger a deliberate code
+read of the rest of the same app for the same pattern (grep for raw `<span`/`<div`/`<button` carrying
+component-shaped Tailwind classes like `rounded-full`, `border`, hover/active variants), not just a
+fix-and-move-on for the one instance found. If a real component already exists for what you're building,
+import and use it — don't re-derive its styling by hand, even partially.
 
 ## Precision convention
 

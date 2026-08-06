@@ -38,6 +38,17 @@ Adjusting before verifying makes it impossible to tell a deliberate change from 
 
 ## Rules that matter
 
+**No hand-rolled components, ever.** If a real `@bidezine/system` component exists for what you're
+building — a badge, a button, a checkbox, a card, anything — import and use it. Never approximate its
+look with a raw `<span>`/`<div>`/`<button>` styled with matching Tailwind classes. A hand-rolled
+approximation *will* drift from the real component's actual recipe (missing flex/centering rules, missing
+focus/aria states, missing disabled handling) in ways that are invisible in code review and only become
+obvious once a human looks at the rendered result. This applies everywhere in this repo, including
+tooling/dev apps like `limbo-factory/` — not just `site/` and `src/ui/` consumers. This is the direct,
+load-bearing extension of the one design-source rule above: if the one true source is `reference/shadcn-ui/`,
+then every rendered instance of that source must be the real ported component, never a hand re-derivation
+of its styling.
+
 **Tokens are authored in `tokens/`, nowhere else.** `src/styles/tokens.css` and `src/tokens.ts` carry a
 generated banner and are overwritten by `npm run tokens`. Never hand-write a CSS variable.
 

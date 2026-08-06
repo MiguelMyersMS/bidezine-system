@@ -1,4 +1,4 @@
-import { Badge, cn } from "@bidezine/system"
+import { Badge, Button, cn } from "@bidezine/system"
 import type { Phase, PhaseStatus } from "@/data/phases"
 
 const STATUS_LABEL: Record<PhaseStatus, string> = {
@@ -49,19 +49,20 @@ export function PhaseRail({
         const isActive = phase.id === activePhaseId
         return (
           <div key={phase.id} className="flex flex-col">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => onSelectPhase(phase.id)}
               className={cn(
-                "flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors",
+                "h-auto w-full justify-between gap-2 rounded-md px-3 py-2 text-left text-sm font-normal",
                 isActive
-                  ? "bg-accent text-accent-foreground font-medium"
-                  : "text-foreground hover:bg-accent/50"
+                  ? "bg-accent text-accent-foreground font-medium hover:bg-accent"
+                  : "text-foreground"
               )}
             >
               <span className="truncate">{phase.title}</span>
               <StatusBadge status={phase.status} />
-            </button>
+            </Button>
             {isActive && phase.subPhases && phase.subPhases.length > 0 ? (
               <ul className="mb-1 ml-3 flex flex-col gap-0.5 border-l pl-3">
                 {phase.subPhases.map((sub) => (

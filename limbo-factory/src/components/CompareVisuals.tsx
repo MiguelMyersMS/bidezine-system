@@ -1,5 +1,6 @@
 import { useState } from "react"
 import {
+  Button,
   CheckIcon,
   ChevronDownIcon,
   MoreHorizontalIcon,
@@ -182,13 +183,15 @@ function MotionCompare({ v }: { v: MotionVisual }) {
             <p className="text-xs text-muted-foreground">{v.afterLabel}</p>
           </div>
         ) : null}
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="xs"
           onClick={() => setPlay((p) => p + 1)}
-          className="rounded-md border px-2 py-1 text-xs text-muted-foreground hover:bg-accent"
+          className="text-muted-foreground"
         >
           Replay
-        </button>
+        </Button>
       </div>
       {v.recommendation ? (
         <p className="max-w-md text-xs text-muted-foreground italic">{v.recommendation}</p>

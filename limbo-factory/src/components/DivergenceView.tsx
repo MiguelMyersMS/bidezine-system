@@ -9,7 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CheckIcon,
+  Checkbox,
   Separator,
   cn,
 } from "@bidezine/system"
@@ -156,14 +156,7 @@ export function RisksList({ risks }: { risks: RiskNote[] }) {
               <div className="flex flex-col gap-1.5">
                 {risk.actionItems.map((item) => (
                   <div key={item.id} className="flex items-start gap-2">
-                    <span
-                      className={cn(
-                        "mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border",
-                        item.done ? "border-primary bg-primary text-primary-foreground" : "border-input",
-                      )}
-                    >
-                      {item.done ? <CheckIcon className="h-3 w-3" /> : null}
-                    </span>
+                    <Checkbox checked={item.done} disabled className="mt-0.5" />
                     <p className={cn("text-xs", item.done ? "text-muted-foreground line-through" : "text-foreground")}>
                       {item.text}
                       {item.refs?.length ? (

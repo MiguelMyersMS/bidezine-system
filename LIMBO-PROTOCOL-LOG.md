@@ -191,17 +191,41 @@ friction, anything.)_
   needs to be treated as one unit that changes together, not three independent copies that can drift.
 
 - **"Real components only" applies to the factory-line UI itself, and can be silently violated even while
-  following it everywhere else:** the "Tentatively approved" pill in the Color Token Lab banner was built
-  as a hand-rolled `<span className="rounded-full bg-secondary px-2 py-0.5 ...">` instead of importing the
-  real `Badge` from `@bidezine/system` — even though `Badge` was already imported and used correctly
-  elsewhere on the very same page (`PhaseRail`'s "Done"/"Pending" pills). The hand-rolled version was
-  missing `inline-flex items-center justify-center` (among other things), which made the text render
-  visibly uncentered with no real vertical padding — invisible in code review, obvious the moment the human
-  looked at a screenshot. **Lesson:** "must be built only from real components" is not self-enforcing just
-  because it's followed in most places — every individual element still needs a conscious check of "does a
-  real component already exist for this," and a rendered screenshot comparison against a known-correct
-  instance of the same component elsewhere on the page is a fast, reliable way to catch this class of bug.
-  Durable fix: see the new [Color Token Import Guide](/docs/COLOR-TOKEN-IMPORT-GUIDE.md), Step 5.
+  following it everywhere else — and one instance found is not evidence the rest of the codebase is clean:**
+  the "Tentatively approved" pill in the Color Token Lab banner was built as a hand-rolled
+  `<span className="rounded-full bg-secondary px-2 py-0.5 ...">` instead of importing the real `Badge` from
+  `@bidezine/system` — even though `Badge` was already imported and used correctly elsewhere on the very same
+  page (`PhaseRail`'s "Done"/"Pending" pills). The hand-rolled version was missing
+  `inline-flex items-center justify-center` (among other things), which made the text render visibly
+  uncentered with no real vertical padding — invisible in code review, obvious the moment the human looked
+  at a screenshot. Fixing that one instance and moving on was **not sufficient** — when the human asked for
+  a full re-inspection of the factory line, three more hand-rolled violations turned up that had gone
+  unnoticed because they didn't visibly break like the Badge did (they merely *duplicated* a real
+  component's styling instead of importing it, which looks fine at a glance but is still the same rule
+  violation and still carries the same drift risk):
+  - `PhaseRail.tsx`'s phase-nav item was a raw `<button>` manually re-implementing the exact
+    active/hover/focus idiom that `SidebarMenuButton` already encodes (`data-active` → `bg-accent
+    text-accent-foreground`). `SidebarMenuButton` itself couldn't be dropped in directly (it requires a
+    `SidebarProvider` context via `useSidebar()`, which would mean adopting the whole Sidebar
+    provider/mobile/collapse machinery just for a simple phase list) — resolved instead by rebuilding it on
+    the real `Button` component (`variant="ghost"`, active state via className override) so at minimum the
+    interactive base (focus-visible ring, disabled handling, transition) comes from the real primitive.
+  - `CompareVisuals.tsx`'s `MotionCompare`'s "Replay" control was a raw `<button className="rounded-md
+    border px-2 py-1 ...">` instead of `Button` (`variant="outline" size="xs"`).
+  - `DivergenceView.tsx`'s `RisksList` action-item indicator was a hand-rolled `<span>` with conditional
+    border/background classes plus a manually-placed `CheckIcon`, reimplementing what the real `Checkbox`
+    component already does — replaced with `<Checkbox checked={item.done} disabled />`.
+  **Lesson:** "must be built only from real components" is not self-enforcing just because it's followed in
+  most places, and a single caught violation doesn't mean the rest of the file (or the rest of the app) is
+  clean — every individual interactive/styled element needs its own conscious check of "does a real
+  component already exist for this," and finding one violation should trigger a full sweep of the same
+  codebase for the same pattern, not just a fix-and-move-on. A rendered screenshot comparison against a
+  known-correct instance of the same component elsewhere on the page catches the *visually broken* cases
+  (like the Badge) but not the merely-duplicated-and-still-looks-fine cases (like these three) — those need
+  a deliberate code read, not just a render check. This rule has now been elevated into `CLAUDE.md`'s
+  standing "Rules that matter" section (not left as a Limbo-only convention), since it's a repo-wide rule,
+  not something specific to this protocol. Durable fix/reference: see the new
+  [Color Token Import Guide](/docs/COLOR-TOKEN-IMPORT-GUIDE.md), Step 5.
 
 ## Exit condition
 
