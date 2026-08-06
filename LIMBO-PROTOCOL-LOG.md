@@ -254,6 +254,37 @@ friction, anything.)_
   source into a dedicated reference subtree *before* attempting a hand-built comparison mock — a hand-built
   mock is only safe for components that are close to purely static/presentational.
 
+- **A vendored component's own documented sizing/containment contract must be honored exactly, not
+  guessed at with a convenient fixed value.** The real `RailNav`'s rail overflow (collapsing excess
+  sections into a "More" button) is governed by an exact, documented budget formula in the origin's
+  `docs/interaction-patterns.md` ("Rail overflow behavior"): `available = containerHeight - 16px (aside
+  padding) - 16px (surface padding) - 44px (footer zone, if present)`, `maxVisibleItems =
+  floor(available / 44px)`. `OriginRailNavLive.tsx`'s embedding shim originally bounded the real
+  component in an arbitrary `height=640` frame — well under the `>=780px` the real `Default` story's 16
+  rail sections require per that formula — so the rail's *own real, correct* logic dutifully collapsed
+  most sections into "More," which looked like a rendering bug but was actually the harness violating a
+  documented sizing contract. The human caught this by asking "why is it truncated" and explicitly
+  instructing "read its documentation" rather than accepting a guessed fix. **Lesson:** when vendoring a
+  real component into a bounded frame, the frame's dimensions are not a free styling choice — find and
+  honor the component's own documented sizing formula/contract before picking a number, and cite the
+  formula in a comment so the next person doesn't have to rediscover it.
+- **A component with a real `ResizeObserver`-driven internal calculation must never be mounted twice
+  simultaneously with only one instance CSS-hidden at a time** (e.g. a `dark:hidden` / `hidden dark:block`
+  pair, the same light/dark toggle pattern used safely for purely static/presentational content
+  elsewhere in this project). A hidden (`display:none`) instance's `ResizeObserver` reports a `0x0`
+  `contentRect`; making it visible again by toggling a parent class does not reliably re-trigger a
+  correct fresh measurement (a real browser `ResizeObserver` quirk around `display:none`<->`block`
+  transitions), so the previously-hidden `RailNav` instance can get stuck showing a collapsed "More"
+  state even once visible again — reproduced concretely by toggling to dark and back to light, and
+  finding light broken even though it had rendered correctly moments before. **Fix:** never keep both
+  theme variants mounted; track theme via a `useDocumentDarkMode()` hook (a `MutationObserver` on
+  `document.documentElement`'s `class`, since `limbo-factory` has no shared theme context to consume) and
+  force a full unmount/remount via a React `key={mode}` change whenever the theme flips, so the component
+  always measures a freshly-visible, correctly-sized container. **Lesson:** the safe dual-CSS-toggle
+  light/dark pattern is only safe for static/presentational content — anything with real
+  `ResizeObserver`/`IntersectionObserver`/layout-measuring internals needs a remount-on-theme-change
+  strategy instead, every time it's reused for a new Limbo component.
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given

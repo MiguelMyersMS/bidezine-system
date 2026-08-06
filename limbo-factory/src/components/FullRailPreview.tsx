@@ -7,7 +7,7 @@ import {
   PREVIEW_NAV_ICONS,
   type ProposedToken,
 } from "@/data/rail-sidebar"
-import { OriginRailNavLive } from "@/reference/origin-design-system/OriginRailNavLive"
+import { OriginRailNavLiveAuto } from "@/reference/origin-design-system/OriginRailNavLive"
 
 /**
  * The full, "robust" side-by-side you asked for on the Full divergence list tab: not just colors
@@ -426,12 +426,7 @@ export function FullRailPreview({ tokens }: { tokens: ProposedToken[] }) {
       </p>
       <div className="flex flex-col items-center gap-10 py-2 md:flex-row md:items-start md:justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="dark:hidden">
-            <OriginRailNavLive variant="light" />
-          </div>
-          <div className="hidden dark:block">
-            <OriginRailNavLive variant="dark" />
-          </div>
+          <OriginRailNavLiveAuto />
           <p className="text-xs font-medium text-muted-foreground">
             Origin — real vendored component, Default story (live &amp; interactive)
           </p>
