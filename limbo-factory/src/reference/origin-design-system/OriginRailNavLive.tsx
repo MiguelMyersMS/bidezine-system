@@ -111,7 +111,6 @@ export function OriginRailNavLive({
         width,
         maxWidth: "100%",
         border: "none",
-        borderRadius: 12,
         display: "block",
       }}
     />
