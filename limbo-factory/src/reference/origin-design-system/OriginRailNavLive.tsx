@@ -1,54 +1,112 @@
 // Embedding shim for the real, vendored RailNav `Default` story — NOT part of the verbatim extract
 // itself. `DefaultDemo.tsx` (in gallery/) is the mechanically-sliced, byte-faithful copy of the
 // story's DefaultShell; this file only adds what's needed to drop that live component into our own
-// page instead of a full Storybook iframe:
-//   1. A ThemeContext.Provider, since `useTokens()` falls back to TOKENS_LIGHT with no provider —
-//      real Storybook picks light/dark via its own theme decorator, which we don't have here.
-//   2. A bounded frame, since DefaultShell's own wrapper div is `height: 100dvh` (viewport-relative,
-//      correct for a full Storybook page) — inside our own layout we contain it in a fixed-height box
-//      instead so it doesn't blow out the surrounding page.
+// page instead of a full Storybook iframe.
+//
+// Why an <iframe> is required (not just a bounded <div>): DefaultShell's own outer wrapper is
+// hardcoded `height: 100dvh` — correct for a full Storybook page, but `dvh` is a *viewport*-relative
+// unit. It always measures the real top-level browsing context's actual window size, completely
+// ignoring the size of any ancestor element. A plain `<div style={{ height: 820, overflow: "hidden" }}>`
+// wrapping DefaultShell does NOT constrain it: DefaultShell still renders at ~full physical browser
+// height internally (typically >900px on a normal monitor), so RailNav's own rail-overflow
+// measurement — which reads its real rendered `clientHeight` via a genuine `ResizeObserver`, see
+// design-system/src/gallery/RailNav.tsx's `computedMax` effect — always sees "plenty of room" and
+// never collapses into "More", no matter how small a `height` is passed to that outer div. The div's
+// `overflow: hidden` only visually clips the excess; it doesn't change what RailNav measures. This
+// was diagnosed by reading the real source directly (`railRef.current.clientHeight` inside a
+// `ResizeObserver` callback), not by re-guessing another arbitrary pixel value.
+//
+// The fix: an `<iframe>` is its own independent browsing context with its OWN top-level viewport —
+// `100dvh` measured *inside* an iframe genuinely equals that iframe's own rendered box size. So we
+// mount DefaultShell into a small React root created inside the iframe's own document; the iframe
+// element's `height`/`width` CSS becomes the real, honored constraint DefaultShell's `100dvh`
+// resolves against. This also matches how real Storybook works (every story renders inside an
+// iframe) — we're recreating that isolation deliberately, not working around it.
+//
+// A useful side effect: this also removes the earlier CSS-hidden dual-instance workaround entirely.
+// Because there's now only ONE mounted iframe/React root, switching light/dark is just a normal
+// re-render with a different ThemeContext value — never an unmount, never a `display: none` toggle —
+// so there's nothing left that can leave RailNav's ResizeObserver stuck mid-measurement.
+//
+// Default `height` (860px): once the iframe made `100dvh` a real, honored constraint again, the
+// PREVIOUS 820px guess (based on the doc's simplified `16 items * 44px + fixed overhead` formula)
+// turned out to be too short — real Default story's 16 rail sections need >=842px, measured
+// empirically by bisecting the iframe's rendered height and watching for the "More navigation
+// options" button to disappear (the real formula in RailNav.tsx's `computedMax` effect measures the
+// ACTUAL rendered logo-slot and footer-slot heights via refs, not fixed constants, so it doesn't
+// reduce to a simple arithmetic formula from the docs alone). 860px gives ~18px of headroom above the
+// measured 842px threshold. If FigmaAuditDisabledButton's utility footer button set ever changes,
+// re-measure by temporarily setting the iframe's own `style.height` in devtools and watching for the
+// "More" button.
+//
 // No RailNav/DefaultShell behavior, token, or markup is altered — this is purely a mounting harness.
-//
-// Frame height, from design-system/docs/interaction-patterns.md ("Viewport containment" /
-// "Rail overflow behavior"): the rail auto-collapses excess sections into a "More" overflow menu the
-// moment its container is shorter than needed — that's real, intended behavior, NOT a bug, but it means
-// an arbitrarily short frame silently (and misleadingly) truncates the rail for THIS demo specifically.
-// Per the doc's own budget formula:
-//   available = frameHeight - aside padding (16px) - surface padding (16px) - footer zone (44px)
-//   maxItems  = floor(available / 44px per slot)
-// SECTIONS_DEFAULT (the real Default story's rail) has 16 top-zone sections, so avoiding overflow needs
-// available >= 16 * 44 = 704, i.e. frameHeight >= 704 + 16 + 16 + 44 = 780. 820px gives headroom so the
-// rail renders exactly as it does full-page in the real Storybook — no artificial "More" collapse.
-//
-// Mount discipline: only ONE instance is ever mounted at a time (never a `dark:hidden`/`dark:block`
-// pair CSS-toggled on top of each other). RailNav's overflow-budget calc runs off a real
-// ResizeObserver reading its own container's rendered size — an instance sitting `display: none`
-// reports a 0×0 rect, and toggling it back to visible does not reliably re-trigger a fresh
-// measurement, so a CSS-hidden copy can get stuck showing the "More" overflow collapse even once
-// visible again. `OriginRailNavLiveAuto` below tracks the page's real light/dark class via a
-// MutationObserver and remounts (via `key`) on every change, so RailNav always measures a real,
-// currently-visible container.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createRoot, type Root } from "react-dom/client";
 import { ThemeContext } from "./theme";
 import { TOKENS_LIGHT, TOKENS_DARK } from "./tokens";
 import DefaultShell from "./gallery/DefaultDemo";
 
-export function OriginRailNavLive({ variant, height = 820 }: { variant: "light" | "dark"; height?: number }) {
-  return (
-    <div
-      style={{
-        height,
-        width: 640,
-        maxWidth: "100%",
-        overflow: "hidden",
-        borderRadius: 12,
-        position: "relative",
-      }}
-    >
+export function OriginRailNavLive({
+  variant,
+  height = 860,
+  width = 640,
+}: {
+  variant: "light" | "dark";
+  height?: number;
+  width?: number;
+}) {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const rootRef = useRef<Root | null>(null);
+
+  // Create the iframe's own document + React root once per mount. Deliberately NOT re-run on
+  // `variant` change — swapping themes only needs a re-render of the same mounted tree (see the
+  // effect below), not a full document rebuild, so interaction state (search text, open panels,
+  // scroll position) survives a light/dark toggle instead of resetting.
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    const doc = iframe?.contentDocument;
+    if (!doc) return;
+    doc.open();
+    doc.write(
+      "<!DOCTYPE html><html><head><meta charset=\"utf-8\" />" +
+        "<style>html,body{margin:0;padding:0;height:100%;}#root{height:100%;}</style>" +
+        "</head><body><div id=\"root\"></div></body></html>"
+    );
+    doc.close();
+    const mountEl = doc.getElementById("root");
+    if (!mountEl) return;
+    const root = createRoot(mountEl);
+    rootRef.current = root;
+    return () => {
+      root.unmount();
+      rootRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Re-render the SAME mounted tree whenever the theme changes — a plain context-value swap, not a
+  // remount, so RailNav's rail <div> (and its ResizeObserver) is never unmounted or hidden.
+  useEffect(() => {
+    rootRef.current?.render(
       <ThemeContext.Provider value={variant === "dark" ? TOKENS_DARK : TOKENS_LIGHT}>
         <DefaultShell />
       </ThemeContext.Provider>
-    </div>
+    );
+  });
+
+  return (
+    <iframe
+      ref={iframeRef}
+      title="Origin RailNav — Default story (live)"
+      style={{
+        height,
+        width,
+        maxWidth: "100%",
+        border: "none",
+        borderRadius: 12,
+        display: "block",
+      }}
+    />
   );
 }
 
@@ -67,9 +125,10 @@ function useDocumentDarkMode(): "light" | "dark" {
   return mode;
 }
 
-/** Single always-mounted instance that remounts on theme change, so RailNav's own overflow
- * measurement always runs against a real, visible container — see mount-discipline note above. */
-export function OriginRailNavLiveAuto({ height = 820 }: { height?: number }) {
+/** Auto light/dark instance: tracks the page's real theme class and re-renders the ONE mounted
+ * iframe/root in place (no remount, no CSS-hidden dual instance — see file header for why the
+ * previous approaches broke RailNav's real rail-overflow measurement). */
+export function OriginRailNavLiveAuto({ height = 860, width = 640 }: { height?: number; width?: number }) {
   const mode = useDocumentDarkMode();
-  return <OriginRailNavLive key={mode} variant={mode} height={height} />;
+  return <OriginRailNavLive variant={mode} height={height} width={width} />;
 }

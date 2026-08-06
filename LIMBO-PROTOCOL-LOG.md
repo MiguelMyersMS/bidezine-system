@@ -255,19 +255,39 @@ friction, anything.)_
   mock is only safe for components that are close to purely static/presentational.
 
 - **A vendored component's own documented sizing/containment contract must be honored exactly, not
-  guessed at with a convenient fixed value.** The real `RailNav`'s rail overflow (collapsing excess
-  sections into a "More" button) is governed by an exact, documented budget formula in the origin's
-  `docs/interaction-patterns.md` ("Rail overflow behavior"): `available = containerHeight - 16px (aside
-  padding) - 16px (surface padding) - 44px (footer zone, if present)`, `maxVisibleItems =
-  floor(available / 44px)`. `OriginRailNavLive.tsx`'s embedding shim originally bounded the real
-  component in an arbitrary `height=640` frame — well under the `>=780px` the real `Default` story's 16
-  rail sections require per that formula — so the rail's *own real, correct* logic dutifully collapsed
-  most sections into "More," which looked like a rendering bug but was actually the harness violating a
-  documented sizing contract. The human caught this by asking "why is it truncated" and explicitly
-  instructing "read its documentation" rather than accepting a guessed fix. **Lesson:** when vendoring a
-  real component into a bounded frame, the frame's dimensions are not a free styling choice — find and
-  honor the component's own documented sizing formula/contract before picking a number, and cite the
-  formula in a comment so the next person doesn't have to rediscover it.
+  guessed at with a convenient fixed value — and when the docs only describe an *approximation*, the
+  real source's own measurement code is the final authority.** The real `RailNav`'s rail overflow
+  (collapsing excess sections into a "More" button) reads its container's genuine rendered
+  `clientHeight`/`offsetHeight` via a real `ResizeObserver` (`design-system/src/gallery/RailNav.tsx`'s
+  `computedMax` effect) — NOT a fixed arithmetic formula. `docs/interaction-patterns.md`'s "Rail overflow
+  behavior" section describes a simplified budget (`available = containerHeight - 16px - 16px - 44px`,
+  `maxVisibleItems = floor(available / 44px)`) that is close but not exact once real per-instance logo/
+  footer slot heights are measured instead of the doc's flat constants — the true threshold for the
+  `Default` story's 16 sections turned out to be 842px, not the doc-derived 780px.
+  **A second, more fundamental issue was hiding underneath the first:** `OriginRailNavLive.tsx`'s
+  embedding shim originally wrapped the real component in a plain `<div style={{ height, overflow:
+  "hidden" }}>`. But the vendored `DefaultShell`'s own outer wrapper is hardcoded `height: 100dvh` — a
+  *viewport*-relative CSS unit that always measures the real top-level browsing context's actual window
+  size, completely ignoring any ancestor element's size. That div's `height` was cosmetic: DefaultShell
+  always rendered at ~full physical browser height internally regardless of what number was passed, so
+  RailNav's real overflow measurement always saw "plenty of room" and never collapsed — no pixel value
+  chosen for that div could ever have fixed it, because `overflow: hidden` on the div only visually
+  clips excess content, it doesn't change what a `100dvh`-sized descendant measures itself against. This
+  was hidden by the first (smaller) bug: an initial too-small guessed height (640px) still visually
+  "truncated" for the wrong reason, masking that the sizing mechanism was fundamentally non-functional
+  until the human explicitly re-tested with genuinely small container sizes and reported "the rail
+  always shows completely even in a small container" — the tell that NOTHING about the container size
+  was being honored at all. **Fix:** the real, only-correct solution for embedding a component whose
+  vendored source uses viewport units is an `<iframe>` — its own independent browsing context has its
+  OWN top-level viewport, so `100dvh` measured inside it genuinely equals the iframe's own rendered box
+  size (this is literally how real Storybook embeds every story). `OriginRailNavLive.tsx` now mounts a
+  React root inside the iframe's own document instead of rendering into a plain div.
+  **Lesson for future Limbo occupants:** (1) never trust a doc's simplified formula as exact once the
+  real source's measurement code is available to read — verify empirically (bisect the real container
+  size and watch for the actual collapse/expand threshold) rather than trusting arithmetic alone; (2)
+  before choosing ANY embedding strategy for a vendored component, grep it for `dvh`/`vh`/`vw` viewport
+  units — if present, a bounded `<div>` cannot constrain it no matter what height is chosen, and an
+  `<iframe>` (or an equivalent separate-browsing-context mechanism) is required, not optional.
 - **A component with a real `ResizeObserver`-driven internal calculation must never be mounted twice
   simultaneously with only one instance CSS-hidden at a time** (e.g. a `dark:hidden` / `hidden dark:block`
   pair, the same light/dark toggle pattern used safely for purely static/presentational content
@@ -276,14 +296,16 @@ friction, anything.)_
   correct fresh measurement (a real browser `ResizeObserver` quirk around `display:none`<->`block`
   transitions), so the previously-hidden `RailNav` instance can get stuck showing a collapsed "More"
   state even once visible again — reproduced concretely by toggling to dark and back to light, and
-  finding light broken even though it had rendered correctly moments before. **Fix:** never keep both
-  theme variants mounted; track theme via a `useDocumentDarkMode()` hook (a `MutationObserver` on
-  `document.documentElement`'s `class`, since `limbo-factory` has no shared theme context to consume) and
-  force a full unmount/remount via a React `key={mode}` change whenever the theme flips, so the component
-  always measures a freshly-visible, correctly-sized container. **Lesson:** the safe dual-CSS-toggle
-  light/dark pattern is only safe for static/presentational content — anything with real
-  `ResizeObserver`/`IntersectionObserver`/layout-measuring internals needs a remount-on-theme-change
-  strategy instead, every time it's reused for a new Limbo component.
+  finding light broken even though it had rendered correctly moments before. **Fix, revised:** the
+  cleanest solution isn't remounting via a `key` change (an earlier, more complex attempt) — once the
+  component is mounted inside its own iframe/React root (see the entry above), a theme change is just a
+  normal re-render with a different `ThemeContext` value passed to the SAME already-mounted tree; there
+  is no unmount, no `display: none` toggle, and nothing that could ever leave the `ResizeObserver` stuck
+  mid-measurement. **Lesson:** the safe dual-CSS-toggle light/dark pattern is only safe for static/
+  presentational content — anything with real `ResizeObserver`/`IntersectionObserver`/layout-measuring
+  internals should have exactly ONE long-lived mounted instance whose props change on theme flips, never
+  two instances toggled via CSS visibility.
+
 
 ## Exit condition
 
