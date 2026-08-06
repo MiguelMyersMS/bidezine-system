@@ -198,8 +198,8 @@ export interface ProposedToken {
 
 export const proposedDarkRailTokens: ProposedToken[] = [
   { originName: "darkSurface", proposedVar: "--sidebar-rail-surface", usage: "Rail background", originLightHex: "#1c2024", originDarkHex: "#111113", proposedLight: "oklch(0.205 0 0)", proposedDark: "oklch(0.145 0 0)" },
-  { originName: "darkHoverBg", proposedVar: "--sidebar-rail-hover", usage: "Row hover overlay", originLightHex: "rgba(255,255,255,0.10)", originDarkHex: "#212225", proposedLight: "oklch(0.301 0 0)", proposedDark: "oklch(0.222 0 0)" },
-  { originName: "darkPressedBg", proposedVar: "--sidebar-rail-pressed", usage: "Row pressed overlay", originLightHex: "rgba(255,255,255,0.15)", originDarkHex: "#2e3135", proposedLight: "oklch(0.39 0 0)", proposedDark: "oklch(0.305 0 0)" },
+  { originName: "darkHoverBg", proposedVar: "--sidebar-rail-hover", usage: "Row hover overlay", originLightHex: "rgba(255,255,255,0.10)", originDarkHex: "#212225", proposedLight: "oklch(0.301 0 0)", proposedDark: "oklch(0.191 0 0)" },
+  { originName: "darkPressedBg", proposedVar: "--sidebar-rail-pressed", usage: "Row pressed overlay", originLightHex: "rgba(255,255,255,0.15)", originDarkHex: "#2e3135", proposedLight: "oklch(0.348 0 0)", proposedDark: "oklch(0.222 0 0)" },
   { originName: "darkActiveBg", proposedVar: "--sidebar-rail-active", usage: "Row active/selected overlay", originLightHex: "rgba(255,255,255,0.20)", originDarkHex: "#272a2d", proposedLight: "oklch(0.39 0 0)", proposedDark: "oklch(0.252 0 0)" },
   { originName: "darkBorderStrong", proposedVar: "--sidebar-rail-border-strong", usage: "Visible border on the dark rail", originLightHex: "rgba(255,255,255,0.6)", originDarkHex: "#5a6169", proposedLight: "oklch(0.256 0 0)", proposedDark: "oklch(0.301 0 0)" },
   { originName: "onDark", proposedVar: "--sidebar-rail-foreground", usage: "Full-strength text/icon on dark rail", originLightHex: "#ffffff", originDarkHex: "#ffffff", proposedLight: "oklch(0.985 0 0)", proposedDark: "oklch(0.985 0 0)" },
