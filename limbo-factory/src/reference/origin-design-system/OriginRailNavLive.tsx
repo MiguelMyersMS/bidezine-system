@@ -77,7 +77,15 @@ export function OriginRailNavLive({
         // Hide DefaultShell's own placeholder "Content area" panel (its stand-in for a real app's
         // main content, not part of RailNav itself) — this is a display-only override at the
         // embedding-shim level, not an edit to the vendored DefaultDemo.tsx source.
-        "main{display:none !important;}</style>" +
+          "main{display:none !important;}" +
+          // DefaultShell's own outer flex wrapper hardcodes an `#f0f0f3` backdrop + 8px padding around
+          // the rail (its own demo "canvas" look, meant to show the rail floating over an app
+          // background). With `main` hidden that backdrop still fills the whole iframe, which reads as
+          // a second, separate rounded "card" sitting inside our embedding box instead of the rail
+          // filling it edge-to-edge like the bidezine mock does. Neutralizing it is display-only (same
+          // embedding-shim rule as the `main` hide above) — RailNav's own markup/tokens are untouched.
+          "#root>div{background:transparent !important;padding:0 !important;}" +
+          "#root>div>aside{padding:0 !important;}</style>" +
         "</head><body><div id=\"root\"></div></body></html>"
     );
     doc.close();
