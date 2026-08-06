@@ -324,6 +324,7 @@ function FullRailMock({
   headingClass,
   bodySClass,
   labelMClass,
+  height = 550,
 }: {
   source: Source
   variant: Variant
@@ -337,11 +338,12 @@ function FullRailMock({
   headingClass: string
   bodySClass: string
   labelMClass: string
+  height?: number
 }) {
   const colors = colorsFor(source, variant, tokens)
 
   return (
-    <div className="flex overflow-hidden rounded-2xl" style={{ fontFamily, borderRadius: radiusRail, height: 550 }}>
+    <div className="flex overflow-hidden rounded-2xl" style={{ fontFamily, borderRadius: radiusRail, height }}>
       {/* Dark rail */}
       <div
         className="flex shrink-0 flex-col items-center gap-2 p-2"
@@ -425,12 +427,14 @@ function FullRailMockBothThemes(props: Omit<Parameters<typeof FullRailMock>[0], 
 export function RailNavStatusPreview({
   source,
   tokens,
+  height = 550,
 }: {
   source: Source
   tokens: ProposedToken[]
+  height?: number
 }) {
   if (source === "origin") {
-    return <OriginRailNavLiveAuto height={550} />
+    return <OriginRailNavLiveAuto height={height} />
   }
 
   return (
@@ -446,6 +450,7 @@ export function RailNavStatusPreview({
       headingClass="text-base font-medium"
       bodySClass="text-xs"
       labelMClass="text-xs font-medium"
+      height={height}
     />
   )
 }

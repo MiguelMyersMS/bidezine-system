@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useLayoutEffect, useRef, useState } from "react"
 import { Badge, ScrollArea, Separator, Tabs, TabsContent, TabsList, TabsTrigger, cn } from "@bidezine/system"
 import { PhaseRail } from "@/components/PhaseRail"
 import { BlockingQuestionCard, DivergenceCategoriesAccordion, RisksList } from "@/components/DivergenceView"
@@ -74,7 +74,13 @@ export function App() {
   )
 }
 
-function QuadrantLayout({ children, right }: { children: React.ReactNode; right: React.ReactNode }) {
+function QuadrantLayout({
+  children,
+  right,
+}: {
+  children: React.ReactNode
+  right: (height: number) => React.ReactNode
+}) {
   return (
     <div className="grid h-full grid-cols-2 gap-6">
       <div className="h-full min-h-0 overflow-hidden">
@@ -82,7 +88,37 @@ function QuadrantLayout({ children, right }: { children: React.ReactNode; right:
           <div className="flex flex-col gap-4 pr-3">{children}</div>
         </ScrollArea>
       </div>
-      <div className="flex h-full items-center justify-center overflow-hidden rounded-lg bg-muted p-4">{right}</div>
+      <div className="flex h-full items-center justify-center overflow-hidden rounded-lg bg-muted p-4">
+        <FillHeight render={right} />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Measures the available stage height (after padding) and renders its child at exactly that
+ * height, so a fixed-size example — like the RailNav preview — always fills the y-axis instead
+ * of overflowing through the padding (too tall) or floating with extra gaps (too short).
+ */
+function FillHeight({ render }: { render: (height: number) => React.ReactNode }) {
+  const outerRef = useRef<HTMLDivElement>(null)
+  const [height, setHeight] = useState(0)
+
+  useLayoutEffect(() => {
+    const outer = outerRef.current
+    if (!outer) return
+
+    const recalc = () => setHeight(outer.clientHeight)
+
+    recalc()
+    const observer = new ResizeObserver(recalc)
+    observer.observe(outer)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div ref={outerRef} className="flex h-full w-full items-center justify-center">
+      {height > 0 ? render(height) : null}
     </div>
   )
 }
@@ -124,7 +160,9 @@ function RailSourceToggle({
 
 function HumanDecisionsPhase() {
   const [railSource, setRailSource] = useState<"origin" | "bidezine">("bidezine")
-  const railNav = <RailNavStatusPreview source={railSource} tokens={proposedDarkRailTokens} />
+  const renderRailNav = (height: number) => (
+    <RailNavStatusPreview source={railSource} tokens={proposedDarkRailTokens} height={height} />
+  )
 
   return (
     <Tabs defaultValue="blocking" className="flex h-full w-full flex-col gap-0">
@@ -142,7 +180,7 @@ function HumanDecisionsPhase() {
       </div>
 
       <TabsContent value="blocking" className="min-h-0">
-        <QuadrantLayout right={railNav}>
+        <QuadrantLayout right={renderRailNav}>
           {blockingQuestions.map((q) => (
             <BlockingQuestionCard key={q.id} question={q} />
           ))}
@@ -158,7 +196,7 @@ function HumanDecisionsPhase() {
       </TabsContent>
 
       <TabsContent value="colorlab" className="min-h-0">
-        <QuadrantLayout right={railNav}>
+        <QuadrantLayout right={renderRailNav}>
           {(() => {
             const approvedCount = proposedDarkRailTokens.filter((t) => t.approved !== false).length
             const pendingCount = proposedDarkRailTokens.length - approvedCount
@@ -179,13 +217,13 @@ function HumanDecisionsPhase() {
       </TabsContent>
 
       <TabsContent value="categories" className="min-h-0">
-        <QuadrantLayout right={railNav}>
+        <QuadrantLayout right={renderRailNav}>
           <DivergenceCategoriesAccordion categories={divergenceCategories} />
         </QuadrantLayout>
       </TabsContent>
 
       <TabsContent value="risks" className="min-h-0">
-        <QuadrantLayout right={railNav}>
+        <QuadrantLayout right={renderRailNav}>
           <RisksList risks={notableRisks} />
         </QuadrantLayout>
       </TabsContent>
