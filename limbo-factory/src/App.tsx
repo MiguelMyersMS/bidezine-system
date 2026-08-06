@@ -77,7 +77,11 @@ export function App() {
 function QuadrantLayout({ children, right }: { children: React.ReactNode; right: React.ReactNode }) {
   return (
     <div className="grid h-full grid-cols-2 gap-6">
-      <div className="flex h-full flex-col gap-4 overflow-y-auto rounded-lg border p-4">{children}</div>
+      <div className="h-full min-h-0 overflow-hidden rounded-lg border">
+        <ScrollArea className="h-full">
+          <div className="flex flex-col gap-4 p-4">{children}</div>
+        </ScrollArea>
+      </div>
       <div className="flex h-full items-center justify-center overflow-hidden rounded-lg border p-4">{right}</div>
     </div>
   )
