@@ -4,8 +4,7 @@ import { PhaseRail } from "@/components/PhaseRail"
 import { BlockingQuestionCard, DivergenceCategoriesAccordion, RisksList } from "@/components/DivergenceView"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { ColorTokenLab } from "@/components/ColorTokenLab"
-import { RailPreview } from "@/components/RailPreview"
-import { FullRailPreview } from "@/components/FullRailPreview"
+import { RailNavStatusPreview } from "@/components/FullRailPreview"
 import { LogoImportSlot } from "@/components/LogoImportSlot"
 import { NEGATIVE_BADGE, POSITIVE_BADGE, POSITIVE_BORDER, POSITIVE_WASH } from "@/lib/status-colors"
 import {
@@ -67,7 +66,54 @@ export function App() {
   )
 }
 
+function QuadrantLayout({ children, right }: { children: React.ReactNode; right: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-2">
+      <div className="flex flex-col gap-4 border-r pr-6">{children}</div>
+      <div className="flex items-center justify-center pl-6">{right}</div>
+    </div>
+  )
+}
+
+function RailSourceToggle({
+  value,
+  onChange,
+}: {
+  value: "origin" | "bidezine"
+  onChange: (value: "origin" | "bidezine") => void
+}) {
+  return (
+    <div className="flex items-center gap-0.5 rounded-md border p-0.5 text-xs">
+      <button
+        type="button"
+        aria-pressed={value === "origin"}
+        onClick={() => onChange("origin")}
+        className={cn(
+          "rounded-sm px-2 py-1 font-medium transition-colors",
+          value === "origin" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground",
+        )}
+      >
+        Origin
+      </button>
+      <button
+        type="button"
+        aria-pressed={value === "bidezine"}
+        onClick={() => onChange("bidezine")}
+        className={cn(
+          "rounded-sm px-2 py-1 font-medium transition-colors",
+          value === "bidezine" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground",
+        )}
+      >
+        Adjusted
+      </button>
+    </div>
+  )
+}
+
 function HumanDecisionsPhase() {
+  const [railSource, setRailSource] = useState<"origin" | "bidezine">("bidezine")
+  const railNav = <RailNavStatusPreview source={railSource} tokens={proposedDarkRailTokens} />
+
   return (
     <Tabs defaultValue="blocking" className="w-full">
       <div className="-mx-6 -mt-6 mb-6 flex items-center justify-between gap-4 border-b px-6 py-4">
@@ -77,55 +123,59 @@ function HumanDecisionsPhase() {
           <TabsTrigger value="categories">Full divergence list (13 categories)</TabsTrigger>
           <TabsTrigger value="risks">Notable risks (9)</TabsTrigger>
         </TabsList>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <RailSourceToggle value={railSource} onChange={setRailSource} />
+          <ThemeToggle />
+        </div>
       </div>
 
       <TabsContent value="blocking">
-        <div className="grid grid-cols-2 gap-6">
-          <div className="flex flex-col gap-4">
-            {blockingQuestions.map((q) => (
-              <BlockingQuestionCard key={q.id} question={q} />
-            ))}
-            <div className="rounded-md border p-4">
-              <p className="mb-2 text-sm font-medium">Logo import (Q3's standing rule)</p>
-              <LogoImportSlot
-                defaultUrl={BIDEZINE_LOGO_DEFAULT_LABEL}
-                defaultSvgPath={BIDEZINE_LOGO_PATH}
-                defaultViewBox={BIDEZINE_LOGO_VIEWBOX}
-              />
-            </div>
+        <QuadrantLayout right={railNav}>
+          {blockingQuestions.map((q) => (
+            <BlockingQuestionCard key={q.id} question={q} />
+          ))}
+          <div className="rounded-md border p-4">
+            <p className="mb-2 text-sm font-medium">Logo import (Q3's standing rule)</p>
+            <LogoImportSlot
+              defaultUrl={BIDEZINE_LOGO_DEFAULT_LABEL}
+              defaultSvgPath={BIDEZINE_LOGO_PATH}
+              defaultViewBox={BIDEZINE_LOGO_VIEWBOX}
+            />
           </div>
-          <div />
-        </div>
+        </QuadrantLayout>
       </TabsContent>
 
-      <TabsContent value="colorlab" className="flex flex-col gap-4">
-        {(() => {
-          const approvedCount = proposedDarkRailTokens.filter((t) => t.approved !== false).length
-          const pendingCount = proposedDarkRailTokens.length - approvedCount
-          return (
-            <div className={cn("flex items-center gap-2 rounded-md border border-l-4 p-3", POSITIVE_BORDER, POSITIVE_WASH)}>
-              <Badge className={POSITIVE_BADGE}>{approvedCount} approved</Badge>
-              {pendingCount > 0 ? <Badge className={NEGATIVE_BADGE}>{pendingCount} needs decision</Badge> : null}
-              <p className="text-xs text-muted-foreground">
-                {pendingCount > 0
-                  ? `${approvedCount} candidates have final sign-off, composed and reviewed together in the full rail shape below. ${pendingCount} candidate(s) still await your decision.`
-                  : `All ${approvedCount} candidates have final sign-off, composed and reviewed together in the full rail shape below — including select-hover (--sidebar-rail-active-hover), approved last, extending the same hover→pressed→active ramp one further step. Ready to be authored into tokens/base.tokens.json at Build time.`}
-              </p>
-            </div>
-          )
-        })()}
-        <RailPreview tokens={proposedDarkRailTokens} />
-        <ColorTokenLab tokens={proposedDarkRailTokens} />
+      <TabsContent value="colorlab">
+        <QuadrantLayout right={railNav}>
+          {(() => {
+            const approvedCount = proposedDarkRailTokens.filter((t) => t.approved !== false).length
+            const pendingCount = proposedDarkRailTokens.length - approvedCount
+            return (
+              <div className={cn("flex items-center gap-2 rounded-md border border-l-4 p-3", POSITIVE_BORDER, POSITIVE_WASH)}>
+                <Badge className={POSITIVE_BADGE}>{approvedCount} approved</Badge>
+                {pendingCount > 0 ? <Badge className={NEGATIVE_BADGE}>{pendingCount} needs decision</Badge> : null}
+                <p className="text-xs text-muted-foreground">
+                  {pendingCount > 0
+                    ? `${approvedCount} candidates have final sign-off, composed and reviewed together in the full rail shape below. ${pendingCount} candidate(s) still await your decision.`
+                    : `All ${approvedCount} candidates have final sign-off, composed and reviewed together in the full rail shape below — including select-hover (--sidebar-rail-active-hover), approved last, extending the same hover→pressed→active ramp one further step. Ready to be authored into tokens/base.tokens.json at Build time.`}
+                </p>
+              </div>
+            )
+          })()}
+          <ColorTokenLab tokens={proposedDarkRailTokens} />
+        </QuadrantLayout>
       </TabsContent>
 
-      <TabsContent value="categories" className="flex flex-col gap-4">
-        <FullRailPreview tokens={proposedDarkRailTokens} />
-        <DivergenceCategoriesAccordion categories={divergenceCategories} />
+      <TabsContent value="categories">
+        <QuadrantLayout right={railNav}>
+          <DivergenceCategoriesAccordion categories={divergenceCategories} />
+        </QuadrantLayout>
       </TabsContent>
 
-      <TabsContent value="risks" className="flex flex-col gap-4">
-        <RisksList risks={notableRisks} />
+      <TabsContent value="risks">
+        <QuadrantLayout right={railNav}>
+          <RisksList risks={notableRisks} />
+        </QuadrantLayout>
       </TabsContent>
     </Tabs>
   )

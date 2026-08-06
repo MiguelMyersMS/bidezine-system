@@ -409,13 +409,65 @@ function FullRailMockBothThemes(props: Omit<Parameters<typeof FullRailMock>[0], 
   )
 }
 
+/**
+ * The single, shared RailNav review slot — replaces the old side-by-side RailPreview (color-only)
+ * and FullRailPreview (full composed) mocks, both of which duplicated what the left-quadrant review
+ * items already establish. One rail is shown at a time, switched by the Origin/Adjusted control next
+ * to the theme toggle:
+ *
+ * - "origin" — the real, vendored RailNav (`OriginRailNavLiveAuto`), verbatim. This is reference
+ *   material only and never changes once fully captured, no matter what gets decided here.
+ * - "bidezine" ("Adjusted") — the composed mock rail, built from whatever tokens/layout values are
+ *   currently approved. This view updates as decisions are made on the left (blocking questions,
+ *   color tokens, divergence categories, risks) — it's a live reflection of "how far along are we,"
+ *   not a frozen snapshot.
+ */
+export function RailNavStatusPreview({
+  source,
+  tokens,
+}: {
+  source: Source
+  tokens: ProposedToken[]
+}) {
+  if (source === "origin") {
+    return (
+      <div className="flex flex-col items-center gap-3">
+        <OriginRailNavLiveAuto height={550} />
+        <p className="text-xs font-medium text-muted-foreground">
+          Origin — real vendored component, verbatim (reference only, will not change)
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <FullRailMockBothThemes
+        source="bidezine"
+        tokens={tokens}
+        railW={54}
+        railBtn={38}
+        panelW={300}
+        radiusRail={12}
+        radiusXs={4}
+        fontFamily="var(--font-sans, ui-sans-serif)"
+        headingClass="text-base font-medium"
+        bodySClass="text-xs"
+        labelMClass="text-xs font-medium"
+      />
+      <p className="text-xs font-medium">Adjusted — bidezine, reflects every decision made so far</p>
+      <PendingLegend items={["F-1", "F-2", "F-3", "G-1", "D-1", "D-4", "D-5", "C-1", "C-6", "C-7", "A-1", "badge-variant-map"]} />
+    </div>
+  )
+}
+
 export function FullRailPreview({ tokens }: { tokens: ProposedToken[] }) {
   return (
-    <div className="flex flex-col items-center gap-4 rounded-lg border p-6">
-      <p className="text-center text-sm font-medium">
+    <div className="flex flex-col items-start gap-4 rounded-lg border p-6">
+      <p className="text-left text-sm font-medium">
         Full composed preview: origin RailNav (Default story) vs. bidezine Rail Sidebar (so far)
       </p>
-      <p className="max-w-2xl text-center text-xs text-muted-foreground">
+      <p className="max-w-2xl text-left text-xs text-muted-foreground">
         Left column is the real, vendored <code>RailNav</code> component from the origin repo —
         the exact <code>Default</code> story rendered directly (not a screenshot, not a hand-built
         JSX reconstruction). It genuinely has a working search input, a real Radix dropdown menu on
@@ -424,7 +476,7 @@ export function FullRailPreview({ tokens }: { tokens: ProposedToken[] }) {
         is real. The bidezine column on the right is still the provisional, representative-subset mock
         pending its own real Build phase.
       </p>
-      <div className="flex flex-col items-center gap-10 py-2 md:flex-row md:!items-start md:justify-center">
+      <div className="flex flex-col items-center gap-10 py-2 md:flex-row md:!items-start md:justify-start">
         <div className="flex flex-col items-center gap-3">
           <OriginRailNavLiveAuto height={550} />
           <p className="text-xs font-medium text-muted-foreground">
