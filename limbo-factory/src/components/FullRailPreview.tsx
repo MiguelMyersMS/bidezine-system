@@ -341,7 +341,7 @@ function FullRailMock({
   const colors = colorsFor(source, variant, tokens)
 
   return (
-    <div className="flex overflow-hidden rounded-2xl border shadow-sm" style={{ fontFamily, borderRadius: radiusRail, borderColor: colors.border, height: 550 }}>
+    <div className="flex overflow-hidden rounded-2xl" style={{ fontFamily, borderRadius: radiusRail, height: 550 }}>
       {/* Dark rail */}
       <div
         className="flex shrink-0 flex-col items-center gap-2 p-2"
@@ -411,7 +411,7 @@ function FullRailMockBothThemes(props: Omit<Parameters<typeof FullRailMock>[0], 
 
 export function FullRailPreview({ tokens }: { tokens: ProposedToken[] }) {
   return (
-    <div className="flex flex-col items-center gap-4 rounded-lg border bg-muted/20 p-6">
+    <div className="flex flex-col items-center gap-4 rounded-lg border p-6">
       <p className="text-center text-sm font-medium">
         Full composed preview: origin RailNav (Default story) vs. bidezine Rail Sidebar (so far)
       </p>
@@ -424,7 +424,7 @@ export function FullRailPreview({ tokens }: { tokens: ProposedToken[] }) {
         is real. The bidezine column on the right is still the provisional, representative-subset mock
         pending its own real Build phase.
       </p>
-      <div className="flex flex-col items-center gap-10 py-2 md:flex-row md:items-start md:justify-center">
+      <div className="flex flex-col items-center gap-10 rounded-2xl border p-6 shadow-sm md:flex-row md:items-start md:justify-center">
         <div className="flex flex-col items-center gap-3">
           <OriginRailNavLiveAuto height={550} />
           <p className="text-xs font-medium text-muted-foreground">
