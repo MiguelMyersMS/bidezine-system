@@ -87,7 +87,7 @@ function HumanDecisionsPhase() {
           <BlockingQuestionCard key={q.id} question={q} />
         ))}
         <div className="rounded-md border p-4">
-          <p className="mb-2 text-sm font-medium">Q3 — Logo import (standing rule)</p>
+          <p className="mb-2 text-sm font-medium">Logo import (Q3's standing rule)</p>
           <LogoImportSlot
             defaultUrl={BIDEZINE_LOGO_DEFAULT_LABEL}
             defaultSvgPath={BIDEZINE_LOGO_PATH}
