@@ -70,7 +70,7 @@ export function App() {
 function HumanDecisionsPhase() {
   return (
     <Tabs defaultValue="blocking" className="w-full">
-      <div className="flex items-center justify-between gap-4">
+      <div className="-mx-6 -mt-6 mb-6 flex items-center justify-between gap-4 border-b px-6 py-4">
         <TabsList>
           <TabsTrigger value="blocking">Blocking questions (4)</TabsTrigger>
           <TabsTrigger value="colorlab">Color token lab (10)</TabsTrigger>
