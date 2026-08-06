@@ -15,7 +15,7 @@ import {
 import type { DecisionQuestion, DivergenceCategory, RiskNote } from "@/data/rail-sidebar"
 import { isRiskResolved } from "@/data/rail-sidebar"
 import { VisualCompare } from "@/components/CompareVisuals"
-import { NEGATIVE_BADGE, NEGATIVE_BORDER, NEGATIVE_WASH, POSITIVE_BADGE, POSITIVE_BORDER, POSITIVE_WASH, WARNING_BADGE, WARNING_BORDER, WARNING_WASH } from "@/lib/status-colors"
+import { NEGATIVE_BADGE, POSITIVE_BADGE, WARNING_BADGE } from "@/lib/status-colors"
 
 /** decision = negative/destructive (a hard blocker — needs a human, don't miss it); note =
  * amber/warning (a softer, non-blocking item still worth reading before moving on); clean =
@@ -30,17 +30,10 @@ const STATUS_BADGE: Record<string, { label: string; className: string }> = {
   resolved: { label: "Decided", className: POSITIVE_BADGE },
 }
 
-const ROW_BORDER: Record<string, string> = {
-  decision: NEGATIVE_BORDER,
-  note: WARNING_BORDER,
-  resolved: POSITIVE_BORDER,
-  clean: "border-l-transparent",
-}
-
 export function BlockingQuestionCard({ question }: { question: DecisionQuestion }) {
   const resolved = Boolean(question.resolution)
   return (
-    <Card className={cn("border-l-4", resolved ? cn(POSITIVE_BORDER, POSITIVE_WASH) : cn(NEGATIVE_BORDER, NEGATIVE_WASH))}>
+    <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
           <Badge variant="default">Q{question.priority}</Badge>
@@ -60,7 +53,7 @@ export function BlockingQuestionCard({ question }: { question: DecisionQuestion 
           </div>
         ) : null}
         {question.resolution ? (
-          <div className={cn("rounded-md border p-3", POSITIVE_BORDER, POSITIVE_WASH)}>
+          <div className="rounded-md border bg-card p-3 shadow-sm">
             <p className="text-xs font-medium text-foreground">
               Decided: {question.resolution.chosenLabel}
             </p>
@@ -69,7 +62,7 @@ export function BlockingQuestionCard({ question }: { question: DecisionQuestion 
             ) : null}
           </div>
         ) : (
-          <div className={cn("rounded-md border p-3", NEGATIVE_BORDER, NEGATIVE_WASH)}>
+          <div className="rounded-md border bg-card p-3 shadow-sm">
             <p className="text-xs font-medium text-foreground italic">
               Awaiting your decision — nothing auto-decided here.
             </p>
@@ -112,17 +105,7 @@ export function DivergenceCategoriesAccordion({ categories }: { categories: Dive
                   return (
                     <div
                       key={row.id}
-                      className={cn(
-                        "rounded-md border border-l-4 p-2",
-                        ROW_BORDER[row.status],
-                        row.status === "resolved"
-                          ? POSITIVE_WASH
-                          : row.status === "decision"
-                            ? NEGATIVE_WASH
-                            : row.status === "note"
-                              ? WARNING_WASH
-                              : undefined
-                      )}
+                      className="rounded-md border bg-card p-2 shadow-sm"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-sm font-medium">
@@ -155,7 +138,7 @@ export function RisksList({ risks }: { risks: RiskNote[] }) {
         const resolved = isRiskResolved(risk)
         const doneCount = risk.actionItems.filter((i) => i.done).length
         return (
-          <Card key={risk.id} className={cn("border-l-4", resolved ? cn(POSITIVE_BORDER, POSITIVE_WASH) : "border-l-destructive")}>
+          <Card key={risk.id}>
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Badge variant={resolved ? undefined : "destructive"} className={resolved ? POSITIVE_BADGE : undefined}>

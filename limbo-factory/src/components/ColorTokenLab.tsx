@@ -1,6 +1,6 @@
 import { Badge, Card, CardContent, cn } from "@bidezine/system"
 import type { ProposedToken } from "@/data/rail-sidebar"
-import { NEGATIVE_BADGE, NEGATIVE_BORDER, NEGATIVE_WASH, POSITIVE_BADGE, POSITIVE_BORDER, POSITIVE_WASH } from "@/lib/status-colors"
+import { NEGATIVE_BADGE, POSITIVE_BADGE } from "@/lib/status-colors"
 
 /**
  * Q2's approval surface. Per token: title = the proposed bidezine name (extends the existing
@@ -30,13 +30,7 @@ export function ColorTokenLab({ tokens }: { tokens: ProposedToken[] }) {
         {tokens.map((t) => {
           const isApproved = t.approved !== false
           return (
-          <Card
-            key={t.originName}
-            className={cn(
-              "border-l-4",
-              isApproved ? cn(POSITIVE_BORDER, POSITIVE_WASH) : cn(NEGATIVE_BORDER, NEGATIVE_WASH)
-            )}
-          >
+          <Card key={t.originName}>
             <CardContent className="flex flex-col items-center gap-4 py-6 text-center">
               <div>
                 <p className="font-mono text-sm font-semibold">{t.proposedVar}</p>

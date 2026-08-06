@@ -12,15 +12,12 @@
  * palette. Anything already approved/resolved/decided reads as POSITIVE (emerald) — likewise no
  * bidezine success token yet. Neutral/informational states (e.g. "clean equivalent") are
  * unaffected.
+ *
+ * Deliberately badge-only: earlier revisions also carried a colored left-border + tinted wash
+ * for whole cards/rows, but that read as a distracting banner effect rather than a status pill.
+ * Cards/rows now keep the design system's own plain elevation (border + shadow-sm, same as any
+ * other Card) — only the small badge itself carries the status color.
  */
 export const POSITIVE_BADGE = "bg-emerald-600 text-white dark:bg-emerald-500 dark:text-emerald-950"
 export const WARNING_BADGE = "bg-amber-500 text-amber-950 dark:bg-amber-400 dark:text-amber-950"
 export const NEGATIVE_BADGE = "bg-destructive text-destructive-foreground"
-
-export const POSITIVE_BORDER = "border-l-emerald-600 dark:border-l-emerald-500"
-export const WARNING_BORDER = "border-l-amber-500 dark:border-l-amber-400"
-export const NEGATIVE_BORDER = "border-l-destructive"
-
-export const POSITIVE_WASH = "bg-emerald-500/5"
-export const WARNING_WASH = "bg-amber-500/5"
-export const NEGATIVE_WASH = "bg-destructive/5"

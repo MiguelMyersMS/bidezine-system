@@ -6,7 +6,7 @@ import { ThemeToggle } from "@/components/ThemeToggle"
 import { ColorTokenLab } from "@/components/ColorTokenLab"
 import { RailNavStatusPreview } from "@/components/FullRailPreview"
 import { LogoImportSlot } from "@/components/LogoImportSlot"
-import { NEGATIVE_BADGE, POSITIVE_BADGE, POSITIVE_BORDER, POSITIVE_WASH } from "@/lib/status-colors"
+import { NEGATIVE_BADGE, POSITIVE_BADGE } from "@/lib/status-colors"
 import {
   railSidebarPhases,
   blockingQuestions,
@@ -201,7 +201,7 @@ function HumanDecisionsPhase() {
             const approvedCount = proposedDarkRailTokens.filter((t) => t.approved !== false).length
             const pendingCount = proposedDarkRailTokens.length - approvedCount
             return (
-              <div className={cn("flex items-center gap-2 rounded-md border border-l-4 p-3", POSITIVE_BORDER, POSITIVE_WASH)}>
+              <div className="flex items-center gap-2 rounded-md border bg-card p-3 shadow-sm">
                 <Badge className={POSITIVE_BADGE}>{approvedCount} approved</Badge>
                 {pendingCount > 0 ? <Badge className={NEGATIVE_BADGE}>{pendingCount} needs decision</Badge> : null}
                 <p className="text-xs text-muted-foreground">
