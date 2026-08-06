@@ -82,7 +82,7 @@ function QuadrantLayout({ children, right }: { children: React.ReactNode; right:
           <div className="flex flex-col gap-4 pr-3">{children}</div>
         </ScrollArea>
       </div>
-      <div className="flex h-full items-center justify-center overflow-hidden bg-muted">{right}</div>
+      <div className="flex h-full items-center justify-center overflow-hidden rounded-lg bg-muted p-4">{right}</div>
     </div>
   )
 }
