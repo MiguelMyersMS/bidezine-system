@@ -117,7 +117,7 @@ export const blockingQuestions: DecisionQuestion[] = [
     ],
     resolution: {
       chosenLabel: "(a) Author a new dark-surface token group",
-      note: "The 9-token candidate set (matching bidezine's own achromatic lightness stops, not the origin's raw values) is tentatively approved \u2014 see the \u201cColor token lab\u201d tab, which now also shows them composed on a mock rail (RailPreview). Final sign-off is pending that composed view, not just the isolated swatches; nothing is written to tokens/*.tokens.json until then.",
+      note: "The 9-token candidate set (matching bidezine's own achromatic lightness stops, plus 5 tokens later refined against the user's own hex picks for hover/pressed/active/border-strong/foreground-disabled) has FINAL sign-off \u2014 see the \u201cColor token lab\u201d tab and the composed mock rail (RailPreview). Ready to be authored into tokens/base.tokens.json at Build time.",
     },
   },
   {

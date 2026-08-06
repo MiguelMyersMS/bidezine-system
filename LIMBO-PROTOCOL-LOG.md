@@ -190,6 +190,19 @@ friction, anything.)_
   every place a resolution status is surfaced (badge AND explanatory prose AND blocking-question note)
   needs to be treated as one unit that changes together, not three independent copies that can drift.
 
+- **"Real components only" applies to the factory-line UI itself, and can be silently violated even while
+  following it everywhere else:** the "Tentatively approved" pill in the Color Token Lab banner was built
+  as a hand-rolled `<span className="rounded-full bg-secondary px-2 py-0.5 ...">` instead of importing the
+  real `Badge` from `@bidezine/system` — even though `Badge` was already imported and used correctly
+  elsewhere on the very same page (`PhaseRail`'s "Done"/"Pending" pills). The hand-rolled version was
+  missing `inline-flex items-center justify-center` (among other things), which made the text render
+  visibly uncentered with no real vertical padding — invisible in code review, obvious the moment the human
+  looked at a screenshot. **Lesson:** "must be built only from real components" is not self-enforcing just
+  because it's followed in most places — every individual element still needs a conscious check of "does a
+  real component already exist for this," and a rendered screenshot comparison against a known-correct
+  instance of the same component elsewhere on the page is a fast, reliable way to catch this class of bug.
+  Durable fix: see the new [Color Token Import Guide](/docs/COLOR-TOKEN-IMPORT-GUIDE.md), Step 5.
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given

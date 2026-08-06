@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { ScrollArea, Separator, Tabs, TabsContent, TabsList, TabsTrigger } from "@bidezine/system"
+import { Badge, ScrollArea, Separator, Tabs, TabsContent, TabsList, TabsTrigger } from "@bidezine/system"
 import { PhaseRail } from "@/components/PhaseRail"
 import { BlockingQuestionCard, DivergenceCategoriesAccordion, RisksList } from "@/components/DivergenceView"
 import { ThemeToggle } from "@/components/ThemeToggle"
@@ -101,13 +101,11 @@ function HumanDecisionsPhase() {
           those rows' "after" column depends on the tokens approved here. Use the theme toggle above to
           check both light and dark before approving.
         </p>
-        <div className="flex items-center gap-2 rounded-md border border-dashed p-3">
-          <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
-            Tentatively approved
-          </span>
+        <div className="flex items-center gap-2 rounded-md border p-3">
+          <Badge className="bg-primary text-primary-foreground">Approved</Badge>
           <p className="text-xs text-muted-foreground">
-            All 9 candidates below are provisionally OK'd — final sign-off is pending seeing them
-            composed together in a full rail shape (see the preview above the swatches).
+            All 9 candidates below have final sign-off, composed and reviewed together in the full
+            rail shape below (including two follow-up hex-based revisions to hover/pressed/border).
           </p>
         </div>
         <RailPreview tokens={proposedDarkRailTokens} />
