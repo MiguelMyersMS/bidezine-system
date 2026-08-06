@@ -88,7 +88,7 @@ function QuadrantLayout({
           <div className="flex flex-col gap-4 pr-3">{children}</div>
         </ScrollArea>
       </div>
-      <div className="flex h-full items-center justify-center overflow-hidden rounded-lg bg-muted p-4">
+      <div className="flex h-full items-center justify-center overflow-hidden rounded-lg bg-card p-4">
         <FillHeight render={right} />
       </div>
     </div>
