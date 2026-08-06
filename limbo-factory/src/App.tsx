@@ -127,7 +127,7 @@ function HumanDecisionsPhase() {
   const railNav = <RailNavStatusPreview source={railSource} tokens={proposedDarkRailTokens} />
 
   return (
-    <Tabs defaultValue="blocking" className="flex h-full w-full flex-col">
+    <Tabs defaultValue="blocking" className="flex h-full w-full flex-col gap-0">
       <div className="-mx-6 -mt-6 mb-6 flex items-center justify-between gap-4 border-b px-6 py-4">
         <TabsList>
           <TabsTrigger value="blocking">Blocking questions (4)</TabsTrigger>
