@@ -49,7 +49,11 @@ import DefaultShell from "./gallery/DefaultDemo";
 export function OriginRailNavLive({
   variant,
   height = 860,
-  width = 640,
+  // 372px hugs the real rendered rail+panel width exactly (measured via the iframe's own `aside`
+  // landmark, 370px, +2px buffer) now that DefaultShell's placeholder "Content area" `<main>` is
+  // hidden — without this, the iframe's own leftover blank canvas reads as a second, nested
+  // container around the rail instead of the rail filling its embedding box edge-to-edge.
+  width = 372,
 }: {
   variant: "light" | "dark";
   height?: number;
@@ -132,7 +136,7 @@ function useDocumentDarkMode(): "light" | "dark" {
 /** Auto light/dark instance: tracks the page's real theme class and re-renders the ONE mounted
  * iframe/root in place (no remount, no CSS-hidden dual instance — see file header for why the
  * previous approaches broke RailNav's real rail-overflow measurement). */
-export function OriginRailNavLiveAuto({ height = 860, width = 640 }: { height?: number; width?: number }) {
+export function OriginRailNavLiveAuto({ height = 860, width = 372 }: { height?: number; width?: number }) {
   const mode = useDocumentDarkMode();
   return <OriginRailNavLive variant={mode} height={height} width={width} />;
 }
