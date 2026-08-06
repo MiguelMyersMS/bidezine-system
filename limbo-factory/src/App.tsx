@@ -55,7 +55,6 @@ export function App() {
             <h1 className="text-lg font-semibold">{activePhase.title}</h1>
             <p className="text-sm text-muted-foreground">{activePhase.description}</p>
           </div>
-          <ThemeToggle />
         </header>
 
         <ScrollArea className="min-h-0 flex-1">
@@ -71,18 +70,17 @@ export function App() {
 function HumanDecisionsPhase() {
   return (
     <Tabs defaultValue="blocking" className="w-full">
-      <TabsList>
-        <TabsTrigger value="blocking">Blocking questions (4)</TabsTrigger>
-        <TabsTrigger value="colorlab">Color token lab (10)</TabsTrigger>
-        <TabsTrigger value="categories">Full divergence list (13 categories)</TabsTrigger>
-        <TabsTrigger value="risks">Notable risks (9)</TabsTrigger>
-      </TabsList>
+      <div className="flex items-center justify-between gap-4">
+        <TabsList>
+          <TabsTrigger value="blocking">Blocking questions (4)</TabsTrigger>
+          <TabsTrigger value="colorlab">Color token lab (10)</TabsTrigger>
+          <TabsTrigger value="categories">Full divergence list (13 categories)</TabsTrigger>
+          <TabsTrigger value="risks">Notable risks (9)</TabsTrigger>
+        </TabsList>
+        <ThemeToggle />
+      </div>
 
       <TabsContent value="blocking" className="flex flex-col gap-4">
-        <p className="text-sm text-muted-foreground">
-          These 4 questions gate the most downstream work. Everything in the "Full divergence list" tab
-          cascades from these answers.
-        </p>
         {blockingQuestions.map((q) => (
           <BlockingQuestionCard key={q.id} question={q} />
         ))}
@@ -97,11 +95,6 @@ function HumanDecisionsPhase() {
       </TabsContent>
 
       <TabsContent value="colorlab" className="flex flex-col gap-4">
-        <p className="text-sm text-muted-foreground">
-          Resolve this tab before category B (and several of category C) in "Full divergence list" —
-          those rows' "after" column depends on the tokens approved here. Use the theme toggle above to
-          check both light and dark before approving.
-        </p>
         {(() => {
           const approvedCount = proposedDarkRailTokens.filter((t) => t.approved !== false).length
           const pendingCount = proposedDarkRailTokens.length - approvedCount
@@ -122,19 +115,11 @@ function HumanDecisionsPhase() {
       </TabsContent>
 
       <TabsContent value="categories" className="flex flex-col gap-4">
-        <p className="text-sm text-muted-foreground">
-          Every icon, color, spacing, layout, radius, motion, elevation, z-index, focus/scrollbar,
-          sub-component, and structural pattern found in RailNav, reconciled against our current system.
-        </p>
         <FullRailPreview tokens={proposedDarkRailTokens} />
         <DivergenceCategoriesAccordion categories={divergenceCategories} />
       </TabsContent>
 
       <TabsContent value="risks" className="flex flex-col gap-4">
-        <p className="text-sm text-muted-foreground">
-          Contamination risks and structural conflicts flagged by the Intake agent, each with a concrete
-          action-item checklist. A risk turns from red to green once every item is done.
-        </p>
         <RisksList risks={notableRisks} />
       </TabsContent>
     </Tabs>
