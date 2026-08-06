@@ -341,7 +341,7 @@ function FullRailMock({
   const colors = colorsFor(source, variant, tokens)
 
   return (
-    <div className="flex overflow-hidden rounded-2xl border shadow-sm" style={{ fontFamily, borderRadius: radiusRail, borderColor: colors.border }}>
+    <div className="flex overflow-hidden rounded-2xl border shadow-sm" style={{ fontFamily, borderRadius: radiusRail, borderColor: colors.border, height: 550 }}>
       {/* Dark rail */}
       <div
         className="flex shrink-0 flex-col items-center gap-2 p-2"
@@ -426,7 +426,7 @@ export function FullRailPreview({ tokens }: { tokens: ProposedToken[] }) {
       </p>
       <div className="flex flex-col items-center gap-10 py-2 md:flex-row md:items-start md:justify-center">
         <div className="flex flex-col items-center gap-3">
-          <OriginRailNavLiveAuto />
+          <OriginRailNavLiveAuto height={550} />
           <p className="text-xs font-medium text-muted-foreground">
             Origin — real vendored component, Default story (live &amp; interactive)
           </p>

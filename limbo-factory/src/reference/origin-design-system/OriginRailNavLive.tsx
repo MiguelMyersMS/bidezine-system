@@ -69,7 +69,11 @@ export function OriginRailNavLive({
     doc.open();
     doc.write(
       "<!DOCTYPE html><html><head><meta charset=\"utf-8\" />" +
-        "<style>html,body{margin:0;padding:0;height:100%;}#root{height:100%;}</style>" +
+        "<style>html,body{margin:0;padding:0;height:100%;background:#fff;}#root{height:100%;}" +
+        // Hide DefaultShell's own placeholder "Content area" panel (its stand-in for a real app's
+        // main content, not part of RailNav itself) — this is a display-only override at the
+        // embedding-shim level, not an edit to the vendored DefaultDemo.tsx source.
+        "main{display:none !important;}</style>" +
         "</head><body><div id=\"root\"></div></body></html>"
     );
     doc.close();
