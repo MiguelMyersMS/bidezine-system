@@ -227,6 +227,33 @@ friction, anything.)_
   not something specific to this protocol. Durable fix/reference: see the new
   [Color Token Import Guide](/docs/COLOR-TOKEN-IMPORT-GUIDE.md), Step 5.
 
+- **Hand-reconstructing an interactive origin component from source reading, however careful, cannot
+  reliably reproduce it — each attempt reintroduces new errors instead of converging on accuracy.** The
+  "Full divergence list" origin column was rebuilt twice from reading `RailNav.tsx`/`RailNav.stories.tsx`
+  and taking screenshots, and was still wrong both times in ways that weren't caught until the human
+  pointed them out: no search input in the mock (the real header has none — search is a separate row
+  below it), no functioning 3-dot panel menu (the real one is a genuine Radix `DropdownMenu`), and no
+  panel resize handle (the real panel has live drag-resize state). Static JSX retyped from memory of a
+  1995-line component with real interactive state machines (dropdown open state, drag-resize tracking,
+  controlled/uncontrolled search) will always miss something a screenshot alone can't reveal — **the
+  fix was to stop reconstructing entirely and vendor the real, unmodified source instead.** All 15
+  dependency files (`RailNav.tsx` + its 6 sub-components + `theme.ts`/`tokens.ts`/`layout.ts`/`status.ts`/
+  `motion.tsx`/`icons/index.ts`/`icons/fluent.tsx`, plus `RailNav.stories.tsx` kept as an untouched
+  reference copy) were copied byte-for-byte into `limbo-factory/src/reference/origin-design-system/`, the
+  origin's own `@radix-ui/react-dropdown-menu` dependency was added to `limbo-factory/package.json` (this
+  tool's own dependency, never `@bidezine/system`'s), and the exact `Default` story's `DefaultShell` was
+  mechanically sliced (not retyped) out of the vendored `.stories.tsx` into a small importable module
+  (`gallery/DefaultDemo.tsx`) plus a thin embedding shim (`OriginRailNavLive.tsx`, supplies a
+  `ThemeContext.Provider` and a bounded frame in place of the story's `100dvh`/no-provider assumptions —
+  the only non-verbatim part, and it changes zero visual/behavioral output). Verified interactively: the
+  real search input accepts text, the real dropdown menu opens with its real 3 items
+  (Search box/Expand all/Collapse all), and the real resize-drag separator is present — none of these can
+  be faked by a static mock, and none needed to be, once the actual code was running instead of being
+  redescribed. **Lesson for future Limbo occupants:** if a component has ANY non-trivial interactive
+  behavior (menus, drag state, controlled inputs, animation state machines), reach for vendoring the real
+  source into a dedicated reference subtree *before* attempting a hand-built comparison mock — a hand-built
+  mock is only safe for components that are close to purely static/presentational.
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given

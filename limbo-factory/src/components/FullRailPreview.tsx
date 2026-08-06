@@ -7,6 +7,7 @@ import {
   PREVIEW_NAV_ICONS,
   type ProposedToken,
 } from "@/data/rail-sidebar"
+import { OriginRailNavLive } from "@/reference/origin-design-system/OriginRailNavLive"
 
 /**
  * The full, "robust" side-by-side you asked for on the Full divergence list tab: not just colors
@@ -415,31 +416,25 @@ export function FullRailPreview({ tokens }: { tokens: ProposedToken[] }) {
         Full composed preview: origin RailNav (Default story) vs. bidezine Rail Sidebar (so far)
       </p>
       <p className="max-w-2xl text-center text-xs text-muted-foreground">
-        The exact "Slides" section SPEC_TREE from the origin's real, currently-shipping
-        RailNav.stories.tsx — item-for-item, badge-for-badge, icon-for-icon (Activity stream,
-        Live operations, Participants, System logic → Rules engine/Triggers/Schedules →
-        Daily/Monthly (active + its own badge)/Yearly (disabled), Content) — read directly from
-        source, not screenshotted or approximated. Panel width (300px) and radius (12px) are also
-        the origin's real literal values. Still a representative subset for the RAIL itself (origin
-        ships 16 sections; this mocks 6). Same structure on both sides; only color/font/size inputs
-        differ. Hover/click the rows — they're genuinely interactive. Toggle light/dark to check both.
+        Left column is the real, vendored <code>RailNav</code> component from the origin repo —
+        the exact <code>Default</code> story rendered directly (not a screenshot, not a hand-built
+        JSX reconstruction). It genuinely has a working search input, a real Radix dropdown menu on
+        the 3-dot header button, and a draggable panel-resize handle, because it's literally the
+        origin's own code executing. Toggle light/dark and interact with it — everything you do here
+        is real. The bidezine column on the right is still the provisional, representative-subset mock
+        pending its own real Build phase.
       </p>
       <div className="flex flex-col items-center gap-10 py-2 md:flex-row md:items-start md:justify-center">
         <div className="flex flex-col items-center gap-3">
-          <FullRailMockBothThemes
-            source="origin"
-            tokens={tokens}
-            railW={54}
-            railBtn={38}
-            panelW={300}
-            radiusRail={12}
-            radiusXs={4}
-            fontFamily="Inter, sans-serif"
-            headingClass="text-base font-medium"
-            bodySClass="text-[13px]"
-            labelMClass="text-[13px] font-medium"
-          />
-          <p className="text-xs font-medium text-muted-foreground">Origin (verbatim, Default story branch)</p>
+          <div className="dark:hidden">
+            <OriginRailNavLive variant="light" />
+          </div>
+          <div className="hidden dark:block">
+            <OriginRailNavLive variant="dark" />
+          </div>
+          <p className="text-xs font-medium text-muted-foreground">
+            Origin — real vendored component, Default story (live &amp; interactive)
+          </p>
         </div>
 
         <span className="mt-16 hidden text-muted-foreground md:block" aria-hidden>
