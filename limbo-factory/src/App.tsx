@@ -1,11 +1,12 @@
 import { useState } from "react"
-import { Badge, ScrollArea, Separator, Tabs, TabsContent, TabsList, TabsTrigger } from "@bidezine/system"
+import { Badge, ScrollArea, Separator, Tabs, TabsContent, TabsList, TabsTrigger, cn } from "@bidezine/system"
 import { PhaseRail } from "@/components/PhaseRail"
 import { BlockingQuestionCard, DivergenceCategoriesAccordion, RisksList } from "@/components/DivergenceView"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { ColorTokenLab } from "@/components/ColorTokenLab"
 import { RailPreview } from "@/components/RailPreview"
 import { LogoImportSlot } from "@/components/LogoImportSlot"
+import { POSITIVE_BADGE, POSITIVE_BORDER, POSITIVE_WASH, WARNING_BADGE } from "@/lib/status-colors"
 import {
   railSidebarPhases,
   blockingQuestions,
@@ -101,8 +102,9 @@ function HumanDecisionsPhase() {
           those rows' "after" column depends on the tokens approved here. Use the theme toggle above to
           check both light and dark before approving.
         </p>
-        <div className="flex items-center gap-2 rounded-md border p-3">
-          <Badge className="bg-primary text-primary-foreground">9/10 approved</Badge>
+        <div className={cn("flex items-center gap-2 rounded-md border border-l-4 p-3", POSITIVE_BORDER, POSITIVE_WASH)}>
+          <Badge className={POSITIVE_BADGE}>9 approved</Badge>
+          <Badge className={WARNING_BADGE}>1 needs decision</Badge>
           <p className="text-xs text-muted-foreground">
             9 candidates have final sign-off, composed and reviewed together in the full rail shape
             below (including two follow-up hex-based revisions to hover/pressed/border). A 10th

@@ -16,29 +16,41 @@ import {
 import type { DecisionQuestion, DivergenceCategory, RiskNote } from "@/data/rail-sidebar"
 import { isRiskResolved } from "@/data/rail-sidebar"
 import { VisualCompare } from "@/components/CompareVisuals"
+import { POSITIVE_BADGE, POSITIVE_BORDER, POSITIVE_WASH, WARNING_BADGE, WARNING_BORDER, WARNING_WASH } from "@/lib/status-colors"
 
-/** decision = solid/high-contrast (needs a human, don't miss it); note = grey (worth knowing, not
- * blocking); clean = existing secondary look, unchanged; resolved = a decision item that's now
- * settled by an already-answered blocking question — distinct from clean (there WAS a decision to
+/** decision = amber/warning (needs a human, don't miss it); note = amber/warning too (worth
+ * knowing, but still an item you should read before moving on); clean = existing secondary look,
+ * unchanged (nothing to decide at all); resolved = emerald/positive (a decision item that's now
+ * settled by an already-answered blocking question) — distinct from clean (there WAS a decision to
  * make) and from decision/note (nothing left to decide). Deliberately distinct at a glance per the
  * user's explicit badge-differentiation request. */
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
   clean: { label: "Clean equivalent", className: "bg-secondary text-secondary-foreground" },
-  decision: { label: "Needs human decision", className: "bg-foreground text-background" },
-  note: { label: "Worth noting", className: "bg-muted text-muted-foreground" },
-  resolved: { label: "Decided", className: "bg-primary text-primary-foreground" },
+  decision: { label: "Needs human decision", className: WARNING_BADGE },
+  note: { label: "Worth noting", className: WARNING_BADGE },
+  resolved: { label: "Decided", className: POSITIVE_BADGE },
+}
+
+const ROW_BORDER: Record<string, string> = {
+  decision: WARNING_BORDER,
+  note: WARNING_BORDER,
+  resolved: POSITIVE_BORDER,
+  clean: "border-l-transparent",
 }
 
 export function BlockingQuestionCard({ question }: { question: DecisionQuestion }) {
+  const resolved = Boolean(question.resolution)
   return (
-    <Card>
+    <Card className={cn("border-l-4", resolved ? cn(POSITIVE_BORDER, POSITIVE_WASH) : cn(WARNING_BORDER, WARNING_WASH))}>
       <CardHeader>
         <div className="flex items-center gap-2">
           <Badge variant="default">Q{question.priority}</Badge>
           <CardTitle>{question.title}</CardTitle>
           {question.resolution ? (
-            <Badge className="ml-auto bg-foreground text-background">Resolved</Badge>
-          ) : null}
+            <Badge className={cn("ml-auto", POSITIVE_BADGE)}>Resolved</Badge>
+          ) : (
+            <Badge className={cn("ml-auto", WARNING_BADGE)}>Needs your decision</Badge>
+          )}
         </div>
         <CardDescription>Blocks: {question.blocks}</CardDescription>
       </CardHeader>
@@ -59,7 +71,7 @@ export function BlockingQuestionCard({ question }: { question: DecisionQuestion 
           </div>
         ) : null}
         {question.resolution ? (
-          <div className="rounded-md border border-foreground/20 bg-foreground/5 p-3">
+          <div className={cn("rounded-md border p-3", POSITIVE_BORDER, POSITIVE_WASH)}>
             <p className="text-xs font-medium text-foreground">
               Decided: {question.resolution.chosenLabel}
             </p>
@@ -68,9 +80,11 @@ export function BlockingQuestionCard({ question }: { question: DecisionQuestion 
             ) : null}
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground italic">
-            Awaiting your decision — nothing auto-decided here.
-          </p>
+          <div className={cn("rounded-md border p-3", WARNING_BORDER, WARNING_WASH)}>
+            <p className="text-xs font-medium text-foreground italic">
+              Awaiting your decision — nothing auto-decided here.
+            </p>
+          </div>
         )}
       </CardContent>
     </Card>
@@ -93,10 +107,10 @@ export function DivergenceCategoriesAccordion({ categories }: { categories: Dive
                 </span>
                 <span className="flex gap-1">
                   {decisionCount > 0 ? (
-                    <Badge variant="outline">{decisionCount} need decision</Badge>
+                    <Badge className={WARNING_BADGE}>{decisionCount} need decision</Badge>
                   ) : null}
                   {resolvedCount > 0 ? (
-                    <Badge className="bg-primary text-primary-foreground">{resolvedCount} decided</Badge>
+                    <Badge className={POSITIVE_BADGE}>{resolvedCount} decided</Badge>
                   ) : null}
                   {cleanCount > 0 ? <Badge variant="secondary">{cleanCount} clean</Badge> : null}
                 </span>
@@ -107,7 +121,14 @@ export function DivergenceCategoriesAccordion({ categories }: { categories: Dive
                 {cat.rows.map((row) => {
                   const badge = STATUS_BADGE[row.status]
                   return (
-                    <div key={row.id} className="rounded-md border p-2">
+                    <div
+                      key={row.id}
+                      className={cn(
+                        "rounded-md border border-l-4 p-2",
+                        ROW_BORDER[row.status],
+                        row.status === "resolved" ? POSITIVE_WASH : row.status !== "clean" ? WARNING_WASH : undefined
+                      )}
+                    >
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-sm font-medium">
                           {row.id} — {row.what}
@@ -139,10 +160,10 @@ export function RisksList({ risks }: { risks: RiskNote[] }) {
         const resolved = isRiskResolved(risk)
         const doneCount = risk.actionItems.filter((i) => i.done).length
         return (
-          <Card key={risk.id} className={cn("border-l-4", resolved ? "border-l-primary" : "border-l-destructive")}>
+          <Card key={risk.id} className={cn("border-l-4", resolved ? cn(POSITIVE_BORDER, POSITIVE_WASH) : "border-l-destructive")}>
             <CardHeader>
               <div className="flex items-center gap-2">
-                <Badge variant={resolved ? "default" : "destructive"} className={resolved ? "bg-primary" : undefined}>
+                <Badge variant={resolved ? undefined : "destructive"} className={resolved ? POSITIVE_BADGE : undefined}>
                   {resolved ? "Resolved" : "Open"} — {risk.id}
                 </Badge>
                 <CardTitle className="text-sm">{risk.title}</CardTitle>
