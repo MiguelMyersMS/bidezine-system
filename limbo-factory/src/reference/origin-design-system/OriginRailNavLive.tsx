@@ -101,7 +101,35 @@ export function OriginRailNavLive({
           // shadow isn't hard-clipped by the iframe's own edge. See `SHADOW_BLEED` below for how the
           // iframe's physical size + negative margin keep the VISIBLE rail/panel position unchanged.
           `#root>div>aside{padding:${SHADOW_BLEED}px !important;}</style>` +
-        "</head><body><div id=\"root\"></div></body></html>"
+        "</head><body><div id=\"root\"></div>" +
+          // The panel's resize-drag (RailNav.tsx's `handlePanelResizeStart`/`handleMouseMove`) reads
+          // `event.clientX` and attaches its drag-continuation listener via a plain `window.addEventListener`
+          // call. Because RailNav's module code executes in the OUTER page's JS realm (this iframe only
+          // hosts its rendered DOM, via `createRoot` into an element inside `contentDocument`), that
+          // `window` is the OUTER window. Native `mousemove`/`mouseup` events that occur while the cursor
+          // is over the iframe's rendered rail/panel target THIS document and never bubble across the
+          // iframe boundary to reach that outer listener at all — so without help, dragging inside the
+          // rail/panel area does nothing (RailNav's outer-attached listener simply never sees those events).
+          //
+          // The relay below fixes exactly that, and ONLY that. It does NOT re-translate coordinates: this
+          // iframe was never `src`-navigated, only ever filled via `document.write()` on its initial
+          // `about:blank` document, and empirically (confirmed by logging the raw getter value against
+          // Playwright's own page-absolute cursor position — they matched exactly) Chromium already reports
+          // `clientX`/`clientY` for events hit-tested into this iframe in the OUTER page's coordinate space,
+          // not iframe-local. So RailNav's `start.clientX` (from mousedown) and every relayed mousemove's
+          // `clientX` are already expressed in the same coordinate space with no translation needed — an
+          // earlier version of this fix additionally offset by `window.frameElement`'s rect, which was
+          // WRONG for this embedding shape and produced a large, constant width offset the instant a drag
+          // began (delta-tracking was correct, but the starting value was inflated by the iframe's own
+          // screen position). Scoped entirely to this iframe's own JS realm; never edits vendored
+          // `RailNav.tsx` source.
+          "<script>(function(){" +
+            "function relay(type){document.addEventListener(type,function(e){" +
+              "window.parent.dispatchEvent(new MouseEvent(type,{clientX:e.clientX,clientY:e.clientY,bubbles:true,cancelable:true}));" +
+            "},true);}" +
+            "relay('mousemove');relay('mouseup');" +
+          "})();</" + "script>" +
+        "</body></html>"
     );
     doc.close();
     const mountEl = doc.getElementById("root");
