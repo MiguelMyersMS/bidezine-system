@@ -37,7 +37,7 @@ export function App() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden">
-      <aside className="w-[220px] shrink-0 border-r bg-card">
+      <aside className="w-[320px] shrink-0 border-r bg-card">
         <PhaseRail
           phases={railSidebarPhases}
           activePhaseId={activePhaseId}
