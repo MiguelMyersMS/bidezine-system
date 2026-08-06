@@ -117,7 +117,7 @@ export const blockingQuestions: DecisionQuestion[] = [
     ],
     resolution: {
       chosenLabel: "(a) Author a new dark-surface token group",
-      note: "The original 9-token candidate set (matching bidezine's own achromatic lightness stops, plus 5 tokens later refined against the user's own hex picks for hover/pressed/active/border-strong/foreground-disabled) has FINAL sign-off \u2014 see the \u201cColor token lab\u201d tab and the composed mock rail (RailPreview). A 10th candidate (select-hover, for hovering an already-selected row) was proposed afterward and awaits a decision \u2014 doesn't reopen Q2 itself, just extends the same token family. Approved tokens are ready to be authored into tokens/base.tokens.json at Build time; the 10th joins them once decided.",
+      note: "All 10 candidate tokens (the original 9 \u2014 matching bidezine's own achromatic lightness stops, plus 5 later refined against the user's own hex picks for hover/pressed/active/border-strong/foreground-disabled \u2014 plus a 10th, select-hover, for hovering an already-selected row) now have FINAL sign-off \u2014 see the \u201cColor token lab\u201d tab and the composed mock rail (RailPreview). All 10 are ready to be authored into tokens/base.tokens.json at Build time.",
     },
   },
   {
@@ -239,12 +239,11 @@ export const proposedDarkRailTokens: ProposedToken[] = [
     // bidezine side to see it live; the origin side intentionally shows no change on the same hover,
     // matching its real, undifferentiated behavior.
     proposalNote:
-      "Proposed, not yet approved — extends the already-approved hover→pressed→active ramp one more " +
-      "step, inspired by navigation-menu.tsx's own data-[active=true]:hover:bg-accent precedent. " +
-      "Give me a hex (like the last 3 rounds) if you want to adjust it, or approve as-is.",
+      "Approved — extends the already-approved hover→pressed→active ramp one more step, inspired by " +
+      "navigation-menu.tsx's own data-[active=true]:hover:bg-accent precedent.",
     proposedLight: "oklch(0.43 0 0)",
     proposedDark: "oklch(0.282 0 0)",
-    approved: false,
+    approved: true,
   },
 ]
 
@@ -548,8 +547,8 @@ export const notableRisks: RiskNote[] = [
     detail: "The whole rail color system is missing. Authoring ad-hoc inline values would violate the tokens-only rule in CLAUDE.md.",
     actionItems: [
       { id: "R-2a", text: "Q2 answered \u2014 author new tokens (option a)", done: true, refs: ["Q2"] },
-      { id: "R-2b", text: "Color Token Lab built so proposed values can be visually approved before authoring", done: false, refs: ["proposedDarkRailTokens"] },
-      { id: "R-2c", text: "User approves each of the 10 proposed dark-rail tokens in the lab (9 approved, 1 pending: select-hover)", done: false, refs: ["proposedDarkRailTokens"] },
+      { id: "R-2b", text: "Color Token Lab built so proposed values can be visually approved before authoring", done: true, refs: ["proposedDarkRailTokens"] },
+      { id: "R-2c", text: "User approves each of the 10 proposed dark-rail tokens in the lab \u2014 all 10 approved", done: true, refs: ["proposedDarkRailTokens"] },
       { id: "R-2d", text: "Approved tokens written to tokens/*.tokens.json (Build phase only)", done: false },
     ],
   },

@@ -1,6 +1,6 @@
 import { Badge, Card, CardContent, cn } from "@bidezine/system"
 import type { ProposedToken } from "@/data/rail-sidebar"
-import { POSITIVE_BADGE, POSITIVE_BORDER, POSITIVE_WASH, WARNING_BADGE, WARNING_BORDER, WARNING_WASH } from "@/lib/status-colors"
+import { NEGATIVE_BADGE, NEGATIVE_BORDER, NEGATIVE_WASH, POSITIVE_BADGE, POSITIVE_BORDER, POSITIVE_WASH } from "@/lib/status-colors"
 
 /**
  * Q2's approval surface. Per token: title = the proposed bidezine name (extends the existing
@@ -34,7 +34,7 @@ export function ColorTokenLab({ tokens }: { tokens: ProposedToken[] }) {
             key={t.originName}
             className={cn(
               "border-l-4",
-              isApproved ? cn(POSITIVE_BORDER, POSITIVE_WASH) : cn(WARNING_BORDER, WARNING_WASH)
+              isApproved ? cn(POSITIVE_BORDER, POSITIVE_WASH) : cn(NEGATIVE_BORDER, NEGATIVE_WASH)
             )}
           >
             <CardContent className="flex flex-col items-center gap-4 py-6 text-center">
@@ -99,7 +99,7 @@ export function ColorTokenLab({ tokens }: { tokens: ProposedToken[] }) {
                     <span className="hidden dark:inline">{t.proposedDark}</span>
                   </p>
                   <Badge
-                    className={cn("text-[9px]", isApproved ? POSITIVE_BADGE : WARNING_BADGE)}
+                    className={cn("text-[9px]", isApproved ? POSITIVE_BADGE : NEGATIVE_BADGE)}
                   >
                     {isApproved ? "approved" : "needs your decision"}
                   </Badge>

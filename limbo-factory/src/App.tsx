@@ -6,7 +6,7 @@ import { ThemeToggle } from "@/components/ThemeToggle"
 import { ColorTokenLab } from "@/components/ColorTokenLab"
 import { RailPreview } from "@/components/RailPreview"
 import { LogoImportSlot } from "@/components/LogoImportSlot"
-import { POSITIVE_BADGE, POSITIVE_BORDER, POSITIVE_WASH, WARNING_BADGE } from "@/lib/status-colors"
+import { NEGATIVE_BADGE, POSITIVE_BADGE, POSITIVE_BORDER, POSITIVE_WASH } from "@/lib/status-colors"
 import {
   railSidebarPhases,
   blockingQuestions,
@@ -102,16 +102,21 @@ function HumanDecisionsPhase() {
           those rows' "after" column depends on the tokens approved here. Use the theme toggle above to
           check both light and dark before approving.
         </p>
-        <div className={cn("flex items-center gap-2 rounded-md border border-l-4 p-3", POSITIVE_BORDER, POSITIVE_WASH)}>
-          <Badge className={POSITIVE_BADGE}>9 approved</Badge>
-          <Badge className={WARNING_BADGE}>1 needs decision</Badge>
-          <p className="text-xs text-muted-foreground">
-            9 candidates have final sign-off, composed and reviewed together in the full rail shape
-            below (including two follow-up hex-based revisions to hover/pressed/border). A 10th
-            candidate — select-hover, for hovering an already-selected row — was just proposed and
-            is awaiting your decision; hover the "Projects" row in the preview to see it live.
-          </p>
-        </div>
+        {(() => {
+          const approvedCount = proposedDarkRailTokens.filter((t) => t.approved !== false).length
+          const pendingCount = proposedDarkRailTokens.length - approvedCount
+          return (
+            <div className={cn("flex items-center gap-2 rounded-md border border-l-4 p-3", POSITIVE_BORDER, POSITIVE_WASH)}>
+              <Badge className={POSITIVE_BADGE}>{approvedCount} approved</Badge>
+              {pendingCount > 0 ? <Badge className={NEGATIVE_BADGE}>{pendingCount} needs decision</Badge> : null}
+              <p className="text-xs text-muted-foreground">
+                {pendingCount > 0
+                  ? `${approvedCount} candidates have final sign-off, composed and reviewed together in the full rail shape below. ${pendingCount} candidate(s) still await your decision.`
+                  : `All ${approvedCount} candidates have final sign-off, composed and reviewed together in the full rail shape below — including select-hover (--sidebar-rail-active-hover), approved last, extending the same hover→pressed→active ramp one further step. Ready to be authored into tokens/base.tokens.json at Build time.`}
+              </p>
+            </div>
+          )
+        })()}
         <RailPreview tokens={proposedDarkRailTokens} />
         <ColorTokenLab tokens={proposedDarkRailTokens} />
       </TabsContent>

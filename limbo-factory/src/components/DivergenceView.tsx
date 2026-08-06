@@ -16,23 +16,23 @@ import {
 import type { DecisionQuestion, DivergenceCategory, RiskNote } from "@/data/rail-sidebar"
 import { isRiskResolved } from "@/data/rail-sidebar"
 import { VisualCompare } from "@/components/CompareVisuals"
-import { POSITIVE_BADGE, POSITIVE_BORDER, POSITIVE_WASH, WARNING_BADGE, WARNING_BORDER, WARNING_WASH } from "@/lib/status-colors"
+import { NEGATIVE_BADGE, NEGATIVE_BORDER, NEGATIVE_WASH, POSITIVE_BADGE, POSITIVE_BORDER, POSITIVE_WASH, WARNING_BADGE, WARNING_BORDER, WARNING_WASH } from "@/lib/status-colors"
 
-/** decision = amber/warning (needs a human, don't miss it); note = amber/warning too (worth
- * knowing, but still an item you should read before moving on); clean = existing secondary look,
- * unchanged (nothing to decide at all); resolved = emerald/positive (a decision item that's now
- * settled by an already-answered blocking question) — distinct from clean (there WAS a decision to
- * make) and from decision/note (nothing left to decide). Deliberately distinct at a glance per the
- * user's explicit badge-differentiation request. */
+/** decision = negative/destructive (a hard blocker — needs a human, don't miss it); note =
+ * amber/warning (a softer, non-blocking item still worth reading before moving on); clean =
+ * existing secondary look, unchanged (nothing to decide at all); resolved = emerald/positive (a
+ * decision item that's now settled by an already-answered blocking question) — distinct from
+ * clean (there WAS a decision to make) and from decision/note (nothing left to decide).
+ * Deliberately distinct at a glance per the user's explicit badge-differentiation request. */
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
   clean: { label: "Clean equivalent", className: "bg-secondary text-secondary-foreground" },
-  decision: { label: "Needs human decision", className: WARNING_BADGE },
+  decision: { label: "Needs human decision", className: NEGATIVE_BADGE },
   note: { label: "Worth noting", className: WARNING_BADGE },
   resolved: { label: "Decided", className: POSITIVE_BADGE },
 }
 
 const ROW_BORDER: Record<string, string> = {
-  decision: WARNING_BORDER,
+  decision: NEGATIVE_BORDER,
   note: WARNING_BORDER,
   resolved: POSITIVE_BORDER,
   clean: "border-l-transparent",
@@ -41,7 +41,7 @@ const ROW_BORDER: Record<string, string> = {
 export function BlockingQuestionCard({ question }: { question: DecisionQuestion }) {
   const resolved = Boolean(question.resolution)
   return (
-    <Card className={cn("border-l-4", resolved ? cn(POSITIVE_BORDER, POSITIVE_WASH) : cn(WARNING_BORDER, WARNING_WASH))}>
+    <Card className={cn("border-l-4", resolved ? cn(POSITIVE_BORDER, POSITIVE_WASH) : cn(NEGATIVE_BORDER, NEGATIVE_WASH))}>
       <CardHeader>
         <div className="flex items-center gap-2">
           <Badge variant="default">Q{question.priority}</Badge>
@@ -49,7 +49,7 @@ export function BlockingQuestionCard({ question }: { question: DecisionQuestion 
           {question.resolution ? (
             <Badge className={cn("ml-auto", POSITIVE_BADGE)}>Resolved</Badge>
           ) : (
-            <Badge className={cn("ml-auto", WARNING_BADGE)}>Needs your decision</Badge>
+            <Badge className={cn("ml-auto", NEGATIVE_BADGE)}>Needs your decision</Badge>
           )}
         </div>
         <CardDescription>Blocks: {question.blocks}</CardDescription>
@@ -80,7 +80,7 @@ export function BlockingQuestionCard({ question }: { question: DecisionQuestion 
             ) : null}
           </div>
         ) : (
-          <div className={cn("rounded-md border p-3", WARNING_BORDER, WARNING_WASH)}>
+          <div className={cn("rounded-md border p-3", NEGATIVE_BORDER, NEGATIVE_WASH)}>
             <p className="text-xs font-medium text-foreground italic">
               Awaiting your decision — nothing auto-decided here.
             </p>
@@ -107,7 +107,7 @@ export function DivergenceCategoriesAccordion({ categories }: { categories: Dive
                 </span>
                 <span className="flex gap-1">
                   {decisionCount > 0 ? (
-                    <Badge className={WARNING_BADGE}>{decisionCount} need decision</Badge>
+                    <Badge className={NEGATIVE_BADGE}>{decisionCount} need decision</Badge>
                   ) : null}
                   {resolvedCount > 0 ? (
                     <Badge className={POSITIVE_BADGE}>{resolvedCount} decided</Badge>
@@ -126,7 +126,13 @@ export function DivergenceCategoriesAccordion({ categories }: { categories: Dive
                       className={cn(
                         "rounded-md border border-l-4 p-2",
                         ROW_BORDER[row.status],
-                        row.status === "resolved" ? POSITIVE_WASH : row.status !== "clean" ? WARNING_WASH : undefined
+                        row.status === "resolved"
+                          ? POSITIVE_WASH
+                          : row.status === "decision"
+                            ? NEGATIVE_WASH
+                            : row.status === "note"
+                              ? WARNING_WASH
+                              : undefined
                       )}
                     >
                       <div className="flex items-start justify-between gap-2">

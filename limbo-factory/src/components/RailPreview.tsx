@@ -19,10 +19,10 @@ import {
  * enough DOM + CSS that hover/pressed states are genuinely interactive, not simulated.
  *
  * "Projects" is the persistent selected row on both sides — hover it to compare select-hover
- * behavior: the bidezine side previews the newly proposed --sidebar-rail-active-hover candidate
- * (not yet approved, see Color Token Lab), inspired by src/ui/navigation-menu.tsx's own
- * data-[active=true]:hover:bg-accent pattern. The origin side intentionally shows no change on the
- * same hover — confirmed against its docs, it never modeled a distinct "selected + hovered" tone.
+ * behavior: the bidezine side uses the approved --sidebar-rail-active-hover token, inspired by
+ * src/ui/navigation-menu.tsx's own data-[active=true]:hover:bg-accent pattern. The origin side
+ * intentionally shows no change on the same hover — confirmed against its docs, it never modeled a
+ * distinct "selected + hovered" tone.
  */
 
 const NAV_ITEMS = [
@@ -56,8 +56,8 @@ function RailMock({
   // The origin project has no "selected + hovered" state at all (confirmed against its docs) — its
   // dark rail only differentiates plain hover vs. plain selected. So on the origin side, hovering an
   // already-selected row falls back to the same active tone (no visible change, matching its real,
-  // undifferentiated behavior). On the bidezine side, this previews the newly proposed
-  // --sidebar-rail-active-hover candidate (not yet approved — see Color Token Lab).
+  // undifferentiated behavior). On the bidezine side, this previews the approved
+  // --sidebar-rail-active-hover token.
   const activeHoverBg = source === "bidezine" ? pick("darkActiveHoverBg") : pick("darkActiveBg")
 
   const vars = {
@@ -159,9 +159,9 @@ export function RailPreview({ tokens }: { tokens: ProposedToken[] }) {
         Same structure, same real Fluent icons (home / folder / people / settings) on both sides —
         color is the only thing being compared. Hover and click the rows, they're genuinely
         interactive. "Projects" is the persistent selected state; "Settings" is disabled. Hover
-        "Projects" itself to compare select-hover — bidezine previews a newly proposed candidate
-        token there (not yet approved, see Color Token Lab), the origin side stays unchanged since
-        it never modeled that state. Toggle light/dark in the header to see both app-theme variants.
+        "Projects" itself to compare select-hover — bidezine uses the approved
+        --sidebar-rail-active-hover token there, the origin side stays unchanged since it never
+        modeled that state. Toggle light/dark in the header to see both app-theme variants.
       </p>
       <div className="flex items-start justify-center gap-10 py-2">
         <div className="flex flex-col items-center gap-2">
