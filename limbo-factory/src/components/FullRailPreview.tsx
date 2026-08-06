@@ -12,34 +12,33 @@ import { OriginRailNavLiveAuto } from "@/reference/origin-design-system/OriginRa
 /**
  * The full, "robust" side-by-side you asked for on the Full divergence list tab: not just colors
  * (that's RailPreview, in Color token lab) but the whole rail + expanded panel shape — icon sizes,
- * nesting, badges, disabled rows, footer, typography, padding, spacing, radius — reconstructed from
- * the origin's real canonical `Default` story.
+ * badges, disabled rows, footer, typography, padding, spacing, radius.
  *
- * CORRECTED against the origin's actual, currently-shipping source (not a screenshot, not the
- * possibly-stale INTAKE-REPORT.md) — read directly from the real local clone at
- * `design-system/src/gallery/RailNav.stories.tsx` (`SPEC_TREE`, exact literal node data) and
- * `design-system/src/layout.ts` (`LAYOUT.panelW = 300`, `RADIUS.rounded = 12`). The panel content
- * below is the exact "slides" section SPEC_TREE, item-for-item and badge-for-badge:
- *   Activity stream (+23) / Live operations / Participants / System logic (badge "New", icon,
- *   expanded) → Rules engine, Triggers, Schedules (icon, expanded) → Daily (+05), Monthly (+11,
- *   ACTIVE — the origin's own Default story also gives the selected row its own badge), Yearly
- *   (disabled) / Content (a sibling of System logic, NOT nested under it — corrects an earlier
- *   assumption). Every SPEC_TREE node's icon is the origin's own real Fluent path, copied verbatim
- *   from `design-system/src/icons/fluent.tsx` (see FULL_PREVIEW_ICONS in rail-sidebar.ts).
+ * The origin column (left) is the real, live vendored component (see `OriginRailNavLiveAuto`) — not
+ * rendered through this file at all, so it always reflects the origin's actual, currently-shipping
+ * nested/grouped panel structure verbatim.
+ *
+ * The bidezine column (right, `FullRailMock` with `source="bidezine"`) is the customized redesign:
+ * per your direction, the panel's nested "group header → indented children" structure (origin's
+ * `System logic` / `Schedules` sub-groups) has been dropped in favor of one flat list of rows, no
+ * indentation, no group headers — inspired by the flat single-level sidebar reference you shared.
+ * Every original item is still present (Activity stream +23 / Live operations / Participants /
+ * System logic New / Rules engine / Triggers / Schedules / Daily +05 / Monthly +11 (selected) /
+ * Yearly (disabled) / Content), just no longer nested. This is intentional divergence from the
+ * origin's own structure — the "Adjust" phase, once the "Reproduce" baseline was already verified
+ * against the live component above. Every SPEC_TREE node's icon is still the origin's own real
+ * Fluent path, copied verbatim from `design-system/src/icons/fluent.tsx` (see FULL_PREVIEW_ICONS in
+ * rail-sidebar.ts).
  *
  * Still a REPRESENTATIVE SUBSET for the RAIL itself (origin ships 16 rail sections; this mocks 6) —
  * expanding the rail to all 16 needs 13 more icons sourced one-by-one and wasn't the focus of this
- * pass. The PANEL — the part with all the real nesting/badge/typography detail worth reviewing — is
- * now exact.
+ * pass.
  *
- * Both columns share ONE render path (colors/fonts/sizes are the only inputs that differ) so the
- * two sides are guaranteed structurally identical — the comparison is never accidentally apples-to-
- * oranges. Origin uses literal hex/px values sourced verbatim from categories B/C/D/F/G in
- * rail-sidebar.ts (never invented). bidezine uses the 10 APPROVED dark-rail tokens for color, and —
- * for every dimension categories D/F/G still list as "needs decision" (not yet resolved) — the
- * origin's own proposed value, applied provisionally so you can judge it, called out explicitly in
- * the "Pending" legend below each column rather than silently presented as final. See CLAUDE.md /
- * LIMBO-PROTOCOL-LOG.md: "AI never auto-decides."
+ * bidezine uses the 10 APPROVED dark-rail tokens for color, and — for every dimension categories
+ * D/F/G still list as "needs decision" (not yet resolved) — the origin's own proposed value, applied
+ * provisionally so you can judge it, called out explicitly in the "Pending" legend below the column
+ * rather than silently presented as final. See CLAUDE.md / LIMBO-PROTOCOL-LOG.md: "AI never
+ * auto-decides."
  */
 
 // Literal origin hex values, sourced verbatim from divergence categories B (dark rail) and C (light
@@ -281,36 +280,6 @@ function PanelRow({
   )
 }
 
-function GroupHeader({
-  label,
-  badge,
-  badgeInfo,
-  icon,
-  colors,
-  indent = 0,
-  typeClassName,
-}: {
-  label: string
-  badge?: string
-  badgeInfo?: boolean
-  icon?: { d: string }
-  colors: ReturnType<typeof colorsFor>
-  indent?: number
-  typeClassName: string
-}) {
-  return (
-    <div
-      className={cn("flex h-8 items-center gap-1.5 px-2 font-medium", typeClassName)}
-      style={{ marginLeft: indent * 14, color: colors.textMuted }}
-    >
-      <Glyph d={FULL_PREVIEW_ICONS.chevronDown.d} className="h-3.5 w-3.5 shrink-0" />
-      {icon && <Glyph d={icon.d} className="h-4 w-4 shrink-0" />}
-      <span className="flex-1 truncate">{label}</span>
-      {badge && <PanelBadge label={badge} info={badgeInfo} />}
-    </div>
-  )
-}
-
 function FullRailMock({
   source,
   variant,
@@ -323,7 +292,6 @@ function FullRailMock({
   fontFamily,
   headingClass,
   bodySClass,
-  labelMClass,
 }: {
   source: Source
   variant: Variant
@@ -336,7 +304,6 @@ function FullRailMock({
   fontFamily: string
   headingClass: string
   bodySClass: string
-  labelMClass: string
 }) {
   const colors = colorsFor(source, variant, tokens)
 
@@ -378,13 +345,13 @@ function FullRailMock({
           <PanelRow label="Activity stream" badge="+23" icon={FULL_PREVIEW_ICONS.video} colors={colors} typeClassName={bodySClass} />
           <PanelRow label="Live operations" icon={FULL_PREVIEW_ICONS.videoSettings} colors={colors} typeClassName={bodySClass} />
           <PanelRow label="Participants" icon={FULL_PREVIEW_ICONS.peopleCommunity} colors={colors} typeClassName={bodySClass} />
-          <GroupHeader label="System logic" badge="New" badgeInfo icon={FULL_PREVIEW_ICONS.cubeTree} colors={colors} typeClassName={labelMClass} />
-          <PanelRow label="Rules engine" icon={FULL_PREVIEW_ICONS.engine} indent={1} colors={colors} typeClassName={bodySClass} />
-          <PanelRow label="Triggers" icon={FULL_PREVIEW_ICONS.syncOff} indent={1} colors={colors} typeClassName={bodySClass} />
-          <GroupHeader label="Schedules" icon={FULL_PREVIEW_ICONS.calendarClock} colors={colors} indent={1} typeClassName={labelMClass} />
-          <PanelRow label="Daily" badge="+05" icon={FULL_PREVIEW_ICONS.calendarMonth} indent={2} colors={colors} typeClassName={bodySClass} />
-          <PanelRow label="Monthly" badge="+11" state="selected" bold icon={FULL_PREVIEW_ICONS.calendarMonth} indent={2} colors={colors} typeClassName={bodySClass} />
-          <PanelRow label="Yearly" state="disabled" icon={FULL_PREVIEW_ICONS.calendarMonth} indent={2} colors={colors} typeClassName={bodySClass} />
+          <PanelRow label="System logic" badge="New" badgeInfo icon={FULL_PREVIEW_ICONS.cubeTree} colors={colors} typeClassName={bodySClass} />
+          <PanelRow label="Rules engine" icon={FULL_PREVIEW_ICONS.engine} colors={colors} typeClassName={bodySClass} />
+          <PanelRow label="Triggers" icon={FULL_PREVIEW_ICONS.syncOff} colors={colors} typeClassName={bodySClass} />
+          <PanelRow label="Schedules" icon={FULL_PREVIEW_ICONS.calendarClock} colors={colors} typeClassName={bodySClass} />
+          <PanelRow label="Daily" badge="+05" icon={FULL_PREVIEW_ICONS.calendarMonth} colors={colors} typeClassName={bodySClass} />
+          <PanelRow label="Monthly" badge="+11" state="selected" bold icon={FULL_PREVIEW_ICONS.calendarMonth} colors={colors} typeClassName={bodySClass} />
+          <PanelRow label="Yearly" state="disabled" icon={FULL_PREVIEW_ICONS.calendarMonth} colors={colors} typeClassName={bodySClass} />
           <PanelRow label="Content" icon={FULL_PREVIEW_ICONS.contentView} colors={colors} typeClassName={bodySClass} />
         </div>
 
@@ -448,7 +415,6 @@ export function FullRailPreview({ tokens }: { tokens: ProposedToken[] }) {
             fontFamily="var(--font-sans, ui-sans-serif)"
             headingClass="text-base font-medium"
             bodySClass="text-xs"
-            labelMClass="text-xs font-medium"
           />
           <p className="text-xs font-medium">bidezine (so far — approved tokens + provisional layout)</p>
           <PendingLegend items={["F-1", "F-2", "F-3", "G-1", "D-1", "D-4", "D-5", "C-1", "C-6", "C-7", "A-1", "badge-variant-map"]} />
