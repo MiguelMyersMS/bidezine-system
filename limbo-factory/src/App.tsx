@@ -56,11 +56,19 @@ export function App() {
           </div>
         </header>
 
-        <ScrollArea className="min-h-0 flex-1">
-          <div className="p-6">
-            {activePhaseId === "human-decisions" ? <HumanDecisionsPhase /> : <PlaceholderPhase />}
-          </div>
-        </ScrollArea>
+        <div className="min-h-0 flex-1 overflow-hidden">
+          {activePhaseId === "human-decisions" ? (
+            <div className="h-full p-6">
+              <HumanDecisionsPhase />
+            </div>
+          ) : (
+            <ScrollArea className="h-full">
+              <div className="p-6">
+                <PlaceholderPhase />
+              </div>
+            </ScrollArea>
+          )}
+        </div>
       </main>
     </div>
   )
@@ -68,9 +76,9 @@ export function App() {
 
 function QuadrantLayout({ children, right }: { children: React.ReactNode; right: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-2">
-      <div className="flex flex-col gap-4 border-r pr-6">{children}</div>
-      <div className="flex items-center justify-center pl-6">{right}</div>
+    <div className="grid h-full grid-cols-2 gap-6">
+      <div className="flex h-full flex-col gap-4 overflow-y-auto rounded-lg border p-4">{children}</div>
+      <div className="flex h-full items-center justify-center overflow-hidden rounded-lg border p-4">{right}</div>
     </div>
   )
 }
@@ -115,7 +123,7 @@ function HumanDecisionsPhase() {
   const railNav = <RailNavStatusPreview source={railSource} tokens={proposedDarkRailTokens} />
 
   return (
-    <Tabs defaultValue="blocking" className="w-full">
+    <Tabs defaultValue="blocking" className="flex h-full w-full flex-col">
       <div className="-mx-6 -mt-6 mb-6 flex items-center justify-between gap-4 border-b px-6 py-4">
         <TabsList>
           <TabsTrigger value="blocking">Blocking questions (4)</TabsTrigger>
@@ -129,7 +137,7 @@ function HumanDecisionsPhase() {
         </div>
       </div>
 
-      <TabsContent value="blocking">
+      <TabsContent value="blocking" className="min-h-0">
         <QuadrantLayout right={railNav}>
           {blockingQuestions.map((q) => (
             <BlockingQuestionCard key={q.id} question={q} />
@@ -145,7 +153,7 @@ function HumanDecisionsPhase() {
         </QuadrantLayout>
       </TabsContent>
 
-      <TabsContent value="colorlab">
+      <TabsContent value="colorlab" className="min-h-0">
         <QuadrantLayout right={railNav}>
           {(() => {
             const approvedCount = proposedDarkRailTokens.filter((t) => t.approved !== false).length
@@ -166,13 +174,13 @@ function HumanDecisionsPhase() {
         </QuadrantLayout>
       </TabsContent>
 
-      <TabsContent value="categories">
+      <TabsContent value="categories" className="min-h-0">
         <QuadrantLayout right={railNav}>
           <DivergenceCategoriesAccordion categories={divergenceCategories} />
         </QuadrantLayout>
       </TabsContent>
 
-      <TabsContent value="risks">
+      <TabsContent value="risks" className="min-h-0">
         <QuadrantLayout right={railNav}>
           <RisksList risks={notableRisks} />
         </QuadrantLayout>

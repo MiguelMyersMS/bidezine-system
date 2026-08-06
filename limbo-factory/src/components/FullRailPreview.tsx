@@ -430,34 +430,23 @@ export function RailNavStatusPreview({
   tokens: ProposedToken[]
 }) {
   if (source === "origin") {
-    return (
-      <div className="flex flex-col items-center gap-3">
-        <OriginRailNavLiveAuto height={550} />
-        <p className="text-xs font-medium text-muted-foreground">
-          Origin — real vendored component, verbatim (reference only, will not change)
-        </p>
-      </div>
-    )
+    return <OriginRailNavLiveAuto height={550} />
   }
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      <FullRailMockBothThemes
-        source="bidezine"
-        tokens={tokens}
-        railW={54}
-        railBtn={38}
-        panelW={300}
-        radiusRail={12}
-        radiusXs={4}
-        fontFamily="var(--font-sans, ui-sans-serif)"
-        headingClass="text-base font-medium"
-        bodySClass="text-xs"
-        labelMClass="text-xs font-medium"
-      />
-      <p className="text-xs font-medium">Adjusted — bidezine, reflects every decision made so far</p>
-      <PendingLegend items={["F-1", "F-2", "F-3", "G-1", "D-1", "D-4", "D-5", "C-1", "C-6", "C-7", "A-1", "badge-variant-map"]} />
-    </div>
+    <FullRailMockBothThemes
+      source="bidezine"
+      tokens={tokens}
+      railW={54}
+      railBtn={38}
+      panelW={300}
+      radiusRail={12}
+      radiusXs={4}
+      fontFamily="var(--font-sans, ui-sans-serif)"
+      headingClass="text-base font-medium"
+      bodySClass="text-xs"
+      labelMClass="text-xs font-medium"
+    />
   )
 }
 
