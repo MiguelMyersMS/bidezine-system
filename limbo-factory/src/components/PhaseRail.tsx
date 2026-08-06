@@ -24,10 +24,10 @@ function StatusBadge({ status }: { status: PhaseStatus }) {
 }
 
 /**
- * Reusable factory-line left panel: shows every phase a Limbo component moves
- * through, with sub-phase checklists where available. Generic over any
- * Phase[] — this same component is meant to be reused for the next Limbo
- * occupant after Rail Sidebar, just fed different phase data.
+ * Reusable factory-line left panel: a flat, single-level list of every phase
+ * a Limbo component moves through — no nested sub-phase checklist. Generic
+ * over any Phase[] — this same component is meant to be reused for the next
+ * Limbo occupant after Rail Sidebar, just fed different phase data.
  */
 export function PhaseRail({
   phases,
@@ -48,42 +48,21 @@ export function PhaseRail({
       {phases.map((phase) => {
         const isActive = phase.id === activePhaseId
         return (
-          <div key={phase.id} className="flex flex-col">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => onSelectPhase(phase.id)}
-              className={cn(
-                "h-auto w-full justify-between gap-2 rounded-md px-3 py-2 text-left text-sm font-normal",
-                isActive
-                  ? "bg-accent text-accent-foreground font-medium hover:bg-accent"
-                  : "text-foreground"
-              )}
-            >
-              <span className="truncate">{phase.title}</span>
-              <StatusBadge status={phase.status} />
-            </Button>
-            {isActive && phase.subPhases && phase.subPhases.length > 0 ? (
-              <ul className="mb-1 ml-3 flex flex-col gap-0.5 border-l pl-3">
-                {phase.subPhases.map((sub) => (
-                  <li key={sub.id} className="flex items-start justify-between gap-2 py-1 text-xs">
-                    <span
-                      className={cn(
-                        "leading-snug",
-                        sub.status === "done" ? "text-muted-foreground line-through" : "text-foreground"
-                      )}
-                    >
-                      {sub.title}
-                      {sub.note ? (
-                        <span className="block text-muted-foreground">{sub.note}</span>
-                      ) : null}
-                    </span>
-                    <StatusBadge status={sub.status} />
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
+          <Button
+            key={phase.id}
+            type="button"
+            variant="ghost"
+            onClick={() => onSelectPhase(phase.id)}
+            className={cn(
+              "h-auto w-full justify-between gap-2 rounded-md px-3 py-2 text-left text-sm font-normal",
+              isActive
+                ? "bg-accent text-accent-foreground font-medium hover:bg-accent"
+                : "text-foreground"
+            )}
+          >
+            <span className="truncate">{phase.title}</span>
+            <StatusBadge status={phase.status} />
+          </Button>
         )
       })}
     </nav>
