@@ -136,7 +136,11 @@ export function OriginRailNavLive({
         height: height + SHADOW_BLEED * 2,
         width: width + SHADOW_BLEED * 2,
         margin: -SHADOW_BLEED,
-        maxWidth: "100%",
+        // No `maxWidth: "100%"` here: the containing flex column sizes itself off this iframe's
+        // own intrinsic width, so a percentage max-width resolves circularly and silently caps the
+        // iframe back down to its pre-bleed size — which re-truncates the panel's box-shadow even
+        // though the `width`/`height` props above are correct. This embed always renders at a
+        // caller-controlled fixed size (see `FullRailPreview`), so no responsive cap is needed.
         border: "none",
         display: "block",
       }}
