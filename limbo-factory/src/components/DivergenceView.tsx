@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
   Checkbox,
-  Separator,
   cn,
 } from "@bidezine/system"
 import type { DecisionQuestion, DivergenceCategory, RiskNote } from "@/data/rail-sidebar"
@@ -55,16 +54,6 @@ export function BlockingQuestionCard({ question }: { question: DecisionQuestion 
         <CardDescription>Blocks: {question.blocks}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        <p className="text-sm text-foreground">{question.context}</p>
-        <Separator />
-        <div className="flex flex-col gap-2">
-          {question.options.map((opt) => (
-            <div key={opt.label} className="rounded-md border p-3">
-              <p className="text-sm font-medium">{opt.label}</p>
-              <p className="text-xs text-muted-foreground">{opt.detail}</p>
-            </div>
-          ))}
-        </div>
         {question.visual ? (
           <div className="rounded-md border bg-muted/30 p-3">
             <VisualCompare visual={question.visual} />

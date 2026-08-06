@@ -80,17 +80,22 @@ function HumanDecisionsPhase() {
         <ThemeToggle />
       </div>
 
-      <TabsContent value="blocking" className="flex flex-col gap-4">
-        {blockingQuestions.map((q) => (
-          <BlockingQuestionCard key={q.id} question={q} />
-        ))}
-        <div className="rounded-md border p-4">
-          <p className="mb-2 text-sm font-medium">Logo import (Q3's standing rule)</p>
-          <LogoImportSlot
-            defaultUrl={BIDEZINE_LOGO_DEFAULT_LABEL}
-            defaultSvgPath={BIDEZINE_LOGO_PATH}
-            defaultViewBox={BIDEZINE_LOGO_VIEWBOX}
-          />
+      <TabsContent value="blocking">
+        <div className="grid grid-cols-2 gap-6">
+          <div className="flex flex-col gap-4">
+            {blockingQuestions.map((q) => (
+              <BlockingQuestionCard key={q.id} question={q} />
+            ))}
+            <div className="rounded-md border p-4">
+              <p className="mb-2 text-sm font-medium">Logo import (Q3's standing rule)</p>
+              <LogoImportSlot
+                defaultUrl={BIDEZINE_LOGO_DEFAULT_LABEL}
+                defaultSvgPath={BIDEZINE_LOGO_PATH}
+                defaultViewBox={BIDEZINE_LOGO_VIEWBOX}
+              />
+            </div>
+          </div>
+          <div />
         </div>
       </TabsContent>
 
