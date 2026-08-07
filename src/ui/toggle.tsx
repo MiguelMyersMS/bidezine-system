@@ -4,6 +4,7 @@ import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Toggle as TogglePrimitive } from "radix-ui"
 
+import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
 
 const toggleVariants = cva(
@@ -30,17 +31,45 @@ const toggleVariants = cva(
 
 function Toggle({
   className,
+  children,
+  disabled,
+  onMouseDown,
+  onMouseEnter,
+  onMouseLeave,
+  onMouseUp,
   variant,
   size,
   ...props
 }: React.ComponentProps<typeof TogglePrimitive.Root> &
   VariantProps<typeof toggleVariants>) {
+  const actionIcon = useActionIconFill<HTMLButtonElement>({ disabled })
+
   return (
     <TogglePrimitive.Root
+      ref={actionIcon.ref}
       data-slot="toggle"
+      disabled={disabled}
       className={cn(toggleVariants({ variant, size, className }))}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        onMouseUp?.(event)
+      }}
       {...props}
-    />
+    >
+      {fillActionIcons(children, actionIcon.filled)}
+    </TogglePrimitive.Root>
   )
 }
 

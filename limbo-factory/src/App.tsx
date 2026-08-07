@@ -4,6 +4,7 @@ import { PhaseRail } from "@/components/PhaseRail"
 import { BlockingQuestionCard, DivergenceCategoriesAccordion, RisksList } from "@/components/DivergenceView"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { ColorTokenLab } from "@/components/ColorTokenLab"
+import { TypographyLab } from "@/components/TypographyLab"
 import { RailNavStatusPreview } from "@/components/FullRailPreview"
 import { LogoImportSlot } from "@/components/LogoImportSlot"
 import { NEGATIVE_BADGE, POSITIVE_BADGE } from "@/lib/status-colors"
@@ -58,7 +59,7 @@ export function App() {
 
         <div className="min-h-0 flex-1 overflow-hidden">
           {activePhaseId === "human-decisions" ? (
-            <div className="h-full p-6">
+            <div className="h-full p-[10px]">
               <HumanDecisionsPhase />
             </div>
           ) : (
@@ -82,14 +83,16 @@ function QuadrantLayout({
   right: (height: number) => React.ReactNode
 }) {
   return (
-    <div className="grid h-full grid-cols-2 gap-6">
-      <div className="h-full min-h-0 overflow-hidden">
+    <div className="grid h-full min-h-0 w-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-0 overflow-hidden">
+      <div className="h-full min-h-0 min-w-0 w-full overflow-hidden">
         <ScrollArea className="h-full">
-          <div className="flex flex-col gap-4 pr-3">{children}</div>
+          <div className="flex flex-col gap-4 px-[8px]">{children}</div>
         </ScrollArea>
       </div>
-      <div className="flex h-full items-center justify-center overflow-hidden rounded-lg bg-card p-4">
-        <FillHeight render={right} />
+      <div className="box-border h-full min-h-0 min-w-0 w-full px-[8px]">
+        <div className="box-border flex h-full min-h-0 w-full items-center justify-center overflow-hidden rounded-lg p-6">
+          <FillHeight render={right} />
+        </div>
       </div>
     </div>
   )
@@ -165,13 +168,17 @@ function HumanDecisionsPhase() {
   )
 
   return (
-    <Tabs defaultValue="blocking" className="flex h-full w-full flex-col gap-0">
-      <div className="-mx-6 -mt-6 mb-6 flex items-center justify-between gap-4 border-b px-6 py-4">
+    <Tabs
+      defaultValue="blocking"
+      className="grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden"
+    >
+      <div className="-mx-[10px] -mt-[10px] mb-[10px] flex items-center justify-between gap-4 border-b px-6 py-4">
         <TabsList>
-          <TabsTrigger value="blocking">Blocking questions (4)</TabsTrigger>
-          <TabsTrigger value="colorlab">Color token lab (10)</TabsTrigger>
-          <TabsTrigger value="categories">Full divergence list (13 categories)</TabsTrigger>
-          <TabsTrigger value="risks">Notable risks (9)</TabsTrigger>
+          <TabsTrigger value="blocking">Blocking questions</TabsTrigger>
+          <TabsTrigger value="colorlab">Color token lab</TabsTrigger>
+          <TabsTrigger value="typelab">Typography lab</TabsTrigger>
+          <TabsTrigger value="categories">Full divergence list</TabsTrigger>
+          <TabsTrigger value="risks">Notable risks</TabsTrigger>
         </TabsList>
         <div className="flex items-center gap-2">
           <RailSourceToggle value={railSource} onChange={setRailSource} />
@@ -179,7 +186,7 @@ function HumanDecisionsPhase() {
         </div>
       </div>
 
-      <TabsContent value="blocking" className="min-h-0">
+      <TabsContent value="blocking" className="row-start-2 box-border min-h-0 min-w-0 w-full overflow-hidden p-[6px]">
         <QuadrantLayout right={renderRailNav}>
           {blockingQuestions.map((q) => (
             <BlockingQuestionCard key={q.id} question={q} />
@@ -195,13 +202,13 @@ function HumanDecisionsPhase() {
         </QuadrantLayout>
       </TabsContent>
 
-      <TabsContent value="colorlab" className="min-h-0">
+      <TabsContent value="colorlab" className="row-start-2 box-border min-h-0 min-w-0 w-full overflow-hidden p-[6px]">
         <QuadrantLayout right={renderRailNav}>
           {(() => {
             const approvedCount = proposedDarkRailTokens.filter((t) => t.approved !== false).length
             const pendingCount = proposedDarkRailTokens.length - approvedCount
             return (
-              <div className="flex items-center gap-2 rounded-md border bg-card p-3 shadow-sm">
+              <div className="flex items-center gap-2 rounded-md border bg-card p-6 shadow-sm">
                 <Badge className={POSITIVE_BADGE}>{approvedCount} approved</Badge>
                 {pendingCount > 0 ? <Badge className={NEGATIVE_BADGE}>{pendingCount} needs decision</Badge> : null}
                 <p className="text-xs text-muted-foreground">
@@ -216,13 +223,19 @@ function HumanDecisionsPhase() {
         </QuadrantLayout>
       </TabsContent>
 
-      <TabsContent value="categories" className="min-h-0">
+      <TabsContent value="typelab" className="row-start-2 box-border min-h-0 min-w-0 w-full overflow-hidden p-[6px]">
+        <QuadrantLayout right={renderRailNav}>
+          <TypographyLab />
+        </QuadrantLayout>
+      </TabsContent>
+
+      <TabsContent value="categories" className="row-start-2 box-border min-h-0 min-w-0 w-full overflow-hidden p-[6px]">
         <QuadrantLayout right={renderRailNav}>
           <DivergenceCategoriesAccordion categories={divergenceCategories} />
         </QuadrantLayout>
       </TabsContent>
 
-      <TabsContent value="risks" className="min-h-0">
+      <TabsContent value="risks" className="row-start-2 box-border min-h-0 min-w-0 w-full overflow-hidden p-[6px]">
         <QuadrantLayout right={renderRailNav}>
           <RisksList risks={notableRisks} />
         </QuadrantLayout>

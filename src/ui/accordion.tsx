@@ -4,6 +4,7 @@ import * as React from "react"
 import { ChevronDownIcon } from "@/icons/generated"
 import { Accordion as AccordionPrimitive } from "radix-ui"
 
+import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
 
 function Accordion({
@@ -28,20 +29,45 @@ function AccordionItem({
 function AccordionTrigger({
   className,
   children,
+  disabled,
+  onMouseDown,
+  onMouseEnter,
+  onMouseLeave,
+  onMouseUp,
   ...props
 }: React.ComponentProps<typeof AccordionPrimitive.Trigger>) {
+  const actionIcon = useActionIconFill<HTMLButtonElement>({ disabled })
+
   return (
     <AccordionPrimitive.Header className="flex">
       <AccordionPrimitive.Trigger
+        ref={actionIcon.ref}
         data-slot="accordion-trigger"
+        disabled={disabled}
         className={cn(
           "flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180",
           className
         )}
+        onMouseDown={(event) => {
+          actionIcon.onMouseDown()
+          onMouseDown?.(event)
+        }}
+        onMouseEnter={(event) => {
+          actionIcon.onMouseEnter()
+          onMouseEnter?.(event)
+        }}
+        onMouseLeave={(event) => {
+          actionIcon.onMouseLeave()
+          onMouseLeave?.(event)
+        }}
+        onMouseUp={(event) => {
+          actionIcon.onMouseUp()
+          onMouseUp?.(event)
+        }}
         {...props}
       >
-        {children}
-        <ChevronDownIcon className="pointer-events-none size-4 shrink-0 translate-y-0.5 text-muted-foreground transition-transform duration-200" />
+        {fillActionIcons(children, actionIcon.filled)}
+        <ChevronDownIcon className="pointer-events-none size-4 shrink-0 translate-y-0.5 text-muted-foreground transition-transform duration-200" filled={actionIcon.filled} />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   )

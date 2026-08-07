@@ -1,8 +1,11 @@
+"use client"
+
 import * as React from "react"
 import { cva } from "class-variance-authority"
 import { ChevronDownIcon } from "@/icons/generated"
 import { NavigationMenu as NavigationMenuPrimitive } from "radix-ui"
 
+import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
 
 function NavigationMenu({
@@ -65,17 +68,39 @@ const navigationMenuTriggerStyle = cva(
 function NavigationMenuTrigger({
   className,
   children,
+  disabled,
   ...props
 }: React.ComponentProps<typeof NavigationMenuPrimitive.Trigger>) {
+  const actionIcon = useActionIconFill<HTMLButtonElement>({ disabled })
+
   return (
     <NavigationMenuPrimitive.Trigger
+      ref={actionIcon.ref}
       data-slot="navigation-menu-trigger"
       className={cn(navigationMenuTriggerStyle(), "group", className)}
+      disabled={disabled}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        props.onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        props.onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        props.onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        props.onMouseUp?.(event)
+      }}
       {...props}
     >
-      {children}{" "}
+      {fillActionIcons(children, actionIcon.filled)}{" "}
       <ChevronDownIcon
         className="relative top-[1px] ml-1 size-3 transition duration-300 group-data-[state=open]:rotate-180"
+        filled={actionIcon.filled}
         aria-hidden="true"
       />
     </NavigationMenuPrimitive.Trigger>
@@ -123,17 +148,44 @@ function NavigationMenuViewport({
 
 function NavigationMenuLink({
   className,
+  children,
+  active,
   ...props
 }: React.ComponentProps<typeof NavigationMenuPrimitive.Link>) {
+  const actionIcon = useActionIconFill<HTMLAnchorElement>({
+    active,
+    disabled: props["aria-disabled"] === true || props["aria-disabled"] === "true",
+  })
+
   return (
     <NavigationMenuPrimitive.Link
+      ref={actionIcon.ref}
       data-slot="navigation-menu-link"
       className={cn(
         "flex flex-col gap-1 rounded-sm p-2 text-sm transition-all outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 data-[active=true]:bg-accent/50 data-[active=true]:text-accent-foreground data-[active=true]:hover:bg-accent data-[active=true]:focus:bg-accent [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
         className
       )}
+      active={active}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        props.onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        props.onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        props.onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        props.onMouseUp?.(event)
+      }}
       {...props}
-    />
+    >
+      {fillActionIcons(children, actionIcon.filled)}
+    </NavigationMenuPrimitive.Link>
   )
 }
 

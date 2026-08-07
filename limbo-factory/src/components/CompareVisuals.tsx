@@ -87,15 +87,35 @@ function ColorCompare({ v }: { v: ColorVisual }) {
       <span className="text-muted-foreground">→</span>
       <div className="flex flex-col items-center gap-1">
         <div
-          className="h-14 w-14 rounded-md border"
-          style={v.afterVar ? { background: `var(${v.afterVar})` } : undefined}
+          className="h-14 w-14 rounded-md border dark:hidden"
+          style={
+            v.afterVar
+              ? { background: `var(${v.afterVar})` }
+              : v.afterHexLight
+                ? { background: v.afterHexLight }
+                : undefined
+          }
         >
-          {!v.afterVar ? (
+          {!v.afterVar && !v.afterHexLight ? (
+            <div className="flex h-full items-center justify-center text-xs text-muted-foreground">?</div>
+          ) : null}
+        </div>
+        <div
+          className="hidden h-14 w-14 rounded-md border dark:block"
+          style={
+            v.afterVar
+              ? { background: `var(${v.afterVar})` }
+              : v.afterHexDark ?? v.afterHexLight
+                ? { background: v.afterHexDark ?? v.afterHexLight }
+                : undefined
+          }
+        >
+          {!v.afterVar && !v.afterHexDark && !v.afterHexLight ? (
             <div className="flex h-full items-center justify-center text-xs text-muted-foreground">?</div>
           ) : null}
         </div>
         <p className="max-w-28 text-center text-xs text-muted-foreground">
-          {v.afterLabel ?? v.afterVar ?? "not yet proposed"}
+          {v.afterLabel ?? v.afterVar ?? v.afterHexLight ?? "not yet proposed"}
         </p>
       </div>
       {v.afterNote ? <p className="max-w-64 text-xs text-muted-foreground italic">{v.afterNote}</p> : null}
@@ -121,6 +141,41 @@ function TypeCompare({ v }: { v: TypeVisual }) {
 }
 
 function ShapeCompare({ v }: { v: ShapeVisual }) {
+  if (v.beforeLabel.includes("railW") || v.afterLabel.includes("Sidebar icon-rail")) {
+    return (
+      <RailWidthCompare
+        beforeLabel={v.beforeLabel}
+        afterLabel={v.afterLabel}
+        beforeWidth={v.beforeStyle.width ?? "54px"}
+        afterWidth={v.afterStyle.width ?? "48px"}
+      />
+    )
+  }
+
+  if (v.beforeLabel.includes("railButton") || v.afterLabel.includes("Button default")) {
+    return (
+      <ButtonSizeCompare
+        beforeLabel={v.beforeLabel}
+        afterLabel={v.afterLabel}
+        beforeSize={v.beforeStyle.width ?? "38px"}
+        afterSize={v.afterStyle.width ?? "36px"}
+        beforeRadius={v.beforeStyle.radius ?? "8px"}
+        afterRadius={v.afterStyle.radius ?? "8px"}
+      />
+    )
+  }
+
+  if (v.beforeLabel.includes("panelW") || v.afterLabel.includes("Sidebar default")) {
+    return (
+      <PanelWidthCompare
+        beforeLabel={v.beforeLabel}
+        afterLabel={v.afterLabel}
+        beforeWidth={v.beforeStyle.width ?? "150px"}
+        afterWidth={v.afterStyle.width ?? "128px"}
+      />
+    )
+  }
+
   return (
     <div className="flex flex-wrap items-end gap-6">
       <div className="flex flex-col items-center gap-1">
@@ -145,6 +200,164 @@ function ShapeCompare({ v }: { v: ShapeVisual }) {
           }}
         />
         <p className="max-w-28 text-center text-xs text-muted-foreground">{v.afterLabel}</p>
+      </div>
+    </div>
+  )
+}
+
+function RailWidthCompare({
+  beforeLabel,
+  afterLabel,
+  beforeWidth,
+  afterWidth,
+}: {
+  beforeLabel: string
+  afterLabel: string
+  beforeWidth: string
+  afterWidth: string
+}) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <RailWidthSample label={beforeLabel} width={beforeWidth} tone="origin" />
+      <RailWidthSample label={afterLabel} width={afterWidth} tone="adjusted" />
+    </div>
+  )
+}
+
+function RailWidthSample({
+  label,
+  width,
+  tone,
+}: {
+  label: string
+  width: string
+  tone: "origin" | "adjusted"
+}) {
+  return (
+    <div className="flex flex-col gap-2 rounded-md border p-3">
+      <div className="flex h-28 overflow-hidden rounded-md border bg-card">
+        <div
+          className={cn(
+            "flex shrink-0 flex-col items-center justify-between p-2 text-[9px]",
+            tone === "origin" ? "bg-muted" : "bg-secondary",
+          )}
+          style={{ width }}
+        >
+          <div className="h-5 w-5 rounded-sm bg-foreground/80" />
+          <div className="h-px w-full bg-border" />
+          <div className="h-5 w-5 rounded-sm border bg-background" />
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-1 p-2">
+          <div className="h-3 w-20 rounded bg-muted" />
+          <div className="h-3 w-28 rounded bg-muted" />
+          <div className="h-3 w-24 rounded bg-muted" />
+        </div>
+      </div>
+      <div>
+        <p className="text-xs font-medium">{tone === "origin" ? "Origin rail column" : "Adjusted rail column"}</p>
+        <p className="text-xs text-muted-foreground">{label}</p>
+      </div>
+    </div>
+  )
+}
+
+function ButtonSizeCompare({
+  beforeLabel,
+  afterLabel,
+  beforeSize,
+  afterSize,
+  beforeRadius,
+  afterRadius,
+}: {
+  beforeLabel: string
+  afterLabel: string
+  beforeSize: string
+  afterSize: string
+  beforeRadius: string
+  afterRadius: string
+}) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <ButtonSizeSample label={beforeLabel} size={beforeSize} radius={beforeRadius} tone="origin" />
+      <ButtonSizeSample label={afterLabel} size={afterSize} radius={afterRadius} tone="adjusted" />
+    </div>
+  )
+}
+
+function ButtonSizeSample({
+  label,
+  size,
+  radius,
+  tone,
+}: {
+  label: string
+  size: string
+  radius: string
+  tone: "origin" | "adjusted"
+}) {
+  return (
+    <div className="flex flex-col gap-2 rounded-md border p-3">
+      <div className="flex h-24 items-center justify-center rounded-md border bg-card">
+        <div
+          className={cn("flex items-center justify-center border", tone === "origin" ? "bg-muted" : "bg-secondary")}
+          style={{ width: size, height: size, borderRadius: radius }}
+        >
+          <div className="h-4 w-4 rounded-sm bg-foreground/80" />
+        </div>
+      </div>
+      <div>
+        <p className="text-xs font-medium">{tone === "origin" ? "Origin rail button" : "Adjusted button"}</p>
+        <p className="text-xs text-muted-foreground">{label}</p>
+      </div>
+    </div>
+  )
+}
+
+function PanelWidthCompare({
+  beforeLabel,
+  afterLabel,
+  beforeWidth,
+  afterWidth,
+}: {
+  beforeLabel: string
+  afterLabel: string
+  beforeWidth: string
+  afterWidth: string
+}) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <PanelWidthSample label={beforeLabel} width={beforeWidth} tone="origin" />
+      <PanelWidthSample label={afterLabel} width={afterWidth} tone="adjusted" />
+    </div>
+  )
+}
+
+function PanelWidthSample({
+  label,
+  width,
+  tone,
+}: {
+  label: string
+  width: string
+  tone: "origin" | "adjusted"
+}) {
+  return (
+    <div className="flex flex-col gap-2 rounded-md border p-3">
+      <div className="flex h-28 overflow-hidden rounded-md border bg-card">
+        <div className="w-8 shrink-0 bg-muted" />
+        <div
+          className={cn("flex flex-col gap-2 p-3", tone === "origin" ? "bg-card" : "bg-secondary")}
+          style={{ width }}
+        >
+          <div className="h-3 w-16 rounded bg-foreground/60" />
+          <div className="h-3 w-24 rounded bg-muted-foreground/40" />
+          <div className="h-3 w-20 rounded bg-muted-foreground/40" />
+          <div className="h-3 w-28 rounded bg-muted-foreground/40" />
+        </div>
+      </div>
+      <div>
+        <p className="text-xs font-medium">{tone === "origin" ? "Origin expanded panel" : "Adjusted sidebar panel"}</p>
+        <p className="text-xs text-muted-foreground">{label}</p>
       </div>
     </div>
   )

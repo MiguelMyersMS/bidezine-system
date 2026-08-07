@@ -31,7 +31,7 @@ export function ColorTokenLab({ tokens }: { tokens: ProposedToken[] }) {
           const isApproved = t.approved !== false
           return (
           <Card key={t.originName}>
-            <CardContent className="flex flex-col items-center gap-4 py-6 text-center">
+            <CardContent className="flex flex-col items-center gap-4 px-6 py-6 text-center">
               <div>
                 <p className="font-mono text-sm font-semibold">{t.proposedVar}</p>
                 <p className="text-xs text-muted-foreground">

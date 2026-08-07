@@ -4,6 +4,7 @@ import * as React from "react"
 import { CheckIcon, ChevronRightIcon, CircleIcon } from "@/icons/generated"
 import { ContextMenu as ContextMenuPrimitive } from "radix-ui"
 
+import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
 
 function ContextMenu({
@@ -57,22 +58,47 @@ function ContextMenuSubTrigger({
   className,
   inset,
   children,
+  disabled,
+  onMouseDown,
+  onMouseEnter,
+  onMouseLeave,
+  onMouseUp,
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.SubTrigger> & {
   inset?: boolean
 }) {
+  const actionIcon = useActionIconFill<HTMLDivElement>({ disabled })
+
   return (
     <ContextMenuPrimitive.SubTrigger
+      ref={actionIcon.ref}
       data-slot="context-menu-sub-trigger"
       data-inset={inset}
+      disabled={disabled}
       className={cn(
         "flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[inset]:pl-8 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
         className
       )}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        onMouseUp?.(event)
+      }}
       {...props}
     >
-      {children}
-      <ChevronRightIcon className="ml-auto" />
+      {fillActionIcons(children, actionIcon.filled)}
+      <ChevronRightIcon className="ml-auto" filled={actionIcon.filled} />
     </ContextMenuPrimitive.SubTrigger>
   )
 }
@@ -113,24 +139,52 @@ function ContextMenuContent({
 
 function ContextMenuItem({
   className,
+  children,
+  disabled,
   inset,
+  onMouseDown,
+  onMouseEnter,
+  onMouseLeave,
+  onMouseUp,
   variant = "default",
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Item> & {
   inset?: boolean
   variant?: "default" | "destructive"
 }) {
+  const actionIcon = useActionIconFill<HTMLDivElement>({ disabled })
+
   return (
     <ContextMenuPrimitive.Item
+      ref={actionIcon.ref}
       data-slot="context-menu-item"
       data-inset={inset}
       data-variant={variant}
+      disabled={disabled}
       className={cn(
         "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive!",
         className
       )}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        onMouseUp?.(event)
+      }}
       {...props}
-    />
+    >
+      {fillActionIcons(children, actionIcon.filled)}
+    </ContextMenuPrimitive.Item>
   )
 }
 

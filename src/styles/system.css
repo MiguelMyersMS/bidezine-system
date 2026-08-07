@@ -5,6 +5,7 @@
  * Tokens come from tokens.css, generated from the DTCG source in tokens/.
  */
 
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import "tailwindcss" source(none);
 /* Enter/exit utilities (animate-in, fade-in-0, zoom-in-95) that Radix state
    transitions rely on. Build-time only — compiled into our dist CSS. */

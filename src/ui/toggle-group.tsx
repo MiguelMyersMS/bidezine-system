@@ -4,6 +4,7 @@ import * as React from "react"
 import { type VariantProps } from "class-variance-authority"
 import { ToggleGroup as ToggleGroupPrimitive } from "radix-ui"
 
+import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
 import { toggleVariants } from "@/ui/toggle"
 
@@ -51,19 +52,27 @@ function ToggleGroup({
 function ToggleGroupItem({
   className,
   children,
+  disabled,
+  onMouseDown,
+  onMouseEnter,
+  onMouseLeave,
+  onMouseUp,
   variant,
   size,
   ...props
 }: React.ComponentProps<typeof ToggleGroupPrimitive.Item> &
   VariantProps<typeof toggleVariants>) {
   const context = React.useContext(ToggleGroupContext)
+  const actionIcon = useActionIconFill<HTMLButtonElement>({ disabled })
 
   return (
     <ToggleGroupPrimitive.Item
+      ref={actionIcon.ref}
       data-slot="toggle-group-item"
       data-variant={context.variant || variant}
       data-size={context.size || size}
       data-spacing={context.spacing}
+      disabled={disabled}
       className={cn(
         toggleVariants({
           variant: context.variant || variant,
@@ -73,9 +82,25 @@ function ToggleGroupItem({
         "data-[spacing=0]:rounded-none data-[spacing=0]:shadow-none data-[spacing=0]:first:rounded-l-md data-[spacing=0]:last:rounded-r-md data-[spacing=0]:data-[variant=outline]:border-l-0 data-[spacing=0]:data-[variant=outline]:first:border-l",
         className
       )}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        onMouseUp?.(event)
+      }}
       {...props}
     >
-      {children}
+      {fillActionIcons(children, actionIcon.filled)}
     </ToggleGroupPrimitive.Item>
   )
 }

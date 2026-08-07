@@ -105,7 +105,7 @@ export function DivergenceCategoriesAccordion({ categories }: { categories: Dive
                   return (
                     <div
                       key={row.id}
-                      className="rounded-md border bg-card p-2 shadow-sm"
+                      className="rounded-md border bg-card p-6 shadow-sm"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-sm font-medium">

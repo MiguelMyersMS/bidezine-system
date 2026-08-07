@@ -12,7 +12,7 @@ export {
 // Utilities
 export { cn } from "./lib/utils"
 
-// Icons — Fluent UI System Icons (regular, 20px), generated from icons/manifest.json.
+// Icons — Fluent UI System Icons (regular + optional filled, 20px), generated from icons/manifest.json.
 // The single source of truth for every icon used anywhere in this system, including
 // the showcase site's own chrome. Never import an icon package directly downstream.
 export * from "./icons/generated"

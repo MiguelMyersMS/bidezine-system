@@ -6,6 +6,7 @@ import { PanelLeftIcon } from "@/icons/generated"
 import { Slot } from "radix-ui"
 
 import { useIsMobile } from "@/hooks/use-mobile"
+import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
 import { Button } from "@/ui/button"
 import { Input } from "@/ui/input"
@@ -416,15 +417,24 @@ function SidebarGroupLabel({
 
 function SidebarGroupAction({
   className,
+  children,
+  disabled,
+  onMouseDown,
+  onMouseEnter,
+  onMouseLeave,
+  onMouseUp,
   asChild = false,
   ...props
 }: React.ComponentProps<"button"> & { asChild?: boolean }) {
   const Comp = asChild ? Slot.Root : "button"
+  const actionIcon = useActionIconFill<HTMLButtonElement>({ disabled })
 
   return (
     <Comp
+      ref={actionIcon.ref}
       data-slot="sidebar-group-action"
       data-sidebar="group-action"
+      disabled={disabled}
       className={cn(
         "absolute top-3.5 right-3 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground ring-sidebar-ring outline-hidden transition-transform hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
         // Increases the hit area of the button on mobile.
@@ -432,8 +442,26 @@ function SidebarGroupAction({
         "group-data-[collapsible=icon]:hidden",
         className
       )}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        onMouseUp?.(event)
+      }}
       {...props}
-    />
+    >
+      {fillActionIcons(children, actionIcon.filled)}
+    </Comp>
   )
 }
 
@@ -497,11 +525,17 @@ const sidebarMenuButtonVariants = cva(
 
 function SidebarMenuButton({
   asChild = false,
+  children,
+  disabled,
   isActive = false,
   variant = "default",
   size = "default",
   tooltip,
   className,
+  onMouseDown,
+  onMouseEnter,
+  onMouseLeave,
+  onMouseUp,
   ...props
 }: React.ComponentProps<"button"> & {
   asChild?: boolean
@@ -510,16 +544,40 @@ function SidebarMenuButton({
 } & VariantProps<typeof sidebarMenuButtonVariants>) {
   const Comp = asChild ? Slot.Root : "button"
   const { isMobile, state } = useSidebar()
+  const actionIcon = useActionIconFill<HTMLButtonElement>({
+    active: isActive,
+    disabled,
+  })
 
   const button = (
     <Comp
+      ref={actionIcon.ref}
       data-slot="sidebar-menu-button"
       data-sidebar="menu-button"
       data-size={size}
       data-active={isActive}
+      disabled={disabled}
       className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
       {...props}
-    />
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        onMouseUp?.(event)
+      }}
+    >
+      {fillActionIcons(children, actionIcon.filled)}
+    </Comp>
   )
 
   if (!tooltip) {
@@ -547,19 +605,28 @@ function SidebarMenuButton({
 
 function SidebarMenuAction({
   className,
+  children,
+  disabled,
   asChild = false,
   showOnHover = false,
+  onMouseDown,
+  onMouseEnter,
+  onMouseLeave,
+  onMouseUp,
   ...props
 }: React.ComponentProps<"button"> & {
   asChild?: boolean
   showOnHover?: boolean
 }) {
   const Comp = asChild ? Slot.Root : "button"
+  const actionIcon = useActionIconFill<HTMLButtonElement>({ disabled })
 
   return (
     <Comp
+      ref={actionIcon.ref}
       data-slot="sidebar-menu-action"
       data-sidebar="menu-action"
+      disabled={disabled}
       className={cn(
         "absolute top-1.5 right-1 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground ring-sidebar-ring outline-hidden transition-transform peer-hover/menu-button:text-sidebar-accent-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
         // Increases the hit area of the button on mobile.
@@ -572,8 +639,26 @@ function SidebarMenuAction({
           "group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 peer-data-[active=true]/menu-button:text-sidebar-accent-foreground data-[state=open]:opacity-100 md:opacity-0",
         className
       )}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        onMouseUp?.(event)
+      }}
       {...props}
-    />
+    >
+      {fillActionIcons(children, actionIcon.filled)}
+    </Comp>
   )
 }
 
@@ -668,9 +753,14 @@ function SidebarMenuSubItem({
 
 function SidebarMenuSubButton({
   asChild = false,
+  children,
   size = "md",
   isActive = false,
   className,
+  onMouseDown,
+  onMouseEnter,
+  onMouseLeave,
+  onMouseUp,
   ...props
 }: React.ComponentProps<"a"> & {
   asChild?: boolean
@@ -678,9 +768,15 @@ function SidebarMenuSubButton({
   isActive?: boolean
 }) {
   const Comp = asChild ? Slot.Root : "a"
+  const isDisabled = props["aria-disabled"] === true || props["aria-disabled"] === "true"
+  const actionIcon = useActionIconFill<HTMLAnchorElement>({
+    active: isActive,
+    disabled: isDisabled,
+  })
 
   return (
     <Comp
+      ref={actionIcon.ref}
       data-slot="sidebar-menu-sub-button"
       data-sidebar="menu-sub-button"
       data-size={size}
@@ -693,8 +789,26 @@ function SidebarMenuSubButton({
         "group-data-[collapsible=icon]:hidden",
         className
       )}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        onMouseUp?.(event)
+      }}
       {...props}
-    />
+    >
+      {fillActionIcons(children, actionIcon.filled)}
+    </Comp>
   )
 }
 

@@ -1,3 +1,5 @@
+"use client"
+
 import * as React from "react"
 import {
   ChevronLeftIcon,
@@ -5,6 +7,7 @@ import {
   MoreHorizontalIcon,
 } from "@/icons/generated"
 
+import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
 import { buttonVariants, type Button } from "@/ui/button"
 
@@ -46,10 +49,17 @@ function PaginationLink({
   className,
   isActive,
   size = "icon",
+  children,
   ...props
 }: PaginationLinkProps) {
+  const actionIcon = useActionIconFill<HTMLAnchorElement>({
+    active: isActive,
+    disabled: props["aria-disabled"] === true || props["aria-disabled"] === "true",
+  })
+
   return (
     <a
+      ref={actionIcon.ref}
       aria-current={isActive ? "page" : undefined}
       data-slot="pagination-link"
       data-active={isActive}
@@ -60,8 +70,26 @@ function PaginationLink({
         }),
         className
       )}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        props.onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        props.onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        props.onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        props.onMouseUp?.(event)
+      }}
       {...props}
-    />
+    >
+      {fillActionIcons(children, actionIcon.filled)}
+    </a>
   )
 }
 

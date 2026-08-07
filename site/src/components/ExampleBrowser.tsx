@@ -85,7 +85,7 @@ export function ExampleBrowser({
             // desktop rail) a containing block here instead of the real
             // viewport, so a demo stays inside its own preview box instead of
             // overlapping the site's own page chrome.
-            "relative flex min-h-[200px] items-center justify-center overflow-hidden contain-layout p-8",
+            "relative flex min-h-[200px] items-center justify-center overflow-hidden contain-layout p-[10px]",
             stageClassName
           )}
         >

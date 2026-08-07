@@ -1,7 +1,10 @@
+"use client"
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Slot } from "radix-ui"
 
+import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
@@ -40,6 +43,12 @@ const buttonVariants = cva(
 
 function Button({
   className,
+  children,
+  disabled,
+  onMouseDown,
+  onMouseEnter,
+  onMouseLeave,
+  onMouseUp,
   variant = "default",
   size = "default",
   asChild = false,
@@ -49,15 +58,41 @@ function Button({
     asChild?: boolean
   }) {
   const Comp = asChild ? Slot.Root : "button"
+  const isSelected = props["aria-pressed"] === true || props["aria-pressed"] === "true"
+  const actionIcon = useActionIconFill<HTMLButtonElement>({
+    active: isSelected,
+    disabled,
+  })
+  const renderedChildren = fillActionIcons(children, actionIcon.filled)
 
   return (
     <Comp
+      ref={actionIcon.ref}
       data-slot="button"
       data-variant={variant}
       data-size={size}
+      disabled={disabled}
       className={cn(buttonVariants({ variant, size, className }))}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        onMouseUp?.(event)
+      }}
       {...props}
-    />
+    >
+      {renderedChildren}
+    </Comp>
   )
 }
 

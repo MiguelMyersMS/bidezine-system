@@ -4,6 +4,7 @@ import * as React from "react"
 import { CheckIcon, ChevronRightIcon, CircleIcon } from "@/icons/generated"
 import { Menubar as MenubarPrimitive } from "radix-ui"
 
+import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
 
 function Menubar({
@@ -50,17 +51,41 @@ function MenubarRadioGroup({
 
 function MenubarTrigger({
   className,
+  children,
+  disabled,
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Trigger>) {
+  const actionIcon = useActionIconFill<HTMLButtonElement>({ disabled })
+
   return (
     <MenubarPrimitive.Trigger
+      ref={actionIcon.ref}
       data-slot="menubar-trigger"
       className={cn(
         "flex items-center rounded-sm px-2 py-1 text-sm font-medium outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
         className
       )}
+      disabled={disabled}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        props.onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        props.onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        props.onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        props.onMouseUp?.(event)
+      }}
       {...props}
-    />
+    >
+      {fillActionIcons(children, actionIcon.filled)}
+    </MenubarPrimitive.Trigger>
   )
 }
 
@@ -92,13 +117,18 @@ function MenubarItem({
   className,
   inset,
   variant = "default",
+  children,
+  disabled,
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Item> & {
   inset?: boolean
   variant?: "default" | "destructive"
 }) {
+  const actionIcon = useActionIconFill<HTMLDivElement>({ disabled })
+
   return (
     <MenubarPrimitive.Item
+      ref={actionIcon.ref}
       data-slot="menubar-item"
       data-inset={inset}
       data-variant={variant}
@@ -106,8 +136,27 @@ function MenubarItem({
         "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive!",
         className
       )}
+      disabled={disabled}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        props.onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        props.onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        props.onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        props.onMouseUp?.(event)
+      }}
       {...props}
-    />
+    >
+      {fillActionIcons(children, actionIcon.filled)}
+    </MenubarPrimitive.Item>
   )
 }
 
@@ -220,22 +269,43 @@ function MenubarSubTrigger({
   className,
   inset,
   children,
+  disabled,
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.SubTrigger> & {
   inset?: boolean
 }) {
+  const actionIcon = useActionIconFill<HTMLDivElement>({ disabled })
+
   return (
     <MenubarPrimitive.SubTrigger
+      ref={actionIcon.ref}
       data-slot="menubar-sub-trigger"
       data-inset={inset}
       className={cn(
         "flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-none select-none focus:bg-accent focus:text-accent-foreground data-[inset]:pl-8 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
         className
       )}
+      disabled={disabled}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        props.onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        props.onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        props.onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        props.onMouseUp?.(event)
+      }}
       {...props}
     >
-      {children}
-      <ChevronRightIcon className="ml-auto h-4 w-4" />
+      {fillActionIcons(children, actionIcon.filled)}
+      <ChevronRightIcon className="ml-auto h-4 w-4" filled={actionIcon.filled} />
     </MenubarPrimitive.SubTrigger>
   )
 }

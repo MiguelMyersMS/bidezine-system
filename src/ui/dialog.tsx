@@ -4,6 +4,7 @@ import * as React from "react"
 import { XIcon } from "@/icons/generated"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
+import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
 import { Button } from "@/ui/button"
 
@@ -26,9 +27,38 @@ function DialogPortal({
 }
 
 function DialogClose({
+  children,
+  disabled,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Close>) {
-  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
+  const actionIcon = useActionIconFill<HTMLButtonElement>({ disabled })
+
+  return (
+    <DialogPrimitive.Close
+      ref={actionIcon.ref}
+      data-slot="dialog-close"
+      disabled={disabled}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        props.onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        props.onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        props.onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        props.onMouseUp?.(event)
+      }}
+      {...props}
+    >
+      {fillActionIcons(children, actionIcon.filled)}
+    </DialogPrimitive.Close>
+  )
 }
 
 function DialogOverlay({
@@ -55,6 +85,8 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
 }) {
+  const closeIcon = useActionIconFill<HTMLButtonElement>()
+
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
@@ -69,10 +101,15 @@ function DialogContent({
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close
+            ref={closeIcon.ref}
             data-slot="dialog-close"
             className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+            onMouseDown={closeIcon.onMouseDown}
+            onMouseEnter={closeIcon.onMouseEnter}
+            onMouseLeave={closeIcon.onMouseLeave}
+            onMouseUp={closeIcon.onMouseUp}
           >
-            <XIcon />
+            <XIcon filled={closeIcon.filled} />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
         )}

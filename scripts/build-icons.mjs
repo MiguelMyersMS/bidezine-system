@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Fluent UI System Icons (regular, 20px)  →  generated React icon components.
+ * Fluent UI System Icons (regular + optional filled, 20px)  -> generated React icon components.
  *
  * Reads   icons/manifest.json                     (name -> Fluent slug, or custom path data)
  * Writes  src/icons/generated.tsx                 (one React component per entry)
@@ -46,26 +46,56 @@ function readFluentIcon(name, slug) {
   return { viewBox: viewBoxMatch[1], inner: innerMatch[1] }
 }
 
+function readOptionalFluentIcon(slug) {
+  const file = join(fluentIconsDir, `${slug}.svg`)
+  if (!existsSync(file)) return null
+  const svg = readFileSync(file, "utf8")
+  const viewBoxMatch = svg.match(/viewBox="([^"]+)"/)
+  const innerMatch = svg.match(/<svg[^>]*>([\s\S]*)<\/svg>/)
+  if (!viewBoxMatch || !innerMatch) {
+    throw new Error(`Could not parse ${slug}.svg — unexpected SVG shape.`)
+  }
+  return { viewBox: viewBoxMatch[1], inner: innerMatch[1] }
+}
+
+function filledSlugFor(def) {
+  if (def.filled) return def.filled
+  if (typeof def.fluent === "string" && def.fluent.endsWith("_regular")) {
+    return def.fluent.replace(/_regular$/, "_filled")
+  }
+  return null
+}
+
 /** Render one entry (stock Fluent slug or custom inline path data) as a component. */
 function renderComponent(name, def) {
   const { viewBox, inner } = def.custom
     ? { viewBox: def.viewBox, inner: def.path }
     : readFluentIcon(name, def.fluent)
+  const filledSlug = def.custom ? null : filledSlugFor(def)
+  const filledIcon = filledSlug ? readOptionalFluentIcon(filledSlug) : null
 
   if (def.custom && !def.viewBox) {
     throw new Error(`Icon "${name}": custom entries must set "viewBox".`)
   }
 
-  return `export function ${name}(props: React.SVGProps<SVGSVGElement>) {
+  return `export function ${name}({ filled = false, ...props }: React.SVGProps<SVGSVGElement> & { filled?: boolean }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="${viewBox}"
+      viewBox={filled ? "${filledIcon?.viewBox ?? viewBox}" : "${viewBox}"}
       fill="currentColor"
       aria-hidden="true"
       {...props}
     >
-      ${inner}
+      {filled ? (
+        <>
+          ${filledIcon?.inner ?? inner}
+        </>
+      ) : (
+        <>
+          ${inner}
+        </>
+      )}
     </svg>
   )
 }

@@ -4,6 +4,7 @@ import * as React from "react"
 import { Combobox as ComboboxPrimitive } from "@base-ui/react"
 import { CheckIcon, ChevronDownIcon, XIcon } from "@/icons/generated"
 
+import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
 import { Button } from "@/ui/button"
 import {
@@ -22,32 +23,74 @@ function ComboboxValue({ ...props }: ComboboxPrimitive.Value.Props) {
 function ComboboxTrigger({
   className,
   children,
+  disabled,
   ...props
 }: ComboboxPrimitive.Trigger.Props) {
+  const actionIcon = useActionIconFill<HTMLButtonElement>({ disabled })
+
   return (
     <ComboboxPrimitive.Trigger
+      ref={actionIcon.ref}
       data-slot="combobox-trigger"
       className={cn("[&_svg:not([class*='size-'])]:size-4", className)}
+      disabled={disabled}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        props.onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        props.onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        props.onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        props.onMouseUp?.(event)
+      }}
       {...props}
     >
-      {children}
+      {fillActionIcons(children, actionIcon.filled)}
       <ChevronDownIcon
         data-slot="combobox-trigger-icon"
         className="pointer-events-none size-4 text-muted-foreground"
+        filled={actionIcon.filled}
       />
     </ComboboxPrimitive.Trigger>
   )
 }
 
-function ComboboxClear({ className, ...props }: ComboboxPrimitive.Clear.Props) {
+function ComboboxClear({ className, disabled, ...props }: ComboboxPrimitive.Clear.Props) {
+  const actionIcon = useActionIconFill<HTMLButtonElement>({ disabled })
+
   return (
     <ComboboxPrimitive.Clear
+      ref={actionIcon.ref}
       data-slot="combobox-clear"
       render={<InputGroupButton variant="ghost" size="icon-xs" />}
       className={cn(className)}
+      disabled={disabled}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        props.onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        props.onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        props.onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        props.onMouseUp?.(event)
+      }}
       {...props}
     >
-      <XIcon className="pointer-events-none" />
+      <XIcon className="pointer-events-none" filled={actionIcon.filled} />
     </ComboboxPrimitive.Clear>
   )
 }
@@ -142,18 +185,43 @@ function ComboboxList({ className, ...props }: ComboboxPrimitive.List.Props) {
 function ComboboxItem({
   className,
   children,
+  disabled,
+  onMouseDown,
+  onMouseEnter,
+  onMouseLeave,
+  onMouseUp,
   ...props
 }: ComboboxPrimitive.Item.Props) {
+  const actionIcon = useActionIconFill<HTMLDivElement>({ disabled })
+
   return (
     <ComboboxPrimitive.Item
+      ref={actionIcon.ref}
       data-slot="combobox-item"
+      disabled={disabled}
       className={cn(
         "relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        onMouseUp?.(event)
+      }}
       {...props}
     >
-      {children}
+      {fillActionIcons(children, actionIcon.filled)}
       <ComboboxPrimitive.ItemIndicator
         data-slot="combobox-item-indicator"
         render={
@@ -249,6 +317,8 @@ function ComboboxChip({
 }: ComboboxPrimitive.Chip.Props & {
   showRemove?: boolean
 }) {
+  const removeIcon = useActionIconFill<HTMLButtonElement>()
+
   return (
     <ComboboxPrimitive.Chip
       data-slot="combobox-chip"
@@ -261,11 +331,16 @@ function ComboboxChip({
       {children}
       {showRemove && (
         <ComboboxPrimitive.ChipRemove
+          ref={removeIcon.ref}
           render={<Button variant="ghost" size="icon-xs" />}
           className="-ml-1 opacity-50 hover:opacity-100"
           data-slot="combobox-chip-remove"
+          onMouseDown={removeIcon.onMouseDown}
+          onMouseEnter={removeIcon.onMouseEnter}
+          onMouseLeave={removeIcon.onMouseLeave}
+          onMouseUp={removeIcon.onMouseUp}
         >
-          <XIcon className="pointer-events-none" />
+          <XIcon className="pointer-events-none" filled={removeIcon.filled} />
         </ComboboxPrimitive.ChipRemove>
       )}
     </ComboboxPrimitive.Chip>

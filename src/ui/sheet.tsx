@@ -4,6 +4,7 @@ import * as React from "react"
 import { XIcon } from "@/icons/generated"
 import { Dialog as SheetPrimitive } from "radix-ui"
 
+import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
@@ -17,9 +18,38 @@ function SheetTrigger({
 }
 
 function SheetClose({
+  children,
+  disabled,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Close>) {
-  return <SheetPrimitive.Close data-slot="sheet-close" {...props} />
+  const actionIcon = useActionIconFill<HTMLButtonElement>({ disabled })
+
+  return (
+    <SheetPrimitive.Close
+      ref={actionIcon.ref}
+      data-slot="sheet-close"
+      disabled={disabled}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        props.onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        props.onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        props.onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        props.onMouseUp?.(event)
+      }}
+      {...props}
+    >
+      {fillActionIcons(children, actionIcon.filled)}
+    </SheetPrimitive.Close>
+  )
 }
 
 function SheetPortal({
@@ -54,6 +84,8 @@ function SheetContent({
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
 }) {
+  const closeIcon = useActionIconFill<HTMLButtonElement>()
+
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -75,8 +107,15 @@ function SheetContent({
       >
         {children}
         {showCloseButton && (
-          <SheetPrimitive.Close className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-secondary">
-            <XIcon className="size-4" />
+          <SheetPrimitive.Close
+            ref={closeIcon.ref}
+            className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-secondary"
+            onMouseDown={closeIcon.onMouseDown}
+            onMouseEnter={closeIcon.onMouseEnter}
+            onMouseLeave={closeIcon.onMouseLeave}
+            onMouseUp={closeIcon.onMouseUp}
+          >
+            <XIcon className="size-4" filled={closeIcon.filled} />
             <span className="sr-only">Close</span>
           </SheetPrimitive.Close>
         )}

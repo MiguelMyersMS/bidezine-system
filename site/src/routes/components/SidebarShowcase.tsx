@@ -45,7 +45,7 @@ const examples: ShowcaseExample[] = [
     label: "Controlled workspace layout",
     render: () => (
       <SidebarProvider className="min-h-[32rem] overflow-hidden rounded-lg border">
-        <Sidebar>
+        <Sidebar collapsible="icon">
           <SidebarHeader>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -63,7 +63,7 @@ const examples: ShowcaseExample[] = [
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarHeader>
-          <SidebarSeparator />
+          <SidebarSeparator className="mx-2 max-w-[calc(100%-1rem)]" />
           <SidebarContent>
             <SidebarGroup>
               <SidebarGroupLabel>Projects</SidebarGroupLabel>

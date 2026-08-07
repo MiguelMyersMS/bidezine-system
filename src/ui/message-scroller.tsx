@@ -9,6 +9,7 @@ import {
 } from "@shadcn/react/message-scroller"
 import { ArrowDownIcon } from "@/icons/generated"
 
+import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
 import { Button } from "@/ui/button"
 
@@ -91,8 +92,13 @@ function MessageScrollerButton({
   ...props
 }: React.ComponentProps<typeof MessageScrollerPrimitive.Button> &
   Pick<React.ComponentProps<typeof Button>, "variant" | "size">) {
+  const actionIcon = useActionIconFill<HTMLButtonElement>({
+    disabled: props.disabled,
+  })
+
   return (
     <MessageScrollerPrimitive.Button
+      ref={actionIcon.ref}
       data-slot="message-scroller-button"
       data-direction={direction}
       data-variant={variant}
@@ -103,11 +109,27 @@ function MessageScrollerButton({
         className
       )}
       render={render ?? <Button variant={variant} size={size} />}
+      onMouseDown={(event) => {
+        actionIcon.onMouseDown()
+        props.onMouseDown?.(event)
+      }}
+      onMouseEnter={(event) => {
+        actionIcon.onMouseEnter()
+        props.onMouseEnter?.(event)
+      }}
+      onMouseLeave={(event) => {
+        actionIcon.onMouseLeave()
+        props.onMouseLeave?.(event)
+      }}
+      onMouseUp={(event) => {
+        actionIcon.onMouseUp()
+        props.onMouseUp?.(event)
+      }}
       {...props}
     >
-      {children ?? (
+      {children ? fillActionIcons(children, actionIcon.filled) : (
         <>
-          <ArrowDownIcon />
+          <ArrowDownIcon filled={actionIcon.filled} />
           <span className="sr-only">
             {direction === "end" ? "Scroll to end" : "Scroll to start"}
           </span>

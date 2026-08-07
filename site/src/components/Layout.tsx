@@ -86,7 +86,7 @@ export function Layout() {
         </aside>
 
         <ScrollArea className="h-screen min-w-0 flex-1">
-          <main className="px-8 py-8">
+          <main className="p-[10px]">
             <Outlet />
           </main>
         </ScrollArea>

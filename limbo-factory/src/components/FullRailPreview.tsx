@@ -1,4 +1,5 @@
 import { Badge, cn } from "@bidezine/system"
+import { useState } from "react"
 import {
   BIDEZINE_LOGO_PATH,
   BIDEZINE_LOGO_VIEWBOX,
@@ -8,6 +9,19 @@ import {
   type ProposedToken,
 } from "@/data/rail-sidebar"
 import { OriginRailNavLiveAuto } from "@/reference/origin-design-system/OriginRailNavLive"
+
+const PANEL_FILLED_GLYPHS = {
+  videoSettings:
+    "M2 6a3 3 0 0 1 3-3h5a3 3 0 0 1 3 3v6a3 3 0 0 1-2.01 2.83l.01-.33a5.5 5.5 0 0 0-9-4.24V6Zm14.04 7.78L14 12.37V5.63l2.04-1.4c.83-.58 1.96.01 1.96 1.02v7.5c0 1-1.13 1.6-1.96 1.03ZM2.9 10.88l.15.56a2 2 0 0 1-1.43 2.48l-.46.12a4.7 4.7 0 0 0 .01 1.01l.35.09A2 2 0 0 1 3 17.66l-.13.42c.26.2.54.38.84.52l.32-.35a2 2 0 0 1 2.91 0l.34.36c.29-.13.56-.3.82-.5l-.16-.55a2 2 0 0 1 1.43-2.48l.46-.12a4.7 4.7 0 0 0 0-1.01l-.36-.09a2 2 0 0 1-1.45-2.52l.12-.42c-.25-.2-.53-.38-.83-.52l-.32.35a2 2 0 0 1-2.91 0l-.34-.36c-.3.13-.57.3-.82.5ZM6.5 14.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z",
+  peopleCommunity:
+    "M10 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm-4.95 8c-.03.16-.05.33-.05.5V14c0 1.53.69 2.9 1.77 3.81l-.17.05a4 4 0 0 1-4.9-2.82l-.65-2.42a1.5 1.5 0 0 1 1.06-1.84L5.05 10Zm8.18 7.81A4.99 4.99 0 0 0 15 14v-3.5c0-.17-.02-.34-.05-.5l2.94.78a1.5 1.5 0 0 1 1.06 1.84l-.64 2.42a4 4 0 0 1-5.07 2.77ZM16.5 4a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Zm-13 0a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Zm4 5C6.67 9 6 9.67 6 10.5V14a4 4 0 0 0 8 0v-3.5c0-.83-.67-1.5-1.5-1.5h-5Z",
+  engine:
+    "M7.5 2.5c.28 0 .5.22.5.5v1h2V3a.5.5 0 0 1 1 0v1h2.2a1 1 0 0 1 .89.55L14.8 6H16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-1.2l-.71 1.45a1 1 0 0 1-.9.55H7.71a1 1 0 0 1-.71-.3l-2.41-2.4A2 2 0 0 1 4 12.87V10H3v2.5a.5.5 0 0 1-1 0v-6a.5.5 0 0 1 1 0V9h1V6c0-1.1.9-2 2-2h1V3c0-.28.22-.5.5-.5Zm0 4.5a.5.5 0 0 0-.5.5V10c0 1.1.9 2 2 2h5.5a.5.5 0 0 0 0-1H11V7.5a.5.5 0 0 0-1 0V11H9a1 1 0 0 1-1-1V7.5a.5.5 0 0 0-.5-.5Z",
+  syncOff:
+    "M9.89 3.75a6.24 6.24 0 0 0-3.12.9L5.68 3.56a7.73 7.73 0 0 1 3.67-1.28l-.59-.59A.75.75 0 0 1 9.82.63l2.12 2.12c.3.3.3.77 0 1.06L9.82 5.93a.75.75 0 0 1-1.06-1.06L9.9 3.75ZM4.18 4.88a7.75 7.75 0 0 0 1.18 11.33.75.75 0 1 0 .9-1.2 6.25 6.25 0 0 1-1.02-9.06l8.81 8.8a6.23 6.23 0 0 1-3.94 1.5l1.13-1.12a.75.75 0 0 0-1.06-1.07L8.06 16.2c-.3.29-.3.76 0 1.06l2.12 2.12a.75.75 0 1 0 1.06-1.06l-.59-.59a7.72 7.72 0 0 0 4.47-1.9l2.03 2.03a.5.5 0 0 0 .7-.7l-15-15a.5.5 0 1 0-.7.7l2.03 2.03Zm11.17 8.35 1.09 1.09a7.75 7.75 0 0 0-1.8-10.53.75.75 0 0 0-.9 1.2 6.25 6.25 0 0 1 1.6 8.24Z",
+  contentView:
+    "M14 7H6v2h8V7Zm-2 5h2v1h-2v-1ZM6 3a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3H6ZM5 7a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7Zm7 4h2a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1a1 1 0 0 1 1-1Zm-7 .5c0-.28.22-.5.5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5Zm.5 1.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1 0-1Z",
+}
 
 /**
  * The full, "robust" side-by-side you asked for on the Full divergence list tab: not just colors
@@ -117,14 +131,14 @@ function colorsFor(source: Source, variant: Variant, tokens: ProposedToken[]) {
     fgHover: pick("onDarkHover"),
     fgSubtle: pick("onDarkSubtle"),
     fgDisabled: pick("onDarkDisabled"),
-    // Light panel: bidezine's own decided/clean tokens (C-2, C-3, C-13, C-14 are exact matches;
-    // C-1/C-6/C-7/C-11 are the "closest candidate" from the divergence data, applied provisionally —
-    // flagged in the Pending legend, not silently treated as approved).
+    // Light panel: C-1 through C-5 and C-10 through C-14 have explicit sign-off.
+    // C-6/C-7/C-8/C-9 still need final confirmation and are flagged in the Pending legend when
+    // their candidate values are represented in this preview.
     panelSurface: "var(--card)",
     ink: "var(--foreground)",
     textMuted: "var(--muted-foreground)",
     textSubtle: "var(--muted-foreground)",
-    textDisabled: "var(--muted-foreground)",
+    textDisabled: variant === "light" ? "#B9B9B9" : "#585858",
     panelHover: "var(--accent)",
     panelBgSubtle: "var(--muted)",
     hairline: "var(--border)",
@@ -133,9 +147,26 @@ function colorsFor(source: Source, variant: Variant, tokens: ProposedToken[]) {
   }
 }
 
-function Glyph({ d, className }: { d: string; className?: string }) {
+function Glyph({
+  d,
+  className,
+  size,
+  viewBox = "0 0 20 20",
+}: {
+  d: string
+  className?: string
+  size?: number
+  viewBox?: string
+}) {
   return (
-    <svg viewBox="0 0 20 20" className={className} fill="currentColor" aria-hidden="true">
+    <svg
+      viewBox={viewBox}
+      className={className}
+      style={size ? { width: size, height: size } : undefined}
+      fill="currentColor"
+      preserveAspectRatio="xMidYMid meet"
+      aria-hidden="true"
+    >
       <path d={d} />
     </svg>
   )
@@ -163,40 +194,50 @@ function RailBtn({
   state,
   colors,
   size,
+  iconSize,
   radius,
+  preserveHoverColor = false,
+  colorOverride,
 }: {
-  icon: { d: string }
+  icon: { d: string; filledD?: string; viewBox?: string }
   label: string
   state: "default" | "selected" | "disabled"
   colors: ReturnType<typeof colorsFor>
   size: number
+  iconSize: number
   radius: number
+  preserveHoverColor?: boolean
+  colorOverride?: string
 }) {
   const isSelected = state === "selected"
   const isDisabled = state === "disabled"
+  const [isHovered, setIsHovered] = useState(false)
+  const glyphPath = !isDisabled && (isSelected || isHovered) && icon.filledD ? icon.filledD : icon.d
   return (
     <button
       type="button"
       disabled={isDisabled}
       aria-pressed={isSelected}
       title={label}
-      className="flex shrink-0 flex-col items-center justify-center gap-0.5 text-[8px] leading-none transition-colors disabled:cursor-not-allowed"
+      className="flex shrink-0 items-center justify-center transition-colors disabled:cursor-not-allowed"
       style={{
         width: size,
         height: size,
         borderRadius: radius,
         background: isSelected ? colors.active : "transparent",
-        color: isDisabled ? colors.fgDisabled : isSelected ? colors.fg : colors.fgSubtle,
+        color: colorOverride ?? (isDisabled ? colors.fgDisabled : isSelected ? colors.fg : colors.fgSubtle),
       }}
       onMouseEnter={(e) => {
         if (isDisabled || isSelected) return
+        setIsHovered(true)
         e.currentTarget.style.background = colors.hover
-        e.currentTarget.style.color = colors.fgHover
+        if (!preserveHoverColor) e.currentTarget.style.color = colors.fgHover
       }}
       onMouseLeave={(e) => {
         if (isDisabled || isSelected) return
+        setIsHovered(false)
         e.currentTarget.style.background = "transparent"
-        e.currentTarget.style.color = colors.fgSubtle
+        e.currentTarget.style.color = colorOverride ?? colors.fgSubtle
       }}
       onMouseDown={(e) => {
         if (isDisabled) return
@@ -207,8 +248,8 @@ function RailBtn({
         e.currentTarget.style.background = isSelected ? colors.active : colors.hover
       }}
     >
-      <Glyph d={icon.d} className="h-4 w-4" />
-      <span className="max-w-full truncate px-0.5">{label}</span>
+      <Glyph d={glyphPath} size={iconSize} viewBox={icon.viewBox} />
+      <span className="sr-only">{label}</span>
     </button>
   )
 }
@@ -234,21 +275,21 @@ function PanelRow({
   indent = 0,
   state = "default",
   colors,
-  bold = false,
   typeClassName,
 }: {
   label: string
   badge?: string
   badgeInfo?: boolean
-  icon?: { d: string }
+  icon?: { d: string; filledD?: string }
   indent?: number
   state?: "default" | "selected" | "disabled"
   colors: ReturnType<typeof colorsFor>
-  bold?: boolean
   typeClassName: string
 }) {
   const isSelected = state === "selected"
   const isDisabled = state === "disabled"
+  const [isHovered, setIsHovered] = useState(false)
+  const glyphPath = icon && !isDisabled && (isSelected || isHovered) && icon.filledD ? icon.filledD : icon?.d
   return (
     <div
       role="button"
@@ -258,7 +299,7 @@ function PanelRow({
         "flex h-10 items-center gap-1.5 rounded-md px-2 transition-colors",
         typeClassName,
         isDisabled && "cursor-not-allowed opacity-50",
-        bold && "font-medium",
+        isSelected && "font-medium",
       )}
       style={{
         marginLeft: indent * 14,
@@ -267,14 +308,16 @@ function PanelRow({
       }}
       onMouseEnter={(e) => {
         if (isDisabled || isSelected) return
+        setIsHovered(true)
         e.currentTarget.style.background = colors.panelHover
       }}
       onMouseLeave={(e) => {
         if (isDisabled || isSelected) return
+        setIsHovered(false)
         e.currentTarget.style.background = "transparent"
       }}
     >
-      {icon && <Glyph d={icon.d} className="h-4 w-4 shrink-0" />}
+      {glyphPath && <Glyph d={glyphPath} className="h-4 w-4 shrink-0" />}
       <span className="flex-1 truncate">{label}</span>
       {badge && <PanelBadge label={badge} info={badgeInfo} />}
     </div>
@@ -317,6 +360,7 @@ function FullRailMock({
   tokens,
   railW,
   railBtn,
+  railIcon,
   panelW,
   radiusRail,
   radiusXs,
@@ -331,6 +375,7 @@ function FullRailMock({
   tokens: ProposedToken[]
   railW: number
   railBtn: number
+  railIcon: number
   panelW: number
   radiusRail: number
   radiusXs: number
@@ -343,28 +388,30 @@ function FullRailMock({
   const colors = colorsFor(source, variant, tokens)
 
   return (
-    <div className="flex overflow-hidden rounded-2xl" style={{ fontFamily, borderRadius: radiusRail, height }}>
+    <div className="flex" style={{ fontFamily, gap: 8, height }}>
       {/* Dark rail */}
-      <div
-        className="flex shrink-0 flex-col items-center gap-2 p-2"
-        style={{ width: railW, background: colors.surface }}
-      >
-        <svg viewBox={BIDEZINE_LOGO_VIEWBOX} className="mt-1 h-6 w-6" fill={colors.fg}>
-          <path d={BIDEZINE_LOGO_PATH} />
-        </svg>
-        <div className="my-0.5 h-px w-full" style={{ background: colors.border }} />
-        <RailBtn icon={PREVIEW_NAV_ICONS.home} label="Overview" state="default" colors={colors} size={railBtn} radius={radiusXs} />
-        <RailBtn icon={FULL_PREVIEW_ICONS.folderOpen} label="Slides" state="selected" colors={colors} size={railBtn} radius={radiusXs} />
-        <RailBtn icon={FULL_PREVIEW_ICONS.document} label="Docs" state="default" colors={colors} size={railBtn} radius={radiusXs} />
-        <RailBtn icon={PREVIEW_NAV_ICONS.people} label="Team" state="default" colors={colors} size={railBtn} radius={radiusXs} />
-        <div className="flex-1" />
-        <div className="my-0.5 h-px w-full" style={{ background: colors.border }} />
-        <RailBtn icon={PREVIEW_NAV_ICONS.settings} label="Settings" state="default" colors={colors} size={railBtn} radius={radiusXs} />
-        <RailBtn icon={FULL_PREVIEW_ICONS.person} label="Owner" state="disabled" colors={colors} size={railBtn} radius={radiusXs} />
+      <div className="flex shrink-0 flex-col overflow-hidden p-2" style={{ width: railW, borderRadius: radiusRail, background: colors.surface }}>
+        <div className="flex flex-col gap-2">
+          <RailBtn icon={{ d: BIDEZINE_LOGO_PATH, viewBox: "0 0 26.064 24" }} label="Bidezine System" state="default" colors={colors} size={railBtn} iconSize={24} radius={radiusXs} preserveHoverColor colorOverride={colors.fgHover} />
+        </div>
+        <div className="mx-0 my-2 h-px max-w-full" style={{ background: colors.border }} />
+        <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden">
+          <div className="flex flex-col gap-1">
+            <RailBtn icon={PREVIEW_NAV_ICONS.home} label="Overview" state="default" colors={colors} size={railBtn} iconSize={railIcon} radius={radiusXs} />
+            <RailBtn icon={FULL_PREVIEW_ICONS.folderOpen} label="Slides" state="selected" colors={colors} size={railBtn} iconSize={railIcon} radius={radiusXs} />
+            <RailBtn icon={FULL_PREVIEW_ICONS.document} label="Docs" state="default" colors={colors} size={railBtn} iconSize={railIcon} radius={radiusXs} />
+            <RailBtn icon={PREVIEW_NAV_ICONS.people} label="Team" state="default" colors={colors} size={railBtn} iconSize={railIcon} radius={radiusXs} />
+          </div>
+        </div>
+        <div className="mx-0 my-2 h-px max-w-full" style={{ background: colors.border }} />
+        <div className="flex flex-col gap-1">
+          <RailBtn icon={PREVIEW_NAV_ICONS.settings} label="Settings" state="default" colors={colors} size={railBtn} iconSize={railIcon} radius={radiusXs} />
+          <RailBtn icon={FULL_PREVIEW_ICONS.person} label="Owner" state="disabled" colors={colors} size={railBtn} iconSize={railIcon} radius={radiusXs} />
+        </div>
       </div>
 
       {/* Expanded panel — "Slides" section, SPEC_TREE nested content */}
-      <div className="flex flex-col" style={{ width: panelW, background: colors.panelSurface }}>
+      <div className="flex flex-col overflow-hidden" style={{ width: panelW, borderRadius: radiusRail, background: colors.panelSurface }}>
         <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: `1px solid ${colors.hairline}` }}>
           <span className={headingClass} style={{ color: colors.ink }}>
             Slides
@@ -378,16 +425,16 @@ function FullRailMock({
 
         <div className="flex flex-col gap-0.5 p-1.5">
           <PanelRow label="Activity stream" badge="+23" icon={FULL_PREVIEW_ICONS.video} colors={colors} typeClassName={bodySClass} />
-          <PanelRow label="Live operations" icon={FULL_PREVIEW_ICONS.videoSettings} colors={colors} typeClassName={bodySClass} />
-          <PanelRow label="Participants" icon={FULL_PREVIEW_ICONS.peopleCommunity} colors={colors} typeClassName={bodySClass} />
+          <PanelRow label="Live operations" icon={{ ...FULL_PREVIEW_ICONS.videoSettings, filledD: PANEL_FILLED_GLYPHS.videoSettings }} colors={colors} typeClassName={bodySClass} />
+          <PanelRow label="Participants" icon={{ ...FULL_PREVIEW_ICONS.peopleCommunity, filledD: PANEL_FILLED_GLYPHS.peopleCommunity }} colors={colors} typeClassName={bodySClass} />
           <GroupHeader label="System logic" badge="New" badgeInfo icon={FULL_PREVIEW_ICONS.cubeTree} colors={colors} typeClassName={labelMClass} />
-          <PanelRow label="Rules engine" icon={FULL_PREVIEW_ICONS.engine} indent={1} colors={colors} typeClassName={bodySClass} />
-          <PanelRow label="Triggers" icon={FULL_PREVIEW_ICONS.syncOff} indent={1} colors={colors} typeClassName={bodySClass} />
+          <PanelRow label="Rules engine" icon={{ ...FULL_PREVIEW_ICONS.engine, filledD: PANEL_FILLED_GLYPHS.engine }} indent={1} colors={colors} typeClassName={bodySClass} />
+          <PanelRow label="Triggers" icon={{ ...FULL_PREVIEW_ICONS.syncOff, filledD: PANEL_FILLED_GLYPHS.syncOff }} indent={1} colors={colors} typeClassName={bodySClass} />
           <GroupHeader label="Schedules" icon={FULL_PREVIEW_ICONS.calendarClock} colors={colors} indent={1} typeClassName={labelMClass} />
           <PanelRow label="Daily" badge="+05" icon={FULL_PREVIEW_ICONS.calendarMonth} indent={2} colors={colors} typeClassName={bodySClass} />
-          <PanelRow label="Monthly" badge="+11" state="selected" bold icon={FULL_PREVIEW_ICONS.calendarMonth} indent={2} colors={colors} typeClassName={bodySClass} />
+          <PanelRow label="Monthly" badge="+11" state="selected" icon={FULL_PREVIEW_ICONS.calendarMonth} indent={2} colors={colors} typeClassName={bodySClass} />
           <PanelRow label="Yearly" state="disabled" icon={FULL_PREVIEW_ICONS.calendarMonth} indent={2} colors={colors} typeClassName={bodySClass} />
-          <PanelRow label="Content" icon={FULL_PREVIEW_ICONS.contentView} colors={colors} typeClassName={bodySClass} />
+          <PanelRow label="Content" icon={{ ...FULL_PREVIEW_ICONS.contentView, filledD: PANEL_FILLED_GLYPHS.contentView }} colors={colors} typeClassName={bodySClass} />
         </div>
 
         <div className="mt-auto flex flex-col gap-0.5 p-1.5" style={{ borderTop: `1px solid ${colors.hairline}` }}>
@@ -443,12 +490,13 @@ export function RailNavStatusPreview({
       tokens={tokens}
       railW={54}
       railBtn={38}
+      railIcon={20}
       panelW={300}
       radiusRail={12}
-      radiusXs={4}
+      radiusXs={8}
       fontFamily="var(--font-sans, ui-sans-serif)"
       headingClass="text-base font-medium"
-      bodySClass="text-xs"
+      bodySClass="text-sm"
       labelMClass="text-xs font-medium"
       height={height}
     />
@@ -488,16 +536,17 @@ export function FullRailPreview({ tokens }: { tokens: ProposedToken[] }) {
             tokens={tokens}
             railW={54}
             railBtn={38}
+            railIcon={20}
             panelW={300}
             radiusRail={12}
-            radiusXs={4}
+            radiusXs={8}
             fontFamily="var(--font-sans, ui-sans-serif)"
             headingClass="text-base font-medium"
-            bodySClass="text-xs"
+            bodySClass="text-sm"
             labelMClass="text-xs font-medium"
           />
           <p className="text-xs font-medium">bidezine (so far — approved tokens + provisional layout)</p>
-          <PendingLegend items={["F-1", "F-2", "F-3", "G-1", "D-1", "D-4", "D-5", "C-1", "C-6", "C-7", "A-1", "badge-variant-map"]} />
+          <PendingLegend items={["F-3", "G-1", "C-6", "C-7", "C-8", "C-9", "badge-variant-map"]} />
         </div>
       </div>
     </div>
