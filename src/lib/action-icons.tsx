@@ -12,7 +12,7 @@ function isIconElement(child: React.ReactNode): child is React.ReactElement<Icon
 }
 
 export function fillActionIcons(children: React.ReactNode, filled: boolean): React.ReactNode {
-  return React.Children.map(children, (child) => {
+  const fillOne = (child: React.ReactNode): React.ReactNode => {
     if (isIconElement(child)) {
       return React.cloneElement(child, { filled })
     }
@@ -27,7 +27,19 @@ export function fillActionIcons(children: React.ReactNode, filled: boolean): Rea
     }
 
     return child
-  })
+  }
+
+  // `React.Children.map` always normalizes its result into an array, even for a single
+  // child — which breaks Radix `Slot` consumers (e.g. `asChild` buttons): Slot requires
+  // exactly one raw React element, not an array wrapping one element. JSX itself already
+  // gives us this shape for free: `children` is a bare node for a single child expression
+  // and a real array only when there were multiple sibling child expressions. Checking
+  // `Array.isArray` (instead of always going through `Children.map`) preserves that shape
+  // instead of flattening every case into an array.
+  if (Array.isArray(children)) {
+    return React.Children.map(children, fillOne)
+  }
+  return fillOne(children)
 }
 
 export function useActionIconFill<T extends HTMLElement>({
