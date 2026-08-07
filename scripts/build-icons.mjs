@@ -99,6 +99,7 @@ function renderComponent(name, def) {
     </svg>
   )
 }
+${name}.isActionIcon = true
 `
 }
 
