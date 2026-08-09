@@ -699,6 +699,10 @@ export function FunctionalRailSidebar({
               <div className="flex items-center justify-between">
                 <div className="flex min-w-0 items-center gap-1.5">
                   <openSection.icon className="size-4 shrink-0 text-muted-foreground" />
+                  {/* Verified against design-system/src/gallery/RailNav.tsx (real source, not a
+                      screenshot): the panel title is single-line, truncated with an ellipsis
+                      (`whiteSpace: nowrap; textOverflow: ellipsis`) — `truncate` here is the exact
+                      Tailwind equivalent. See divergence row D-11. */}
                   <span className="truncate text-base font-medium">{openSection.label}</span>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
@@ -738,7 +742,13 @@ export function FunctionalRailSidebar({
                   </Button>
                 </div>
               </div>
-              <p className="truncate pl-[22px] text-xs text-muted-foreground">
+              {/* Origin's real source (design-system/src/gallery/RailNav.tsx) wraps the subtitle
+                  unbounded (`whiteSpace: normal`, no line cap at all) — a 2026-07-31 change away
+                  from its earlier single-line-truncate behavior. bidezine intentionally bounds
+                  this to 3 lines (not unbounded) so a very long subtitle can't make the fixed-
+                  width panel header grow arbitrarily tall; `line-clamp-3` wraps up to 3 lines then
+                  truncates the 3rd with an ellipsis. See divergence row D-11. */}
+              <p className="line-clamp-3 pl-[22px] text-xs text-muted-foreground">
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit.
               </p>
             </div>

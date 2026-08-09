@@ -474,6 +474,27 @@ friction, anything.)_
   value instead of a color, reinforcing that ANY category of "resolved" record needs occasional spot-
   verification, not only colors. Documented in rail-sidebar.ts row G-3 (corrected in place).
 
+- **Demo content that's always short can hide a real overflow-behavior bug indefinitely — the Intake
+  pass's itemized list never covered the panel header's title/subtitle overflow rules at all.** The human
+  asked to verify the title's single-line-truncate behavior specifically because they had "no way to see
+  this" — every demo section label ("Slides", "Documents", etc.) and the fixed Lorem ipsum subtitle are
+  short enough that neither overflow rule had ever actually been exercised, truncated, or wrapped in any
+  screenshot taken so far. Verified by temporarily substituting long strings via the DOM and reading
+  computed style, not just eyeballing a render: the TITLE was already correct (Tailwind `truncate`, matching
+  origin's real `whiteSpace: nowrap; textOverflow: ellipsis`). The SUBTITLE was not — it also used
+  `truncate` (single-line), but origin's actual current source (`design-system/src/gallery/RailNav.tsx`)
+  wraps its subtitle unbounded (`whiteSpace: normal`, no line cap at all, per that file's own code comment
+  documenting a 2026-07-31 change away from single-line truncation). Per explicit instruction, bidezine's
+  version was set to wrap up to 3 lines then truncate (`line-clamp-3`) — a deliberate, bounded compromise
+  between origin's unbounded wrap and the single-line truncate that had shipped by mistake — confirmed via
+  `scrollHeight`/`clientHeight` computed-style evidence (112px of real content clamped to a 48px, 3-line
+  box) and a screenshot showing the third line ending in an ellipsis. **Lesson:** an Intake pass needs to
+  explicitly test each text-bearing element's overflow/wrap contract with content long enough to actually
+  trigger it, not just note its type-scale/color mapping — a component can look completely correct through
+  an entire review cycle simply because none of the demo strings were ever long enough to expose a real
+  divergence. Documented in rail-sidebar.ts row D-11 (new row — this was never itemized in the original
+  divergence list at all, only found once directly asked to verify).
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given
