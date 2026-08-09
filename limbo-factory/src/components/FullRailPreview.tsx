@@ -1,47 +1,26 @@
-import { Badge, cn } from "@bidezine/system"
-import { useState } from "react"
-import {
-  BIDEZINE_LOGO_PATH,
-  BIDEZINE_LOGO_VIEWBOX,
-  FULL_PREVIEW_ICONS,
-  PANEL_LEFT_CONTRACT_PATH,
-  PREVIEW_NAV_ICONS,
-  type ProposedToken,
-} from "@/data/rail-sidebar"
+import { type ProposedToken } from "@/data/rail-sidebar"
 import { OriginRailNavLiveAuto } from "@/reference/origin-design-system/OriginRailNavLive"
 import { FunctionalRailSidebar } from "@/components/FunctionalRailSidebar"
 
 /**
- * The full, "robust" side-by-side you asked for on the Full divergence list tab: not just colors
- * (that's RailPreview, in Color token lab) but the whole rail + expanded panel shape — icon sizes,
- * nesting, badges, disabled rows, footer, typography, padding, spacing, radius — reconstructed from
- * the origin's real canonical `Default` story.
+ * Color/token resolution for the origin-vs-bidezine Rail Sidebar comparison rendered by
+ * RailNavStatusPreview below. The origin column renders the real, vendored `OriginRailNavLiveAuto`
+ * directly (no color props needed — it's the actual origin component executing); the bidezine
+ * column renders the real `FunctionalRailSidebar`, built from actual `@bidezine/system` primitives,
+ * driven by whatever dark-rail tokens are currently approved in the Color Token Lab.
  *
- * CORRECTED against the origin's actual, currently-shipping source (not a screenshot, not the
- * possibly-stale INTAKE-REPORT.md) — read directly from the real local clone at
- * `design-system/src/gallery/RailNav.stories.tsx` (`SPEC_TREE`, exact literal node data) and
- * `design-system/src/layout.ts` (`LAYOUT.panelW = 300`, `RADIUS.rounded = 12`). The panel content
- * below is the exact "slides" section SPEC_TREE, item-for-item and badge-for-badge:
- *   Activity stream (+23) / Live operations / Participants / System logic (badge "New", icon,
- *   expanded) → Rules engine, Triggers, Schedules (icon, expanded) → Daily (+05), Monthly (+11,
- *   ACTIVE — the origin's own Default story also gives the selected row its own badge), Yearly
- *   (disabled) / Content (a sibling of System logic, NOT nested under it — corrects an earlier
- *   assumption). Every SPEC_TREE node's icon is the origin's own real Fluent path, copied verbatim
- *   from `design-system/src/icons/fluent.tsx` (see FULL_PREVIEW_ICONS in rail-sidebar.ts).
+ * `ORIGIN` below holds the origin's own literal hex/rgba values, sourced verbatim from divergence
+ * categories B (dark rail) and C (light panel) in rail-sidebar.ts — kept as a reference data point,
+ * even though the live comparison no longer routes through it (see colorsFor's "origin" branch).
  *
- * Still a REPRESENTATIVE SUBSET for the RAIL itself (origin ships 16 rail sections; this mocks 6) —
- * expanding the rail to all 16 needs 13 more icons sourced one-by-one and wasn't the focus of this
- * pass. The PANEL — the part with all the real nesting/badge/typography detail worth reviewing — is
- * now exact.
- *
- * Both columns share ONE render path (colors/fonts/sizes are the only inputs that differ) so the
- * two sides are guaranteed structurally identical — the comparison is never accidentally apples-to-
- * oranges. Origin uses literal hex/px values sourced verbatim from categories B/C/D/F/G in
- * rail-sidebar.ts (never invented). bidezine uses the 10 APPROVED dark-rail tokens for color, and —
- * for every dimension categories D/F/G still list as "needs decision" (not yet resolved) — the
- * origin's own proposed value, applied provisionally so you can judge it, called out explicitly in
- * the "Pending" legend below each column rather than silently presented as final. See CLAUDE.md /
- * LIMBO-PROTOCOL-LOG.md: "AI never auto-decides."
+ * Prior to this file being trimmed, a hand-built static mock (`FullRailMock`/`RailBtn`/`PanelRow`/
+ * `GroupHeader`/a `FullRailPreview` export) reconstructed the bidezine side from raw JSX instead of
+ * rendering the real component — including a raw native `<button>` and a `<div role="button">"
+ * standing in for @bidezine/system's real `Button`, in violation of CLAUDE.md's "no hand-rolled
+ * components" rule. That whole export chain had already been fully superseded by
+ * `RailNavStatusPreview` -> `FunctionalRailSidebar` (confirmed: `FullRailPreview` was never imported
+ * anywhere in the app) and has been removed entirely rather than left as dead, rule-violating code
+ * that could be silently re-wired back in later. See LIMBO-PROTOCOL-LOG.md's flaws log.
  */
 
 // Literal origin hex values, sourced verbatim from divergence categories B (dark rail) and C (light
@@ -101,8 +80,8 @@ function byName(tokens: ProposedToken[], originName: string): ProposedToken {
   return found
 }
 
-/** Resolved color set for one column, one theme variant — the only thing that differs between
- * origin/bidezine renders of the identical JSX structure below. */
+/** Resolved color set for one theme variant, keyed by which column is asking. Passed straight into
+ * FunctionalRailSidebar's `colors` prop for the bidezine column. */
 function colorsFor(source: Source, variant: Variant, tokens: ProposedToken[]) {
   if (source === "origin") return ORIGIN[variant]
   const pick = (originName: string) => {
@@ -133,317 +112,6 @@ function colorsFor(source: Source, variant: Variant, tokens: ProposedToken[]) {
     statusRed: "var(--destructive)",
     onInk: "var(--primary-foreground)",
   }
-}
-
-function Glyph({
-  d,
-  className,
-  size,
-  viewBox = "0 0 20 20",
-}: {
-  d: string
-  className?: string
-  size?: number
-  viewBox?: string
-}) {
-  return (
-    <svg
-      viewBox={viewBox}
-      className={className}
-      style={size ? { width: size, height: size } : undefined}
-      fill="currentColor"
-      preserveAspectRatio="xMidYMid meet"
-      aria-hidden="true"
-    >
-      <path d={d} />
-    </svg>
-  )
-}
-
-/** Small negative-token marker for any dimension a column is using PROVISIONALLY — i.e. the
- * matching divergence row is still "decision" status, not yet approved. Never silently presented
- * as final. */
-function PendingLegend({ items }: { items: string[] }) {
-  return (
-    <div className="flex max-w-[19rem] flex-wrap items-center justify-center gap-1">
-      <span className="text-[10px] font-medium text-destructive">Pending, applied provisionally:</span>
-      {items.map((id) => (
-        <Badge key={id} variant="destructive" className="px-1.5 py-0 text-[10px]">
-          {id}
-        </Badge>
-      ))}
-    </div>
-  )
-}
-
-function RailBtn({
-  icon,
-  label,
-  state,
-  colors,
-  size,
-  iconSize,
-  radius,
-  preserveHoverColor = false,
-  colorOverride,
-}: {
-  icon: { d: string; filledD?: string; viewBox?: string }
-  label: string
-  state: "default" | "selected" | "disabled"
-  colors: ReturnType<typeof colorsFor>
-  size: number
-  iconSize: number
-  radius: number
-  preserveHoverColor?: boolean
-  colorOverride?: string
-}) {
-  const isSelected = state === "selected"
-  const isDisabled = state === "disabled"
-  const [isHovered, setIsHovered] = useState(false)
-  const glyphPath = !isDisabled && (isSelected || isHovered) && icon.filledD ? icon.filledD : icon.d
-  return (
-    <button
-      type="button"
-      disabled={isDisabled}
-      aria-pressed={isSelected}
-      title={label}
-      className="flex shrink-0 items-center justify-center transition-colors disabled:cursor-not-allowed"
-      style={{
-        width: size,
-        height: size,
-        borderRadius: radius,
-        background: isSelected ? colors.active : "transparent",
-        color: colorOverride ?? (isDisabled ? colors.fgDisabled : isSelected ? colors.fg : colors.fgSubtle),
-      }}
-      onMouseEnter={(e) => {
-        if (isDisabled || isSelected) return
-        setIsHovered(true)
-        e.currentTarget.style.background = colors.hover
-        if (!preserveHoverColor) e.currentTarget.style.color = colors.fgHover
-      }}
-      onMouseLeave={(e) => {
-        if (isDisabled || isSelected) return
-        setIsHovered(false)
-        e.currentTarget.style.background = "transparent"
-        e.currentTarget.style.color = colorOverride ?? colors.fgSubtle
-      }}
-      onMouseDown={(e) => {
-        if (isDisabled) return
-        e.currentTarget.style.background = colors.pressed
-      }}
-      onMouseUp={(e) => {
-        if (isDisabled) return
-        e.currentTarget.style.background = isSelected ? colors.active : colors.hover
-      }}
-    >
-      <Glyph d={glyphPath} size={iconSize} viewBox={icon.viewBox} />
-      <span className="sr-only">{label}</span>
-    </button>
-  )
-}
-
-/** Origin's RailBadge is `string | { label, variant: "neutral" | "info" }` (see Badge.tsx). bidezine's
- * Badge has no dedicated info/neutral split yet — "secondary" (neutral pill) is a clean match, but
- * "info" (the iris-tinted "New" pill) has no equivalent variant, so "default" (primary color) is used
- * as the closest provisional stand-in and flagged in the Pending legend, not silently treated as a
- * decided mapping. */
-function PanelBadge({ label, info }: { label: string; info?: boolean }) {
-  return (
-    <Badge variant={info ? "default" : "secondary"} className="ml-2 shrink-0 px-1.5 py-0 text-[10px]">
-      {label}
-    </Badge>
-  )
-}
-
-function PanelRow({
-  label,
-  badge,
-  badgeInfo,
-  icon,
-  indent = 0,
-  state = "default",
-  colors,
-  typeClassName,
-}: {
-  label: string
-  badge?: string
-  badgeInfo?: boolean
-  icon?: { d: string; filledD?: string }
-  indent?: number
-  state?: "default" | "selected" | "disabled"
-  colors: ReturnType<typeof colorsFor>
-  typeClassName: string
-}) {
-  const isSelected = state === "selected"
-  const isDisabled = state === "disabled"
-  const [isHovered, setIsHovered] = useState(false)
-  const glyphPath = icon && !isDisabled && (isSelected || isHovered) && icon.filledD ? icon.filledD : icon?.d
-  return (
-    <div
-      role="button"
-      aria-disabled={isDisabled}
-      aria-pressed={isSelected}
-      className={cn(
-        "flex h-10 items-center gap-1.5 rounded-md px-2 transition-colors",
-        typeClassName,
-        isDisabled && "cursor-not-allowed opacity-50",
-        isSelected && "font-medium",
-      )}
-      style={{
-        marginLeft: indent * 14,
-        background: isSelected ? colors.ink : "transparent",
-        color: isDisabled ? colors.textDisabled : isSelected ? colors.onInk : colors.ink,
-      }}
-      onMouseEnter={(e) => {
-        if (isDisabled || isSelected) return
-        setIsHovered(true)
-        e.currentTarget.style.background = colors.panelHover
-      }}
-      onMouseLeave={(e) => {
-        if (isDisabled || isSelected) return
-        setIsHovered(false)
-        e.currentTarget.style.background = "transparent"
-      }}
-    >
-      {glyphPath && <Glyph d={glyphPath} className="h-4 w-4 shrink-0" />}
-      <span className="flex-1 truncate">{label}</span>
-      {badge && <PanelBadge label={badge} info={badgeInfo} />}
-    </div>
-  )
-}
-
-function GroupHeader({
-  label,
-  badge,
-  badgeInfo,
-  icon,
-  colors,
-  indent = 0,
-  typeClassName,
-}: {
-  label: string
-  badge?: string
-  badgeInfo?: boolean
-  icon?: { d: string }
-  colors: ReturnType<typeof colorsFor>
-  indent?: number
-  typeClassName: string
-}) {
-  return (
-    <div
-      className={cn("flex h-8 items-center gap-1.5 px-2 font-medium", typeClassName)}
-      style={{ marginLeft: indent * 14, color: colors.textMuted }}
-    >
-      <Glyph d={FULL_PREVIEW_ICONS.chevronDown.d} className="h-3.5 w-3.5 shrink-0" />
-      {icon && <Glyph d={icon.d} className="h-4 w-4 shrink-0" />}
-      <span className="flex-1 truncate">{label}</span>
-      {badge && <PanelBadge label={badge} info={badgeInfo} />}
-    </div>
-  )
-}
-
-function FullRailMock({
-  source,
-  variant,
-  tokens,
-  railW,
-  railBtn,
-  railIcon,
-  panelW,
-  radiusRail,
-  radiusXs,
-  fontFamily,
-  headingClass,
-  bodySClass,
-  labelMClass,
-  height = 550,
-}: {
-  source: Source
-  variant: Variant
-  tokens: ProposedToken[]
-  railW: number
-  railBtn: number
-  railIcon: number
-  panelW: number
-  radiusRail: number
-  radiusXs: number
-  fontFamily: string
-  headingClass: string
-  bodySClass: string
-  labelMClass: string
-  height?: number
-}) {
-  const colors = colorsFor(source, variant, tokens)
-
-  return (
-    <div className="flex" style={{ fontFamily, gap: 8, height }}>
-      {/* Dark rail */}
-      <div className="flex shrink-0 flex-col overflow-hidden p-2" style={{ width: railW, borderRadius: radiusRail, background: colors.surface }}>
-        <div className="flex flex-col gap-2">
-          <RailBtn icon={{ d: BIDEZINE_LOGO_PATH, viewBox: "0 0 26.064 24" }} label="Bidezine System" state="default" colors={colors} size={railBtn} iconSize={24} radius={radiusXs} preserveHoverColor colorOverride={colors.fgHover} />
-        </div>
-        <div className="mx-0 my-2 h-px max-w-full" style={{ background: colors.border }} />
-        <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden">
-          <div className="flex flex-col gap-1">
-            <RailBtn icon={PREVIEW_NAV_ICONS.home} label="Overview" state="default" colors={colors} size={railBtn} iconSize={railIcon} radius={radiusXs} />
-            <RailBtn icon={FULL_PREVIEW_ICONS.folderOpen} label="Slides" state="selected" colors={colors} size={railBtn} iconSize={railIcon} radius={radiusXs} />
-            <RailBtn icon={FULL_PREVIEW_ICONS.document} label="Docs" state="default" colors={colors} size={railBtn} iconSize={railIcon} radius={radiusXs} />
-            <RailBtn icon={PREVIEW_NAV_ICONS.people} label="Team" state="default" colors={colors} size={railBtn} iconSize={railIcon} radius={radiusXs} />
-          </div>
-        </div>
-        <div className="mx-0 my-2 h-px max-w-full" style={{ background: colors.border }} />
-        <div className="flex flex-col gap-1">
-          <RailBtn icon={PREVIEW_NAV_ICONS.settings} label="Settings" state="default" colors={colors} size={railBtn} iconSize={railIcon} radius={radiusXs} />
-          <RailBtn icon={FULL_PREVIEW_ICONS.person} label="Owner" state="disabled" colors={colors} size={railBtn} iconSize={railIcon} radius={radiusXs} />
-        </div>
-      </div>
-
-      {/* Expanded panel — "Slides" section, SPEC_TREE nested content */}
-      <div className="flex flex-col overflow-hidden" style={{ width: panelW, borderRadius: radiusRail, background: colors.panelSurface }}>
-        <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: `1px solid ${colors.hairline}` }}>
-          <span className={headingClass} style={{ color: colors.ink }}>
-            Slides
-          </span>
-          <div className="flex items-center gap-1" style={{ color: colors.textMuted }}>
-            <Glyph d={FULL_PREVIEW_ICONS.search.d} className="h-4 w-4" />
-            <Glyph d={FULL_PREVIEW_ICONS.moreHorizontal.d} className="h-4 w-4" />
-            <Glyph d={PANEL_LEFT_CONTRACT_PATH} className="h-4 w-4" />
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-0.5 p-1.5">
-          <PanelRow label="Activity stream" badge="+23" icon={FULL_PREVIEW_ICONS.video} colors={colors} typeClassName={bodySClass} />
-          <PanelRow label="Live operations" icon={FULL_PREVIEW_ICONS.videoSettings} colors={colors} typeClassName={bodySClass} />
-          <PanelRow label="Participants" icon={FULL_PREVIEW_ICONS.peopleCommunity} colors={colors} typeClassName={bodySClass} />
-          <GroupHeader label="System logic" badge="New" badgeInfo icon={FULL_PREVIEW_ICONS.cubeTree} colors={colors} typeClassName={labelMClass} />
-          <PanelRow label="Rules engine" icon={FULL_PREVIEW_ICONS.engine} indent={1} colors={colors} typeClassName={bodySClass} />
-          <PanelRow label="Triggers" icon={FULL_PREVIEW_ICONS.syncOff} indent={1} colors={colors} typeClassName={bodySClass} />
-          <GroupHeader label="Schedules" icon={FULL_PREVIEW_ICONS.calendarClock} colors={colors} indent={1} typeClassName={labelMClass} />
-          <PanelRow label="Daily" badge="+05" icon={FULL_PREVIEW_ICONS.calendarMonth} indent={2} colors={colors} typeClassName={bodySClass} />
-          <PanelRow label="Monthly" badge="+11" state="selected" icon={FULL_PREVIEW_ICONS.calendarMonth} indent={2} colors={colors} typeClassName={bodySClass} />
-          <PanelRow label="Yearly" state="disabled" icon={FULL_PREVIEW_ICONS.calendarMonth} indent={2} colors={colors} typeClassName={bodySClass} />
-          <PanelRow label="Content" icon={FULL_PREVIEW_ICONS.contentView} colors={colors} typeClassName={bodySClass} />
-        </div>
-
-        <div className="mt-auto flex flex-col gap-0.5 p-1.5" style={{ borderTop: `1px solid ${colors.hairline}` }}>
-          <PanelRow label="Settings" colors={colors} typeClassName={bodySClass} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function FullRailMockBothThemes(props: Omit<Parameters<typeof FullRailMock>[0], "variant">) {
-  return (
-    <>
-      <div className="dark:hidden">
-        <FullRailMock {...props} variant="light" />
-      </div>
-      <div className="hidden dark:block">
-        <FullRailMock {...props} variant="dark" />
-      </div>
-    </>
-  )
 }
 
 /**
@@ -481,55 +149,5 @@ export function RailNavStatusPreview({
         <FunctionalRailSidebar colors={colorsFor("bidezine", "dark", tokens)} fontFamily="var(--font-sans, ui-sans-serif)" height={height} />
       </div>
     </>
-  )
-}
-
-export function FullRailPreview({ tokens }: { tokens: ProposedToken[] }) {
-  return (
-    <div className="flex flex-col items-start gap-4 rounded-lg border p-6">
-      <p className="text-left text-sm font-medium">
-        Full composed preview: origin RailNav (Default story) vs. bidezine Rail Sidebar (so far)
-      </p>
-      <p className="max-w-2xl text-left text-xs text-muted-foreground">
-        Left column is the real, vendored <code>RailNav</code> component from the origin repo —
-        the exact <code>Default</code> story rendered directly (not a screenshot, not a hand-built
-        JSX reconstruction). It genuinely has a working search input, a real Radix dropdown menu on
-        the 3-dot header button, and a draggable panel-resize handle, because it's literally the
-        origin's own code executing. Toggle light/dark and interact with it — everything you do here
-        is real. The bidezine column on the right is still the provisional, representative-subset mock
-        pending its own real Build phase.
-      </p>
-      <div className="flex flex-col items-center gap-10 py-2 md:flex-row md:!items-start md:justify-start">
-        <div className="flex flex-col items-center gap-3">
-          <OriginRailNavLiveAuto height={550} />
-          <p className="text-xs font-medium text-muted-foreground">
-            Origin — real vendored component, Default story (live &amp; interactive)
-          </p>
-        </div>
-
-        <span className="mt-16 hidden text-muted-foreground md:block" aria-hidden>
-          →
-        </span>
-
-        <div className="flex flex-col items-center gap-3">
-          <FullRailMockBothThemes
-            source="bidezine"
-            tokens={tokens}
-            railW={54}
-            railBtn={38}
-            railIcon={20}
-            panelW={300}
-            radiusRail={12}
-            radiusXs={8}
-            fontFamily="var(--font-sans, ui-sans-serif)"
-            headingClass="text-base font-medium"
-            bodySClass="text-sm"
-            labelMClass="text-xs font-medium"
-          />
-          <p className="text-xs font-medium">bidezine (so far — approved tokens + provisional layout)</p>
-          <PendingLegend items={["F-3", "G-1", "C-6", "C-7", "C-8", "C-9", "badge-variant-map"]} />
-        </div>
-      </div>
-    </div>
   )
 }

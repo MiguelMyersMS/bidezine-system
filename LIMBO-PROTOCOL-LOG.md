@@ -333,6 +333,28 @@ friction, anything.)_
   preview — has the full, itemized, verified behavior contract instead of relying on someone
   re-discovering it by hand a second time.
 
+- **The "Real components only" rule recurred in the actual Rail Sidebar implementation itself, not just
+  the factory-line chrome around it — confirming the earlier lesson's warning that one fixed instance is
+  never evidence the rest of the codebase is clean.** Prompted by a direct question ("what native
+  component are we using for the rail buttons — Button, right?"), a DOM-level check (real `Button`
+  instances always carry `data-variant`/`data-size` attributes; nothing else does) confirmed the rail's
+  own pinned icon buttons correctly use `Button`, but turned up two real violations once the same check
+  was run across the rest of the same files: (1) `FunctionalRailSidebar.tsx`'s `PanelTree` group-toggle
+  row (the `CollapsibleTrigger` for "System logic"/"Schedules") was a raw native `<button>` with
+  hand-copied hover/focus styling instead of the real `Button`; (2) `FullRailPreview.tsx` still carried
+  an entire earlier-generation static mock (`FullRailMock`/`RailBtn`/`PanelRow`/`GroupHeader`, including
+  a raw `<button>` and a `<div role="button">`) that had already been fully superseded by
+  `RailNavStatusPreview` → `FunctionalRailSidebar` — confirmed genuinely dead (its only export,
+  `FullRailPreview`, was never imported anywhere in the app, only referenced in stale comments). **Fix:**
+  swapped (1) for the real `Button`; deleted (2) outright rather than leaving it as inert-but-still-rule-
+  violating code someone could silently re-wire back in later. **Lesson:** verifying "is this the real
+  primitive" by DOM attribute inspection (not just visual comparison) is a fast, reliable check worth
+  running proactively on every interactive element in a component under active Build work, not only when
+  something looks visually off — and finding one clean instance (the pinned rail buttons) is exactly as
+  weak a signal of overall cleanliness as finding one violation was in the earlier factory-line-chrome
+  entry above; both call for a full sweep of the actual file(s), not a spot check. Documented in
+  rail-sidebar.ts row M-11.
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given

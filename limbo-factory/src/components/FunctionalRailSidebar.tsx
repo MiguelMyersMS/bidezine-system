@@ -385,9 +385,10 @@ function PanelTree({
         return (
           <Collapsible key={node.id} open={isOpen} onOpenChange={() => onToggle(node.id)}>
             <CollapsibleTrigger asChild>
-              <button
+              <Button
                 type="button"
-                className="flex h-8 w-full items-center gap-1.5 rounded-md px-2 text-left text-xs font-medium text-muted-foreground transition-colors hover:bg-accent"
+                variant="ghost"
+                className="h-8 w-full justify-start gap-1.5 rounded-md px-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent"
                 style={{ marginLeft: depth * 14 }}
               >
                 <svg
@@ -400,7 +401,7 @@ function PanelTree({
                 </svg>
                 <span className="flex-1 truncate">{node.label}</span>
                 {node.badge && <PanelBadge label={node.badge} />}
-              </button>
+              </Button>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <PanelTree
