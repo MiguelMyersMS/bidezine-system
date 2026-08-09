@@ -117,6 +117,43 @@ manifest and run `npm run icons`.
    derived from a named Fluent source) before wiring it into a component. This caught two icons
    (`AlertTriangleIcon`, `ArchiveIcon`) that were missing from the original migration inventory.
 
+## Scroll region protocol — the two-layer pattern
+
+`ScrollArea` (`src/ui/scroll-area.tsx`) is a real, faithful port of shadcn's own component — its
+`ScrollBar` is an **absolutely-positioned overlay** (`position: absolute`, anchored to `Root`'s own edge),
+not a flex sibling that reserves layout space the way a native `overflow-y-auto` scrollbar automatically
+does. Left unaccounted for, this overlay can end up flush against — or overlapping — whatever content or
+container edge sits at that same side. This was discovered and fixed the hard way in the Rail Sidebar Limbo
+transformation (`limbo-factory/`, divergence rows K-3/L-18/L-21/L-22): a scrollbar that "works" (scrolls
+correctly) is not the same as one that doesn't collide with anything next to it.
+
+**Whenever `ScrollArea` is composed inside a padded container, use two layers, not one:**
+
+1. **Outer** — an element that owns the container's own uniform padding (all four sides, not an
+   asymmetric subset) and the `flex-1 overflow-hidden` sizing/clipping. `ScrollArea`'s own `Root` sets no
+   `overflow` of its own, so *something* in the flex chain needs this treatment to get CSS flexbox's
+   "automatic minimum size: 0" behavior — without it, the region grows to fit its content instead of
+   clipping to the available space and never becomes scrollable at all.
+2. **Inner** — the content wrapper rendered inside `ScrollArea` reserves an *extra* gutter specifically on
+   the scrollbar's own side (wider than the padding on the other sides) so real content never sits flush
+   against, or under, the scrollbar thumb.
+
+**Both relationships need their own explicit measurement** (`getBoundingClientRect` on the real, rendered
+DOM, scrollbar actually visible via a genuine scroll interaction — not assumed from a screenshot): the gap
+between the *outer container's own edge* and the scrollbar, and the gap between the *scrollbar* and the
+*inner content*, are independent relationships. Fixing one does not verify the other — this exact mistake
+shipped once in this same transformation (L-21 fixed the outer gap, then immediately broke the inner one
+against a sibling above it, corrected in L-22).
+
+**Scope note:** as of this writing, none of bidezine's other real shipped components (`Command`, `Select`,
+`DropdownMenu`, `ContextMenu`, `Combobox`, the message scroller, tables) use `ScrollArea` — they use plain
+native `overflow-y-auto`/`overflow-x-auto`, which the browser already reserves layout space for
+automatically and has no overlay-collision problem to solve. This two-layer pattern applies specifically
+wherever the real `ScrollArea` primitive is used, not to native-scrollbar usages, which are a different,
+already-safe mechanism. Migrating any of those components' native scrollbars to `ScrollArea` is a separate,
+larger, visible design decision (it changes every consumer's scrollbar appearance) and needs explicit
+sign-off before being undertaken — it is not implied by this pattern.
+
 ## Verify by render, not by number
 
 A value can compute correctly and still not appear. Check the rendered result, not just the property.

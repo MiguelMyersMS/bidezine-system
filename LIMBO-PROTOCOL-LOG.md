@@ -54,6 +54,12 @@ or `security-review`-style pass focused on the token/icon/component compliance c
 security. Each must be a **separate agent invocation** — never the same conversation/context reused across
 roles.
 
+**Any occupant that composes the real `ScrollArea` primitive must follow the two-layer scroll region
+pattern documented in `CLAUDE.md` ("Scroll region protocol").** This is now a standing, checkable
+requirement for Build and Audit alike, not a one-off fix scoped to Rail Sidebar: verify both the
+outer-container-to-scrollbar gap AND the scrollbar-to-inner-content gap independently, with real
+`getBoundingClientRect` measurements while the scrollbar is actually visible, not a screenshot glance.
+
 ## Divergence-handling rule (mandatory, no exceptions)
 
 Whenever the Intake agent finds an element in the source that isn't cleanly pairable to an existing
