@@ -418,15 +418,30 @@ function PanelTree({
         return (
           <Collapsible key={node.id} open={isOpen} onOpenChange={() => onToggle(node.id)}>
             <CollapsibleTrigger asChild>
+              {/* QA finding (see divergence row L-9): group-toggle rows previously used a visibly
+                  DIFFERENT recipe from sibling leaf rows (h-8/text-xs/font-medium/muted vs
+                  h-9/text-sm/font-normal/full-color) — they read as a distinct "kind" of element
+                  (a section caption) rather than the same row type nested one level deeper. Fixed
+                  by giving this row the EXACT SAME className/color recipe as the leaf Button below,
+                  varying only by depth-based indentation (marginLeft) and the presence of the
+                  chevron affordance — the chevron communicates "this expands," not a different
+                  visual tier. This is a DELIBERATE, flagged divergence from bidezine's own real
+                  Sidebar sub-menu convention (SidebarMenuButton + SidebarMenuSub/
+                  SidebarMenuSubButton), which intentionally shrinks text/height one level deeper —
+                  chosen here because (a) that pairing is context-bound to a real <SidebarProvider>
+                  tree (SidebarMenuButton calls useSidebar(), which throws without one) and doesn't
+                  fit this panel's own composition, and (b) explicit user preference: parent and
+                  child rows should look like the same kind of element, nested at different levels,
+                  not visually demoted by depth. */}
               <Button
                 type="button"
                 variant="ghost"
-                className="h-8 w-full justify-start gap-1.5 rounded-md px-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent"
-                style={{ marginLeft: depth * 14 }}
+                className="h-9 w-full justify-start gap-1.5 rounded-md px-2 text-left text-sm font-normal hover:bg-accent"
+                style={{ marginLeft: depth * 14, color: "var(--foreground)" }}
               >
                 <svg
                   viewBox="0 0 20 20"
-                  className={cn("size-3.5 shrink-0 transition-transform", isOpen && "rotate-180")}
+                  className={cn("size-4 shrink-0 transition-transform", isOpen && "rotate-180")}
                   fill="currentColor"
                   aria-hidden="true"
                 >
