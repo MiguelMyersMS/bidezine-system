@@ -450,6 +450,7 @@ interface RailColors {
   pressed: string
   active: string
   border: string
+  divider: string
   fg: string
   fgHover: string
   fgSubtle: string
@@ -588,7 +589,7 @@ export function FunctionalRailSidebar({
               <TooltipContent side="right">BiDezine</TooltipContent>
             </Tooltip>
           </div>
-          <div className="mx-0 my-2 h-px max-w-full" style={{ background: colors.border }} />
+          <div className="mx-0 my-2 h-px max-w-full" style={{ background: colors.divider }} />
 
           <div ref={trackRef} aria-label="Main navigation" role="navigation" className="flex min-h-0 flex-1 flex-col gap-1 overflow-hidden">
             {pinnedSections.map((section) => (
@@ -642,7 +643,7 @@ export function FunctionalRailSidebar({
             )}
           </div>
 
-          <div className="mx-0 my-2 h-px max-w-full" style={{ background: colors.border }} />
+          <div className="mx-0 my-2 h-px max-w-full" style={{ background: colors.divider }} />
           <div className="flex flex-col gap-1">
             {/* Pinned utility button — a permanently disabled "Profile" slot. Unlike the primary
                 sections, this never gets absorbed by the overflow menu; it stays put in the

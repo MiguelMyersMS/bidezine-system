@@ -33,6 +33,10 @@ const ORIGIN = {
     pressed: "rgba(255,255,255,0.15)",
     active: "rgba(255,255,255,0.20)",
     border: "rgba(255,255,255,0.6)",
+    // Origin's rail has no divider line at all (see darkDividerSubtle in rail-sidebar.ts) — it
+    // separates logo/nav/footer purely with flex gap. Mirrors `border` here only so this reference
+    // object's shape stays complete; never actually rendered as a divider on the origin side.
+    divider: "rgba(255,255,255,0.6)",
     fg: "#ffffff",
     fgHover: "rgba(255,255,255,0.85)",
     fgSubtle: "rgba(255,255,255,0.5)",
@@ -54,6 +58,7 @@ const ORIGIN = {
     pressed: "#2e3135",
     active: "#272a2d",
     border: "#5a6169",
+    divider: "#5a6169",
     fg: "#ffffff",
     fgHover: "#edeef0",
     fgSubtle: "#696e77",
@@ -94,6 +99,7 @@ function colorsFor(source: Source, variant: Variant, tokens: ProposedToken[]) {
     pressed: pick("darkPressedBg"),
     active: pick("darkActiveBg"),
     border: pick("darkBorderStrong"),
+    divider: pick("darkDividerSubtle"),
     fg: pick("onDark"),
     fgHover: pick("onDarkHover"),
     fgSubtle: pick("onDarkSubtle"),

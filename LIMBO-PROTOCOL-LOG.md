@@ -406,6 +406,33 @@ friction, anything.)_
   leaving a stale "resolved" status would hide exactly the kind of regression this log exists to catch.
   Documented in rail-sidebar.ts row M-13 (and B-5, reverted to "decision").
 
+- **Two visually distinct roles sharing one color token is itself a latent regression risk — fixing the
+  token for one role can silently break the other.** Immediate follow-up to the entry above: the human
+  caught it within the same review pass — "that helped a lot but it changed the divider line making it
+  too visible... if this is something the divider line can revert staking with a proper token we can
+  revert it, if not we might need to assign a color token for it." `FunctionalRailSidebar.tsx`'s two
+  horizontal divider lines (between logo/nav and nav/footer) had been built reusing
+  `colors.border`/`darkBorderStrong` — the exact same token as the browsing-state ring — for a
+  completely different visual role (a near-invisible hairline vs. a must-be-visible ring). That was
+  invisible as a problem for as long as `darkBorderStrong` stayed dim (the whole complaint in the entry
+  above); the moment it was correctly brightened for the ring, the divider brightened right along with
+  it as an unintended side effect, because nothing had ever separated the two roles. Checked against
+  origin (`design-system/src/gallery/RailNav.tsx`) before deciding how to fix it: origin's real rail has
+  **no divider line at all** between these groups — it uses flex `gap` for spacing only, and
+  `darkBorderStrong` there is used exclusively for the ring/overflow-menu border, never as an internal
+  rail divider. So the divider itself is a bidezine-side addition with no origin equivalent, but the
+  human's ask was clearly to keep it, just decoupled — not to remove it to match origin exactly. **Fix:**
+  gave the divider its own dedicated token (`darkDividerSubtle`, `--sidebar-rail-divider`) rather than
+  reverting the ring fix — reusing `darkBorderStrong`'s *original*, already-reviewed value verbatim
+  (`oklch(0.256)`/`oklch(0.254)`), now correctly scoped only to the role it was always visually right
+  for. **Lesson:** whenever a single color/token is reused across more than one semantically distinct
+  UI role, treat that as a design smell worth resolving immediately, not after it causes a regression —
+  a token needs one clear job; if two different visual elements happen to want the same numeric value
+  today, that's a coincidence to note, not a reason to point them at the same named token, because a
+  future correction to one role's requirement (exactly what happened here) will silently drag the other
+  role along with it. Documented in rail-sidebar.ts row M-14 (new `--sidebar-rail-divider` token,
+  approved — it reuses an already-reviewed value, not a new decision).
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given
