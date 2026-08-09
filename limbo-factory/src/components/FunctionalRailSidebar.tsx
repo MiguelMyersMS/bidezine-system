@@ -459,6 +459,16 @@ interface RailColors {
   hairline: string
 }
 
+/**
+ * DEPLOYMENT NOTE (see divergence row F-10): `height` here is a measured pixel NUMBER, not a
+ * percentage/`h-full` — that's this limbo-factory preview's own plumbing (App.tsx's `FillHeight`
+ * measures its stage's clientHeight via ResizeObserver and passes the number down), not something
+ * to carry over into the real `src/ui/` component. The actual requirement is just "the rail fills
+ * whatever vertical space its parent gives it" — at real Build time, prefer ordinary CSS sizing
+ * (e.g. `h-full` on the outer element, with the consumer's own layout providing a definite height
+ * further up the tree, such as `h-screen` at the app-shell level) over requiring a measured-height
+ * prop like this one.
+ */
 export function FunctionalRailSidebar({
   colors,
   height = 550,
@@ -591,6 +601,14 @@ export function FunctionalRailSidebar({
           </div>
           <div className="mx-0 my-2 h-px max-w-full" style={{ background: colors.divider }} />
 
+          {/* DEPLOYMENT NOTE (see divergence row F-11): `flex-1 min-h-0` here is the ENTIRE
+              mechanism that anchors the footer group (Profile + Settings, below) to the bottom of
+              the rail — this nav section grows to consume all left-over vertical space, pushing
+              the second divider and footer group down to the bottom edge. This is not achieved by
+              reordering the DOM or by absolute/fixed positioning, and the footer's own items still
+              render in normal top-to-bottom order (Profile above Settings) — only the GROUP as a
+              whole is bottom-anchored. Preserve this same flex-1-spacer approach in any real Build
+              reimplementation. */}
           <div ref={trackRef} aria-label="Main navigation" role="navigation" className="flex min-h-0 flex-1 flex-col gap-1 overflow-hidden">
             {pinnedSections.map((section) => (
               <RailIconButton

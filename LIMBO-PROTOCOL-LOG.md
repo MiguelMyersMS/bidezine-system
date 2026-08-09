@@ -458,6 +458,22 @@ friction, anything.)_
   in isolation and still collide with something already on the page. Documented in rail-sidebar.ts row
   M-15 (and B-1, reopened from "resolved" back to "decision").
 
+- **A recorded decision can drift from the actual shipped implementation without anyone noticing, until
+  a full sweep is done for a different reason.** While closing out the rail's remaining open items after
+  the human's overall sign-off ("rail seems right entirely"), G-3's written record said the approved rail
+  icon-slot radius was `radius-md`/8px — but `FunctionalRailSidebar.tsx`'s actual rail icon buttons
+  (`RailIconButton`, the overflow trigger, the logo slot, the footer buttons) all use Tailwind's
+  `rounded-lg` (`radius-lg`, 10px), confirmed by reading the real `className`, not the doc. This is the
+  same class of drift as the earlier `IconPanelLeftContract`-vs-stale-QA-doc finding, just between our
+  own decision record and our own Build output instead of between origin's docs and origin's code. Since
+  the human had just visually approved the rail as currently rendering (10px, not 8px), the fix was to
+  correct the RECORD to match the real, reviewed value rather than change working, approved code to match
+  a stale note. **Lesson:** a "resolved" divergence row is only trustworthy as long as it's periodically
+  re-verified against the actual rendered/shipped code, not just trusted once written — this is the same
+  underlying risk raised by the B-1/B-5 color entries above (approvals going stale), just for a layout
+  value instead of a color, reinforcing that ANY category of "resolved" record needs occasional spot-
+  verification, not only colors. Documented in rail-sidebar.ts row G-3 (corrected in place).
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given
