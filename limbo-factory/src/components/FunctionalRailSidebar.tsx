@@ -280,6 +280,21 @@ function RailIconButton({
   const Icon = section.icon
   const isActive = state === "active"
   const isBrowsing = state === "browsing"
+  // Origin's RailButtonDark drives background/foreground from local hover/pressed state, layered
+  // under the persistent active/browsing state — not from Tailwind's `hover:`/`active:` pseudo-
+  // classes, because the color VALUES are per-instance dark-rail tokens (approved via Q2/B-2/B-3/
+  // B-4/B-7), not static utility classes. This was previously missing entirely: the button's
+  // className carried `hover:bg-transparent`, which suppressed Button's own default ghost-variant
+  // hover feedback (`hover:bg-accent`, a light-surface token that would look wrong here) without
+  // ever substituting the correct dark-rail hover/pressed tokens in its place — so the rail had no
+  // hover or press feedback at all despite Button always having those states "assigned" (Q2's
+  // tokens were resolved and approved, just never actually referenced in this component).
+  const [isHovered, setIsHovered] = useState(false)
+  const [isPressed, setIsPressed] = useState(false)
+
+  const background = isPressed ? colors.pressed : isActive ? colors.active : isHovered ? colors.hover : "transparent"
+  const color = isActive || isPressed ? colors.fg : isBrowsing || isHovered ? colors.fgHover : colors.fgSubtle
+
   const button = (
     <Button
       type="button"
@@ -288,11 +303,19 @@ function RailIconButton({
       aria-pressed={isActive}
       data-state={isBrowsing ? "open" : isActive ? "active" : "default"}
       onClick={onClick}
-      className="h-[38px] w-[38px] shrink-0 rounded-lg hover:bg-transparent"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => {
+        setIsHovered(false)
+        setIsPressed(false)
+      }}
+      onMouseDown={() => setIsPressed(true)}
+      onMouseUp={() => setIsPressed(false)}
+      className="h-[38px] w-[38px] shrink-0 rounded-lg"
       style={{
-        background: isActive ? colors.active : "transparent",
-        color: isActive ? colors.fg : colors.fgSubtle,
+        background,
+        color,
         boxShadow: isBrowsing ? `inset 0 0 0 1.5px ${colors.border}` : undefined,
+        transition: "background-color 150ms ease, color 150ms ease",
       }}
     >
       <Icon className="size-5" filled={isActive || isBrowsing} />
@@ -451,6 +474,7 @@ export function FunctionalRailSidebar({
   const [searchEnabled, setSearchEnabled] = useState(true)
   const [query, setQuery] = useState("")
   const [overflowMenuOpen, setOverflowMenuOpen] = useState(false)
+  const [overflowHovered, setOverflowHovered] = useState(false)
 
   const trackRef = useRef<HTMLDivElement>(null)
   const [pinnedCount, setPinnedCount] = useState(TOP_SECTIONS.length)
@@ -585,8 +609,14 @@ export function FunctionalRailSidebar({
                     variant="ghost"
                     size="icon"
                     aria-label="More navigation options"
-                    className="relative h-[38px] w-[38px] shrink-0 rounded-lg hover:bg-transparent"
-                    style={{ color: colors.fgSubtle }}
+                    onMouseEnter={() => setOverflowHovered(true)}
+                    onMouseLeave={() => setOverflowHovered(false)}
+                    className="relative h-[38px] w-[38px] shrink-0 rounded-lg"
+                    style={{
+                      background: overflowMenuOpen ? colors.active : overflowHovered ? colors.hover : "transparent",
+                      color: overflowMenuOpen || overflowHovered ? colors.fgHover : colors.fgSubtle,
+                      transition: "background-color 150ms ease, color 150ms ease",
+                    }}
                   >
                     <MoreHorizontalIcon className="size-5" />
                     {/* Origin's OverflowTriggerButton hides this dot while the menu itself is open

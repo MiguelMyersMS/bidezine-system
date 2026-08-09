@@ -355,6 +355,31 @@ friction, anything.)_
   entry above; both call for a full sweep of the actual file(s), not a spot check. Documented in
   rail-sidebar.ts row M-11.
 
+- **Using the real `Button` primitive does not automatically mean a component gets real interaction
+  feedback — an inline style or className override can silently cancel it, and that gap is invisible
+  unless someone actually hovers/presses the element.** Immediate follow-up to the entry above: once
+  confirmed the rail buttons *were* the real `Button`, the next question ("why no hover/press state if
+  Button has those states assigned?") exposed that `RailIconButton`'s className carried
+  `hover:bg-transparent` — silently overriding `Button`'s own ghost-variant `hover:bg-accent` — with
+  nothing substituted in its place, so the rail had zero visible hover or press feedback despite being
+  built from the "correct" primitive. Confirmed definitively via `getComputedStyle` in the browser
+  (background stayed `rgba(0,0,0,0)` through hover AND mousedown), not just by reading the code. The
+  correct dark-rail hover/pressed tokens (B-2/B-4, already approved via Q2) were sitting unused on the
+  `RailColors` type the whole time — `colors.hover`/`colors.pressed` were defined and computed but never
+  once referenced in the component. The overflow "More" trigger had the identical gap. **Fix:** both
+  buttons now track real hover/pressed/open state locally (mirroring origin `RailButtonDark`'s own
+  local-state approach, since these are dynamic per-instance token values, not expressible as static
+  Tailwind utility classes) and apply the already-approved tokens via inline style; the dead
+  `hover:bg-transparent` overrides were removed. **Lesson:** "is this the real component" and "does this
+  component actually behave correctly" are two separate checks — confirming the former (DOM attribute
+  inspection, per the entry above) says nothing about the latter. Any claim that an interactive element
+  has a working hover/press/focus state needs to be verified by actually triggering that state (a
+  `getComputedStyle` check, a hover screenshot, or equivalent) rather than inferred from "it's built on
+  the right primitive." Documented in rail-sidebar.ts row M-12 (and B-2/B-4, which were marked
+  `resolved` at the token/decision level long before the component actually consumed them — a reminder
+  that a divergence row being "resolved" only means the *value* was approved, not that Build finished
+  wiring it up).
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given
