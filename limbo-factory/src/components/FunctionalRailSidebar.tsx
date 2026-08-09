@@ -403,7 +403,17 @@ function PanelTree({
               className="h-9 w-full justify-start gap-1.5 rounded-md px-2 text-left text-sm font-normal hover:bg-accent"
               style={{
                 marginLeft: depth * 14,
-                background: isSelected ? "var(--foreground)" : "transparent",
+                // QA finding (see divergence row L-10): this used to be `background: isSelected ?
+                // "var(--foreground)" : "transparent"` unconditionally — but an inline `style`
+                // value ALWAYS wins over a class-based rule for the same CSS property, regardless
+                // of the class's specificity or pseudo-state, so the literal string "transparent"
+                // permanently blocked the `hover:bg-accent` class from ever visually applying on
+                // unselected leaf rows (confirmed via getComputedStyle: hover stayed rgba(0,0,0,0)
+                // instead of tinting). Omitting the property entirely when not selected (rather
+                // than setting it to "transparent") lets the real hover:bg-accent class govern the
+                // resting/hover background as intended, while a selected row still keeps its solid
+                // persistent highlight.
+                background: isSelected ? "var(--foreground)" : undefined,
                 color: isSelected ? "var(--background)" : "var(--foreground)",
               }}
             >
