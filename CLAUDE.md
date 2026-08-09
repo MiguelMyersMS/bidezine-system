@@ -245,6 +245,22 @@ just the property the current task happens to mention:**
    element and confirm there's a deliberate, recorded decision for each one (real `ScrollArea` vs. browser
    default vs. something else) — don't only catch it when a human notices the scrollbar itself looks wrong.
 
+9. **Swapping to a real primitive can silently change the CSS mechanics an existing behavior depended on —
+   re-verify the behavior itself, not just that the primitive rendered.** Replacing a plain `overflow-y-auto`
+   div with the real `ScrollArea` broke scrolling entirely: unlike the div, `ScrollArea`'s own Root never sets
+   its own `overflow` (it defaults to `visible`), so it never got CSS flexbox's "automatic minimum size: 0"
+   treatment the old div relied on to shrink to the parent's available height — it just grew to fit its
+   content instead, leaving nothing to scroll. A primitive swap is not "done" once it renders; re-check the
+   specific *behavior* (does it actually scroll, resize, focus-trap, etc.) the old code provided.
+
+10. **When multiple instances of the same primitive exist on a page, a verification query must be
+    disambiguated — never trust whichever one a bare selector happens to match first.** A `querySelector` or
+    `.first()` check that "confirmed" the rail's own scrolling was actually silently testing the surrounding
+    page's own, unrelated `ScrollArea` instance, which happened to appear earlier in the DOM — so a real
+    regression shipped underneath a verification step that looked successful. Scope every check to the exact
+    element in question (an index, a containing selector, a `data-*` attribute unique to that instance), not
+    "the first thing on the page matching this primitive."
+
 ## Three machines, one branch
 
 Laptop A, Laptop B, and a PC all work `main` directly. `origin` is the only source of truth — unpushed

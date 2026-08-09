@@ -868,8 +868,21 @@ export function FunctionalRailSidebar({
                 this project's build-time Tailwind CSS approach, so it was never a valid target to
                 match anyway. Swapped to the real ScrollArea (Radix-based, exported from
                 @bidezine/system) so the scrollbar itself is a real, themeable bidezine primitive
-                instead of the browser's own default chrome. */}
-            <ScrollArea className="flex-1">
+                instead of the browser's own default chrome.
+
+                QA finding (see divergence row K-3's follow-up, reported as "not able to scroll
+                anymore"): ScrollArea's own Root recipe never sets its own `overflow`, so — unlike
+                the plain `overflow-y-auto` div this replaced — it doesn't automatically get CSS
+                flexbox's "automatic minimum size: 0" treatment (that rule only applies to flex
+                items whose OWN overflow is something other than `visible`). Root's default
+                `overflow: visible` meant it just grew to fit its content's natural height instead
+                of being clipped to the flex parent's available space, so nothing overflowed and
+                there was nothing left to scroll. Fixed by adding `overflow-hidden` explicitly, which
+                triggers that automatic-minimum-size rule the same way the old div's `overflow-y-
+                auto` did. Verified via getComputedStyle: Root's height now correctly clips to the
+                parent's available space (scrollHeight > clientHeight again) and real wheel/scrollbar
+                interaction works. */}
+            <ScrollArea className="flex-1 overflow-hidden">
               <div className="p-1.5">
                 <PanelTree
                   nodes={filteredNodes}
