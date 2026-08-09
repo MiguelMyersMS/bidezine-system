@@ -306,6 +306,32 @@ friction, anything.)_
   internals should have exactly ONE long-lived mounted instance whose props change on theme flips, never
   two instances toggled via CSS visibility.
 
+- **Per-instance interaction-state rules (tooltip suppression, indicator visibility) are easy for an
+  Intake pass to miss entirely, because they only show up when reading a component's actual state
+  logic line-by-line, not from its rendered appearance or its docs.** Three real gaps surfaced only
+  once a human manually exercised the running `FunctionalRailSidebar.tsx` preview and asked pointed
+  questions (starting with "why no tooltip on hover of the logo?"): (1) `LogoSlotDark` always shows a
+  hover tooltip, even non-interactively — the built preview had no `Tooltip` wrapper on the logo slot
+  at all; (2) `RailButtonDark` explicitly suppresses its hover tooltip once a button is `active` or
+  `browsing` (`showTooltip = ... && !isBrowsing && !isActive && !isDisabled`) — the preview showed the
+  tooltip unconditionally; (3) `OverflowTriggerButton`'s active-in-overflow dot hides while its own
+  menu is open (`active && !open`) — the preview never itemized this sub-component at all, so it never
+  got flagged as a divergence in the first place. None of these were in the original ~50-item
+  divergence list. **Lesson:** the Intake/Dissection agent's itemized list should explicitly include a
+  pass over every stateful sub-component's *conditional* rendering logic (any `showX = ... && !y && !z`
+  expression, not just its default/rest-state appearance) — a component can be visually identical to its
+  origin counterpart at rest and still diverge the moment a user hovers/selects/opens something. This
+  is the same "verify against real source, not appearance/docs" discipline as the earlier `IconPanelLeftContract`
+  documentation-drift lesson, just applied to interaction states instead of icon choice. **Also
+  surfaced a real anti-pattern to avoid**: the first attempt to suppress the logo/rail-button tooltip
+  toggled Radix `Tooltip`'s own `open` prop between `false` and `undefined` per render, which flips the
+  component between controlled and uncontrolled and throws a React console warning — the correct fix is
+  to conditionally omit the `Tooltip` wrapper entirely for the suppressed state, never to toggle its
+  `open` prop. All three gaps are now captured in the divergence list itself (rail-sidebar.ts rows L-1,
+  L-2, L-8, and the cross-cutting M-5 caveat) so the eventual real `src/ui/` Build phase — the work that
+  actually ships via `dist/` → `site/` → Cloudflare Pages, unlike this local-only `limbo-factory/`
+  preview — has the full, itemized, verified behavior contract instead of relying on someone
+  re-discovering it by hand a second time.
 
 ## Exit condition
 
