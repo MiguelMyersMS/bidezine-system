@@ -738,7 +738,14 @@ export function FunctionalRailSidebar({
               size="icon"
               disabled
               aria-label="Profile (disabled)"
-              className="size-[38px] shrink-0 rounded-lg hover:bg-transparent"
+              // QA finding (see divergence row L-14): removed a leftover `hover:bg-transparent` —
+              // confirmed via getComputedStyle/`:matches(':hover')` that Button's own
+              // `disabled:pointer-events-none` makes hover permanently unreachable on a disabled
+              // button (real mouse hover can never hit-test this element), so the override was
+              // syntactically correct but 100% dead code. Removed because it closely mimics the
+              // M-12 anti-pattern (a hover override with no real purpose) and could mislead a
+              // future reader into thinking hover suppression is intentionally needed here.
+              className="size-[38px] shrink-0 rounded-lg"
               style={{ color: colors.fgDisabled }}
             >
               <UserIcon className="size-5" />

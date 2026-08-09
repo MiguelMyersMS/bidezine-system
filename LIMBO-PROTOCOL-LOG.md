@@ -34,10 +34,18 @@ replace the human's authority.
 | # | Role | Scope | Must NOT |
 |---|---|---|---|
 | 1 | **Intake / Dissection agent** | Reads the Rail Sidebar source *and* its documentation file. Produces a full, itemized divergence list: every icon, block, layout choice, animation, effect, gap/padding/spacing value, color, font, or any other element that does not have a clean, obvious 1:1 bidezine equivalent. | Never resolves a divergence itself. Never silently assumes a "close enough" match is acceptable. |
-| 2 | **Transformation / Build agent** | Performs the actual port into bidezine idioms — real bidezine tokens (color/font/spacing), Fluent icons per the CLAUDE.md iconography protocol, real bidezine sub-components wherever the sidebar composes other UI (buttons, separators, badges, etc.) — but only executes decisions the human has already made on every flagged divergence. | Never invents a resolution to an unresolved divergence. Never touches an item still awaiting a human decision. |
+| 2 | **Transformation / Build agent** | Performs the actual port into bidezine idioms — real bidezine tokens (color/font/spacing), Fluent icons per the CLAUDE.md iconography protocol, real bidezine sub-components wherever the sidebar composes other UI (buttons, separators, badges, etc.) — but only executes decisions the human has already made on every flagged divergence. **Must run CLAUDE.md's "Primitive Fidelity Checklist" against every primitive-touching change before considering it complete** — see the note below the table. | Never invents a resolution to an unresolved divergence. Never touches an item still awaiting a human decision. **Never declares a change "done" on the strength of a screenshot or a source-code read alone** — every className override, box-model parity claim, interactive state, and alignment claim must be independently measured first. |
 | 3 | **Escalation / Divergence-check agent** | Independent from the Build agent. Cross-checks the Build agent's output against the Intake agent's original divergence list — confirms every single flagged item was actually resolved by a recorded human decision, not quietly auto-resolved during Build. | Never itself decides a divergence — it only checks whether the *human* decided it. |
-| 4 | **Independent Audit agent** | Independent from Build. Runs a full compliance pass: color tokens, font tokens, spacing tokens all sourced from `tokens/*.tokens.json` (no hand-written CSS values), every constituent sub-component is a real `@bidezine/system` component, every icon is a real Fluent slug from `icons/manifest.json`, zero leftover foreign classes/tokens/icons anywhere in the ported code. | Never rubber-stamps based on the Build agent's own self-report — must independently re-inspect the code. |
+| 4 | **Independent Audit agent** | Independent from Build. Runs a full compliance pass: color tokens, font tokens, spacing tokens all sourced from `tokens/*.tokens.json` (no hand-written CSS values), every constituent sub-component is a real `@bidezine/system` component, every icon is a real Fluent slug from `icons/manifest.json`, zero leftover foreign classes/tokens/icons anywhere in the ported code, **plus a full re-run of the Primitive Fidelity Checklist against every primitive usage in the finished component** — this is a genuine second, independent pass, not a rubber stamp on Build's own self-check. | Never rubber-stamps based on the Build agent's own self-report — must independently re-inspect the code. |
 | 5 | **Human (final review)** | Reviews everything — including the Escalation and Audit agents' findings — and gives (or withholds) final approval to promote the component out of Limbo. | N/A — this is the terminal, non-delegable gate. |
+
+**The Audit agent is a second, independent check — never the ONLY check.** Rail Sidebar's own Build phase
+ran for dozens of turns with the formal Independent Audit agent never once invoked, while the human's own
+visual spot-checks caught over a dozen primitive-fidelity bugs one at a time, reactively. That is the
+sequencing flaw this protocol must not repeat: Build is not permitted to treat "looks right in a screenshot"
+as equivalent to "verified," and must run CLAUDE.md's Primitive Fidelity Checklist itself, continuously,
+against every primitive-touching change — not defer all verification to a later Audit phase that may not
+run until the component is already believed finished.
 
 Recommended mapping to available sub-agent types in this environment: Intake → `research`/`general-purpose`
 (read-only-ish, structured output); Build → `general-purpose`; Escalation-check → `code-review` (its
@@ -515,11 +523,38 @@ friction, anything.)_
   doc-vs-code drift (Q4, G-3), faithfully-reproduced-but-unflagged origin bugs (M-17), and overflow rules
   never exercised by short demo content (D-11).
 
+- **The core, session-spanning root cause: verification was reactive the entire time, and the formal
+  Independent Audit gate never actually ran.** Looking back across the whole Rail Sidebar transformation
+  (M-11 through L-13, roughly twenty distinct findings), every single one was caught the same way — a human
+  looked at the rendered component, noticed something was visually off, and only then did an AI investigation
+  trace it back to a root cause. Not one was caught by an AI-initiated systematic check running *before* the
+  work was presented as finished. Meanwhile, this protocol's own Agent Roster has always specified a fourth,
+  independent "Audit agent" role whose entire job is exactly this kind of proactive, exhaustive check — and
+  it was never invoked, not once, across the entire Build phase. The Build agent (in practice, this session)
+  treated "I fixed the specific thing that was pointed out, and it looks right in a screenshot" as equivalent
+  to "verified," which let the identical underlying bug CLASS (a className override losing a tailwind-merge
+  conflict-group tie to a primitive's own base recipe) recur three separate times — `Input`'s `px-3` (M-18),
+  `Button`'s `size-9` (M-19), `Button`'s `has-[>svg]:px-3` (L-12) — before a genuinely exhaustive, scripted
+  sweep of every primitive usage in the file ever ran. When that sweep finally did run (prompted by the
+  request to refine this very protocol), it found one further real issue in seconds — a dead `hover:bg-
+  transparent` on a disabled button, mimicking the M-12 anti-pattern (L-14) — that eighteen prior turns of
+  reactive, one-issue-at-a-time fixing had not surfaced, simply because nobody had ever asked about that
+  specific button. **Lesson, made concrete rather than left as a platitude:** a new "Primitive Fidelity
+  Checklist" has been added to `CLAUDE.md` — a literal, mandatory, step-by-step procedure (className-merge
+  verification via `tailwind-merge` run directly, full box-model parity checks via `getComputedStyle`, every
+  interactive state simulated live, alignment claims measured via `getBoundingClientRect`, and a full sweep
+  after every fix, not just the one instance that prompted it) that the Build agent must run against every
+  primitive-touching change BEFORE calling it done, not defer entirely to a Audit phase that may never
+  actually be invoked. The Agent Roster table above was updated to make the Audit agent's role a genuine
+  *second*, independent check on top of that — not the only check.
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given
 final sign-off: fold any durable process refinements into `CLAUDE.md`, then delete this file. (Note: the
-"Sandbox/Limbo fidelity" section was already folded into `CLAUDE.md` ahead of that exit condition — see the
-flaws-log entry immediately above — because the same failure class had already repeated twice within this
-one transformation. Any further NEW failure classes discovered before Rail Sidebar's own exit should still
-be logged here first, then folded in the same way once repetition (or explicit urgency) warrants it.)
+"Sandbox/Limbo fidelity" section and the "Primitive Fidelity Checklist" were both already folded into
+`CLAUDE.md` ahead of that exit condition — see the flaws-log entries above — because the underlying failure
+classes had already repeated multiple times within this one transformation and the user explicitly asked for
+the protocol itself to be refined before continuing. Any further NEW failure classes discovered before Rail
+Sidebar's own exit should still be logged here first, then folded in the same way once repetition (or
+explicit urgency) warrants it.)

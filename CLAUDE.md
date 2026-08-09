@@ -181,6 +181,61 @@ sandbox component before it's considered ready to promote — not a one-off list
 Whenever a new failure class like these is found, add it here directly (not only to a component's own
 temporary working log) so it protects every future Limbo occupant, not just the one that exposed it.
 
+## Primitive Fidelity Checklist — mandatory, run proactively, not on request
+
+Every failure class documented above was caught the same way: a human looked at the rendered result and
+noticed something was off, then an AI investigation traced it back afterward. Not one was caught by the AI
+running its own systematic check *before* presenting work as finished — including the formal "Independent
+Audit" gate the Limbo protocol itself defines, which sat un-run for the component's entire Build phase while
+over a dozen of these bugs accumulated underneath it. Reactive verification (checking only what a human
+happens to ask about) cannot reach zero; only an exhaustive, repeatable procedure run on every primitive
+usage can. This checklist exists to make that procedure concrete instead of aspirational.
+
+**Run every item below for every real primitive usage you touch, before calling any change "done" — not
+just the property the current task happens to mention:**
+
+1. **className-vs-base-recipe merge check.** For any `className` override on a real primitive, find that
+   primitive's own base recipe (its `cva`/`buttonVariants`-style source) and run `tailwind-merge` against
+   `(baseRecipe, override)` directly — in a scratch `node -e` script, not by inspection — and confirm the
+   result contains no leftover conflicting base classes (same property, different value). Do this for every
+   variant/size combination actually used, since a conditional variant like `has-[>svg]:px-3` is a *different*
+   conflict group than a plain `px-2` and both can silently survive together.
+
+2. **Full box-model parity check**, whenever two elements are claimed (by a divergence row, a design intent,
+   or a "should look the same" requirement) to share a visual recipe: pull `getComputedStyle` for **all** of
+   height, border-radius, padding (all four sides — don't assume a shorthand covers them identically),
+   gap, font-size, font-weight, and line-height on both elements and diff them programmatically. A screenshot
+   comparison is a confirmation step *after* this, never a substitute for it — a difference under a few
+   pixels or a single mismatched side is usually invisible in a screenshot at normal size.
+
+3. **Every interactive state, simulated live, not read from the className.** For each state a component is
+   supposed to support — rest, hover, pressed/active, focus-visible, disabled, selected/checked/expanded —
+   trigger it for real (`hover()`, `mouse.down()`/`mouse.up()`, keyboard focus, toggling the relevant prop)
+   and read `getComputedStyle` afterward. Never conclude a state "works" because the class exists in the
+   source; an inline `style` value, a competing class, or an unreachable state (e.g. `disabled` combined with
+   `pointer-events-none` making `hover:` permanently dead) can silently neutralize it.
+
+4. **Alignment claims are measured, not eyeballed.** Any claim that one element "lines up with" or "hangs
+   from" another (an icon and a guide line, a label and its indicator) must be checked with
+   `getBoundingClientRect` and a numeric diff, not a screenshot glance — a few pixels of drift is exactly the
+   kind of thing a static image hides and a real user's eye eventually catches.
+
+5. **When copying an established pattern from elsewhere in bidezine** (another real component, an origin
+   source), measure that reference's own actual computed values *first*, before building — target those
+   numbers directly, rather than building something "in the spirit of" the reference and discovering the
+   mismatch only after comparing it side-by-side afterward.
+
+6. **A single fixed instance is not a swept file.** When any of the above catches a bug, immediately grep
+   every other usage of the same primitive/pattern in the file (or component) and run the same check against
+   each one — the same conflict-group gap recurring three separate times in one component (a `px-3`-family
+   override, a `size-9` override, a second `px-3`-family override on a different element) before a truly
+   exhaustive sweep ever ran is exactly the failure this checklist exists to end.
+
+7. **This checklist itself *is* the Independent Audit gate, run continuously.** Don't treat "Independent
+   Audit" as a single deferred phase at the very end of Build — run this checklist after every meaningful
+   primitive-touching change, in miniature, so issues surface within the same turn they're introduced, not
+   dozens of turns later when a human happens to notice.
+
 ## Three machines, one branch
 
 Laptop A, Laptop B, and a PC all work `main` directly. `origin` is the only source of truth — unpushed
