@@ -18,11 +18,11 @@ railSidebarPhases[1] = {
   ...railSidebarPhases[1],
   status: "in_progress",
   subPhases: [
-    { id: "q1", title: "Q1 — Icon filled-prop system", status: "pending", note: "Blocks all interactive icon states" },
-    { id: "q2", title: "Q2 — Dark rail surface token family", status: "pending", note: "Blocks the entire rail color system" },
-    { id: "q3", title: "Q3 — Default logo icon", status: "pending" },
-    { id: "q4", title: "Q4 — Panel collapse icon", status: "pending" },
-    { id: "remaining", title: "~45 remaining itemized divergences", status: "pending", note: "Cascades from Q1/Q2" },
+    { id: "q1", title: "Q1 — Icon filled-prop system", status: "done", note: "Resolved: filled?: boolean added to the icon pipeline" },
+    { id: "q2", title: "Q2 — Dark rail surface token family", status: "done", note: "Resolved: all 10 candidate tokens approved in the Color Token Lab" },
+    { id: "q3", title: "Q3 — Default logo icon", status: "done", note: "Resolved: custom manifest entry, sourced from the origin bidezine mark" },
+    { id: "q4", title: "Q4 — Panel collapse icon", status: "done", note: "Resolved: panel_left_contract_20_regular, a clean 1:1 Fluent match" },
+    { id: "remaining", title: "24 remaining divergence rows still awaiting a decision", status: "pending", note: "See the Full divergence list tab — categories C, F, G, H, I, J, K, L, M" },
   ],
 }
 

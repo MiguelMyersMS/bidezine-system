@@ -38,6 +38,7 @@ scratch_img.*
 
 # Per-machine editor/agent config — must NOT travel between machines
 .vscode/
+.codex/
 
 # Vendored shadcn reference — keep the SOURCE, ignore any build artifacts inside it
 reference/shadcn-ui/**/node_modules/

@@ -35,6 +35,8 @@ Adjusting before verifying makes it impossible to tell a deliberate change from 
 | `site/` | Showcase site (separate consumer app) deployed to bs.bidezine.systems. Imports `@bidezine/system` like any real consumer — never reaches into `src/` or `reference/` directly. |
 | `icons/manifest.json` | Icon authoring source — every symbol name mapped to a Fluent slug (or a `custom` derived SVG). **The only place icon mappings are authored.** |
 | `scripts/build-icons.mjs` | Emits `src/icons/generated.tsx` from the manifest. Generated and gitignored. Fails loudly if a manifest entry doesn't resolve. |
+| `limbo/` | Holding area for components being ported from a foreign design system. Each occupant lives here until it passes the full Limbo protocol and is promoted into `src/ui/`. See `LIMBO-PROTOCOL-LOG.md` for the gate sequence. |
+| `limbo-factory/` | Dedicated local dev environment (port 4199) for the active Limbo transformation. Built entirely from real `@bidezine/system` components. Never merged into `dist/` or shipped to consumers. |
 
 ## Rules that matter
 
@@ -66,6 +68,12 @@ compiles source → `dist/`; consumers import the built output, not raw TS.
 **Runtime dependencies are externalised.** Bundling Radix would ship a second copy of its React context
 into any consumer that also uses Radix — which silently breaks portals and focus traps, the exact
 behaviour we adopted it for.
+
+**SVG icons must be rendered as inline `<svg>`, never as `<img>`.** An SVG file embedded via `<img src>`,
+`<img src="data:image/svg+xml,...">`, or `background: url(...)` is opaque to CSS — `currentColor` and
+`fill` have no effect on it, so the icon silently ignores theme switches. Only an `<svg>` element in
+the DOM responds to those properties. This is why the icon pipeline emits React components (inline SVG)
+rather than static asset references.
 
 ## Iconography protocol
 
