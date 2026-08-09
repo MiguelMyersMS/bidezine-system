@@ -433,6 +433,31 @@ friction, anything.)_
   role along with it. Documented in rail-sidebar.ts row M-14 (new `--sidebar-rail-divider` token,
   approved — it reuses an already-reviewed value, not a new decision).
 
+- **A "resolved" color decision can be broken by nothing more than an unlucky coincidence with the
+  design system's OWN base tokens — not just by a bad choice relative to origin.** Third finding in this
+  same short review pass: "when dark mode the rail looks the same color as the background... i dont
+  want it to look like the sidebar color but neither as dark as the background." Confirmed via
+  `getComputedStyle`: the rail's real rendered surface and the page's own body background resolved to
+  the literal identical value, `oklch(0.145 0 0)` — bidezine's dark-theme `--background` — even though
+  `darkSurface`/B-1 had already been marked resolved via Q2. This is a different failure mode than the
+  earlier border/divider entries above (which were about a value being wrong *relative to its own visual
+  role*): here the approved value was accidentally identical to an *unrelated, pre-existing* bidezine
+  token it was never meant to reference at all. **The fix search itself surfaced a hard physical
+  constraint worth recording**: any replacement value had to stay strictly between `--background`
+  (0.145, or it's not distinct) and the already-approved `darkHoverBg` (0.191, or the rest state would
+  already read as hovered, inverting the whole hover escalation with nowhere left to go) — which also
+  ruled out the tempting shortcut of reusing bidezine's own `--card`/`--sidebar` dark value (0.205, which
+  sits *above* `darkHoverBg` and would have inverted things just as badly) — coincidentally the exact
+  thing the human separately said not to look like. No existing bidezine achromatic stop falls inside
+  that narrow (0.145, 0.191) window, so the fix (`oklch(0.18 0 0)`) is a genuinely new number, same
+  precedent as `darkHoverBg`/`darkPressedBg`/`darkActiveBg`/`darkActiveHoverBg` before it. **Lesson:**
+  when a rail/organism token family is built to "roughly track" the design system's own base tokens
+  (as this dark-rail family explicitly is, per Q2's original mandate), an approved candidate needs to be
+  spot-checked against the CURRENT full list of bidezine's own tokens for accidental exact matches, not
+  just judged as internally consistent within its own token family — a value can be perfectly reasonable
+  in isolation and still collide with something already on the page. Documented in rail-sidebar.ts row
+  M-15 (and B-1, reopened from "resolved" back to "decision").
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given
