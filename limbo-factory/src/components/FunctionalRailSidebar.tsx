@@ -714,10 +714,17 @@ export function FunctionalRailSidebar({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-[220px]">
-                      <DropdownMenuItem onSelect={() => setExpanded(new Set(collectGroupIds(openSection.items)))}>
+                      {/* `inset` here is not decorative — it's the fix for a measured text-alignment bug
+                          (see divergence row D-12). Plain DropdownMenuItem defaults to 8px left padding,
+                          while DropdownMenuCheckboxItem below ("Search box") is hard-coded to 32px to make
+                          room for its checkmark. Without `inset`, "Expand all"/"Collapse all" sit 24px to
+                          the left of "Search box". `inset` forces this row onto the same 32px gutter. */}
+                      <DropdownMenuItem inset onSelect={() => setExpanded(new Set(collectGroupIds(openSection.items)))}>
                         Expand all
                       </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => setExpanded(new Set())}>Collapse all</DropdownMenuItem>
+                      <DropdownMenuItem inset onSelect={() => setExpanded(new Set())}>
+                        Collapse all
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuCheckboxItem
                         checked={searchEnabled}
