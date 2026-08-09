@@ -765,9 +765,23 @@ export function FunctionalRailSidebar({
 
         {/* Panel */}
         {openSection && (
+          // QA finding (see divergence row L-15): the panel behaves exactly like a menu/popover
+          // container (it mounts/unmounts on trigger, floats over content, is dismissible) but had
+          // no border at all, unlike the real DropdownMenuContent it visually needs to read as the
+          // "same kind of container" alongside. DropdownMenuContent's own recipe is literally
+          // `rounded-md border bg-popover ... shadow-md` \u2014 the plain `border` utility, which this
+          // codebase's @theme wiring (src/styles/system.css) resolves to `--color-border: var(--border)`,
+          // the exact same token already bound to `colors.hairline` here (used for the header's own
+          // divider line just below). Reusing it for the outer border keeps this consistent with the
+          // already-established token rather than introducing a new one.
           <div
             className="flex flex-col overflow-hidden"
-            style={{ width: 300, borderRadius: 12, background: colors.panelSurface }}
+            style={{
+              width: 300,
+              borderRadius: 12,
+              background: colors.panelSurface,
+              border: `1px solid ${colors.hairline}`,
+            }}
           >
             <div className="flex flex-col gap-0.5 px-3 py-2" style={{ borderBottom: `1px solid ${colors.hairline}` }}>
               <div className="flex items-center justify-between">
