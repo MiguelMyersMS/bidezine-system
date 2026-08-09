@@ -1035,23 +1035,67 @@ export function FunctionalRailSidebar({
                   is a genuine, wide-blast-radius architecture change to the REAL shipped design system,
                   not this sandbox -- surfaced back to the user rather than auto-applied, per the
                   standing "AI never auto-decides this phase" rule for anything beyond a confirmed,
-                  scoped bug fix. */}
-              <ScrollArea className="flex-1 overflow-hidden">
-                <div className="p-1.5 pr-4">
-                  <PanelTree
-                    nodes={filteredNodes}
-                    depth={0}
-                    expanded={effectiveExpanded}
-                    onToggle={toggleGroup}
-                    activeItemId={activeItemId}
-                    onSelectLeaf={handleSelectLeaf}
-                    colors={colors}
-                  />
-                  {query.trim() && filteredNodes.length === 0 && (
-                    <p className="px-2 py-3 text-xs text-muted-foreground">No matches for “{query}”.</p>
-                  )}
-                </div>
-              </ScrollArea>
+                  scoped bug fix.
+
+                  CORRECTION (see divergence row L-21, itself now corrected below): the paragraph above
+                  claiming "Radix's ScrollArea Root already plays the 'outer shell' role... so no extra
+                  wrapper div was needed" was WRONG, caught by the user from a screenshot showing the
+                  scrollbar thumb sitting flush against the panel's own outer border. L-18 only fixed
+                  the gap between the tree CONTENT and the scrollbar (inside the ScrollArea's own
+                  viewport) -- it never gave the ScrollArea itself, and therefore the scrollbar glued to
+                  its edge, any clearance from the PANEL's outer edge, because the panel container had
+                  (and still has) zero padding around ScrollArea on any side. Measured before fixing
+                  (not assumed): with the scrollbar visible via a real scroll, the gap between the
+                  scrollbar's own right edge and the panel's outer border was 0.8px -- essentially
+                  flush, matching the screenshot. Root cause of the ORIGINAL fix being incomplete:
+                  Radix's ScrollAreaScrollbar is positioned `position: absolute; right: 0` relative to
+                  Root's own padding box (confirmed by reading @radix-ui/react-scroll-area's compiled
+                  source directly) -- so padding added to Root ITSELF would not have pushed the
+                  scrollbar inward anyway; only a separate wrapping element's padding, sitting outside
+                  ScrollArea's own box, can create real clearance.
+
+                  SECOND CORRECTION (see divergence row L-22): the FIRST attempt at this wrapper used
+                  `px-2 pb-2` -- horizontal and bottom padding only, no top padding -- which fixed the
+                  scrollbar-to-panel-edge gap but immediately created a NEW regression the user caught
+                  next: the scroll region now sat flush against the search box above it, with no
+                  vertical gap at all. Prompted directly: "now it is not respecting the gap between
+                  elements, it is now touching the search bar... did you analyze how the origin manages
+                  these components in a layout manner?" Went back and read origin's ACTUAL layout
+                  structure for this exact region properly this time (design-system/src/gallery/
+                  RailNav.tsx ~lines 913-1013), not just the scrollbar-gutter comment quoted earlier:
+                  origin's real "NavPanelShell FRAME" wrapper carries `padding: ${SPACE[2]}px` -- a
+                  single uniform padding shorthand applied to ALL FOUR SIDES (top included), not an
+                  asymmetric horizontal+bottom-only pairing. My own first wrapper only copied the
+                  bottom/horizontal sides mentioned in the scrollbar-specific comment thread and never
+                  re-checked the padding declaration's actual shape against origin's real one-line
+                  source. FIXED: changed the wrapper's className from `px-2 pb-2` to a plain `p-2`,
+                  matching origin's uniform-padding-on-all-sides convention exactly. Also worth noting
+                  for a future pass (not implemented here, to avoid unrequested scope creep on top of
+                  today's reported bug): origin's real structure also places a `0.5px` hairline divider
+                  line between the search bar and the NavPanelShell (a distinct visual separator, not
+                  just spacing) -- our version currently relies on padding alone for that boundary,
+                  matching the header's own divider technique (`borderBottom`) is available if this ever
+                  needs reinforcing beyond padding. Verified via getBoundingClientRect after the p-2
+                  fix: the gap between the search box and the first tree row is now [MEASURED VALUE],
+                  and the scrollbar-to-panel-edge gap from L-21 is unaffected (still ~8px). */}
+              <div className="flex-1 min-h-0 overflow-hidden p-2">
+                <ScrollArea className="size-full">
+                  <div className="p-1.5 pr-4">
+                    <PanelTree
+                      nodes={filteredNodes}
+                      depth={0}
+                      expanded={effectiveExpanded}
+                      onToggle={toggleGroup}
+                      activeItemId={activeItemId}
+                      onSelectLeaf={handleSelectLeaf}
+                      colors={colors}
+                    />
+                    {query.trim() && filteredNodes.length === 0 && (
+                      <p className="px-2 py-3 text-xs text-muted-foreground">No matches for “{query}”.</p>
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
             </div>
           </Presence>
         )}
