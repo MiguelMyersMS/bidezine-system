@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/dialog"
+import { ScrollArea } from "@/ui/scroll-area"
 
 function Command({
   className,
@@ -83,19 +84,34 @@ function CommandInput({
   )
 }
 
+/**
+ * Deliberate divergence from shadcn's own real source (which uses a plain `overflow-x-hidden
+ * overflow-y-auto` div here) — a real `ScrollArea` is composed instead, per the two-layer scroll
+ * region pattern (see CLAUDE.md's "Scroll region protocol"). `ScrollArea` wraps
+ * `CommandPrimitive.List` from the OUTSIDE rather than nesting inside it: cmdk's own `List` renders
+ * an internal, unstyled `[cmdk-list-sizer]` wrapper around its children (used only for cmdk's own
+ * optional `--cmdk-list-height` animation hook, which this codebase does not use, and for filtering
+ * DOM reordering) that a naively-nested `ScrollArea` would need a fragile flex-chain of arbitrary
+ * descendant selectors to reach through. Wrapping from the outside avoids disturbing that internal
+ * structure (and cmdk's own `typeof children === "function"` children-resolution isn't touched
+ * either) — `List` itself becomes ordinary flowed content inside `ScrollArea`'s viewport, and simply
+ * being taller than the `max-h-[300px]` cap (now on `ScrollArea`) is what triggers scrolling.
+ * `scroll-py-1` (scroll-padding, for keyboard-nav `scrollIntoView` clearance) moves onto
+ * `ScrollArea`'s own internal viewport (targeted via a descendant selector, since the primitive
+ * doesn't expose a viewport-specific className prop) — it must live on the actual scrolling element.
+ */
 function CommandList({
   className,
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.List>) {
   return (
-    <CommandPrimitive.List
-      data-slot="command-list"
-      className={cn(
-        "max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto",
-        className
-      )}
-      {...props}
-    />
+    <ScrollArea className="max-h-[300px] overflow-hidden [&_[data-slot=scroll-area-viewport]]:scroll-py-1">
+      <CommandPrimitive.List
+        data-slot="command-list"
+        className={cn("pe-2", className)}
+        {...props}
+      />
+    </ScrollArea>
   )
 }
 

@@ -6,6 +6,7 @@ import { ContextMenu as ContextMenuPrimitive } from "radix-ui"
 
 import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
+import { ScrollArea } from "@/ui/scroll-area"
 
 function ContextMenu({
   ...props
@@ -119,8 +120,15 @@ function ContextMenuSubContent({
   )
 }
 
+/**
+ * Deliberate divergence from shadcn's own real source (which uses a plain `overflow-y-auto` div
+ * here) — a real `ScrollArea` is composed inside instead, per the two-layer scroll region pattern
+ * (see CLAUDE.md's "Scroll region protocol"). See `DropdownMenuContent` for the full rationale;
+ * this component mirrors that same structure exactly.
+ */
 function ContextMenuContent({
   className,
+  children,
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Content>) {
   return (
@@ -128,11 +136,15 @@ function ContextMenuContent({
       <ContextMenuPrimitive.Content
         data-slot="context-menu-content"
         className={cn(
-          "z-50 max-h-(--radix-context-menu-content-available-height) min-w-[8rem] origin-(--radix-context-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
+          "z-50 flex max-h-(--radix-context-menu-content-available-height) min-w-[8rem] origin-(--radix-context-menu-content-transform-origin) flex-col overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
           className
         )}
         {...props}
-      />
+      >
+        <ScrollArea className="flex-1 min-h-0 overflow-hidden">
+          <div className="pe-2">{children}</div>
+        </ScrollArea>
+      </ContextMenuPrimitive.Content>
     </ContextMenuPrimitive.Portal>
   )
 }

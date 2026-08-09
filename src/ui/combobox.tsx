@@ -13,6 +13,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/ui/input-group"
+import { ScrollArea } from "@/ui/scroll-area"
 
 const Combobox = ComboboxPrimitive.Root
 
@@ -169,16 +170,29 @@ function ComboboxContent({
   )
 }
 
+/**
+ * Deliberate divergence from shadcn's own real source (which uses a plain `overflow-y-auto` div
+ * here) — a real `ScrollArea` is composed instead, per the two-layer scroll region pattern (see
+ * CLAUDE.md's "Scroll region protocol"). `ScrollArea` wraps `ComboboxPrimitive.List` from the
+ * OUTSIDE rather than nesting inside it: Base UI's `List.Props["children"]` can be a function (a
+ * "closed template" render-prop that `List` resolves internally into its own `ComboboxCollection`
+ * wiring) — intercepting and re-rendering `children` ourselves, as an inner wrap would require,
+ * breaks that resolution and does not type-check. Wrapping from the outside leaves `List`'s own
+ * children handling completely untouched. `List` keeps its own `p-1`/`data-empty:p-0` padding (the
+ * OUTER layer's role); the extra end-side gutter moves onto `List` itself since it's the element
+ * `ScrollArea`'s viewport renders directly. Bidezine does not enable Base UI's opt-in `virtualized`
+ * combobox mode anywhere in this file — if a consumer does turn it on, this composition would need
+ * re-evaluating, since virtualization typically expects to directly own the scrolling element.
+ */
 function ComboboxList({ className, ...props }: ComboboxPrimitive.List.Props) {
   return (
-    <ComboboxPrimitive.List
-      data-slot="combobox-list"
-      className={cn(
-        "max-h-[min(calc(--spacing(96)---spacing(9)),calc(var(--available-height)---spacing(9)))] scroll-py-1 overflow-y-auto p-1 data-empty:p-0",
-        className
-      )}
-      {...props}
-    />
+    <ScrollArea className="max-h-[min(calc(--spacing(96)---spacing(9)),calc(var(--available-height)---spacing(9)))] overflow-hidden [&_[data-slot=scroll-area-viewport]]:scroll-py-1">
+      <ComboboxPrimitive.List
+        data-slot="combobox-list"
+        className={cn("p-1 pe-2 data-empty:p-0", className)}
+        {...props}
+      />
+    </ScrollArea>
   )
 }
 

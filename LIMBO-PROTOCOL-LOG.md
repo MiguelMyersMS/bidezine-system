@@ -60,6 +60,17 @@ requirement for Build and Audit alike, not a one-off fix scoped to Rail Sidebar:
 outer-container-to-scrollbar gap AND the scrollbar-to-inner-content gap independently, with real
 `getBoundingClientRect` measurements while the scrollbar is actually visible, not a screenshot glance.
 
+**Update:** the pattern has since been migrated system-wide into `Command`, `DropdownMenu`, `ContextMenu`,
+and `Combobox` (a deliberate shadcn divergence, not a fidelity fix — see CLAUDE.md for the full rationale
+and the components deliberately excluded). While implementing this, a real bug was found and fixed in
+`ScrollArea` itself: `Viewport`'s old `size-full` sizing silently failed to constrain scrolling whenever an
+ancestor used `max-height` instead of a fixed `height` (the exact case for Radix popper/menu content) — CSS
+percentage heights don't resolve against a `max-height`-clamped ancestor even when its rendered size is a
+concrete pixel value. Fixed by switching `Viewport` to flex-based sizing (`flex-1 min-h-0`), which doesn't
+depend on that CSS percentage-definiteness rule. Any future occupant composing `ScrollArea` inside a
+`max-height`-capped ancestor (not a fixed-height one) should specifically verify `scrollTop` is actually
+functional and the scrollbar thumb genuinely renders — not just that the box visually clips.
+
 ## Divergence-handling rule (mandatory, no exceptions)
 
 Whenever the Intake agent finds an element in the source that isn't cleanly pairable to an existing

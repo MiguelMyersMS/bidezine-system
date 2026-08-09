@@ -154,14 +154,43 @@ against a sibling above it, corrected in L-22).
 own *native* scrollbar; Radix's `ScrollArea` hides the native one and draws its own independent, absolutely-
 positioned track, which that CSS property has no reliable effect on.
 
-**Scope note:** as of this writing, none of bidezine's other real shipped components (`Command`, `Select`,
-`DropdownMenu`, `ContextMenu`, `Combobox`, the message scroller, tables) use `ScrollArea` — they use plain
-native `overflow-y-auto`/`overflow-x-auto`, which the browser already reserves layout space for
-automatically and has no overlay-collision problem to solve. This two-layer pattern applies specifically
-wherever the real `ScrollArea` primitive is used, not to native-scrollbar usages, which are a different,
-already-safe mechanism. Migrating any of those components' native scrollbars to `ScrollArea` is a separate,
-larger, visible design decision (it changes every consumer's scrollbar appearance) and needs explicit
-sign-off before being undertaken — it is not implied by this pattern.
+**Deliberate shadcn divergence, migrated system-wide:** `Command`, `DropdownMenu`, `ContextMenu`, and
+`Combobox` (`src/ui/command.tsx`, `dropdown-menu.tsx`, `context-menu.tsx`, `combobox.tsx`) now compose the
+real `ScrollArea` primitive per this pattern, on explicit, repeated user instruction. Verified first: shadcn's
+own real reference source (`reference/shadcn-ui/apps/v4/registry/new-york-v4/ui/`) uses plain native
+`overflow-y-auto`/`overflow-x-auto` in every one of these components, and never composes `ScrollArea` into
+any of them — this migration is a deliberate, documented **Adjustment**, not a "Reproduce" fidelity fix; it
+should never be presented as matching shadcn's own pattern.
+
+**NOT migrated, for real architectural reasons** (each documented at its own component):
+- **`Select`** (`src/ui/select.tsx`) — `SelectContent` uses Radix's own dedicated `SelectPrimitive.Viewport`
+  plus `SelectScrollUpButton`/`SelectScrollDownButton`, deeply tied to Select's "item-aligned" positioning
+  (aligning the selected item under the trigger). This is a separate, complete scroll system Select owns
+  itself; composing `ScrollArea` in would conflict with or discard that behavior.
+- **`MessageScroller`** (`src/ui/message-scroller.tsx`) — built entirely on its own dedicated primitive
+  (`@shadcn/react/message-scroller`) with its own `Viewport`/hooks that measure that exact DOM node directly
+  for auto-scroll-to-bottom and visibility tracking. A second, competing scroll system would very likely
+  break that logic.
+- **`Attachment`** (`src/ui/attachment.tsx`) — `AttachmentGroup` deliberately uses `scrollbar-none` (fully
+  hidden scrollbar) for a horizontal snap-scroll gallery; there is no visible scrollbar to have a collision
+  problem with.
+- **`Table`** (`src/ui/table.tsx`) — byte-identical to shadcn's own source; wraps a raw `<table>` element,
+  which is architecturally atypical to nest inside `ScrollArea`'s `Viewport`. Left on native
+  `overflow-x-auto` rather than risk it without dedicated testing.
+
+**Critical primitive-level fix found while migrating (now baked into `ScrollArea` itself, benefits every
+consumer):** `ScrollArea`'s `Viewport` used to size itself via `size-full` (a CSS percentage height). This
+silently fails whenever `Root` is capped with `max-height` rather than given a fixed `height` — exactly the
+case for a Radix popper/menu content element, whose available height is a dynamic `max-height` CSS var. A
+CSS percentage height only resolves against an ancestor with a genuinely *definite* height per spec, and a
+`max-height`-clamped auto-sizing box does not count as definite even when its rendered pixel value is
+concrete. Verified empirically: nesting `ScrollArea` inside a `max-h-(--some-var)` ancestor left `Viewport`
+at its full unclipped content height — the surrounding box visually clipped the overflow via
+`overflow-hidden`, but `Viewport` itself never became internally scrollable (`scrollTop` was inert, no
+scrollbar ever appeared). Fixed by making `Root` a flex column and `Viewport` `flex-1 min-h-0` instead —
+flex-based sizing does not depend on the CSS percentage-definiteness rule at all, so it works identically
+whether the ancestor's height came from an explicit `height` or a `max-height`-clamped auto box. Re-verified
+against the pre-existing fixed-height `ScrollArea` demo (`h-72`) to confirm no regression there.
 
 ## Verify by render, not by number
 
