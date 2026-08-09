@@ -548,6 +548,32 @@ friction, anything.)_
   actually be invoked. The Agent Roster table above was updated to make the Audit agent's role a genuine
   *second*, independent check on top of that — not the only check.
 
+- **A second, distinct wave of findings after the "Primitive Fidelity Checklist" was declared complete proved
+  the checklist's own blind spot: it only ever covered CSS/style mechanics, never structural/positional
+  conventions, data completeness, or a primitive's absence of a named capability.** Prompted directly:
+  "we have detected many divergences... we need to refine the protocol... to reduce this to zero," followed
+  later by four fresh, unrelated findings in one turn — a chevron on the wrong side (copied from origin's own
+  layout, never checked against bidezine's own real chevron conventions), six group nodes silently missing
+  the `icon` field origin's own source data always gave them, a scrollbar overlay measured to *negatively*
+  overlap content by 4px, and a real shared primitive (`DropdownMenuItem`) with no truncation in its base
+  recipe at all. None of the existing 10 checklist items would have caught any of these even if followed
+  perfectly — they check className merges, box-model parity, interactive states, alignment measurements, and
+  primitive-swap behavior, but nothing about *element ordering conventions*, *field-by-field data porting
+  completeness*, or *whether a primitive's base recipe covers a specific named concern at all*. **Lesson for
+  the protocol itself, not just this component:** a checklist that catches every instance of a known failure
+  *class* can still miss an entirely new *category* of failure, and the fix each time is not "add a synonym of
+  an existing item" but "recognize when a finding doesn't fit any existing item, and widen the checklist's own
+  scope, not just its item count." Four new items (11–14) were added to `CLAUDE.md`'s Primitive Fidelity
+  Checklist covering exactly these categories: cross-checking a ported pattern's structural arrangement
+  against bidezine's own other real implementations of the same semantic pattern (not origin's layout by
+  default), an exhaustive field-by-field diff when porting any origin data structure, checking a shared
+  primitive's base recipe for the specific named concern at hand rather than assuming it's covered, and
+  measuring a decorative/overlay element's actual geometric footprint against its neighboring content under
+  real interaction. A framing note was added directly above item 1 making this explicit: items 1–10 are
+  CSS-mechanics-only, items 11–14 are a second wave covering different failure kinds, and the checklist
+  should be expected to keep widening in *kind* whenever a genuinely new category surfaces — not treated as
+  complete once a given wave of items has been added.
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given

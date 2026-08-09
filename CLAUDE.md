@@ -194,6 +194,13 @@ usage can. This checklist exists to make that procedure concrete instead of aspi
 **Run every item below for every real primitive usage you touch, before calling any change "done" — not
 just the property the current task happens to mention:**
 
+*(Items 1–10 cover CSS/style mechanics — className merges, box-model, interactive states, primitive-swap
+behavior. Items 11–14 were added after a second, separate wave of findings — element-order/positional
+conventions, data-completeness, primitive-default assumptions, and overlay geometry — none of which are CSS
+merge problems, and none of which the first ten items would have caught even if followed perfectly. Treat
+this as confirmation that the checklist itself must keep widening in *kind*, not just in item count, whenever
+a genuinely new failure category is found — not evidence the list is now complete.)*
+
 1. **className-vs-base-recipe merge check.** For any `className` override on a real primitive, find that
    primitive's own base recipe (its `cva`/`buttonVariants`-style source) and run `tailwind-merge` against
    `(baseRecipe, override)` directly — in a scratch `node -e` script, not by inspection — and confirm the
@@ -260,6 +267,47 @@ just the property the current task happens to mention:**
     regression shipped underneath a verification step that looked successful. Scope every check to the exact
     element in question (an index, a containing selector, a `data-*` attribute unique to that instance), not
     "the first thing on the page matching this primitive."
+
+11. **A ported UI pattern's structural arrangement (element order, slot position) must be cross-checked
+    against bidezine's OWN other real implementations of the same semantic pattern — never inherited from
+    origin's layout by default.** A group-toggle row's chevron sat on the LEFT, copied verbatim from origin's
+    own source layout, and passed an entire review pass ("does this look plausible") without ever being
+    checked against bidezine's own two real "expand/collapse with a chevron" primitives — `AccordionTrigger`
+    (chevron last, `justify-between`) and `DropdownMenuSubTrigger`/`ContextMenuSubTrigger`/`MenubarSubTrigger`
+    (chevron last, `ml-auto`) — both of which put it at the far right. Before finalizing any element
+    order/position for a ported interactive pattern, grep every other real usage of that same semantic
+    pattern in `src/ui/*.tsx` and match its convention, treating origin's own arrangement as informative but
+    never authoritative over bidezine's own established one.
+
+12. **Porting a data structure from an origin source requires an exhaustive field-by-field diff, not a visual
+    read.** Six group nodes silently lost the `icon` field origin's own source data gave every one of them
+    (`IconCubeTree`, `IconCalendarClock`, `IconGrid`, `IconCart`, `IconMoney`, `IconPeople`) — the ported
+    `GroupNode` type didn't even have an `icon` property, and this was invisible to a normal read because
+    nothing errors when a field is simply absent; the row still renders, just without that one piece of
+    content. Two of the four *icon components this needed* were already imported into the file, unused —
+    itself a sign the port was left mid-way. When porting any tree/list/config data from an origin source,
+    literally enumerate every field name present on the origin's own object literals and confirm each one has
+    a corresponding field in the ported type and every ported instance — don't rely on the rendered result
+    looking complete.
+
+13. **A shared primitive's own base recipe must be checked for the SPECIFIC named concern at hand — never
+    assumed to already cover it.** The real `DropdownMenuItem` primitive has no `truncate`/`whitespace-nowrap`
+    anywhere in its own base className — a long enough item label would wrap onto a second line, not
+    ellipsis-truncate, and this went unnoticed because every label used against it so far happened to be
+    short enough to fit. Whenever a requirement names a specific behavior (truncation, disabled handling, a
+    focus ring, an ARIA attribute), open the actual primitive's source and confirm that exact behavior is
+    present in its base recipe — don't assume a "real, already-shipped" component automatically covers every
+    reasonable expectation for it.
+
+14. **A decorative or overlay element's actual geometric footprint must be measured against its neighboring
+    content under real interaction — a mechanism "working" is not the same as it not colliding with anything.**
+    Radix `ScrollArea`'s scrollbar thumb is an absolutely-positioned overlay, not a flex sibling that reserves
+    layout space — confirming that scrolling itself worked (K-3) never established whether the visible thumb
+    then overlapped the content sitting at that same edge. A live measurement (scrollbar actually visible via
+    a real scroll interaction, `getBoundingClientRect` on both the content edge and the scrollbar track) found
+    a literal *negative* gap, i.e. genuine overlap. Any decorative element that overlays content (scrollbars,
+    floating badges, absolutely-positioned indicators) needs this same explicit geometric check, not just a
+    functional one.
 
 ## Three machines, one branch
 
