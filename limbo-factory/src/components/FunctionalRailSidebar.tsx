@@ -48,6 +48,7 @@ import {
   PanelLeftContractIcon,
   PeopleAddIcon,
   PeopleCheckmarkIcon,
+  PeopleIcon,
   PersonHeartIcon,
   PlantGrassIcon,
   ReceiptMoneyIcon,
@@ -96,6 +97,13 @@ interface GroupNode {
   kind: "group"
   id: string
   label: string
+  // QA finding (see divergence row L-17): this field didn't exist at all — every group node
+  // (system-logic, schedules, products, orders, sales, customers) was silently missing its own
+  // content icon, unlike origin's real SPEC_TREE, where every one of them carries an `Icon` (e.g.
+  // IconCubeTree, IconCalendarClock, IconGrid, IconCart, IconMoney, IconPeople). Confirmed this was
+  // an incomplete port, not a deliberate omission: CartIcon/GridIcon/MoneyIcon were already imported
+  // into this file but never referenced anywhere — dead imports left over from an unfinished step.
+  icon: React.ComponentType<{ className?: string; filled?: boolean }>
   badge?: string
   children: PanelNode[]
 }
@@ -132,6 +140,7 @@ const SLIDES_PANEL: PanelNode[] = [
     id: "system-logic",
     label: "System logic",
     badge: "New",
+    icon: specTreeIcon(FULL_PREVIEW_ICONS.cubeTree),
     children: [
       { kind: "leaf", id: "rules-engine", label: "Rules engine", icon: specTreeIcon(FULL_PREVIEW_ICONS.engine) },
       { kind: "leaf", id: "triggers", label: "Triggers", icon: specTreeIcon(FULL_PREVIEW_ICONS.syncOff) },
@@ -139,6 +148,7 @@ const SLIDES_PANEL: PanelNode[] = [
         kind: "group",
         id: "schedules",
         label: "Schedules",
+        icon: specTreeIcon(FULL_PREVIEW_ICONS.calendarClock),
         children: [
           { kind: "leaf", id: "daily", label: "Daily", badge: "+05", icon: specTreeIcon(FULL_PREVIEW_ICONS.document) },
           { kind: "leaf", id: "monthly", label: "Monthly", badge: "+11", icon: specTreeIcon(FULL_PREVIEW_ICONS.document) },
@@ -165,6 +175,7 @@ const DOCUMENTS_PANEL: PanelNode[] = [
     kind: "group",
     id: "products",
     label: "Products",
+    icon: GridIcon,
     children: [
       { kind: "leaf", id: "food", label: "Food", icon: FoodAppleIcon },
       { kind: "leaf", id: "clothes", label: "Clothes", icon: ClothesHangerIcon },
@@ -181,6 +192,7 @@ const DOCUMENTS_PANEL: PanelNode[] = [
     id: "orders",
     label: "Orders",
     badge: "+348",
+    icon: CartIcon,
     children: [
       { kind: "leaf", id: "all-orders", label: "All orders", icon: DocumentMultipleIcon },
       { kind: "leaf", id: "returns", label: "Returns", icon: BoxArrowLeftIcon },
@@ -191,6 +203,7 @@ const DOCUMENTS_PANEL: PanelNode[] = [
     kind: "group",
     id: "sales",
     label: "Sales",
+    icon: MoneyIcon,
     children: [
       { kind: "leaf", id: "gross-margin", label: "Gross margin", icon: ReceiptMoneyIcon },
       { kind: "leaf", id: "expenses", label: "Expenses", icon: MoneyHandIcon },
@@ -201,6 +214,7 @@ const DOCUMENTS_PANEL: PanelNode[] = [
     kind: "group",
     id: "customers",
     label: "Customers",
+    icon: PeopleIcon,
     children: [
       { kind: "leaf", id: "loyalty", label: "Loyalty programs", icon: MedalIcon },
       { kind: "leaf", id: "attrition", label: "Customer attrition", icon: PeopleCheckmarkIcon },
@@ -468,6 +482,25 @@ function PanelTree({
                 className="h-9 w-full justify-start gap-1.5 rounded-md px-2 has-[>svg]:px-2 text-left text-sm font-normal hover:bg-accent"
                 style={{ color: "var(--foreground)" }}
               >
+                {/* QA finding (see divergence row L-17): the chevron used to be the FIRST element
+                    here, before the icon/label — that placement was copied straight from origin's
+                    own real source (design-system/src/gallery/RailNav.tsx renders its chevron slot
+                    before the nav-icon slot), never actually checked against bidezine's OWN chevron
+                    conventions. Confirmed both of bidezine's real "expand/collapse with a chevron"
+                    primitives put the chevron at the FAR RIGHT, not the left: AccordionTrigger
+                    (src/ui/accordion.tsx) renders `{children}` first and `<ChevronDownIcon>` last
+                    inside a `justify-between` row; DropdownMenuSubTrigger/ContextMenuSubTrigger/
+                    MenubarSubTrigger all place their `ChevronRightIcon` last with `ml-auto`. Group
+                    rows now match that: this group's own content Icon comes first (previously
+                    missing entirely — see the GroupNode.icon field above), then the label, then the
+                    optional badge, then the chevron — the exact same element order as a leaf row,
+                    with only the chevron appended at the end. The label's own `flex-1` already
+                    pushes everything that follows it (badge, chevron) hard against the row's right
+                    edge, the same mechanism that already positions the badge correctly today, so no
+                    extra `ml-auto` is needed on the chevron itself. */}
+                <node.icon className="size-4 shrink-0" />
+                <span className="flex-1 truncate">{node.label}</span>
+                {node.badge && <PanelBadge label={node.badge} />}
                 <svg
                   viewBox="0 0 20 20"
                   className={cn("size-4 shrink-0 transition-transform", isOpen && "rotate-180")}
@@ -476,8 +509,6 @@ function PanelTree({
                 >
                   <path d={FULL_PREVIEW_ICONS.chevronDown.d} />
                 </svg>
-                <span className="flex-1 truncate">{node.label}</span>
-                {node.badge && <PanelBadge label={node.badge} />}
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent>
@@ -728,10 +759,23 @@ export function FunctionalRailSidebar({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="right" align="start" className="w-[180px]">
+                  {/* QA finding (see divergence row L-19): the real DropdownMenuItem primitive
+                      (src/ui/dropdown-menu.tsx) carries no truncate/whitespace-nowrap on its own
+                      base recipe -- a plain text child has no width constraint or overflow handling
+                      at all, so a long enough rail section label would wrap onto a second line
+                      instead of truncating with an ellipsis (confirmed by reading the primitive's
+                      className string directly: no `truncate`/`overflow-hidden`/`whitespace-nowrap`
+                      anywhere in it). Scoped the fix to this call site only -- wrapping the label in
+                      its own `min-w-0 flex-1 truncate` span -- rather than editing the shared
+                      primitive itself, since DropdownMenuItem is used everywhere across the real
+                      design system and changing its base recipe is a wider decision than this rail
+                      component's own scope covers. Flagged back to the user as a broader question:
+                      should every real menu-item primitive (DropdownMenuItem/ContextMenuItem/
+                      MenubarItem/CommandItem, etc.) gain this truncation by default system-wide? */}
                   {stashedSections.map((section) => (
                     <DropdownMenuItem key={section.id} onSelect={() => handleRailClick(section)}>
                       <section.icon className="size-4" filled={section.id === activeSectionId} />
-                      {section.label}
+                      <span className="min-w-0 flex-1 truncate">{section.label}</span>
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
@@ -936,9 +980,64 @@ export function FunctionalRailSidebar({
                   triggers that automatic-minimum-size rule the same way the old div's `overflow-y-
                   auto` did. Verified via getComputedStyle: Root's height now correctly clips to the
                   parent's available space (scrollHeight > clientHeight again) and real wheel/scrollbar
-                  interaction works. */}
+                  interaction works.
+
+                  QA finding (see divergence row L-18): prompted by "the rail nav from the origin has
+                  a more efficient way to handle the scrollbar by allocating it in a layout component
+                  with the group it belongs to, respecting the container's padding and adding a proper
+                  gap between the scrolling area and the content. the one proposed in the adjusted
+                  ignores the container's padding and there is no gap between the content, making it
+                  too close." Measured this live before changing anything: with the scrollbar thumb
+                  actually visible (forced via a real wheel-scroll, not assumed), the tree content's
+                  own right edge sat at x=1128.2 while the scrollbar track's left edge sat at x=1124.2
+                  -- a NEGATIVE 4px gap, i.e. genuine overlap, not just "a bit close." Root cause: Radix
+                  ScrollArea's own ScrollBar is an absolutely-positioned overlay (a sibling of Viewport
+                  inside Root), not a flex sibling that reserves layout space -- so it floats on top of
+                  whatever's at the Viewport's right edge, and this content div's `p-1.5` (6px, uniform
+                  on all sides) was never enough to clear a 10px-wide scrollbar track (src/ui/
+                  scroll-area.tsx: `w-2.5`).
+
+                  Read origin's own real documentation and source before changing anything (design-
+                  system/docs/atomic/atom/scrollbar.spec.md + design-system/src/gallery/RailNav.tsx):
+                  origin's actual technique is a documented "two-layer scroll region" (their own
+                  comment: "NavPanelShell FRAME -- two-layer scroll (AGENTS Β§ Scroll Regions). Outer
+                  shell owns padding (SPACE[2]) + overflow:hidden + flex column; inner <nav> owns the
+                  scroll (overflowY:auto, flex:1, minHeight:0)"), PLUS a documented "figma-artifact-gap-
+                  translation" rule in the spec doc: "when a molecule/organism uses this Scrollbar as a
+                  sibling to a scroll container, the gap: 8px in Figma between the scroll content and
+                  the scrollbar translates to paddingRight: SPACE[2] on the content element (not a
+                  separate gap)." Concretely, origin's inner <nav> carries `paddingRight: navScrollable
+                  ? SPACE[2] : 0` -- an EXTRA right-side gutter reserved specifically for the scrollbar,
+                  on top of the outer shell's own uniform padding, and only applied when the content is
+                  actually scrollable.
+
+                  Radix's ScrollArea Root already plays the "outer shell" role here (it already owns
+                  `flex-1 overflow-hidden`, i.e. the clipping), so no extra wrapper div was needed --
+                  only this content div's own padding needed the same asymmetric treatment. Changed
+                  `p-1.5` to `p-1.5 pr-4`: keeps the existing 6px gutter on every other side, raises
+                  only the right side to 16px specifically to clear the scrollbar. Verified via
+                  getBoundingClientRect after the fix: the gap between the tree content's right edge
+                  and the scrollbar track is now a comfortable ~6px, not overlapping.
+
+                  NOT yet done, flagged rather than silently skipped: origin's gutter is CONDITIONAL
+                  (`navScrollable ? SPACE[2] : 0`), only reserving the extra space when content genuinely
+                  overflows, so short lists don't carry unnecessary right-padding. This fix is
+                  unconditional for now (always reserves the gutter) -- matching that exactly would
+                  need a live overflow measurement (comparing scrollHeight/clientHeight, recomputed on
+                  resize/content changes), which is a real but separate follow-up, not done in this
+                  pass.
+
+                  BROADER QUESTION, explicitly not auto-decided: the user asked whether this two-layer
+                  outer-padding/inner-scrollbar-gutter concept should be extended into bidezine's own
+                  real ScrollArea-consuming components system-wide (DropdownMenuContent, Select,
+                  Command, ContextMenu, Menubar, NavigationMenu, Sidebar, etc. -- everywhere
+                  `overflow-y-auto`/ScrollArea appears in src/ui/*.tsx), not just this rail panel. That
+                  is a genuine, wide-blast-radius architecture change to the REAL shipped design system,
+                  not this sandbox -- surfaced back to the user rather than auto-applied, per the
+                  standing "AI never auto-decides this phase" rule for anything beyond a confirmed,
+                  scoped bug fix. */}
               <ScrollArea className="flex-1 overflow-hidden">
-                <div className="p-1.5">
+                <div className="p-1.5 pr-4">
                   <PanelTree
                     nodes={filteredNodes}
                     depth={0}
