@@ -309,6 +309,24 @@ a genuinely new failure category is found — not evidence the list is now compl
     floating badges, absolutely-positioned indicators) needs this same explicit geometric check, not just a
     functional one.
 
+15. **Anything that relies on a component's runtime identity (`.name`, `.displayName`, or a name-based string
+    match) must be verified against an actual production/minified build, not just the Vite dev server — dev
+    mode preserves function names; a real build routinely does not.** `src/lib/action-icons.tsx`'s own
+    `isIconElement()` check has two paths: an explicit `isActionIcon === true` marker set on every real
+    generated icon (`scripts/build-icons.mjs`), and a fallback that checks whether `.name`/`.displayName` ends
+    in `"Icon"` — with its own code comment already warning the fallback is unsafe under minification. A
+    hand-rolled icon factory in a sandbox component (returning a function literally named `SpecIcon`) relied
+    solely on that unsafe fallback. It passed every check across many turns of this session because every one
+    of those checks ran against the dev server, where the name survives — then a real `npm run build` +
+    `npm run preview` test proved every one of those icons had **silently stopped filling on hover/select
+    entirely**, with zero errors, the moment the code was minified, while real generated icons (immune via
+    their `isActionIcon` marker) kept working in the exact same bundle. This is why a class of "icon doesn't
+    fill" bug kept recurring across the whole session despite repeated fixes: every fix was re-verified the
+    same insufficient way. Fix: any hand-rolled component that needs to participate in the action-icon-fill
+    system must set `ComponentName.isActionIcon = true` explicitly, exactly like the generated pipeline does —
+    and after any icon-fill fix, build for production and test the actual built output before calling it done,
+    not only the dev server.
+
 ## Three machines, one branch
 
 Laptop A, Laptop B, and a PC all work `main` directly. `origin` is the only source of truth — unpushed

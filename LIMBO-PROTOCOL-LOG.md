@@ -574,6 +574,31 @@ friction, anything.)_
   should be expected to keep widening in *kind* whenever a genuinely new category surfaces — not treated as
   complete once a given wave of items has been added.
 
+- **The single most serious finding of this entire protocol run: a whole class of recurring "icon doesn't fill"
+  bugs had one real root cause, and every fix for it was verified in an environment that could never have
+  caught it.** Prompted by the user's fifth report of this exact symptom, framed explicitly as a systemic risk:
+  "this is serious because it shows there is a fundamental issue in the code that keeps breaking this, and we
+  run the risk that this issue will pass to deployment for future projects." Rather than patch one more icon,
+  investigated the shared mechanism itself (`src/lib/action-icons.tsx`): its `isIconElement()` check has an
+  explicit `isActionIcon === true` marker (set on every real generated icon) and a fallback matching
+  `.name`/`.displayName` against `endsWith("Icon")` — with the file's own code comment already warning that
+  fallback is unsafe under production minification. A hand-rolled icon factory in the Rail Sidebar sandbox
+  relied solely on that unsafe fallback. Proved this empirically: built the component for production, confirmed
+  the minified bundle contains zero occurrences of the closure's declared name (gone, as the code comment
+  predicted) while the `isActionIcon` property-string survives, then served the actual built output and tested
+  hover live — every affected icon had **completely stopped filling on hover/select, with zero errors**, while
+  a real generated icon in the identical bundle kept working. **This is why the bug kept recurring all session:
+  every single fix — including several earlier in this same protocol run — was re-verified only against the
+  Vite dev server, where function names survive, so a component-wide regression was shipping invisibly
+  underneath passing dev-server checks every time.** Fixed at the source (one static-property assignment,
+  mirroring the real generated-icon pipeline exactly) rather than per-icon, and re-verified against an actual
+  rebuilt production bundle before calling it done. **Lesson for the protocol, not just this component:** a new,
+  15th item was added to `CLAUDE.md`'s Primitive Fidelity Checklist specifically: anything relying on a
+  component's runtime name-based identity must be tested against a real production/minified build, not only
+  the dev server — this is a distinct verification *environment* gap, not another instance of the checklist's
+  existing CSS-mechanics or structural/data categories, and it is exactly the kind of gap capable of shipping a
+  silent regression to every future consumer of this design system if left uncaught.
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given

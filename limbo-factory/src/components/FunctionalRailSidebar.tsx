@@ -120,8 +120,28 @@ interface RailSection {
 
 // "Slides" keeps the exact origin SPEC_TREE content (icon paths sourced verbatim, see
 // FULL_PREVIEW_ICONS) so the richly-nested/badged panel case stays represented faithfully.
+//
+// QA finding (see divergence row L-23): confirmed the actual root cause behind a recurring class of
+// "icon doesn't fill on hover/select" reports across this whole session. src/lib/action-icons.tsx's
+// own `isIconElement()` check has TWO detection paths: an explicit `isActionIcon === true` marker
+// (set on every real generated icon by scripts/build-icons.mjs specifically because minifiers rename
+// function declarations), and a fallback that checks whether the component's runtime `.name` ends in
+// "Icon" -- with its own code comment already warning this fallback is unsafe under production
+// minification. This factory previously relied ONLY on that unsafe fallback (the returned function was
+// named `SpecIcon`, nothing else). Built limbo-factory for production and confirmed empirically (not
+// assumed): the minified bundle's SpecIcon closure name does NOT survive (`grep "SpecIcon"` on the
+// built JS returns no match), while `isActionIcon` (a static property access, not a renamed
+// identifier) does. Served the actual built dist/ output and tested hover live: every specTreeIcon-based
+// icon ("Participants", "Rules engine", etc.) had COMPLETELY STOPPED filling on hover/select with zero
+// errors -- a fully silent failure -- while a real bidezine-generated icon in the same bundle
+// ("Documents") still worked correctly. This explains why the bug kept "recurring" across this session:
+// every fix was verified against the Vite dev server (function names preserved there), never against
+// an actual production build, so a component-wide regression shipped invisibly underneath passing
+// dev-server checks every time. FIXED at the source: mark the returned component with the same
+// `isActionIcon = true` static property real generated icons carry, making it immune to minification
+// exactly like the mechanism it was already supposed to opt into.
 function specTreeIcon(entry: { d: string; filledD?: string }): React.ComponentType<{ className?: string; filled?: boolean }> {
-  return function SpecIcon({ className, filled }: { className?: string; filled?: boolean }) {
+  function SpecIcon({ className, filled }: { className?: string; filled?: boolean }) {
     const d = filled && entry.filledD ? entry.filledD : entry.d
     return (
       <svg viewBox="0 0 20 20" className={className} fill="currentColor" aria-hidden="true">
@@ -129,6 +149,8 @@ function specTreeIcon(entry: { d: string; filledD?: string }): React.ComponentTy
       </svg>
     )
   }
+  SpecIcon.isActionIcon = true
+  return SpecIcon
 }
 
 const SLIDES_PANEL: PanelNode[] = [
