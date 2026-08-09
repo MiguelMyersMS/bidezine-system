@@ -385,7 +385,7 @@ function PanelTree({
                 key={node.id}
                 aria-disabled="true"
                 className="flex h-9 items-center gap-1.5 rounded-md px-2 text-sm"
-                style={{ marginLeft: depth * 14, color: "var(--muted-foreground)", opacity: 0.5 }}
+                style={{ color: "var(--muted-foreground)", opacity: 0.5 }}
               >
                 <Icon className="size-4 shrink-0" />
                 <span className="flex-1 truncate">{node.label}</span>
@@ -402,7 +402,6 @@ function PanelTree({
               onClick={() => onSelectLeaf(node.id)}
               className="h-9 w-full justify-start gap-1.5 rounded-md px-2 text-left text-sm font-normal hover:bg-accent"
               style={{
-                marginLeft: depth * 14,
                 // QA finding (see divergence row L-10): this used to be `background: isSelected ?
                 // "var(--foreground)" : "transparent"` unconditionally — but an inline `style`
                 // value ALWAYS wins over a class-based rule for the same CSS property, regardless
@@ -433,10 +432,10 @@ function PanelTree({
                   h-9/text-sm/font-normal/full-color) — they read as a distinct "kind" of element
                   (a section caption) rather than the same row type nested one level deeper. Fixed
                   by giving this row the EXACT SAME className/color recipe as the leaf Button below,
-                  varying only by depth-based indentation (marginLeft) and the presence of the
-                  chevron affordance — the chevron communicates "this expands," not a different
-                  visual tier. This is a DELIBERATE, flagged divergence from bidezine's own real
-                  Sidebar sub-menu convention (SidebarMenuButton + SidebarMenuSub/
+                  varying only by depth-based indentation (now a compounding wrapper — see L-11)
+                  and the chevron affordance — the chevron communicates "this expands," not a
+                  different visual tier. This is a DELIBERATE, flagged divergence from bidezine's
+                  own real Sidebar sub-menu convention (SidebarMenuButton + SidebarMenuSub/
                   SidebarMenuSubButton), which intentionally shrinks text/height one level deeper —
                   chosen here because (a) that pairing is context-bound to a real <SidebarProvider>
                   tree (SidebarMenuButton calls useSidebar(), which throws without one) and doesn't
@@ -447,7 +446,7 @@ function PanelTree({
                 type="button"
                 variant="ghost"
                 className="h-9 w-full justify-start gap-1.5 rounded-md px-2 text-left text-sm font-normal hover:bg-accent"
-                style={{ marginLeft: depth * 14, color: "var(--foreground)" }}
+                style={{ color: "var(--foreground)" }}
               >
                 <svg
                   viewBox="0 0 20 20"
@@ -462,15 +461,29 @@ function PanelTree({
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <PanelTree
-                nodes={node.children}
-                depth={depth + 1}
-                expanded={expanded}
-                onToggle={onToggle}
-                activeItemId={activeItemId}
-                onSelectLeaf={onSelectLeaf}
-                colors={colors}
-              />
+              {/* PROPOSAL, not yet confirmed (see divergence row L-11): a vertical guide line
+                  indicating hierarchy, matching the real technique bidezine's own Sidebar uses for
+                  SidebarMenuSub (a plain `border-l` on the nested group's wrapper — border color
+                  is the real, globally-available --border token, not scoped to a live
+                  SidebarProvider tree, so it's safe to reuse here even though this panel isn't a
+                  real Sidebar instance). Indentation is now a compounding 20px step per recursion
+                  level (14px margin + 6px padding past the line) instead of each row computing an
+                  absolute depth*14 offset directly — avoids double-indenting now that the line
+                  itself carries part of the visual offset. */}
+              <div
+                className="flex flex-col gap-0.5 border-l pl-1.5"
+                style={{ marginLeft: 14, borderColor: "var(--border)" }}
+              >
+                <PanelTree
+                  nodes={node.children}
+                  depth={depth + 1}
+                  expanded={expanded}
+                  onToggle={onToggle}
+                  activeItemId={activeItemId}
+                  onSelectLeaf={onSelectLeaf}
+                  colors={colors}
+                />
+              </div>
             </CollapsibleContent>
           </Collapsible>
         )
