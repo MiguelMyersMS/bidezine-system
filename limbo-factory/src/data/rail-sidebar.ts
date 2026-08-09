@@ -753,6 +753,15 @@ export const notableRisks: RiskNote[] = [
       { id: "R-9b", text: "Escalation agent independently verifies chosen approach preserves deterministic unmount before Audit", done: false },
     ],
   },
+  {
+    id: "R-10",
+    title: "Sandbox fidelity gate — className-override-vs-primitive-shorthand bugs found twice in one session (M-18, M-19)",
+    detail: "Two separate rendering bugs (search icon overlapping text, rail buttons rendering 2px undersized) traced to the identical root cause: a className meant to override a bidezine primitive's own built-in shorthand utility class (Input's px-3, Button's size-9) silently lost the compiled Tailwind stylesheet's cascade tie, even though the override looked correct in source and appeared later in the className string. Because the same failure class repeated on two different primitives in one session, the lesson was generalized directly into CLAUDE.md's new \u201cSandbox/Limbo fidelity\u201d section (covering className-override verification, suppressed-state replacement wiring, hand-rolled markup, isolated-swatch re-verification, doc-vs-code drift, faithfully-reproduced origin bugs, and short-demo-content overflow testing) rather than left as a one-off fix, so future Limbo occupants inherit the check automatically. See LIMBO-PROTOCOL-LOG.md's flaws log for the full rationale.",
+    actionItems: [
+      { id: "R-10a", text: "Full sweep of FunctionalRailSidebar.tsx for any other className overriding a primitive's own shorthand utility class (size-*, px-*/py-*, etc.) \u2014 the 3 known instances (RailIconButton, overflow trigger, Profile button) are fixed; no others found on this pass", done: true, refs: ["M-18", "M-19"] },
+      { id: "R-10b", text: "Independent Audit agent explicitly re-checks the component against CLAUDE.md's new \u201cSandbox/Limbo fidelity\u201d checklist before promotion, not just the original Intake divergence list", done: false },
+    ],
+  },
 ]
 
 /** A risk is resolved (green) once every one of its action items is done. */

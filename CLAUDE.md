@@ -122,6 +122,65 @@ manifest and run `npm run icons`.
 A value can compute correctly and still not appear. Check the rendered result, not just the property.
 This has caught more real defects here than any amount of reading.
 
+## Sandbox/Limbo fidelity — preventing contamination before promotion
+
+A component built in a sandbox (`limbo-factory/`, or any future Limbo occupant) can look completely correct
+through an entire review pass and still silently diverge from the real primitives, tokens, and behavior it
+claims to use — the Rail Sidebar transformation hit the same handful of failure classes repeatedly, each one
+invisible to a normal code read or a quick visual glance. Treat every check below as mandatory for **any**
+sandbox component before it's considered ready to promote — not a one-off list for Rail Sidebar specifically:
+
+- **A className override is not verified by writing it — verify it against the live DOM.** Tailwind (and
+  `tailwind-merge`) resolve conflicting classes by *conflict group*, not by string position: a class
+  appearing later in a `className` does not guarantee it wins the compiled stylesheet's cascade. Two real
+  bugs shipped this exact way in one session: `pl-7` never actually overrode `Input`'s own `px-3` (the
+  search icon overlapped typed text), and `h-[38px] w-[38px]` never actually overrode `Button`'s `size-9`
+  icon variant (rail buttons rendered 2px too small, producing asymmetric padding). Rule: when overriding a
+  primitive's own built-in sizing/spacing utility, use the *same utility family/shorthand* it already uses
+  (`size-[38px]` to override `size-9`, never split into `h-*`/`w-*`) — and confirm the override actually
+  took effect with `getComputedStyle`/`getBoundingClientRect` on the live DOM, not by reading the className
+  string. If genuinely unsure whether two classes will merge correctly, test `twMerge()` directly first.
+
+- **Removing or suppressing a primitive's built-in interactive state requires wiring its replacement in the
+  same change, never after.** A rail button shipped with `hover:bg-transparent` silently killing `Button`'s
+  own hover feedback, with no substitute background ever wired in its place — the approved hover/press color
+  tokens existed but weren't referenced anywhere in the component. A suppressed state with no successor is a
+  regression waiting for a human to discover, not something a review should let through.
+
+- **Never approximate a primitive with hand-rolled markup, in ANY context — including sandbox chrome.** A
+  raw `<button>` (or a `<div role="button">`) styled to look like the real `Button` drifts from its actual
+  recipe (missing focus-visible ring, missing disabled handling, missing flex/centering rules a reviewer
+  won't notice from a screenshot) in ways only a DOM inspection catches. This is the same "no hand-rolled
+  components" rule already stated above for `site/`/`src/ui/` — sandbox tooling is not exempt from it.
+
+- **A decision approved as an isolated swatch/value is not yet verified — only composing it into the real,
+  full component and re-checking it next to its actual neighbors is.** Multiple color tokens were approved
+  as clean-looking isolated values, then had to be revised once actually rendered against their real
+  neighboring surfaces exposed contrast/legibility problems no swatch-level review could have caught.
+  Re-verify every "resolved" value once the component is fully composed, not only when first proposed.
+
+- **A "resolved" record is only as trustworthy as its last verification against the real, current code —
+  spot-check it, don't just trust it.** A written divergence record (a radius value, a doc claiming a
+  behavior is implemented) can drift from what the code actually does without anyone noticing, until a
+  fresh read catches the gap. Any doc, QA note, or prior record — including this project's own — must be
+  checked against the real, current source before being relied on, the same way an *origin* project's docs
+  must never be trusted over that origin's own live source file.
+
+- **Faithfully reproducing an origin behavior is not the same as it being correct — flag it, don't silently
+  absorb it.** If a ported component reproduces a real bug or awkward interaction that exists identically in
+  the origin's own current source, that is not a bidezine-introduced divergence and must not be "fixed"
+  unilaterally — but it must be called out explicitly as inherited, with the origin evidence attached, so a
+  human can decide whether to diverge from origin to improve it.
+
+- **Overflow, truncation, and wrap rules must be tested with content long enough to actually trigger them.**
+  Demo/placeholder text is almost always too short to exercise a `truncate`/`line-clamp`/wrap rule — a
+  component can look completely correct through an entire review cycle simply because nothing in the demo
+  data was ever long enough to expose a real divergence. Temporarily substitute long test strings and check
+  computed style/screenshots before signing off on any text-bearing element's overflow behavior.
+
+Whenever a new failure class like these is found, add it here directly (not only to a component's own
+temporary working log) so it protects every future Limbo occupant, not just the one that exposed it.
+
 ## Three machines, one branch
 
 Laptop A, Laptop B, and a PC all work `main` directly. `origin` is the only source of truth — unpushed

@@ -495,7 +495,31 @@ friction, anything.)_
   divergence. Documented in rail-sidebar.ts row D-11 (new row — this was never itemized in the original
   divergence list at all, only found once directly asked to verify).
 
+- **The same root-cause bug class repeated twice in a row was the signal to generalize the lesson early,
+  rather than wait for this file's own exit condition.** By the time M-19 (rail button sizing) landed,
+  M-18 (search icon overlap) had *already* demonstrated the exact same underlying mechanism — a className
+  meant to override a bidezine primitive's own built-in shorthand utility class (`px-3`, `size-9`) silently
+  losing the compiled-stylesheet cascade tie, even though it looked correct in the source and appeared later
+  in the className string. Two independent instances of the identical failure mode, on two different
+  primitives (`Input`, `Button`), in the same session, is exactly the pattern this protocol's own preamble
+  says to fold into `CLAUDE.md` — but this file's stated exit condition is Rail Sidebar's full promotion,
+  which hadn't happened yet. Given the user's explicit request ("we need to prevent this for future sandbox
+  components... before reaching the design system"), the fix was elevated directly into `CLAUDE.md`'s new
+  "Sandbox/Limbo fidelity" section immediately, rather than staged here and forgotten until an eventual
+  exit. **Lesson for the protocol itself:** don't wait for a component's full lifecycle to end before
+  promoting a durable lesson that's already been proven twice — the moment a failure class repeats, treat it
+  as generalized, not component-specific, and update the standing rules right away. That section now covers
+  every recurring failure class hit this session: className-override cascade ties (M-18/M-19), suppressed
+  states shipped with no replacement wired in (M-12), hand-rolled markup standing in for a real primitive
+  (M-11), color decisions approved as isolated swatches that didn't hold up once composed (M-13/M-14/M-15),
+  doc-vs-code drift (Q4, G-3), faithfully-reproduced-but-unflagged origin bugs (M-17), and overflow rules
+  never exercised by short demo content (D-11).
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given
-final sign-off: fold any durable process refinements into `CLAUDE.md`, then delete this file.
+final sign-off: fold any durable process refinements into `CLAUDE.md`, then delete this file. (Note: the
+"Sandbox/Limbo fidelity" section was already folded into `CLAUDE.md` ahead of that exit condition — see the
+flaws-log entry immediately above — because the same failure class had already repeated twice within this
+one transformation. Any further NEW failure classes discovered before Rail Sidebar's own exit should still
+be logged here first, then folded in the same way once repetition (or explicit urgency) warrants it.)
