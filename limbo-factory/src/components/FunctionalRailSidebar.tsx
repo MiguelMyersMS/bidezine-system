@@ -312,7 +312,15 @@ function RailIconButton({
       }}
       onMouseDown={() => setIsPressed(true)}
       onMouseUp={() => setIsPressed(false)}
-      className="h-[38px] w-[38px] shrink-0 rounded-lg"
+      // QA finding (see divergence row M-19): `size="icon"` carries Button's own `size-9` (36px)
+      // sizing utility. An override of `h-[38px] w-[38px]` looks like it should win (appears later
+      // in the className string) but doesn't: tailwind-merge only dedupes classes in the SAME
+      // conflict group, and `size-*` vs `h-*`/`w-*` aren't grouped together, so both survive and
+      // the compiled stylesheet lets `size-9` win the cascade tie — silently rendering the button
+      // 36px instead of the intended 38px. Same root-cause class as M-18's search-icon overlap.
+      // Fixed by using the matching `size-[38px]` shorthand, which IS in size-9's conflict group
+      // and correctly replaces it.
+      className="size-[38px] shrink-0 rounded-lg"
       style={{
         background,
         color,
@@ -632,7 +640,7 @@ export function FunctionalRailSidebar({
                     aria-label="More navigation options"
                     onMouseEnter={() => setOverflowHovered(true)}
                     onMouseLeave={() => setOverflowHovered(false)}
-                    className="relative h-[38px] w-[38px] shrink-0 rounded-lg"
+                    className="relative size-[38px] shrink-0 rounded-lg"
                     style={{
                       background: overflowMenuOpen ? colors.active : overflowHovered ? colors.hover : "transparent",
                       color: overflowMenuOpen || overflowHovered ? colors.fgHover : colors.fgSubtle,
@@ -674,7 +682,7 @@ export function FunctionalRailSidebar({
               size="icon"
               disabled
               aria-label="Profile (disabled)"
-              className="h-[38px] w-[38px] shrink-0 rounded-lg hover:bg-transparent"
+              className="size-[38px] shrink-0 rounded-lg hover:bg-transparent"
               style={{ color: colors.fgDisabled }}
             >
               <UserIcon className="size-5" />
