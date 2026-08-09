@@ -280,27 +280,36 @@ function RailIconButton({
   const Icon = section.icon
   const isActive = state === "active"
   const isBrowsing = state === "browsing"
+  const button = (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      aria-pressed={isActive}
+      data-state={isBrowsing ? "open" : isActive ? "active" : "default"}
+      onClick={onClick}
+      className="h-[38px] w-[38px] shrink-0 rounded-lg hover:bg-transparent"
+      style={{
+        background: isActive ? colors.active : "transparent",
+        color: isActive ? colors.fg : colors.fgSubtle,
+        boxShadow: isBrowsing ? `inset 0 0 0 1.5px ${colors.border}` : undefined,
+      }}
+    >
+      <Icon className="size-5" filled={isActive || isBrowsing} />
+      <span className="sr-only">{section.label}</span>
+    </Button>
+  )
+
+  // Origin's RailButtonDark explicitly suppresses the hover tooltip once a button is active or
+  // browsing (showTooltip = ... && !isBrowsing && !isActive && !isDisabled) — the tooltip would be
+  // redundant once the button's own panel is already open/selected. Skip the Tooltip wrapper
+  // entirely in those states rather than toggling Radix's `open` prop (which would flip the
+  // component between controlled/uncontrolled and trigger a React warning).
+  if (isActive || isBrowsing) return button
+
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-pressed={isActive}
-          data-state={isBrowsing ? "open" : isActive ? "active" : "default"}
-          onClick={onClick}
-          className="h-[38px] w-[38px] shrink-0 rounded-lg hover:bg-transparent"
-          style={{
-            background: isActive ? colors.active : "transparent",
-            color: isActive ? colors.fg : colors.fgSubtle,
-            boxShadow: isBrowsing ? `inset 0 0 0 1.5px ${colors.border}` : undefined,
-          }}
-        >
-          <Icon className="size-5" filled={isActive || isBrowsing} />
-          <span className="sr-only">{section.label}</span>
-        </Button>
-      </TooltipTrigger>
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
       <TooltipContent side="right">{section.label}</TooltipContent>
     </Tooltip>
   )
@@ -440,6 +449,7 @@ export function FunctionalRailSidebar({
   const [expanded, setExpanded] = useState<Set<string>>(new Set(["system-logic", "schedules"]))
   const [searchEnabled, setSearchEnabled] = useState(true)
   const [query, setQuery] = useState("")
+  const [overflowMenuOpen, setOverflowMenuOpen] = useState(false)
 
   const trackRef = useRef<HTMLDivElement>(null)
   const [pinnedCount, setPinnedCount] = useState(TOP_SECTIONS.length)
@@ -567,7 +577,7 @@ export function FunctionalRailSidebar({
             ))}
 
             {mustStash && (
-              <DropdownMenu>
+              <DropdownMenu open={overflowMenuOpen} onOpenChange={setOverflowMenuOpen}>
                 <DropdownMenuTrigger asChild>
                   <Button
                     type="button"
@@ -578,7 +588,9 @@ export function FunctionalRailSidebar({
                     style={{ color: colors.fgSubtle }}
                   >
                     <MoreHorizontalIcon className="size-5" />
-                    {stashHoldsActiveSection && (
+                    {/* Origin's OverflowTriggerButton hides this dot while the menu itself is open
+                        (active && !open) — showing it then would be redundant. */}
+                    {stashHoldsActiveSection && !overflowMenuOpen && (
                       <span
                         className="absolute right-1 top-1 size-1.5 rounded-full"
                         style={{ background: colors.fgHover }}
