@@ -384,7 +384,14 @@ function PanelTree({
               <div
                 key={node.id}
                 aria-disabled="true"
-                className="flex h-9 items-center gap-1.5 rounded-md px-2 text-sm"
+                // QA finding (see divergence row L-13): this plain div had no vertical padding at
+                // all (relying solely on `items-center` + fixed `h-9` for centering), while every
+                // real Button row (leaf/group/selected) carries `py-2` (8px) from Button's own base
+                // recipe, which we never override. No visible difference today — both approaches
+                // center content identically inside a fixed-height flex row — but the underlying
+                // values didn't actually match. Added `py-2` explicitly so this row's computed
+                // padding is identical to every other row, not just visually equivalent.
+                className="flex h-9 items-center gap-1.5 rounded-md px-2 py-2 text-sm"
                 style={{ color: "var(--muted-foreground)", opacity: 0.5 }}
               >
                 <Icon className="size-4 shrink-0" />
