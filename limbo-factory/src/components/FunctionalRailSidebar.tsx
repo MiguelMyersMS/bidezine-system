@@ -33,7 +33,9 @@ import {
   GridIcon,
   HatGraduationIcon,
   ImageShadowIcon,
-  Input,
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
   MailTemplateIcon,
   MedalIcon,
   MegaphoneIcon,
@@ -761,14 +763,29 @@ export function FunctionalRailSidebar({
             </div>
 
             {searchEnabled && (
-              <div className="relative px-2 pt-2">
-                <SearchIcon className="pointer-events-none absolute left-4 top-[1.15rem] size-3.5 text-muted-foreground" />
-                <Input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search"
-                  className="h-8 pl-7 text-sm"
-                />
+              <div className="px-2 pt-2">
+                {/* QA finding (see divergence row M-18): this used to be a manually-composed
+                    relative/absolute icon over a raw Input with a `pl-7` padding override. That
+                    override silently lost to the Input primitive's own default `px-3` in the
+                    compiled Tailwind cascade (confirmed via getComputedStyle: padding-left stayed
+                    12px, not the intended 28px, since tailwind-merge doesn't drop `px-3` for a
+                    same-side longhand like `pl-7` — both classes survive, and px-3's declaration
+                    happens to win the stylesheet's cascade order), causing the icon and typed text
+                    to visually overlap. Fixed by switching to bidezine's own InputGroup/
+                    InputGroupAddon/InputGroupInput primitives, purpose-built for exactly this
+                    icon+input composition — the icon and input are flex siblings with real gap
+                    spacing, so there's no padding-override arithmetic (or cascade pitfall) at all. */}
+                <InputGroup className="h-8 text-sm">
+                  <InputGroupAddon>
+                    <SearchIcon className="size-3.5 text-muted-foreground" />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search"
+                    className="text-sm"
+                  />
+                </InputGroup>
               </div>
             )}
 
