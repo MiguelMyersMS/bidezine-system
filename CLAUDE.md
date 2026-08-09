@@ -130,13 +130,18 @@ correctly) is not the same as one that doesn't collide with anything next to it.
 **Whenever `ScrollArea` is composed inside a padded container, use two layers, not one:**
 
 1. **Outer** — an element that owns the container's own uniform padding (all four sides, not an
-   asymmetric subset) and the `flex-1 overflow-hidden` sizing/clipping. `ScrollArea`'s own `Root` sets no
-   `overflow` of its own, so *something* in the flex chain needs this treatment to get CSS flexbox's
-   "automatic minimum size: 0" behavior — without it, the region grows to fit its content instead of
-   clipping to the available space and never becomes scrollable at all.
+   asymmetric subset) and enough of the flex chain to make the region actually shrink to the available
+   space instead of growing to fit its content: give it `min-h-0` (overriding the flex item's default
+   automatic minimum size) and a non-`visible` `overflow` so the excess is genuinely clipped rather than
+   just spilling past the box — `overflow-hidden` conveniently satisfies both at once, since a flex item's
+   automatic minimum size is *also* deemed `0` once its own overflow is non-`visible`, but the two are
+   distinct requirements (shrink vs. clip) worth knowing separately if you're composing this differently.
+   `ScrollArea`'s own `Root` sets no `overflow` of its own, so this has to come from somewhere in the chain.
 2. **Inner** — the content wrapper rendered inside `ScrollArea` reserves an *extra* gutter specifically on
    the scrollbar's own side (wider than the padding on the other sides) so real content never sits flush
-   against, or under, the scrollbar thumb.
+   against, or under, the scrollbar thumb. **This assumes LTR** (Radix positions a vertical scrollbar on the
+   right in LTR, left in RTL) — use a logical end-side padding utility (`pe-*`) if this ever needs to support
+   RTL, not a fixed physical side.
 
 **Both relationships need their own explicit measurement** (`getBoundingClientRect` on the real, rendered
 DOM, scrollbar actually visible via a genuine scroll interaction — not assumed from a screenshot): the gap
@@ -144,6 +149,10 @@ between the *outer container's own edge* and the scrollbar, and the gap between 
 *inner content*, are independent relationships. Fixing one does not verify the other — this exact mistake
 shipped once in this same transformation (L-21 fixed the outer gap, then immediately broke the inner one
 against a sibling above it, corrected in L-22).
+
+**`scrollbar-gutter: stable` is not a substitute for this pattern** — it reserves space for the browser's
+own *native* scrollbar; Radix's `ScrollArea` hides the native one and draws its own independent, absolutely-
+positioned track, which that CSS property has no reliable effect on.
 
 **Scope note:** as of this writing, none of bidezine's other real shipped components (`Command`, `Select`,
 `DropdownMenu`, `ContextMenu`, `Combobox`, the message scroller, tables) use `ScrollArea` — they use plain
@@ -362,7 +371,13 @@ a genuinely new failure category is found — not evidence the list is now compl
     same insufficient way. Fix: any hand-rolled component that needs to participate in the action-icon-fill
     system must set `ComponentName.isActionIcon = true` explicitly, exactly like the generated pipeline does —
     and after any icon-fill fix, build for production and test the actual built output before calling it done,
-    not only the dev server.
+    not only the dev server. **Two known limits of the marker approach, caught by an independent review, not
+    yet hit in practice:** the marker is read off `child.type` directly, so it does **not** survive being
+    wrapped in `React.memo`/`React.forwardRef`/another HOC afterward — mark the *outermost* wrapper, not just
+    the inner function, if one is ever added; and the check is `displayName ?? name` (an *or*, not both), so a
+    `displayName` that doesn't end in `"Icon"` silently overrides an otherwise-fine `.name` — the marker is the
+    only fully reliable contract, treat the name-suffix fallback as a convenience for simple cases only, never
+    as something to depend on for anything wrapped or renamed.
 
 ## Three machines, one branch
 

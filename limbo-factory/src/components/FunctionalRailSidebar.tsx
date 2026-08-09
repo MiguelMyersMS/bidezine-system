@@ -1098,8 +1098,9 @@ export function FunctionalRailSidebar({
                   just spacing) -- our version currently relies on padding alone for that boundary,
                   matching the header's own divider technique (`borderBottom`) is available if this ever
                   needs reinforcing beyond padding. Verified via getBoundingClientRect after the p-2
-                  fix: the gap between the search box and the first tree row is now [MEASURED VALUE],
-                  and the scrollbar-to-panel-edge gap from L-21 is unaffected (still ~8px). */}
+                  fix: the gap between the search box and the first tree row is now 12px (was
+                  effectively 0, confirmed touching before the fix), and the scrollbar-to-panel-edge gap
+                  from L-21 is unaffected (still ~8.8px). */}
               <div className="flex-1 min-h-0 overflow-hidden p-2">
                 <ScrollArea className="size-full">
                   <div className="p-1.5 pr-4">

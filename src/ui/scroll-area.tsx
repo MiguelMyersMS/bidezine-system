@@ -8,22 +8,26 @@ import { cn } from "@/lib/utils"
 /**
  * Authoring note — the "two-layer scroll region" pattern.
  *
- * Unlike a native `overflow-y-auto` scrollbar (which the browser reserves its own layout space
- * for automatically), `ScrollBar` below is an absolutely-positioned overlay (`position: absolute`,
- * anchored to `Root`'s own edge) — it does not participate in flex/grid sizing and can silently
- * overlap whatever content sits at that same edge if nothing accounts for it.
+ * `ScrollBar` below is an absolutely-positioned overlay (`position: absolute`, anchored to `Root`'s
+ * own edge) — it does not participate in flex/grid sizing and can silently overlap whatever content
+ * sits at that same edge if nothing accounts for it. (This differs from a plain native
+ * `overflow-y-auto` scrollbar, which the browser reserves its own layout space for automatically —
+ * `scrollbar-gutter: stable` reserves space for that native case, but has no reliable effect on this
+ * component's own custom, absolutely-positioned track.)
  *
  * Whenever a consumer composes `ScrollArea` inside its own padded container, use two layers, not
  * one:
- *   1. An OUTER element that owns the container's own padding (uniform on all sides) and the
- *      `flex-1 overflow-hidden` sizing/clipping — `ScrollArea`'s own `Root` does not set an
- *      `overflow` of its own, so a flex parent needs this outer wrapper (or `ScrollArea` itself,
- *      if it's the direct flex child) to get CSS flexbox's "automatic minimum size: 0" treatment;
- *      without it, the scroll region grows to fit its content instead of clipping to the
- *      available space.
+ *   1. An OUTER element that owns the container's own padding (uniform on all sides) and makes the
+ *      region actually shrink to the available space: give it `min-h-0` (overriding a flex item's
+ *      default automatic minimum size) plus a non-`visible` `overflow` so excess content is clipped
+ *      rather than spilling past the box. `overflow-hidden` conveniently satisfies both at once
+ *      (non-`visible` overflow also zeroes the automatic minimum size), but they're two distinct
+ *      requirements if you're composing this some other way. `ScrollArea`'s own `Root` sets no
+ *      `overflow` itself, so this has to come from somewhere in the chain.
  *   2. An INNER content wrapper (the direct child rendered inside `ScrollArea`) that reserves an
- *      EXTRA gutter on the scrollbar's own side (e.g. a wider `pr-*` than the other sides) so real
- *      content never sits flush against — or under — the scrollbar thumb.
+ *      EXTRA gutter on the scrollbar's own side (e.g. a wider end-side padding than the other sides)
+ *      so real content never sits flush against — or under — the scrollbar thumb. Use a logical
+ *      end-side utility (`pe-*`), not a fixed physical side, if this ever needs to support RTL.
  *
  * Verify both relationships with real measurements after wiring this up, not a screenshot glance:
  * the gap between the outer container's own edge and the scrollbar, AND the gap between the
