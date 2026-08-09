@@ -47,7 +47,10 @@ const SECTIONS_FIGMA_AUDIT: RailSection[] = [
     id: "data",
     label: "Data",
     icon: IconDataHistogram,
-    items: [{ id: "charts", label: "Charts", icon: IconDataHistogram }],
+    // Deliberate demo-data edit (not a RailNav.tsx logic change): items intentionally empty so
+    // this section exercises the origin's real isLeaf code path — clicking it navigates directly,
+    // no panel opens. Mirrored on the bidezine "adjusted" side for functional parity.
+    items: [],
   },
   {
     id: "grains",

@@ -9,19 +9,7 @@ import {
   type ProposedToken,
 } from "@/data/rail-sidebar"
 import { OriginRailNavLiveAuto } from "@/reference/origin-design-system/OriginRailNavLive"
-
-const PANEL_FILLED_GLYPHS = {
-  videoSettings:
-    "M2 6a3 3 0 0 1 3-3h5a3 3 0 0 1 3 3v6a3 3 0 0 1-2.01 2.83l.01-.33a5.5 5.5 0 0 0-9-4.24V6Zm14.04 7.78L14 12.37V5.63l2.04-1.4c.83-.58 1.96.01 1.96 1.02v7.5c0 1-1.13 1.6-1.96 1.03ZM2.9 10.88l.15.56a2 2 0 0 1-1.43 2.48l-.46.12a4.7 4.7 0 0 0 .01 1.01l.35.09A2 2 0 0 1 3 17.66l-.13.42c.26.2.54.38.84.52l.32-.35a2 2 0 0 1 2.91 0l.34.36c.29-.13.56-.3.82-.5l-.16-.55a2 2 0 0 1 1.43-2.48l.46-.12a4.7 4.7 0 0 0 0-1.01l-.36-.09a2 2 0 0 1-1.45-2.52l.12-.42c-.25-.2-.53-.38-.83-.52l-.32.35a2 2 0 0 1-2.91 0l-.34-.36c-.3.13-.57.3-.82.5ZM6.5 14.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z",
-  peopleCommunity:
-    "M10 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm-4.95 8c-.03.16-.05.33-.05.5V14c0 1.53.69 2.9 1.77 3.81l-.17.05a4 4 0 0 1-4.9-2.82l-.65-2.42a1.5 1.5 0 0 1 1.06-1.84L5.05 10Zm8.18 7.81A4.99 4.99 0 0 0 15 14v-3.5c0-.17-.02-.34-.05-.5l2.94.78a1.5 1.5 0 0 1 1.06 1.84l-.64 2.42a4 4 0 0 1-5.07 2.77ZM16.5 4a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Zm-13 0a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Zm4 5C6.67 9 6 9.67 6 10.5V14a4 4 0 0 0 8 0v-3.5c0-.83-.67-1.5-1.5-1.5h-5Z",
-  engine:
-    "M7.5 2.5c.28 0 .5.22.5.5v1h2V3a.5.5 0 0 1 1 0v1h2.2a1 1 0 0 1 .89.55L14.8 6H16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-1.2l-.71 1.45a1 1 0 0 1-.9.55H7.71a1 1 0 0 1-.71-.3l-2.41-2.4A2 2 0 0 1 4 12.87V10H3v2.5a.5.5 0 0 1-1 0v-6a.5.5 0 0 1 1 0V9h1V6c0-1.1.9-2 2-2h1V3c0-.28.22-.5.5-.5Zm0 4.5a.5.5 0 0 0-.5.5V10c0 1.1.9 2 2 2h5.5a.5.5 0 0 0 0-1H11V7.5a.5.5 0 0 0-1 0V11H9a1 1 0 0 1-1-1V7.5a.5.5 0 0 0-.5-.5Z",
-  syncOff:
-    "M9.89 3.75a6.24 6.24 0 0 0-3.12.9L5.68 3.56a7.73 7.73 0 0 1 3.67-1.28l-.59-.59A.75.75 0 0 1 9.82.63l2.12 2.12c.3.3.3.77 0 1.06L9.82 5.93a.75.75 0 0 1-1.06-1.06L9.9 3.75ZM4.18 4.88a7.75 7.75 0 0 0 1.18 11.33.75.75 0 1 0 .9-1.2 6.25 6.25 0 0 1-1.02-9.06l8.81 8.8a6.23 6.23 0 0 1-3.94 1.5l1.13-1.12a.75.75 0 0 0-1.06-1.07L8.06 16.2c-.3.29-.3.76 0 1.06l2.12 2.12a.75.75 0 1 0 1.06-1.06l-.59-.59a7.72 7.72 0 0 0 4.47-1.9l2.03 2.03a.5.5 0 0 0 .7-.7l-15-15a.5.5 0 1 0-.7.7l2.03 2.03Zm11.17 8.35 1.09 1.09a7.75 7.75 0 0 0-1.8-10.53.75.75 0 0 0-.9 1.2 6.25 6.25 0 0 1 1.6 8.24Z",
-  contentView:
-    "M14 7H6v2h8V7Zm-2 5h2v1h-2v-1ZM6 3a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3H6ZM5 7a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7Zm7 4h2a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1a1 1 0 0 1 1-1Zm-7 .5c0-.28.22-.5.5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5Zm.5 1.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1 0-1Z",
-}
+import { FunctionalRailSidebar } from "@/components/FunctionalRailSidebar"
 
 /**
  * The full, "robust" side-by-side you asked for on the Full divergence list tab: not just colors
@@ -425,16 +413,16 @@ function FullRailMock({
 
         <div className="flex flex-col gap-0.5 p-1.5">
           <PanelRow label="Activity stream" badge="+23" icon={FULL_PREVIEW_ICONS.video} colors={colors} typeClassName={bodySClass} />
-          <PanelRow label="Live operations" icon={{ ...FULL_PREVIEW_ICONS.videoSettings, filledD: PANEL_FILLED_GLYPHS.videoSettings }} colors={colors} typeClassName={bodySClass} />
-          <PanelRow label="Participants" icon={{ ...FULL_PREVIEW_ICONS.peopleCommunity, filledD: PANEL_FILLED_GLYPHS.peopleCommunity }} colors={colors} typeClassName={bodySClass} />
+          <PanelRow label="Live operations" icon={FULL_PREVIEW_ICONS.videoSettings} colors={colors} typeClassName={bodySClass} />
+          <PanelRow label="Participants" icon={FULL_PREVIEW_ICONS.peopleCommunity} colors={colors} typeClassName={bodySClass} />
           <GroupHeader label="System logic" badge="New" badgeInfo icon={FULL_PREVIEW_ICONS.cubeTree} colors={colors} typeClassName={labelMClass} />
-          <PanelRow label="Rules engine" icon={{ ...FULL_PREVIEW_ICONS.engine, filledD: PANEL_FILLED_GLYPHS.engine }} indent={1} colors={colors} typeClassName={bodySClass} />
-          <PanelRow label="Triggers" icon={{ ...FULL_PREVIEW_ICONS.syncOff, filledD: PANEL_FILLED_GLYPHS.syncOff }} indent={1} colors={colors} typeClassName={bodySClass} />
+          <PanelRow label="Rules engine" icon={FULL_PREVIEW_ICONS.engine} indent={1} colors={colors} typeClassName={bodySClass} />
+          <PanelRow label="Triggers" icon={FULL_PREVIEW_ICONS.syncOff} indent={1} colors={colors} typeClassName={bodySClass} />
           <GroupHeader label="Schedules" icon={FULL_PREVIEW_ICONS.calendarClock} colors={colors} indent={1} typeClassName={labelMClass} />
           <PanelRow label="Daily" badge="+05" icon={FULL_PREVIEW_ICONS.calendarMonth} indent={2} colors={colors} typeClassName={bodySClass} />
           <PanelRow label="Monthly" badge="+11" state="selected" icon={FULL_PREVIEW_ICONS.calendarMonth} indent={2} colors={colors} typeClassName={bodySClass} />
           <PanelRow label="Yearly" state="disabled" icon={FULL_PREVIEW_ICONS.calendarMonth} indent={2} colors={colors} typeClassName={bodySClass} />
-          <PanelRow label="Content" icon={{ ...FULL_PREVIEW_ICONS.contentView, filledD: PANEL_FILLED_GLYPHS.contentView }} colors={colors} typeClassName={bodySClass} />
+          <PanelRow label="Content" icon={FULL_PREVIEW_ICONS.contentView} colors={colors} typeClassName={bodySClass} />
         </div>
 
         <div className="mt-auto flex flex-col gap-0.5 p-1.5" style={{ borderTop: `1px solid ${colors.hairline}` }}>
@@ -485,21 +473,14 @@ export function RailNavStatusPreview({
   }
 
   return (
-    <FullRailMockBothThemes
-      source="bidezine"
-      tokens={tokens}
-      railW={54}
-      railBtn={38}
-      railIcon={20}
-      panelW={300}
-      radiusRail={12}
-      radiusXs={8}
-      fontFamily="var(--font-sans, ui-sans-serif)"
-      headingClass="text-base font-medium"
-      bodySClass="text-sm"
-      labelMClass="text-xs font-medium"
-      height={height}
-    />
+    <>
+      <div className="dark:hidden">
+        <FunctionalRailSidebar colors={colorsFor("bidezine", "light", tokens)} fontFamily="var(--font-sans, ui-sans-serif)" height={height} />
+      </div>
+      <div className="hidden dark:block">
+        <FunctionalRailSidebar colors={colorsFor("bidezine", "dark", tokens)} fontFamily="var(--font-sans, ui-sans-serif)" height={height} />
+      </div>
+    </>
   )
 }
 
