@@ -178,19 +178,35 @@ should never be presented as matching shadcn's own pattern.
   which is architecturally atypical to nest inside `ScrollArea`'s `Viewport`. Left on native
   `overflow-x-auto` rather than risk it without dedicated testing.
 
+**API-contract notes for the four migrated components** (surfaced by rubber-duck review, worth knowing if
+extending these components further):
+- `DropdownMenuContent`/`ContextMenuContent` never exposed Radix's own `asChild` prop to begin with (Radix's
+  underlying `Menu.Content` doesn't accept one — verified against `@radix-ui/react-menu`'s own types), so
+  nesting `ScrollArea` inside them does not remove a capability that existed before.
+- `CommandList`'s and `ComboboxList`'s consumer-facing `className` prop lands on the outer `ScrollArea` (the
+  element that actually owns the height cap and clipping) — an independent code-review pass on this
+  migration caught an earlier version that merged `className` onto the *inner* scrolling element instead,
+  which would have silently swallowed any consumer override of the max-height/overflow behavior (no
+  in-repo consumer was relying on the broken behavior, so it was fixed before it mattered).
+- `Combobox` does not support Base UI's opt-in `virtualized` mode in composition with `ScrollArea`, since the
+  actual scrolling element becomes Radix's private `Viewport`, which `ComboboxList` exposes no ref/props for
+  — already noted in `combobox.tsx`'s own comment; restated here since it's a real, not just theoretical, gap.
+
 **Critical primitive-level fix found while migrating (now baked into `ScrollArea` itself, benefits every
 consumer):** `ScrollArea`'s `Viewport` used to size itself via `size-full` (a CSS percentage height). This
 silently fails whenever `Root` is capped with `max-height` rather than given a fixed `height` — exactly the
 case for a Radix popper/menu content element, whose available height is a dynamic `max-height` CSS var. A
-CSS percentage height only resolves against an ancestor with a genuinely *definite* height per spec, and a
-`max-height`-clamped auto-sizing box does not count as definite even when its rendered pixel value is
-concrete. Verified empirically: nesting `ScrollArea` inside a `max-h-(--some-var)` ancestor left `Viewport`
-at its full unclipped content height — the surrounding box visually clipped the overflow via
+CSS percentage height only reliably resolves against an ancestor with a genuinely *definite* height per
+spec, and a `max-height`-clamped auto-sizing box does not reliably count as definite even when its rendered
+pixel value is concrete. Verified empirically: nesting `ScrollArea` inside a `max-h-(--some-var)` ancestor
+left `Viewport` at its full unclipped content height — the surrounding box visually clipped the overflow via
 `overflow-hidden`, but `Viewport` itself never became internally scrollable (`scrollTop` was inert, no
-scrollbar ever appeared). Fixed by making `Root` a flex column and `Viewport` `flex-1 min-h-0` instead —
-flex-based sizing does not depend on the CSS percentage-definiteness rule at all, so it works identically
-whether the ancestor's height came from an explicit `height` or a `max-height`-clamped auto box. Re-verified
-against the pre-existing fixed-height `ScrollArea` demo (`h-72`) to confirm no regression there.
+scrollbar ever appeared). Fixed by making `Root` a flex column and `Viewport` `w-full flex-1 min-h-0` instead
+— flex-based sizing sidesteps the percentage-resolution question entirely by letting the flex algorithm
+distribute the already-constrained space directly (an explicit `w-full` on `Viewport` keeps its old
+implicit full-width guarantee, since that previously came from `size-full`'s own width percentage, not from
+flex's default `align-items: stretch`, which a consumer could override). Re-verified against the pre-existing
+fixed-height `ScrollArea` demo (`h-72`) to confirm no regression there.
 
 ## Verify by render, not by number
 

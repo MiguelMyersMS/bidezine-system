@@ -99,18 +99,24 @@ function CommandInput({
  * `scroll-py-1` (scroll-padding, for keyboard-nav `scrollIntoView` clearance) moves onto
  * `ScrollArea`'s own internal viewport (targeted via a descendant selector, since the primitive
  * doesn't expose a viewport-specific className prop) — it must live on the actual scrolling element.
+ *
+ * The consumer-facing `className` prop lands on `ScrollArea` (the element that actually owns the
+ * height cap and clipping), matching this component's pre-migration contract where `className`
+ * could override the `max-h-[300px]`/overflow behavior directly — not on the inner `List`, which no
+ * longer owns any height/overflow of its own and would silently swallow such an override.
  */
 function CommandList({
   className,
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.List>) {
   return (
-    <ScrollArea className="max-h-[300px] overflow-hidden [&_[data-slot=scroll-area-viewport]]:scroll-py-1">
-      <CommandPrimitive.List
-        data-slot="command-list"
-        className={cn("pe-2", className)}
-        {...props}
-      />
+    <ScrollArea
+      className={cn(
+        "max-h-[300px] overflow-hidden [&_[data-slot=scroll-area-viewport]]:scroll-py-1",
+        className
+      )}
+    >
+      <CommandPrimitive.List data-slot="command-list" className="pe-2" {...props} />
     </ScrollArea>
   )
 }

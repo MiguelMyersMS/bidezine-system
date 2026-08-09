@@ -183,13 +183,23 @@ function ComboboxContent({
  * `ScrollArea`'s viewport renders directly. Bidezine does not enable Base UI's opt-in `virtualized`
  * combobox mode anywhere in this file — if a consumer does turn it on, this composition would need
  * re-evaluating, since virtualization typically expects to directly own the scrolling element.
+ *
+ * The consumer-facing `className` prop lands on `ScrollArea` (the element that actually owns the
+ * height cap and clipping), matching this component's pre-migration contract where `className`
+ * could override the `max-h-[min(...)]`/overflow behavior directly — not on the inner `List`, which
+ * no longer owns any height/overflow of its own and would silently swallow such an override.
  */
 function ComboboxList({ className, ...props }: ComboboxPrimitive.List.Props) {
   return (
-    <ScrollArea className="max-h-[min(calc(--spacing(96)---spacing(9)),calc(var(--available-height)---spacing(9)))] overflow-hidden [&_[data-slot=scroll-area-viewport]]:scroll-py-1">
+    <ScrollArea
+      className={cn(
+        "max-h-[min(calc(--spacing(96)---spacing(9)),calc(var(--available-height)---spacing(9)))] overflow-hidden [&_[data-slot=scroll-area-viewport]]:scroll-py-1",
+        className
+      )}
+    >
       <ComboboxPrimitive.List
         data-slot="combobox-list"
-        className={cn("p-1 pe-2 data-empty:p-0", className)}
+        className="p-1 pe-2 data-empty:p-0"
         {...props}
       />
     </ScrollArea>

@@ -34,20 +34,23 @@ import { cn } from "@/lib/utils"
  * scrollbar and the inner content, are two independent relationships that must each be checked
  * (a fix for one does not verify the other).
  *
- * Internal implementation note — why `Viewport` is `flex-1 min-h-0`, not `size-full`.
+ * Internal implementation note — why `Viewport` is `w-full flex-1 min-h-0`, not `size-full`.
  *
- * `Root` is a flex column and `Viewport` sizes itself via flex-grow, not a percentage height.
- * This matters whenever `Root` itself is capped with `max-height` rather than a fixed `height`
- * (exactly the case for a Radix popper/menu content element, whose available height is a dynamic
- * `max-height` CSS var) — a plain CSS percentage height only resolves against an ancestor with a
- * genuinely *definite* height per spec, and a `max-height`-clamped auto-sizing box does not count as
- * definite even when its rendered pixel value is concrete. Verified empirically: with `Viewport`
- * sized via `size-full` (percentage), nesting `ScrollArea` inside a `max-h-(--some-var)` ancestor
- * left `Viewport` at its unclipped natural content height — the surrounding box visually clipped the
- * overflow via `overflow-hidden`, but `Viewport` itself never became internally scrollable (`scrollTop`
- * was inert). Flex-based sizing (`flex-1 min-h-0`) does not depend on that CSS percentage-definiteness
- * rule at all, so it works identically whether the ancestor's height came from an explicit `height`
- * or from a `max-height`-clamped auto box.
+ * `Root` is a flex column and `Viewport` sizes its height via flex-grow, not a percentage height
+ * (width still comes from an explicit `w-full`, since flex's default `align-items: stretch` is what
+ * used to supply it implicitly — an explicit class is more robust against a consumer overriding
+ * `Root`'s own `align-items`). This matters whenever `Root` itself is capped with `max-height` rather
+ * than a fixed `height` (exactly the case for a Radix popper/menu content element, whose available
+ * height is a dynamic `max-height` CSS var) — a plain CSS percentage height only reliably resolves
+ * against an ancestor with a genuinely *definite* height per spec, and a `max-height`-clamped
+ * auto-sizing box does not reliably count as definite even when its rendered pixel value is concrete.
+ * Verified empirically: with `Viewport` sized via `size-full` (percentage), nesting `ScrollArea` inside
+ * a `max-h-(--some-var)` ancestor left `Viewport` at its unclipped natural content height — the
+ * surrounding box visually clipped the overflow via `overflow-hidden`, but `Viewport` itself never
+ * became internally scrollable (`scrollTop` was inert). Flex-based sizing (`flex-1 min-h-0`) sidesteps
+ * that percentage-resolution question entirely by letting the flex algorithm distribute the already-
+ * constrained space directly, so it works identically whether the ancestor's height came from an
+ * explicit `height` or from a `max-height`-clamped auto box.
  */
 function ScrollArea({
   className,
@@ -62,7 +65,7 @@ function ScrollArea({
     >
       <ScrollAreaPrimitive.Viewport
         data-slot="scroll-area-viewport"
-        className="min-h-0 flex-1 rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1"
+        className="min-h-0 w-full flex-1 rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1"
       >
         {children}
       </ScrollAreaPrimitive.Viewport>
