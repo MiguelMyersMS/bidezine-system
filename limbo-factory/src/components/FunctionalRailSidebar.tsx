@@ -400,7 +400,15 @@ function PanelTree({
               variant="ghost"
               aria-pressed={isSelected}
               onClick={() => onSelectLeaf(node.id)}
-              className="h-9 w-full justify-start gap-1.5 rounded-md px-2 text-left text-sm font-normal hover:bg-accent"
+              // QA finding (see divergence row L-12): `px-2` alone didn't actually win — Button's
+              // own default-size recipe carries `has-[>svg]:px-3` (12px, conditional on containing
+              // an icon), which is a DIFFERENT conflict group to tailwind-merge than plain `px-2`,
+              // so both survive and the base `has-[>svg]:px-3` kept winning the cascade (confirmed:
+              // icon sat 12px from the button edge, not the intended 8px) — the exact same
+              // failure class as M-18/M-19. Explicitly repeating the override AS a `has-[>svg]:`
+              // variant (not just the plain utility) puts it in the same conflict group so it
+              // actually replaces the base rule.
+              className="h-9 w-full justify-start gap-1.5 rounded-md px-2 has-[>svg]:px-2 text-left text-sm font-normal hover:bg-accent"
               style={{
                 // QA finding (see divergence row L-10): this used to be `background: isSelected ?
                 // "var(--foreground)" : "transparent"` unconditionally — but an inline `style`
@@ -445,7 +453,10 @@ function PanelTree({
               <Button
                 type="button"
                 variant="ghost"
-                className="h-9 w-full justify-start gap-1.5 rounded-md px-2 text-left text-sm font-normal hover:bg-accent"
+                // QA finding (see divergence row L-12): same has-[>svg]:px-3 vs px-2 conflict-group
+                // gap as the leaf Button above — repeating the override as a has-[>svg]: variant
+                // makes it actually win over Button's own default-size base recipe.
+                className="h-9 w-full justify-start gap-1.5 rounded-md px-2 has-[>svg]:px-2 text-left text-sm font-normal hover:bg-accent"
                 style={{ color: "var(--foreground)" }}
               >
                 <svg
@@ -472,7 +483,7 @@ function PanelTree({
                   itself carries part of the visual offset. */}
               <div
                 className="flex flex-col gap-0.5 border-l pl-1.5"
-                style={{ marginLeft: 14, borderColor: "var(--border)" }}
+                style={{ marginLeft: 16, borderColor: "var(--border)" }}
               >
                 <PanelTree
                   nodes={node.children}
