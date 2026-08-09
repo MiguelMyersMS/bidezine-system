@@ -236,6 +236,15 @@ just the property the current task happens to mention:**
    primitive-touching change, in miniature, so issues surface within the same turn they're introduced, not
    dozens of turns later when a human happens to notice.
 
+8. **A plain CSS mechanism standing in for a component is the same violation as hand-rolled markup — check
+   for it explicitly, don't wait to be asked.** A raw `overflow-y-auto`/`overflow-x-auto` (rendering the
+   browser/OS's own native scrollbar instead of the real `ScrollArea` primitive) is exactly as much a "no
+   hand-rolled components" violation as a raw `<button>` standing in for `Button` — it's just easier to miss
+   because there's no visibly wrong markup to spot, only a native browser affordance quietly substituting for
+   a themeable one. When auditing a component, explicitly enumerate every raw `overflow-*`/scroll-bearing
+   element and confirm there's a deliberate, recorded decision for each one (real `ScrollArea` vs. browser
+   default vs. something else) — don't only catch it when a human notices the scrollbar itself looks wrong.
+
 ## Three machines, one branch
 
 Laptop A, Laptop B, and a PC all work `main` directly. `origin` is the only source of truth — unpushed

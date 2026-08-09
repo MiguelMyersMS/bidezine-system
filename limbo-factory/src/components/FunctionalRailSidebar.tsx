@@ -53,6 +53,7 @@ import {
   ReceiptSearchIcon,
   RibbonIcon,
   SavingsIcon,
+  ScrollArea,
   SearchIcon,
   SettingsIcon,
   ShieldCheckmarkIcon,
@@ -860,20 +861,30 @@ export function FunctionalRailSidebar({
               </div>
             )}
 
-            <div className="flex-1 overflow-y-auto p-1.5">
-              <PanelTree
-                nodes={filteredNodes}
-                depth={0}
-                expanded={effectiveExpanded}
-                onToggle={toggleGroup}
-                activeItemId={activeItemId}
-                onSelectLeaf={handleSelectLeaf}
-                colors={colors}
-              />
-              {query.trim() && filteredNodes.length === 0 && (
-                <p className="px-2 py-3 text-xs text-muted-foreground">No matches for “{query}”.</p>
-              )}
-            </div>
+            {/* QA finding (see divergence row K-3, now resolved): this was a plain `overflow-y-auto`
+                div, which renders the browser/OS's own native scrollbar rather than bidezine's real
+                ScrollArea primitive — origin's own approach here (SCROLL.css/SCROLL.className) is a
+                runtime <style> tag injection, already ruled out elsewhere (R-7) as incompatible with
+                this project's build-time Tailwind CSS approach, so it was never a valid target to
+                match anyway. Swapped to the real ScrollArea (Radix-based, exported from
+                @bidezine/system) so the scrollbar itself is a real, themeable bidezine primitive
+                instead of the browser's own default chrome. */}
+            <ScrollArea className="flex-1">
+              <div className="p-1.5">
+                <PanelTree
+                  nodes={filteredNodes}
+                  depth={0}
+                  expanded={effectiveExpanded}
+                  onToggle={toggleGroup}
+                  activeItemId={activeItemId}
+                  onSelectLeaf={handleSelectLeaf}
+                  colors={colors}
+                />
+                {query.trim() && filteredNodes.length === 0 && (
+                  <p className="px-2 py-3 text-xs text-muted-foreground">No matches for “{query}”.</p>
+                )}
+              </div>
+            </ScrollArea>
           </div>
         )}
       </div>
