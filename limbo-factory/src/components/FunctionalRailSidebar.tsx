@@ -536,14 +536,22 @@ export function FunctionalRailSidebar({
           style={{ width: 54, borderRadius: 12, background: colors.surface }}
         >
           <div className="flex flex-col gap-2">
-            <div
-              className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg"
-              style={{ color: colors.fgHover }}
-            >
-              <svg viewBox={BIDEZINE_LOGO_VIEWBOX} className="size-6" fill="currentColor" aria-hidden="true">
-                <path d={BIDEZINE_LOGO_PATH} />
-              </svg>
-            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg"
+                  style={{ color: colors.fgHover }}
+                >
+                  <svg viewBox={BIDEZINE_LOGO_VIEWBOX} className="size-6" fill="currentColor" aria-hidden="true">
+                    <path d={BIDEZINE_LOGO_PATH} />
+                  </svg>
+                </div>
+              </TooltipTrigger>
+              {/* Origin's LogoSlotDark always shows a hover tooltip with the logo label (default
+                  "BiDezine", see divergence row M-9), even when the slot has no onClick — matches
+                  that behavior here via the real Tooltip primitive (L-1). */}
+              <TooltipContent side="right">BiDezine</TooltipContent>
+            </Tooltip>
           </div>
           <div className="mx-0 my-2 h-px max-w-full" style={{ background: colors.border }} />
 
