@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import { Presence } from "@radix-ui/react-presence"
 import {
   AppsIcon,
   Badge,
@@ -599,6 +600,16 @@ export function FunctionalRailSidebar({
   const allSections = [...TOP_SECTIONS, ...FOOTER_SECTIONS]
   const openSection = allSections.find((s) => s.id === openPanel)
 
+  // QA finding (see divergence row L-16): needed so the panel's own content (icon/label/tree data)
+  // stays visible and rendered while `<Presence>` keeps the wrapper mounted for the exit animation
+  // below \u2014 `openSection` itself goes `undefined` the instant the panel starts closing, which would
+  // otherwise blank the panel out a frame before the fade/zoom-out animation even has a chance to
+  // play. Updated synchronously during render (not via useEffect) so there's no one-tick lag where
+  // the DOM would flash empty first.
+  const lastOpenSectionRef = useRef(openSection)
+  if (openSection) lastOpenSectionRef.current = openSection
+  const displaySection = openSection ?? lastOpenSectionRef.current
+
   const handleRailClick = (section: RailSection) => {
     const isLeaf = section.items.length === 0
     if (isLeaf) {
@@ -627,8 +638,8 @@ export function FunctionalRailSidebar({
   }
 
   const { nodes: filteredNodes, matchIds } = useMemo(
-    () => filterTree(openSection?.items ?? [], query),
-    [openSection, query],
+    () => filterTree(displaySection?.items ?? [], query),
+    [displaySection, query],
   )
 
   // While searching, force-expand every surviving group so matches are always visible.
@@ -764,155 +775,186 @@ export function FunctionalRailSidebar({
         </div>
 
         {/* Panel */}
-        {openSection && (
-          // QA finding (see divergence row L-15): the panel behaves exactly like a menu/popover
-          // container (it mounts/unmounts on trigger, floats over content, is dismissible) but had
-          // no border at all, unlike the real DropdownMenuContent it visually needs to read as the
-          // "same kind of container" alongside. DropdownMenuContent's own recipe is literally
-          // `rounded-md border bg-popover ... shadow-md` \u2014 the plain `border` utility, which this
-          // codebase's @theme wiring (src/styles/system.css) resolves to `--color-border: var(--border)`,
-          // the exact same token already bound to `colors.hairline` here (used for the header's own
-          // divider line just below). Reusing it for the outer border keeps this consistent with the
-          // already-established token rather than introducing a new one.
-          <div
-            className="flex flex-col overflow-hidden"
-            style={{
-              width: 300,
-              borderRadius: 12,
-              background: colors.panelSurface,
-              border: `1px solid ${colors.hairline}`,
-            }}
-          >
-            <div className="flex flex-col gap-0.5 px-3 py-2" style={{ borderBottom: `1px solid ${colors.hairline}` }}>
-              <div className="flex items-center justify-between">
-                <div className="flex min-w-0 items-center gap-1.5">
-                  <openSection.icon className="size-4 shrink-0 text-muted-foreground" />
-                  {/* Verified against design-system/src/gallery/RailNav.tsx (real source, not a
-                      screenshot): the panel title is single-line, truncated with an ellipsis
-                      (`whiteSpace: nowrap; textOverflow: ellipsis`) — `truncate` here is the exact
-                      Tailwind equivalent. See divergence row D-11. */}
-                  <span className="truncate text-base font-medium">{openSection.label}</span>
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button type="button" variant="ghost" size="icon-xs" className="text-muted-foreground">
-                        <MoreHorizontalIcon className="size-4" />
-                        <span className="sr-only">Panel actions</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-[220px]">
-                      {/* `inset` here is not decorative — it's the fix for a measured text-alignment bug
-                          (see divergence row D-12). Plain DropdownMenuItem defaults to 8px left padding,
-                          while DropdownMenuCheckboxItem below ("Search box") is hard-coded to 32px to make
-                          room for its checkmark. Without `inset`, "Expand all"/"Collapse all" sit 24px to
-                          the left of "Search box". `inset` forces this row onto the same 32px gutter. */}
-                      <DropdownMenuItem inset onSelect={() => setExpanded(new Set(collectGroupIds(openSection.items)))}>
-                        Expand all
-                      </DropdownMenuItem>
-                      <DropdownMenuItem inset onSelect={() => setExpanded(new Set())}>
-                        Collapse all
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuCheckboxItem
-                        checked={searchEnabled}
-                        onCheckedChange={(v) => {
-                          setSearchEnabled(Boolean(v))
-                          if (!v) setQuery("")
-                        }}
-                      >
-                        Search box
-                      </DropdownMenuCheckboxItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-xs"
-                    className="text-muted-foreground"
-                    onClick={() => setOpenPanel(null)}
-                  >
-                    <PanelLeftContractIcon className="size-4" />
-                    <span className="sr-only">Collapse sidebar</span>
-                  </Button>
-                </div>
-              </div>
-              {/* Origin's real source (design-system/src/gallery/RailNav.tsx) wraps the subtitle
-                  unbounded (`whiteSpace: normal`, no line cap at all) — a 2026-07-31 change away
-                  from its earlier single-line-truncate behavior. bidezine intentionally bounds
-                  this to 3 lines (not unbounded) so a very long subtitle can't make the fixed-
-                  width panel header grow arbitrarily tall; `line-clamp-3` wraps up to 3 lines then
-                  truncates the 3rd with an ellipsis. See divergence row D-11. */}
-              <p className="line-clamp-3 pl-[22px] text-xs text-muted-foreground">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-              </p>
-            </div>
+        {displaySection && (
+          <Presence present={Boolean(openSection)}>
+            {/* QA finding (see divergence row L-15/L-16): prompted by "it is not just the border you
+                need to emulate everything from the menu... the elevation token, the animations." The
+                panel behaves exactly like a menu/popover (mounts/unmounts on trigger, is dismissible),
+                so it now borrows the equivalent parts of the real DropdownMenuContent recipe
+                (src/ui/dropdown-menu.tsx): `border` (L-15, unchanged), `shadow-md` (the same elevation
+                utility, no bidezine-specific --shadow-* token exists to diverge from), and the exact
+                `data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95
+                data-[state=closed]:animate-out data-[state=closed]:fade-out-0
+                data-[state=closed]:zoom-out-95` state-driven enter/exit classes \u2014 copied verbatim,
+                not approximated. Deliberately NOT copied: `z-50`/`min-w-[8rem]`/`max-h-(--radix-...)`/
+                `origin-(--radix-...-transform-origin)`/the `slide-in-from-*` variants \u2014 those all
+                depend on Radix Popper's floating/portal positioning (a `data-side` attribute, a
+                measured available-height custom property), which doesn't apply here: this panel is
+                laid out in-flow next to the rail, not a floating overlay positioned relative to a
+                trigger.
 
-            {searchEnabled && (
-              <div className="px-2 pt-2">
-                {/* QA finding (see divergence row M-18): this used to be a manually-composed
-                    relative/absolute icon over a raw Input with a `pl-7` padding override. That
-                    override silently lost to the Input primitive's own default `px-3` in the
-                    compiled Tailwind cascade (confirmed via getComputedStyle: padding-left stayed
-                    12px, not the intended 28px, since tailwind-merge doesn't drop `px-3` for a
-                    same-side longhand like `pl-7` — both classes survive, and px-3's declaration
-                    happens to win the stylesheet's cascade order), causing the icon and typed text
-                    to visually overlap. Fixed by switching to bidezine's own InputGroup/
-                    InputGroupAddon/InputGroupInput primitives, purpose-built for exactly this
-                    icon+input composition — the icon and input are flex siblings with real gap
-                    spacing, so there's no padding-override arithmetic (or cascade pitfall) at all. */}
-                <InputGroup className="h-8 text-sm">
-                  <InputGroupAddon>
-                    <SearchIcon className="size-3.5 text-muted-foreground" />
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search"
-                    className="text-sm"
+                `data-state` is derived directly from `openSection` (mirroring how the real
+                @radix-ui/react-dialog itself does it \u2014 confirmed in its own compiled source:
+                `"data-state": getState(context.open)`, read from the actual open boolean, NOT from
+                Presence's render-prop `present` value), so it flips to "closed" the instant closing
+                starts \u2014 exactly when the CSS exit animation should begin playing. The `<Presence>`
+                wrapper is what keeps this element mounted in the DOM for the duration of that exit
+                animation before actually unmounting it \u2014 it's the exact same primitive every real
+                Radix Content component (Popover/DropdownMenu/Dialog) uses internally for this exact
+                problem (confirmed in @radix-ui/react-dialog's own compiled source: `<Presence present=
+                {forceMount || context.open}>{content}</Presence>`, a single plain element child, not
+                the function/render-prop form \u2014 using the render-prop form here initially caused a
+                type error, since Presence's own forceMount branch (active for that form) requires a
+                real element back, not `null`; this plain-element form matches real Radix usage anyway).
+                This is not a hand-rolled setTimeout-based unmount delay standing in for a real
+                mechanism \u2014 it's the same underlying primitive, used the same way real Radix content
+                components use it, per the standing "don't reinvent the wheel, use real components"
+                rule. `displaySection` (not `openSection`) drives the header/tree content specifically
+                so the content stays rendered and visible while Presence holds the wrapper mounted for
+                the exit animation \u2014 `openSection` itself goes `undefined` the instant closing starts,
+                which would otherwise blank the panel a frame before the animation had a chance to
+                play. */}
+            <div
+              data-state={openSection ? "open" : "closed"}
+              className="flex flex-col overflow-hidden shadow-md data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95"
+              style={{
+                width: 300,
+                borderRadius: 12,
+                background: colors.panelSurface,
+                border: `1px solid ${colors.hairline}`,
+              }}
+            >
+              <div className="flex flex-col gap-0.5 px-3 py-2" style={{ borderBottom: `1px solid ${colors.hairline}` }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <displaySection.icon className="size-4 shrink-0 text-muted-foreground" />
+                    {/* Verified against design-system/src/gallery/RailNav.tsx (real source, not a
+                        screenshot): the panel title is single-line, truncated with an ellipsis
+                        (`whiteSpace: nowrap; textOverflow: ellipsis`) — `truncate` here is the exact
+                        Tailwind equivalent. See divergence row D-11. */}
+                    <span className="truncate text-base font-medium">{displaySection.label}</span>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button type="button" variant="ghost" size="icon-xs" className="text-muted-foreground">
+                          <MoreHorizontalIcon className="size-4" />
+                          <span className="sr-only">Panel actions</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-[220px]">
+                        {/* `inset` here is not decorative — it's the fix for a measured text-alignment bug
+                            (see divergence row D-12). Plain DropdownMenuItem defaults to 8px left padding,
+                            while DropdownMenuCheckboxItem below ("Search box") is hard-coded to 32px to make
+                            room for its checkmark. Without `inset`, "Expand all"/"Collapse all" sit 24px to
+                            the left of "Search box". `inset` forces this row onto the same 32px gutter. */}
+                        <DropdownMenuItem inset onSelect={() => setExpanded(new Set(collectGroupIds(displaySection.items)))}>
+                          Expand all
+                        </DropdownMenuItem>
+                        <DropdownMenuItem inset onSelect={() => setExpanded(new Set())}>
+                          Collapse all
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuCheckboxItem
+                          checked={searchEnabled}
+                          onCheckedChange={(v) => {
+                            setSearchEnabled(Boolean(v))
+                            if (!v) setQuery("")
+                          }}
+                        >
+                          Search box
+                        </DropdownMenuCheckboxItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      className="text-muted-foreground"
+                      onClick={() => setOpenPanel(null)}
+                    >
+                      <PanelLeftContractIcon className="size-4" />
+                      <span className="sr-only">Collapse sidebar</span>
+                    </Button>
+                  </div>
+                </div>
+                {/* Origin's real source (design-system/src/gallery/RailNav.tsx) wraps the subtitle
+                    unbounded (`whiteSpace: normal`, no line cap at all) — a 2026-07-31 change away
+                    from its earlier single-line-truncate behavior. bidezine intentionally bounds
+                    this to 3 lines (not unbounded) so a very long subtitle can't make the fixed-
+                    width panel header grow arbitrarily tall; `line-clamp-3` wraps up to 3 lines then
+                    truncates the 3rd with an ellipsis. See divergence row D-11. */}
+                <p className="line-clamp-3 pl-[22px] text-xs text-muted-foreground">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                </p>
+              </div>
+
+              {searchEnabled && (
+                <div className="px-2 pt-2">
+                  {/* QA finding (see divergence row M-18): this used to be a manually-composed
+                      relative/absolute icon over a raw Input with a `pl-7` padding override. That
+                      override silently lost to the Input primitive's own default `px-3` in the
+                      compiled Tailwind cascade (confirmed via getComputedStyle: padding-left stayed
+                      12px, not the intended 28px, since tailwind-merge doesn't drop `px-3` for a
+                      same-side longhand like `pl-7` — both classes survive, and px-3's declaration
+                      happens to win the stylesheet's cascade order), causing the icon and typed text
+                      to visually overlap. Fixed by switching to bidezine's own InputGroup/
+                      InputGroupAddon/InputGroupInput primitives, purpose-built for exactly this
+                      icon+input composition — the icon and input are flex siblings with real gap
+                      spacing, so there's no padding-override arithmetic (or cascade pitfall) at all. */}
+                  <InputGroup className="h-8 text-sm">
+                    <InputGroupAddon>
+                      <SearchIcon className="size-3.5 text-muted-foreground" />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="Search"
+                      className="text-sm"
+                    />
+                  </InputGroup>
+                </div>
+              )}
+
+              {/* QA finding (see divergence row K-3, now resolved): this was a plain `overflow-y-auto`
+                  div, which renders the browser/OS's own native scrollbar rather than bidezine's real
+                  ScrollArea primitive — origin's own approach here (SCROLL.css/SCROLL.className) is a
+                  runtime <style> tag injection, already ruled out elsewhere (R-7) as incompatible with
+                  this project's build-time Tailwind CSS approach, so it was never a valid target to
+                  match anyway. Swapped to the real ScrollArea (Radix-based, exported from
+                  @bidezine/system) so the scrollbar itself is a real, themeable bidezine primitive
+                  instead of the browser's own default chrome.
+
+                  QA finding (see divergence row K-3's follow-up, reported as "not able to scroll
+                  anymore"): ScrollArea's own Root recipe never sets its own `overflow`, so — unlike
+                  the plain `overflow-y-auto` div this replaced — it doesn't automatically get CSS
+                  flexbox's "automatic minimum size: 0" treatment (that rule only applies to flex
+                  items whose OWN overflow is something other than `visible`). Root's default
+                  `overflow: visible` meant it just grew to fit its content's natural height instead
+                  of being clipped to the flex parent's available space, so nothing overflowed and
+                  there was nothing left to scroll. Fixed by adding `overflow-hidden` explicitly, which
+                  triggers that automatic-minimum-size rule the same way the old div's `overflow-y-
+                  auto` did. Verified via getComputedStyle: Root's height now correctly clips to the
+                  parent's available space (scrollHeight > clientHeight again) and real wheel/scrollbar
+                  interaction works. */}
+              <ScrollArea className="flex-1 overflow-hidden">
+                <div className="p-1.5">
+                  <PanelTree
+                    nodes={filteredNodes}
+                    depth={0}
+                    expanded={effectiveExpanded}
+                    onToggle={toggleGroup}
+                    activeItemId={activeItemId}
+                    onSelectLeaf={handleSelectLeaf}
+                    colors={colors}
                   />
-                </InputGroup>
-              </div>
-            )}
-
-            {/* QA finding (see divergence row K-3, now resolved): this was a plain `overflow-y-auto`
-                div, which renders the browser/OS's own native scrollbar rather than bidezine's real
-                ScrollArea primitive — origin's own approach here (SCROLL.css/SCROLL.className) is a
-                runtime <style> tag injection, already ruled out elsewhere (R-7) as incompatible with
-                this project's build-time Tailwind CSS approach, so it was never a valid target to
-                match anyway. Swapped to the real ScrollArea (Radix-based, exported from
-                @bidezine/system) so the scrollbar itself is a real, themeable bidezine primitive
-                instead of the browser's own default chrome.
-
-                QA finding (see divergence row K-3's follow-up, reported as "not able to scroll
-                anymore"): ScrollArea's own Root recipe never sets its own `overflow`, so — unlike
-                the plain `overflow-y-auto` div this replaced — it doesn't automatically get CSS
-                flexbox's "automatic minimum size: 0" treatment (that rule only applies to flex
-                items whose OWN overflow is something other than `visible`). Root's default
-                `overflow: visible` meant it just grew to fit its content's natural height instead
-                of being clipped to the flex parent's available space, so nothing overflowed and
-                there was nothing left to scroll. Fixed by adding `overflow-hidden` explicitly, which
-                triggers that automatic-minimum-size rule the same way the old div's `overflow-y-
-                auto` did. Verified via getComputedStyle: Root's height now correctly clips to the
-                parent's available space (scrollHeight > clientHeight again) and real wheel/scrollbar
-                interaction works. */}
-            <ScrollArea className="flex-1 overflow-hidden">
-              <div className="p-1.5">
-                <PanelTree
-                  nodes={filteredNodes}
-                  depth={0}
-                  expanded={effectiveExpanded}
-                  onToggle={toggleGroup}
-                  activeItemId={activeItemId}
-                  onSelectLeaf={handleSelectLeaf}
-                  colors={colors}
-                />
-                {query.trim() && filteredNodes.length === 0 && (
-                  <p className="px-2 py-3 text-xs text-muted-foreground">No matches for “{query}”.</p>
-                )}
-              </div>
-            </ScrollArea>
-          </div>
+                  {query.trim() && filteredNodes.length === 0 && (
+                    <p className="px-2 py-3 text-xs text-muted-foreground">No matches for “{query}”.</p>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+          </Presence>
         )}
       </div>
     </TooltipProvider>
