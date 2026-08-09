@@ -380,6 +380,32 @@ friction, anything.)_
   that a divergence row being "resolved" only means the *value* was approved, not that Build finished
   wiring it up).
 
+- **A divergence row marked "resolved" at the color-decision level can still turn out wrong once actually
+  rendered — human sign-off on a value in isolation is not the same as verifying it in its real
+  composited context.** Q2/B-5 had already given `darkBorderStrong` final sign-off (oklch(0.256) light-
+  app-mode / oklch(0.254) dark-app-mode), but once the "browsing" ring was actually built and hovered in
+  the live preview, a direct question ("the active-state border isn't very visible on the dark surface,
+  can you propose something better?") led to measuring it: a lightness delta of only ~0.05/~0.11 against
+  the rail surface (oklch(0.205)/oklch(0.145)) — confirmed via `getComputedStyle`, not just eyeballing a
+  swatch. Origin's own value (`rgba(255,255,255,0.6)` composited over its dark surface) is considerably
+  brighter, meaning the original approved candidate undersold even origin's own apparent intent, not
+  just bidezine's. **Handled per protocol**: proposed a revision — oklch(0.708 0 0) for both app modes,
+  reusing the already-approved `onDarkSubtle` value (and the base theme's own `--ring`/
+  `--muted-foreground` tokens, so still no invented number) — applied it live so it could be judged in
+  real context (screenshots taken in both app light/dark mode confirmed a clearly visible ring), then
+  asked the human to confirm or pick the bolder oklch(0.922) alternative. The human was unavailable to
+  answer, so the candidate was left explicitly `approved: false` (never silently flipped to approved)
+  and the affected divergence row (B-5) was reopened from "resolved" back to "decision" rather than left
+  displaying a now-known-stale "resolved" badge. **Lesson:** this repo's Color Token Lab already renders
+  swatches in isolation for approval, which is exactly why the earlier "isolated swatches are not
+  sufficient evidence" lesson (further up this log) exists — this is a second, concrete instance of that
+  same risk, this time surfacing only once the token reached its real composited use (a thin inset ring
+  on an actual button, not a swatch box) months after the swatch itself was approved. A "resolved" color
+  decision should be treated as provisional until it's been seen in its real rendered role, and finding
+  it wrong later doesn't mean skip re-opening the divergence row — silently patching the value while
+  leaving a stale "resolved" status would hide exactly the kind of regression this log exists to catch.
+  Documented in rail-sidebar.ts row M-13 (and B-5, reverted to "decision").
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given
