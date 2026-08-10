@@ -109,6 +109,31 @@ Context instead**, since CSS selectors of that shape cannot express "nearest anc
 `useContext` can. See CLAUDE.md's Scroll region protocol for the full technical writeup and the corrected
 guidance (which previously, incorrectly, recommended the CSS variant this update replaces).
 
+**Update 4 — icon fill exemption finally resolved, and a text/icon emphasis fix caught its own enforcement
+gap (L-27 through L-30).** For a fifth time, the user reported icons not filling on hover/press/select. Root
+cause this time was NOT a new bug: `video`/`videoSettings` (Activity stream / Live operations) had been left
+in a provisional, un-filled "decision" state (L-20) across multiple sessions, waiting on a sign-off that never
+came — two icons behaving differently from every other actionable icon reads as broken regardless of the
+underlying rationale. Resolved by restoring their real Fluent `filledD` values (L-27), read directly from
+`node_modules/@fluentui/svg-icons` — a first attempt at reconstructing one from memory was wrong and had to
+be corrected before shipping, folded into CLAUDE.md checklist item 18 (icon path data must always be copied
+verbatim from the real source, never reasoned about). Separately, the user asked to apply the same bold-text
+treatment the Rail Sidebar's own selected leaf uses to its ancestor group rows too (L-28), matching origin's
+real `labelFont = isActive ? TYPE.labelL : TYPE.bodyM` derivation (bold for the active leaf AND every
+collapsed group on the path to it) — then asked directly to also fill those groups' icons (L-29), which
+uncovered that the group row's icon fill hadn't been wired up alongside its new bold text at all. **When then
+asked directly whether this behavior was durably enforced against future regression, the honest answer was
+no** — only a divergence-log entry existed; the code still computed the label className and the icon-fill
+trigger as two separate conditionals, the exact same split that caused L-29 in the first place (L-30). Fixed
+for real this time: added CLAUDE.md checklist item 20 (any pair of visual properties meant to track the same
+state must derive from ONE reused boolean/mechanism, never two independently-maintained conditionals), and
+refactored the component itself so the split is structurally impossible, not just discouraged in prose — a
+single `pathEmphasis()` helper now returns both the `aria-pressed` value (which `Button`'s own
+`useActionIconFill`/`fillActionIcons` wiring already reads for icon fill) and the label `className` together,
+computed once per row. **The standing lesson: when a fix is "durably enforced," that must mean both a written
+protocol rule AND, wherever feasible, a code-level structural guard that makes the specific defect class
+impossible to reintroduce — a divergence-log entry alone is a historical record, not a guardrail.**
+
 
 
 Whenever the Intake agent finds an element in the source that isn't cleanly pairable to an existing
