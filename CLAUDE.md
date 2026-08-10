@@ -487,7 +487,35 @@ a genuinely new failure category is found — not evidence the list is now compl
     with fresh, properly-scoped `getBoundingClientRect`/computed-style measurements before reporting anything
     as confirmed — an agent's report is a lead to re-check, not a verdict to relay verbatim.
 
+18. **Icon path data (`d`/`filledD`) must always be copied verbatim from the real Fluent `.svg` source file —
+    never reconstructed from memory, reasoning, or "what this icon probably looks like."** While restoring a
+    previously-exempted icon's filled variant (**L-27**), a first attempt at `videoSettings`'s `filledD`
+    was written by reasoning about the icon's likely filled shape rather than reading
+    `node_modules/@fluentui/svg-icons/icons/video_settings_20_filled.svg` directly — it looked plausible (valid
+    SVG path syntax, roughly the right silhouette) but did not match Microsoft's real glyph at all. This is a
+    uniquely dangerous class of error: a fabricated-but-plausible path passes every automated check (typecheck,
+    build, even a live "does it render *something* different on hover" smoke test) and only reveals itself on
+    close visual inspection against the real icon — exactly the kind of bug that ships silently. Any time icon
+    path data is added or changed, the actual `.svg` file under `node_modules/@fluentui/svg-icons/icons/` must
+    be opened and compared character-for-character (or copy-pasted directly) — reasoning about an icon's shape
+    is never a substitute for reading its real source.
 
+19. **A provisional, user-facing "decision pending" exemption left unresolved across sessions eventually gets
+    reported back as a bug, not a feature — track these to closure, don't let them go stale.** L-20 provisionally
+    exempted two icons from hover-fill "pending explicit sign-off" when the user was unavailable to answer a
+    three-option question. That exemption then sat for multiple sessions with status `"decision"`, not
+    `"resolved"` — and was eventually reported back by the user as exactly the bug it was meant to provisionally
+    avoid ("many icons are not filling... this is the fifth time"), because two icons behaving differently from
+    every other actionable icon in the same component reads as broken regardless of the underlying rationale.
+    When a provisional default is applied because a decision-maker is unavailable, treat it as a tracked,
+    time-bound placeholder, not a permanent resolution — the next time the same component/behavior is touched
+    for any reason, revisit any open "decision" status items in its own divergence log and resolve them
+    conclusively (picking the least-invasive of the already-documented options) rather than leaving them to
+    accumulate and resurface as fresh-seeming bug reports.
+
+
+
+## Three machines, one branch
 
 Laptop A, Laptop B, and a PC all work `main` directly. `origin` is the only source of truth — unpushed
 work does not travel.
