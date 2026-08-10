@@ -34,7 +34,7 @@ export function Layout() {
             <ThemeSwitcher />
           </div>
 
-          <ScrollArea className="-mr-2 min-h-0 flex-1 pr-2">
+          <ScrollArea className="-mr-2 min-h-0 flex-1 data-[scrollable-y=true]:pr-2">
             <nav className="flex flex-col gap-6">
               {navManifest.map((category) => (
                 <Collapsible key={category.slug} defaultOpen>
