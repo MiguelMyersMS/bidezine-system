@@ -142,13 +142,29 @@ correctly) is not the same as one that doesn't collide with anything next to it.
    against, or under, the scrollbar thumb. **This assumes LTR** (Radix positions a vertical scrollbar on the
    right in LTR, left in RTL) — use a logical end-side padding utility (`pe-*`) if this ever needs to support
    RTL, not a fixed physical side.
+3. **Conditional, not unconditional** — that inner gutter must be applied ONLY when the content actually
+   overflows, never as a bare always-on utility class. A gutter reserved unconditionally leaves dead empty
+   space on the scrollbar's side any time content happens to fit without scrolling — this is easy to miss in
+   a screenshot glance (it just looks like "a bit of extra padding"), but is exactly the same defect class the
+   origin design system this pattern is ported from explicitly names and guards against
+   (`SC.UNCONDITIONAL-SCROLLBAR-GAP`, in `RailNav.tsx`'s own real source), gating its own equivalent gutter on
+   a live `el.scrollHeight > el.clientHeight` measurement (`navScrollable`, re-checked via `ResizeObserver`).
+   `ScrollArea`'s own `Root` (`src/ui/scroll-area.tsx`) reproduces that exact measurement itself and exposes
+   it as `data-scrollable-y`/`data-scrollable-x` (kept current via `ResizeObserver`, watching both the
+   viewport and its content) — apply the gutter with a `group-data-[scrollable-y=true]/scroll-area:` (or
+   `-x-`) variant, never a bare utility class. This was itself a real, shipped bug in this codebase's own
+   scroll-region migration (`DropdownMenuContent`/`ContextMenuContent`/`CommandList`/`ComboboxList`, and the
+   Rail Sidebar Limbo transformation's own tree panel) before being caught and fixed system-wide.
 
 **Both relationships need their own explicit measurement** (`getBoundingClientRect` on the real, rendered
 DOM, scrollbar actually visible via a genuine scroll interaction — not assumed from a screenshot): the gap
 between the *outer container's own edge* and the scrollbar, and the gap between the *scrollbar* and the
 *inner content*, are independent relationships. Fixing one does not verify the other — this exact mistake
 shipped once in this same transformation (L-21 fixed the outer gap, then immediately broke the inner one
-against a sibling above it, corrected in L-22).
+against a sibling above it, corrected in L-22). Additionally, verify the CONDITIONAL behavior itself in both
+directions — force content to shrink below the overflow threshold and confirm the gutter actually disappears,
+not just that it appears when content is long — a passing "does it show when scrollable" check alone does not
+prove the "does it hide when not scrollable" half of the same contract.
 
 **`scrollbar-gutter: stable` is not a substitute for this pattern** — it reserves space for the browser's
 own *native* scrollbar; Radix's `ScrollArea` hides the native one and draws its own independent, absolutely-

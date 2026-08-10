@@ -40,8 +40,11 @@ function DropdownMenuTrigger({
  * uniform `p-1` and the Radix-measured `max-h-(--radix-dropdown-menu-content-available-height)` cap,
  * and switches to `flex flex-col overflow-hidden` so `ScrollArea` (the actual scrolling element) can
  * correctly shrink to the remaining space rather than growing past the cap and being silently
- * clipped. The inner content wrapper adds an extra end-side (`pe-2`) gutter on top of Content's own
- * padding so real menu items never sit flush against the scrollbar thumb.
+ * clipped. The inner content wrapper adds an extra end-side gutter on top of Content's own padding
+ * so real menu items never sit flush against the scrollbar thumb — but ONLY when `ScrollArea` itself
+ * reports the content is actually tall enough to scroll (`group-data-[scrollable-y=true]/scroll-area:`),
+ * never unconditionally: a short menu that fits without scrolling must not carry dead empty space on
+ * its end side just because it happens to be wrapped in `ScrollArea`.
  */
 function DropdownMenuContent({
   className,
@@ -61,7 +64,7 @@ function DropdownMenuContent({
         {...props}
       >
         <ScrollArea className="flex-1 min-h-0 overflow-hidden">
-          <div className="pe-2">{children}</div>
+          <div className="group-data-[scrollable-y=true]/scroll-area:pe-2">{children}</div>
         </ScrollArea>
       </DropdownMenuPrimitive.Content>
     </DropdownMenuPrimitive.Portal>

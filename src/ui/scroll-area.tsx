@@ -34,6 +34,20 @@ import { cn } from "@/lib/utils"
  * scrollbar and the inner content, are two independent relationships that must each be checked
  * (a fix for one does not verify the other).
  *
+ * The inner gutter must be CONDITIONAL, not a fixed always-on class.
+ *
+ * A gutter reserved unconditionally (a bare `pe-2` on the inner content, present whether or not
+ * there's actually anything to scroll) leaves dead empty space on the scrollbar's side any time the
+ * content happens to fit without overflowing — visible, unnecessary, and easy to miss in a quick
+ * screenshot check since it just looks like "a bit of extra padding," not an obvious bug. The
+ * origin design system this pattern was ported from names this exact anti-pattern explicitly
+ * (`SC.UNCONDITIONAL-SCROLLBAR-GAP`) and guards against it with a real overflow measurement
+ * (`el.scrollHeight > el.clientHeight`, re-checked via `ResizeObserver`), applying the gutter only
+ * when that's true. `ScrollArea` below reproduces that check itself (`data-scrollable-y`/
+ * `data-scrollable-x` on `Root`, kept current via `ResizeObserver`) so every consumer gets correct
+ * conditional behavior for free — apply the gutter with a `group-data-[scrollable-y=true]/scroll-area:`
+ * (or `-x-`) variant instead of a bare utility class, never unconditionally.
+ *
  * Internal implementation note — why `Viewport` is `w-full flex-1 min-h-0`, not `size-full`.
  *
  * `Root` is a flex column and `Viewport` sizes its height via flex-grow, not a percentage height
@@ -57,13 +71,38 @@ function ScrollArea({
   children,
   ...props
 }: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
+  const viewportRef = React.useRef<HTMLDivElement | null>(null)
+  const [scrollableY, setScrollableY] = React.useState(false)
+  const [scrollableX, setScrollableX] = React.useState(false)
+
+  React.useEffect(() => {
+    const node = viewportRef.current
+    if (!node) return
+
+    const check = () => {
+      setScrollableY(node.scrollHeight > node.clientHeight)
+      setScrollableX(node.scrollWidth > node.clientWidth)
+    }
+
+    check()
+    // Watch both the viewport itself (its own box can resize) and its content (the content can
+    // grow/shrink — e.g. items added/removed, search filtering — without the viewport resizing).
+    const observer = new ResizeObserver(check)
+    observer.observe(node)
+    if (node.firstElementChild) observer.observe(node.firstElementChild)
+    return () => observer.disconnect()
+  }, [children])
+
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
-      className={cn("relative flex flex-col", className)}
+      data-scrollable-y={scrollableY}
+      data-scrollable-x={scrollableX}
+      className={cn("group/scroll-area relative flex flex-col", className)}
       {...props}
     >
       <ScrollAreaPrimitive.Viewport
+        ref={viewportRef}
         data-slot="scroll-area-viewport"
         className="min-h-0 w-full flex-1 rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1"
       >

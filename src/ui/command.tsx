@@ -103,7 +103,11 @@ function CommandInput({
  * The consumer-facing `className` prop lands on `ScrollArea` (the element that actually owns the
  * height cap and clipping), matching this component's pre-migration contract where `className`
  * could override the `max-h-[300px]`/overflow behavior directly — not on the inner `List`, which no
- * longer owns any height/overflow of its own and would silently swallow such an override.
+ * longer owns any height/overflow of its own and would silently swallow such an override. The end-
+ * side gutter (`group-data-[scrollable-y=true]/scroll-area:pe-2`) is conditional on `ScrollArea`
+ * actually reporting overflow, never a bare unconditional `pe-2` — see CLAUDE.md's protocol note on
+ * why an unconditional gutter is its own bug (dead empty space whenever content fits without
+ * scrolling).
  */
 function CommandList({
   className,
@@ -116,7 +120,11 @@ function CommandList({
         className
       )}
     >
-      <CommandPrimitive.List data-slot="command-list" className="pe-2" {...props} />
+      <CommandPrimitive.List
+        data-slot="command-list"
+        className="group-data-[scrollable-y=true]/scroll-area:pe-2"
+        {...props}
+      />
     </ScrollArea>
   )
 }

@@ -366,7 +366,7 @@ function RailIconButton({
         transition: "background-color 150ms ease, color 150ms ease",
       }}
     >
-      <Icon className="size-5" filled={isActive || isBrowsing} />
+      <Icon className="size-5" filled={isActive || isBrowsing || isHovered || isPressed} />
       <span className="sr-only">{section.label}</span>
     </Button>
   )
@@ -1103,7 +1103,21 @@ export function FunctionalRailSidebar({
                   from L-21 is unaffected (still ~8.8px). */}
               <div className="flex-1 min-h-0 overflow-hidden p-2">
                 <ScrollArea className="size-full">
-                  <div className="p-1.5 pr-4">
+                  {/* DEPLOYMENT NOTE: `pr-4` is now CONDITIONAL
+                      (`group-data-[scrollable-y=true]/scroll-area:pr-4`), not a bare unconditional
+                      utility — matching origin's own real mechanism (RailNav.tsx's `navScrollable`
+                      state, computed via `el.scrollHeight > el.clientHeight` and re-checked on
+                      resize, gates `paddingRight: navScrollable ? SPACE[2] : 0` — origin's own code
+                      even names the anti-pattern this guards against, `SC.UNCONDITIONAL-SCROLLBAR-GAP`).
+                      An unconditional gutter leaves dead empty space on the scrollbar's side any time
+                      the tree happens to fit without scrolling — exactly what was found here: this
+                      panel's own content frequently fits without overflowing, so the previous bare
+                      `pr-4` was reserving 16px of unused space on the right for a scrollbar that
+                      wasn't even there. `ScrollArea`'s own `Root` now exposes `data-scrollable-y`
+                      (kept current via `ResizeObserver`, see src/ui/scroll-area.tsx) specifically so
+                      every consumer can condition its own gutter on it instead of reimplementing this
+                      check locally. */}
+                  <div className="p-1.5 group-data-[scrollable-y=true]/scroll-area:pr-4">
                     <PanelTree
                       nodes={filteredNodes}
                       depth={0}

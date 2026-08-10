@@ -199,7 +199,7 @@ function ComboboxList({ className, ...props }: ComboboxPrimitive.List.Props) {
     >
       <ComboboxPrimitive.List
         data-slot="combobox-list"
-        className="p-1 pe-2 data-empty:p-0"
+        className="p-1 group-data-[scrollable-y=true]/scroll-area:pe-2 data-empty:p-0"
         {...props}
       />
     </ScrollArea>

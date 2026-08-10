@@ -71,6 +71,21 @@ depend on that CSS percentage-definiteness rule. Any future occupant composing `
 `max-height`-capped ancestor (not a fixed-height one) should specifically verify `scrollTop` is actually
 functional and the scrollbar thumb genuinely renders — not just that the box visually clips.
 
+**Update 2 — the inner gutter must be conditional, never unconditional.** Reported directly by the user
+after the above migration shipped: several of the newly-migrated components (and the Rail Sidebar's own
+panel tree, in `limbo-factory/`) still carried a bare, always-on end-side gutter class (`pe-2`/`pr-4`)
+regardless of whether the content actually needed to scroll — visible dead space any time content happened
+to fit. Checked origin's real source (`RailNav.tsx`) and found it already solves this correctly: a
+`navScrollable` state, computed from `el.scrollHeight > el.clientHeight` and kept current via
+`ResizeObserver`, gates the gutter (`paddingRight: navScrollable ? SPACE[2] : 0`) — origin's own code even
+names the anti-pattern being guarded against (`SC.UNCONDITIONAL-SCROLLBAR-GAP`). Reproduced the same check
+directly inside `ScrollArea` itself (`data-scrollable-y`/`data-scrollable-x` on `Root`) so every consumer
+gets correct, conditional behavior automatically via a `group-data-[scrollable-y=true]/scroll-area:` variant
+instead of reimplementing the measurement per-component. Fixed in all four migrated `src/ui` components and
+the Rail Sidebar's tree panel; verified both directions live (gutter present when forced to overflow,
+absent when collapsed back to fitting) — this two-directional check is now folded into CLAUDE.md's protocol
+itself as a mandatory verification step, not just a one-off fix.
+
 ## Divergence-handling rule (mandatory, no exceptions)
 
 Whenever the Intake agent finds an element in the source that isn't cleanly pairable to an existing

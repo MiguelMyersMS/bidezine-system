@@ -142,7 +142,7 @@ function ContextMenuContent({
         {...props}
       >
         <ScrollArea className="flex-1 min-h-0 overflow-hidden">
-          <div className="pe-2">{children}</div>
+          <div className="group-data-[scrollable-y=true]/scroll-area:pe-2">{children}</div>
         </ScrollArea>
       </ContextMenuPrimitive.Content>
     </ContextMenuPrimitive.Portal>
