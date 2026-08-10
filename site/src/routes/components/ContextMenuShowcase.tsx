@@ -130,7 +130,12 @@ export function ContextMenuShowcase() {
           <code className="rounded bg-muted px-1 py-0.5 text-sm">
             reference/shadcn-ui/apps/v4/registry/new-york-v4/ui/context-menu.tsx
           </code>{" "}
-          unchanged.
+          , with one deliberate divergence: <code className="rounded bg-muted px-1 py-0.5 text-sm">
+            ContextMenuContent
+          </code>{" "}
+          composes the real <code className="rounded bg-muted px-1 py-0.5 text-sm">ScrollArea</code>{" "}
+          primitive instead of shadcn&rsquo;s plain <code className="rounded bg-muted px-1 py-0.5 text-sm">overflow-y-auto</code>{" "}
+          div (shadcn&rsquo;s own source never composes the two — see CLAUDE.md&rsquo;s Scroll region protocol).
         </p>
       </div>
       <ExampleBrowser examples={examples} />
