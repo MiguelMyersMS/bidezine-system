@@ -236,6 +236,43 @@ an element that has, or might ever gain, `overflow: hidden`/`truncate` — and w
 available, check whether it actually changes line-height between the two states being ported at all before
 assuming a tighter line-height is a deliberate, needed part of the "bold/active" treatment.**
 
+**Update 9 — real user-driven panel resize, via the real Resizable primitive, with a shadow-clipping
+regression caught and fixed mid-implementation (L-35).** Requested directly: "the Origin example has a
+functionality in the sidebar that allows to resize it, and there is an instruction of the min size allowed, i
+would like us to emulate that instruction and functionality but using our 'Resizable' primitive." Read origin's
+real mechanism first (RailNav.tsx): a hand-rolled `onMouseDown`/`window.addEventListener("mousemove"/"mouseup")`
+pair, clamping every drag to a hard-coded `PANEL_MIN_WIDTH = 240`, default `LAYOUT.panelW = 300`, and a dynamic
+max based on `window.innerWidth`. Reimplementing that same mouse-event plumbing would have been exactly the
+hand-rolled reimplementation this project's rules prohibit when a real primitive exists — bidezine's own
+`Resizable` primitive (`src/ui/resizable.tsx`, wrapping `react-resizable-panels`) already interprets
+`minSize`/`defaultSize`/`maxSize` as pixels (confirmed via its real `.d.ts`), a direct match for origin's own
+numbers. Wrapped only the panel's own bordered/elevated box in a `ResizablePanelGroup` — the Rail itself stays
+completely untouched — with the real panel as one `ResizablePanel` (`minSize=240`, `defaultSize=300`,
+`maxSize=380`, matching origin's real min/default), a `ResizableHandle withHandle` on its trailing edge, and an
+invisible "filler" `ResizablePanel` (`minSize=24`, mirroring origin's own 24px/`SPACE[6]` safety margin)
+absorbing the remaining space — the idiomatic equivalent of origin's own dynamic viewport-width cap, achieved
+via the primitive's own built-in space allocation instead of hand-rolled `window.innerWidth` math. Verified live
+via real mouse drag (not just prop inspection): the visible panel clamps at exactly 240px dragged left, exactly
+380px dragged right. **Caught and fixed a real regression mid-implementation, reported directly by the user
+while this fix was still in progress ("the shadow elevation of the sidebar seems truncated"):**
+`ResizablePanelGroup`'s own rendered box carries a real `overflow: hidden`, set internally by the vendored
+`react-resizable-panels` library itself (confirmed only via `getComputedStyle` on the live node — not visible
+in bidezine's own `resizable.tsx` recipe at all), and the panel's `shadow-md` sat with zero measured slack
+against the group's own edges — the exact same "ancestor overflow-hidden clips a decoration with zero slack"
+pattern as L-31, just with an un-removable vendored ancestor this time. Fixed by inserting a plain padding div
+INSIDE `ResizablePanel` (its own root node has an inline `padding: 0px` that a class can't override) and
+compensating by adding that same inset back into `minSize`/`defaultSize`/`maxSize`, so the VISIBLE panel still
+renders at exactly origin's real 240/300/380 numbers with zero drift — the inset is invisible in the resulting
+on-screen dimensions, present only in the underlying layout allocation. Re-verified after the shadow fix: 8px
+of real slack on every side, shadow renders fully at rest, at the 240px minimum, and at the 380px maximum
+(three separate live screenshots); no console errors on load (checked both the light and dark preview instances,
+which mount simultaneously in this sandbox). `limbo-factory` typechecks and builds cleanly in production mode.
+**The standing lesson, folded into CLAUDE.md checklist item 25: when wrapping an already-elevated element in a
+third-party primitive, measure the real slack against that primitive's OWN clipping boundary — which may only
+be visible in its live inline styles, not its exported className recipe — before assuming a shadow/decoration
+will render fully; if the fix requires an inset that would otherwise skew a numeric size the user (or a real
+reference source) cares about, compensate for it in the size props so the visible result stays exact.**
+
 
 
 Whenever the Intake agent finds an element in the source that isn't cleanly pairable to an existing

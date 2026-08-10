@@ -604,6 +604,26 @@ a genuinely new failure category is found — not evidence the list is now compl
     that introducing a line-height change was an unforced, avoidable divergence, not something being deliberately
     replicated from a real source.
 
+25. **When wrapping an existing, already-elevated element (a real `shadow-*`/`box-shadow`) in a third-party
+    primitive whose own internal implementation applies `overflow: hidden` to its OWN rendered box — not
+    something visible in the primitive's own exported className recipe, only in its live inline styles — measure
+    the real slack between the elevated element's box and that primitive's clipping boundary before assuming
+    the shadow will render fully.** Wrapping the Rail Sidebar's panel (its own real `shadow-md`) in
+    `ResizablePanelGroup` (L-35) clipped the shadow on every side, because `react-resizable-panels`' `Group`
+    applies its own `overflow: hidden` via an internal inline style (confirmed only via `getComputedStyle` on
+    the live rendered node — it is NOT part of bidezine's own `src/ui/resizable.tsx` className recipe, so
+    reading that file's source alone would never reveal it), and the panel's box sat with zero slack against
+    the group's edges. Unlike a bidezine-authored `overflow-hidden` (e.g. checklist item 21's own case), this
+    kind of ancestor clipping can't simply be deleted — it belongs to a vendored library. The fix has to add
+    real slack the elevated element's own side: since `ResizablePanel`'s own root node also carries an inline
+    `padding: 0px` (confirmed via `getComputedStyle` — a class added directly to `ResizablePanel` cannot
+    override an inline style), the slack must live on a plain, nested div INSIDE the primitive's own panel, not
+    on the primitive's root itself. If the slack changes what the panel's numeric size props (`minSize`/
+    `defaultSize`/`maxSize`) are meant to represent to a consumer or a real source's own instruction (here:
+    origin's real 240/300px numbers), compensate by adding the inset back into those props so the VISIBLE
+    element still renders at the intended size — the inset should be invisible to anyone reading the resulting
+    on-screen dimensions, only present in the underlying layout allocation.
+
 
 
 ## Three machines, one branch
