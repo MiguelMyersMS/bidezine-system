@@ -540,6 +540,16 @@ function PanelTree({
               <Button
                 type="button"
                 variant="ghost"
+                // L-29: `aria-pressed` reuses the EXACT same mechanism the leaf Button above already
+                // relies on for its own icon fill (Button's own `useActionIconFill` reads
+                // `props["aria-pressed"]` as its `active` input, then `fillActionIcons` clones every
+                // icon child with the resulting `filled` value automatically — see src/ui/button.tsx).
+                // No explicit `filled={...}` prop needed at this call site: setting `aria-pressed`
+                // here is enough to make this group's own content icon (node.icon) fill whenever the
+                // group is an ancestor of the active leaf, exactly mirroring the leaf row's existing
+                // `aria-pressed={isSelected}` pattern rather than introducing a second, parallel
+                // fill mechanism for this one call site.
+                aria-pressed={isAncestorOfActive}
                 // QA finding (see divergence row L-12): same has-[>svg]:px-3 vs px-2 conflict-group
                 // gap as the leaf Button above — repeating the override as a has-[>svg]: variant
                 // makes it actually win over Button's own default-size base recipe.
