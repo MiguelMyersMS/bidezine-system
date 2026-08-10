@@ -307,6 +307,20 @@ function collectGroupIds(nodes: PanelNode[]): string[] {
   return nodes.flatMap((n) => (n.kind === "group" ? [n.id, ...collectGroupIds(n.children)] : []))
 }
 
+/**
+ * True if `activeItemId` is a leaf anywhere inside this subtree — used to identify a group row as
+ * an ANCESTOR of the currently selected item, not just the selected leaf itself. Matches origin's
+ * real derivation (RailNav.tsx: `active (leaf or collapsed group on path) -> labelFont: TYPE.labelL`)
+ * — origin bolds the label for the active leaf AND every collapsed group on the path to it,
+ * regardless of expand state (only the row's background fill toggles off when a group is expanded).
+ */
+function containsActiveItem(nodes: PanelNode[], activeItemId: string | null): boolean {
+  if (!activeItemId) return false
+  return nodes.some((n) =>
+    n.kind === "leaf" ? n.id === activeItemId : n.id === activeItemId || containsActiveItem(n.children, activeItemId)
+  )
+}
+
 function RailIconButton({
   section,
   state,
@@ -467,7 +481,17 @@ function PanelTree({
               // failure class as M-18/M-19. Explicitly repeating the override AS a `has-[>svg]:`
               // variant (not just the plain utility) puts it in the same conflict group so it
               // actually replaces the base rule.
-              className="h-9 w-full justify-start gap-1.5 rounded-md px-2 has-[>svg]:px-2 text-left text-sm font-normal hover:bg-accent"
+              // L-28: the selected row's own label now carries `leading-none font-medium` (on top
+              // of the shared `text-sm`) instead of the unselected `font-normal` — matching origin's
+              // real derivation (RailNav.tsx: `labelFont = isActive ? TYPE.labelL : TYPE.bodyM`,
+              // where TYPE.labelL is 500-weight vs. bodyM's 400). `leading-none` has no visible
+              // effect on centering here (the row's height is fixed via `h-9`/`items-center` and
+              // the label is single-line/`truncate`), but is included to match the exact utility
+              // combination confirmed in this system's own ScrollArea demo heading.
+              className={cn(
+                "h-9 w-full justify-start gap-1.5 rounded-md px-2 has-[>svg]:px-2 text-left text-sm hover:bg-accent",
+                isSelected ? "leading-none font-medium" : "font-normal"
+              )}
               style={{
                 // QA finding (see divergence row L-10): this used to be `background: isSelected ?
                 // "var(--foreground)" : "transparent"` unconditionally — but an inline `style`
@@ -491,6 +515,10 @@ function PanelTree({
         }
 
         const isOpen = expanded.has(node.id)
+        // L-28: matches origin's real derivation of "active" for a group row — bold/tighter label
+        // whenever the currently selected leaf lives anywhere in this group's subtree, regardless
+        // of expand state (see the `containsActiveItem` doc comment above for the origin citation).
+        const isAncestorOfActive = containsActiveItem(node.children, activeItemId)
         return (
           <Collapsible key={node.id} open={isOpen} onOpenChange={() => onToggle(node.id)}>
             <CollapsibleTrigger asChild>
@@ -515,7 +543,13 @@ function PanelTree({
                 // QA finding (see divergence row L-12): same has-[>svg]:px-3 vs px-2 conflict-group
                 // gap as the leaf Button above — repeating the override as a has-[>svg]: variant
                 // makes it actually win over Button's own default-size base recipe.
-                className="h-9 w-full justify-start gap-1.5 rounded-md px-2 has-[>svg]:px-2 text-left text-sm font-normal hover:bg-accent"
+                // L-28: same selected-label treatment as the leaf row above, applied whenever this
+                // group is an ANCESTOR of the active leaf (i.e. "the parents it belongs to") — not
+                // only the leaf itself gets the bolder/tighter label.
+                className={cn(
+                  "h-9 w-full justify-start gap-1.5 rounded-md px-2 has-[>svg]:px-2 text-left text-sm hover:bg-accent",
+                  isAncestorOfActive ? "leading-none font-medium" : "font-normal"
+                )}
                 style={{ color: "var(--foreground)" }}
               >
                 {/* QA finding (see divergence row L-17): the chevron used to be the FIRST element
