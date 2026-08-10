@@ -22,6 +22,70 @@ So the order is deliberate:
 
 Adjusting before verifying makes it impossible to tell a deliberate change from a porting mistake.
 
+## Handoff protocol — `HANDOFF.md`
+
+`HANDOFF.md` (repo root) exists specifically because chat sessions in this environment have, more than
+once, become corrupted mid-conversation (every new message failing) with real, uncommitted work still
+sitting in the working tree — and a pasted chat transcript as the recovery mechanism is fragile: a new
+session reading a stale or partial transcript has previously caused already-fixed work to be silently
+reverted or re-derived incorrectly. `HANDOFF.md` replaces "paste the old chat" with "read one small,
+always-current file, then verify it against the real repo."
+
+**The one rule: `HANDOFF.md` is a snapshot of current truth, never a log.** Unlike `LIMBO-PROTOCOL-LOG.md`
+or the divergence logs in `rail-sidebar.ts` (which are deliberately append-only historical records —
+never delete or rewrite an old entry there), `HANDOFF.md` holds no history at all. Every session that
+touches it must **overwrite** the relevant section in place, not add a new dated entry underneath the old
+one. If a fact in it becomes stale (a task finishes, a plan changes), replace that fact — don't leave the
+old one there "for the record." History belongs in the append-only logs; `HANDOFF.md` only ever describes
+right now.
+
+**Required update points — update `HANDOFF.md` in the SAME commit as the work it describes, not after:**
+1. **Starting a new task or resuming an interrupted one** — update "Active task" to describe what's being
+   worked on and why, in enough detail that a fresh session could continue without any other context.
+2. **Completing a meaningful unit of work** — move it out of "Active task" into "What's done," overwriting
+   that section's own prior content to describe the CURRENT end state (not "also did X" appended to what
+   was already there — rewrite the whole section to reflect where things stand now). Update "Baseline" to
+   the new commit/tag if one was made.
+3. **When a task is fully finished and there is nothing in progress** — collapse ALL sections back to their
+   empty/minimal state (see the template below) except "Baseline," which should point at the final
+   commit/tag. Do not leave completed-task detail sitting in "What's done" indefinitely — once it's
+   durably recorded in the real logs (`LIMBO-PROTOCOL-LOG.md`, a divergence log, commit messages), it no
+   longer needs to live in `HANDOFF.md` too. `HANDOFF.md` empty and clean is the correct end state, not a
+   failure to document — it means "there is nothing to hand off."
+
+**Template (this is what a fully-clean `HANDOFF.md` looks like):**
+```markdown
+## Baseline
+- Branch: `main`
+- Last verified commit: `<hash>`
+- Tag: `<tag, if one exists>`
+- Working tree: clean, pushed to `origin/main`
+
+## Active task
+_None. Nothing in progress._
+
+## What's done (most recent, current state — not a history)
+_(only if there's something a new session needs to know that isn't yet durably logged elsewhere)_
+
+## What's next
+_Nothing queued. Awaiting new instructions._
+
+## Open questions / blockers
+_None._
+```
+
+**Recovery workflow for a NEW/replacement chat session (do this before touching any code):**
+1. Read `HANDOFF.md` in full.
+2. Run `git log --oneline -10`, `git status`, and `git tag` (or check the specific tag `HANDOFF.md`
+   names) to confirm the claimed baseline commit is real, current, and the working tree matches what
+   `HANDOFF.md` describes (clean vs. dirty, pushed vs. ahead/behind).
+3. If `HANDOFF.md` names an "Active task" or specific files, open those files and confirm the live code
+   actually matches what's described — never assume a prior session's own claim of "done" or "verified" is
+   still accurate without checking the real, current source (this is the same rule Primitive Fidelity
+   Checklist item 5 already states for any other "resolved" record in this project).
+4. Only after that verification, resume work — and if the prior chat's own claims turn out to be wrong or
+   incomplete, treat that as a real finding to report, not something to silently patch over.
+
 ## Layout
 
 | Path | What |
@@ -37,6 +101,7 @@ Adjusting before verifying makes it impossible to tell a deliberate change from 
 | `scripts/build-icons.mjs` | Emits `src/icons/generated.tsx` from the manifest. Generated and gitignored. Fails loudly if a manifest entry doesn't resolve. |
 | `limbo/` | Holding area for components being ported from a foreign design system. Each occupant lives here until it passes the full Limbo protocol and is promoted into `src/ui/`. See `LIMBO-PROTOCOL-LOG.md` for the gate sequence. |
 | `limbo-factory/` | Dedicated local dev environment (port 4199) for the active Limbo transformation. Built entirely from real `@bidezine/system` components. Never merged into `dist/` or shipped to consumers. |
+| `HANDOFF.md` | Live, always-current session state snapshot — NOT a log. Overwritten in place on every update; collapses to an empty template when nothing is in progress. See "Handoff protocol" above for the full rules. |
 
 ## Rules that matter
 
