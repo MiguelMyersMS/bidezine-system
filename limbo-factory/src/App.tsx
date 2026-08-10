@@ -119,7 +119,7 @@ function QuadrantLayout({
         </ScrollArea>
       </div>
       <div className="box-border h-full min-h-0 min-w-0 w-full px-[8px]">
-        <div className="box-border flex h-full min-h-0 w-full items-center justify-center overflow-hidden rounded-lg p-6">
+        <div className="box-border flex h-full min-h-0 w-full items-center justify-start overflow-hidden rounded-lg p-6">
           <FillHeight render={right} />
         </div>
       </div>
@@ -131,6 +131,20 @@ function QuadrantLayout({
  * Measures the available stage height (after padding) and renders its child at exactly that
  * height, so a fixed-size example — like the RailNav preview — always fills the y-axis instead
  * of overflowing through the padding (too tall) or floating with extra gaps (too short).
+ *
+ * QA finding (see divergence row L-38): horizontal centering here (`justify-center`, on both this
+ * wrapper and its parent stage box in `QuadrantLayout` above) centered the ENTIRE Rail+Panel
+ * composite as one unit. Origin's real `RailNav.tsx` never does this — the rail's own `<aside>` is
+ * `flexShrink: 0` and sits at a fixed position in the page's own flex row; only the panel/content
+ * next to it flexes. When the composite's total rendered width exceeded the available stage width
+ * (rail + gap + panel + shadow insets + invisible filler panel, easily wider than a half-quadrant
+ * column), `justify-center` centered the oversized row and the ancestor's `overflow-hidden` clipped
+ * the overflow from BOTH edges equally — chopping off the narrow, leftmost Rail almost entirely
+ * while the much wider Panel (sitting nearer the middle of the oversized row) stayed fully visible.
+ * Confirmed via a live screenshot: the 54px icon rail was invisible except for a sliver of the
+ * resize handle, with the Panel filling the whole stage. Fixed by anchoring the composite to the
+ * start of the row (`justify-start`) instead of centering it, so the Rail's own position is
+ * invariant to the Panel's width — matching Origin's real anchored-rail contract.
  */
 function FillHeight({ render }: { render: (height: number) => React.ReactNode }) {
   const outerRef = useRef<HTMLDivElement>(null)
@@ -149,7 +163,7 @@ function FillHeight({ render }: { render: (height: number) => React.ReactNode })
   }, [])
 
   return (
-    <div ref={outerRef} className="flex h-full w-full items-center justify-center">
+    <div ref={outerRef} className="flex h-full w-full items-center justify-start">
       {height > 0 ? render(height) : null}
     </div>
   )

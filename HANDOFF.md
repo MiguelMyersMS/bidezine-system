@@ -9,8 +9,7 @@
 ## Baseline
 
 - Branch: `main`
-- Last verified commit: `fbe5587`
-- Tag: `rail-sidebar-L37-baseline`
+- Last verified commit: `11b67f7`
 - Working tree: clean, pushed to `origin/main`
 
 ## Active task
@@ -20,9 +19,11 @@ _None. Nothing in progress._
 ## What's done (most recent, current state — not a history)
 
 - Rail Sidebar panel resize (`react-resizable-panels`) ships with correct shadow clearance on all four
-  sides and no height regression. Divergence log entries L-35/L-36/L-37 in
-  `limbo-factory/src/data/rail-sidebar.ts` and `LIMBO-PROTOCOL-LOG.md` Update 9/10 are the durable record
-  of this and are already verified against the live component (`FunctionalRailSidebar.tsx`).
+  sides and no height regression (L-35/L-36/L-37, see `limbo-factory/src/data/rail-sidebar.ts` and
+  `LIMBO-PROTOCOL-LOG.md` Update 9/10).
+- Factory-line preview stage (`limbo-factory/src/App.tsx`) anchors the Rail+Panel composite
+  (`justify-start`) instead of centering it, fixing the Rail being almost entirely clipped (L-38, see
+  `limbo-factory/src/data/rail-sidebar.ts` and `LIMBO-PROTOCOL-LOG.md` Update 11). User-confirmed live.
 
 ## What's next
 

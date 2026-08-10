@@ -321,6 +321,39 @@ simultaneously at that corner, not just along each flat edge independently — a
 (flush, no visible gap along the straight run) while still clipping the shadow specifically at the corner where
 it curves.
 
+**Update 11 — the Rail was almost entirely invisible in the factory line's own preview stage, caused by
+horizontally CENTERING the whole Rail+Panel composite rather than anchoring it (L-38).** Reported directly by the
+user, with a screenshot: "i noticed that in my limbo factory the example view located at the right the rail seems
+off... ideally the rail should be statically located... with a separation as documented for the origin example
+RailNav." Investigated via code first, since no browser/screenshot tool was available in this session — confirmed
+`FunctionalRailSidebar.tsx`'s own DOM order was already correct (Rail renders before the Panel), ruling out a
+component-internal bug, then traced the real cause to `limbo-factory/src/App.tsx`'s `QuadrantLayout`/`FillHeight`:
+both the stage box and `FillHeight`'s own inner wrapper used `items-center justify-center`, centering the ENTIRE
+Rail+Panel composite as one unit — a direct divergence from Origin's real `RailNav.tsx` contract, where the rail
+is `flexShrink: 0` and positionally fixed while only the panel/content next to it flexes. When the composite's
+total rendered width (rail + gap + panel + shadow insets + the invisible filler `ResizablePanel` from L-35)
+exceeded the available half-quadrant stage width, `justify-center` centered the oversized row and the ancestor's
+`overflow-hidden` clipped the overflow equally from BOTH edges — chopping off the narrow, leftmost Rail almost
+entirely while the much wider Panel (sitting nearer the middle of the oversized row) stayed fully visible.
+Confirmed exactly this via the user's own screenshot: the dark rail was invisible except for a sliver of the
+resize handle, with the panel filling the whole stage. Per the user's own "recognize, recommend, don't act"
+instruction, proposed the fix before touching anything: change both `justify-center` occurrences to
+`justify-start`, anchoring the composite to the row's start instead of centering it, so the Rail's own position is
+invariant to the Panel's width. Approved, then implemented — vertical centering (`items-center`) was left
+untouched on both, since that's just stage framing and was never part of the divergence. The dev server was also
+found not running (`ERR_CONNECTION_REFUSED`, unrelated to this fix — it had simply stopped) and was restarted as
+part of verifying the change. The user confirmed live, after refreshing, that the full rail is now visible
+alongside the panel as expected. `limbo-factory` typechecks and builds cleanly in production mode.
+**Standing lesson:** this is a distinct failure mode from every prior overflow/clipping entry in this log — those
+were all about an ancestor clipping a DECORATION (a shadow, a focus ring) that extends past a child's own box.
+This one clips a real, functional CHILD ELEMENT (the entire Rail) because a symmetric `justify-center` treats
+overflow as safe to trim equally from both sides, when in fact one side (the anchor element) must never be
+trimmed at all. Whenever a composite of an "anchor" element (fixed-size, must stay fully visible/positioned) and
+a "flexible" element (meant to grow/shrink, like a resizable panel) is placed in a container that might be
+narrower than their combined width, use an anchoring justify value (`justify-start`/`justify-end`) matching the
+anchor's real position, never `justify-center` — centering silently assumes both children are equally safe to
+clip, which is almost never true for a rail/sidebar-style layout.
+
 
 
 Whenever the Intake agent finds an element in the source that isn't cleanly pairable to an existing
