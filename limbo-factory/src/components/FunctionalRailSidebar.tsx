@@ -434,10 +434,32 @@ function PanelBadge({ label }: { label: string }) {
  * nearest one, which silently broke here once the site wraps every page (including this rail panel)
  * in its own outer, almost-always-scrollable `ScrollArea` (see src/ui/scroll-area.tsx's authoring
  * note for the full root-cause writeup, logged as L-26).
+ *
+ * QA finding (see divergence row L-33): this used to carry an unconditional base `p-1.5` (6px, all
+ * sides) on top of its own conditional `pr-4` gutter. That base padding was the ONLY padding source
+ * back when this component was first written (L-18), but once the parent `<div className="...p-2">`
+ * wrapper was added around the whole `ScrollArea` (L-21, to give the scrollbar clearance from the
+ * PANEL's own outer edge), nobody reconciled the two — this inner `p-1.5` became a second, redundant
+ * layer stacked on top of the outer one on the left/top/bottom sides, where nothing needs any extra
+ * clearance at all. Measured live: the tree rows sat 14px from the panel's content edge (8px outer +
+ * 6px inner) while the search box above — which only ever passes through ONE padding layer, its own
+ * `px-2 pt-2` wrapper — sat at a proper 8px, making the options area look noticeably "too deep."
+ * Confirmed against origin's real source (reference/origin-design-system/gallery/RailNav.tsx, its
+ * "NavPanelShell FRAME" ~lines 989-1013): origin's outer shell owns a single `padding: SPACE[2]px`
+ * (8px, all sides) and its inner `<nav>` carries ZERO base padding of its own — only the same kind of
+ * conditional right-only scrollbar gutter this file already has (`paddingRight: navScrollable ?
+ * SPACE[2] : 0`). Origin never double-stacks a second uniform padding layer; bidezine's did, purely
+ * as an artifact of two separate historical fixes (L-18, L-21) that were each correct in isolation
+ * but never reconciled with each other. FIXED by dropping the redundant base `p-1.5` entirely, keeping
+ * only the conditional right-side gutter — this is mathematically a no-op for the scrollbar-clearance
+ * behavior itself (Tailwind's `pr-4` already overrode, not added to, `p-1.5`'s own right value via
+ * tailwind-merge, so the scrollable-state right gap is unchanged), while making the left/top/bottom
+ * sides match the search box's single-layer 8px exactly, same as origin's real single-outer-padding
+ * structure.
  */
 function PanelTreeScrollGutter({ children }: { children: React.ReactNode }) {
   const { scrollableY } = useScrollAreaOverflow()
-  return <div className={cn("p-1.5", scrollableY && "pr-4")}>{children}</div>
+  return <div className={cn(scrollableY && "pr-4")}>{children}</div>
 }
 
 function PanelTree({

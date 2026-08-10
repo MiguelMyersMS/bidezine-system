@@ -181,6 +181,34 @@ CLAUDE.md checklist item 22: when a real primitive lacks a concept a sibling pri
 convention — a locally-scoped workaround at one call site cannot substitute for a capability gap in the
 primitive, and often silently fails outright (as the dead `filled` prop did here).**
 
+**Update 7 — the panel's options/tree area had double-stacked padding versus the search box (L-33).** The user
+reported the tree area below the search box looked noticeably "too deep," especially on the left, while the
+search box itself looked properly inset. Investigated live before proposing anything: the search box's own
+visible left border sat at a single 8px inset (its own, sole `px-2 pt-2` wrapper), while the first tree row's
+own visible edge sat 14px in — a real, measured double-count, not a perception issue. Root cause: two separate,
+individually-correct historical fixes were never reconciled with each other. `PanelTreeScrollGutter` carried an
+unconditional `p-1.5` (6px, all sides) from L-18, back when it was the ONLY padding source for the tree; then
+L-21 added an entirely separate outer `p-2` (8px, all sides) around the whole `ScrollArea`, to solve an unrelated
+problem (giving the scrollbar clearance from the panel's own OUTER edge). Nobody went back to reduce the older,
+now-redundant inner padding once the newer outer wrapper took over providing that same left/top/bottom
+clearance. Confirmed against origin's real source (reference/origin-design-system/gallery/RailNav.tsx, its
+"NavPanelShell FRAME" ~lines 989-1013) before deciding on a fix: origin's real outer shell owns a single
+`padding: SPACE[2]px` (8px, all sides) and its inner `<nav>` carries ZERO base padding of its own — only the
+same kind of conditional right-only scrollbar gutter this file already has. Origin never double-stacks a second
+uniform padding layer; bidezine's did, purely as an unreconciled artifact. FIXED by removing
+`PanelTreeScrollGutter`'s unconditional base `p-1.5` entirely, keeping only its existing conditional right-side
+gutter — mathematically a no-op for the already-verified scrollbar-clearance behavior (Tailwind's `pr-4` already
+overrode, not added to, `p-1.5`'s own right-side value), while making the left/top/bottom sides rely solely on
+the outer `p-2`, matching both the search box's own single-layer inset and origin's real structure exactly.
+Verified live: the first tree row's left edge is now pixel-identical to the search box's own left edge (was a
+6px mismatch), and the search-box-to-first-row gap dropped from 14px to ~8px, matching the panel's existing
+rhythm. Separately re-confirmed the right-side scrollbar-clearance mechanism is byte-for-byte unchanged.
+`limbo-factory` typechecks and builds cleanly in production mode. **The standing lesson, folded into CLAUDE.md
+checklist item 23: when a second wrapper is added around an already-padded element for a genuinely different
+reason, explicitly re-derive the ancestor chain's TOTAL effective padding on every side afterward, not just the
+new wrapper's own value in isolation — and compare it against a visually-adjacent sibling that should read as
+"the same amount of inset."**
+
 
 
 Whenever the Intake agent finds an element in the source that isn't cleanly pairable to an existing

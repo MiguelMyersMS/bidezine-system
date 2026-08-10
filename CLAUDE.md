@@ -564,6 +564,27 @@ a genuinely new failure category is found — not evidence the list is now compl
     primitive (`Button`, `SidebarMenuButton`, etc.) that the fix should mirror for consistency — a real per-item
     "selected" indicator is a primitive-level capability question, not a one-off styling patch.
 
+23. **When a second wrapper is added around an element that already has its own padding — for a genuinely
+    different reason than the first wrapper's padding exists — audit whether the two now double-count the SAME
+    side(s), not just whether each one is independently justified.** The Rail Sidebar's panel tree area (L-33)
+    ended up with a `PanelTreeScrollGutter` carrying an unconditional `p-1.5` (6px, all sides — added at L-18,
+    when it was the ONLY padding source for the tree) nested inside a separate outer `p-2` (8px, all sides —
+    added later at L-21, to solve an entirely unrelated problem: giving the scrollbar clearance from the panel's
+    own OUTER edge). Both additions were correct and well-reasoned in isolation at the time each was made, but
+    nobody went back and asked whether the earlier one was now redundant with the later one — so the tree's
+    left/top/bottom sides silently paid for the same 8px of clearance twice (14px total), while a sibling element
+    (the search box above it) that only ever passes through ONE such wrapper stayed at a proper 8px, making the
+    tree look conspicuously "too deep" by comparison. The fix is never to just add a THIRD layer of overrides to
+    compensate — it's to identify which of the two (or more) existing wrappers is now doing genuinely redundant
+    work on a given side, and remove ONLY that redundant contribution, keeping whichever wrapper's reasoning for
+    that side still holds (here: the outer `p-2`, since it independently also serves the still-real scrollbar-
+    to-panel-edge concern from L-21) while trimming the older one back to only what it's still uniquely
+    responsible for (here: nothing on left/top/bottom, but still the conditional right-side scrollbar-to-content
+    gutter, which the outer wrapper cannot provide since it isn't inside the scrollable viewport). Whenever a new
+    wrapper's padding is added around an already-padded element for a new, different reason, explicitly re-derive
+    the ancestor chain's TOTAL effective padding on every side afterward (not just the new wrapper's own value in
+    isolation) and compare it against a visually-adjacent sibling that should read as "the same amount of inset."
+
 
 
 ## Three machines, one branch
