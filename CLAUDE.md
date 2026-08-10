@@ -585,6 +585,25 @@ a genuinely new failure category is found — not evidence the list is now compl
     the ancestor chain's TOTAL effective padding on every side afterward (not just the new wrapper's own value in
     isolation) and compare it against a visually-adjacent sibling that should read as "the same amount of inset."
 
+24. **Never reduce `line-height` below a font's safe descender clearance on an element that also has (or might
+    ever gain) `overflow: hidden`/`truncate` — glyphs paint per the font's own ascent/descent metrics regardless
+    of line-height, so a line box shrunk to exactly `font-size` (`leading-none`, line-height: 1) WILL clip
+    descenders (g/y/p/q/j) the instant anything on that element clips overflow.** The Rail Sidebar's active-path
+    tree row labels (L-34) used `"leading-none font-medium"` to bold+tighten the selected row's text — but the
+    SAME `<span>` already carried `truncate` (`overflow: hidden; text-overflow: ellipsis; white-space: nowrap`)
+    for its own horizontal ellipsis, so Inter's descender on any bolded row's "g"/"y" (e.g. "Schedules", "System
+    logic") was clipped right at the bottom of the now-14px (font-size-equal) line box — invisible on rows
+    without a descender letter, which is why it looked like it "appeared and disappeared" depending on which
+    label happened to be active. This is a deterministic interaction, not a rendering fluke: confirm via
+    `getComputedStyle` that `line-height` is genuinely ≥ the font's own safe default (Tailwind's `text-sm` pairs
+    14px with a 20px/1.43 line-height for exactly this reason) before ever applying `leading-none`/`leading-tight`
+    to real, dynamic text content (as opposed to purely decorative or icon-only elements, where a tight
+    line-height is safe because there's no descender to clip). If two visual states (active vs. inactive) are
+    both real text, check whether the origin/reference source actually changes line-height between them at all —
+    here it didn't (`bodyM`/`labelL` share `lineHeight: 1.55`, only `fontWeight` differs), which is itself a signal
+    that introducing a line-height change was an unforced, avoidable divergence, not something being deliberately
+    replicated from a real source.
+
 
 
 ## Three machines, one branch

@@ -209,6 +209,33 @@ reason, explicitly re-derive the ancestor chain's TOTAL effective padding on eve
 new wrapper's own value in isolation — and compare it against a visually-adjacent sibling that should read as
 "the same amount of inset."**
 
+**Update 8 — active-path row labels clipped their own descenders (L-34).** The user reported "in the menus
+text get truncated specially at the bottom", then, after some investigation into the wrong surface (dropdown
+menus), redirected with "check the text in the sidebar" — pointing at the real location. Measured live: the
+shared `pathEmphasis()` helper (L-28/L-29/L-30's single source of truth for active-path row emphasis) applied
+`"leading-none font-medium"` to any row on the active path, compiling to `line-height: 14px` — exactly equal
+to the 14px font-size — confirmed via `getComputedStyle` on Monthly/Schedules/System logic (all active-path),
+vs. `line-height: 20px` on regular rows (Daily, Rules engine). The label span also carries `truncate`
+(`overflow: hidden`) for its own horizontal ellipsis. Combining a 100%-line-height box with `overflow: hidden`
+on the same element is a deterministic interaction: glyphs paint per the font's own ascent/descent metrics
+regardless of line-height, so Inter's descender on any bolded row with a "g"/"y" ("Schedules", "System logic")
+got clipped right at the box's bottom edge — confirmed visually via a before/after screenshot of the "g" in
+"Schedules" (tight/clipped loop before, full clean loop after). This also explains why the bug read as
+intermittent across the session's history — it's invisible on any active row whose label happens to have no
+descender letter. Checked origin's real tokens (`tokens.ts`) before deciding on a fix: `bodyM` (rest) and
+`labelL` (active) share the IDENTICAL `lineHeight: 1.55` — origin only ever changes `fontWeight` between these
+states, never line-height, so `leading-none` had zero origin basis to begin with; removing it is a correction
+TOWARD origin's real convention, not a new divergence from it. FIXED by dropping `leading-none` from
+`pathEmphasis()`'s active-path branch, keeping only `font-medium` — restores every row to the same `text-sm`
+20px line-height already safely used everywhere else. Verified live: `line-height: 20px` on all active-path
+rows post-fix, `font-weight: 500` still correctly applied, row heights unchanged (each row's outer height comes
+from the button's own fixed sizing, not the label's line-height), and the icon-fill/`aria-pressed` wiring is
+completely untouched. `limbo-factory` typechecks and builds cleanly in production mode. **The standing lesson,
+folded into CLAUDE.md checklist item 24: never reduce line-height below a font's safe descender clearance on
+an element that has, or might ever gain, `overflow: hidden`/`truncate` — and when a reference source is
+available, check whether it actually changes line-height between the two states being ported at all before
+assuming a tighter line-height is a deliberate, needed part of the "bold/active" treatment.**
+
 
 
 Whenever the Intake agent finds an element in the source that isn't cleanly pairable to an existing

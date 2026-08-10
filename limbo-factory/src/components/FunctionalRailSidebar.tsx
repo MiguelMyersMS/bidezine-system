@@ -330,12 +330,30 @@ function containsActiveItem(nodes: PanelNode[], activeItemId: string | null): bo
  * a future edit to either the leaf row or the group row can't update one without the other: spread
  * the `ariaPressed` result directly onto `Button`'s own `aria-pressed` prop (which its built-in
  * `useActionIconFill`/`fillActionIcons` wiring already reads for icon fill — see src/ui/button.tsx),
- * and the `className` result into the row's own `cn(...)` call for the label weight/leading.
+ * and the `className` result into the row's own `cn(...)` call for the label weight.
+ *
+ * QA finding (see divergence row L-34): this used to also carry `leading-none` on the active-path
+ * branch (`"leading-none font-medium"`), collapsing the label's own line-height to exactly its
+ * font-size (14px, confirmed live via getComputedStyle — was `line-height: 14px` on every
+ * active-path row, vs. `20px` on regular rows). The label span also carries `truncate`
+ * (`overflow: hidden; text-overflow: ellipsis; white-space: nowrap`) for its horizontal ellipsis —
+ * so any glyph with a descender (g/y/p/q/j — "Schedules", "System logic", etc.) rendered per the
+ * font's own ascent/descent metrics past that reduced 14px line box, and `overflow: hidden` clipped
+ * it right at the bottom, specifically only on bolded/active-path rows. Confirmed against origin's
+ * real tokens (design-system's `tokens.ts`): `bodyM` (rest) and `labelL` (active) share the IDENTICAL
+ * `lineHeight: 1.55` — origin only ever changes `fontWeight` between these two states, never
+ * line-height. `leading-none` had no origin basis at all; it was a bidezine-introduced value with
+ * nothing to preserve. FIXED by dropping it, keeping only the weight change — restores the row to
+ * the same `text-sm` 20px line-height every regular row already safely uses (verified: plenty of
+ * descender clearance, no clipping), and makes bidezine's active/inactive label contract match
+ * origin's real "only weight changes" convention exactly. Row height is unaffected (each row's
+ * outer height comes from the button's own fixed sizing, not the label's line-height), so this is
+ * a pure text-rendering fix with no layout/spacing regression.
  */
 function pathEmphasis(isOnActivePath: boolean) {
   return {
     ariaPressed: isOnActivePath,
-    className: isOnActivePath ? "leading-none font-medium" : "font-normal",
+    className: isOnActivePath ? "font-medium" : "font-normal",
   }
 }
 
