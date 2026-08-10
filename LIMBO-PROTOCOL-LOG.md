@@ -134,6 +134,29 @@ computed once per row. **The standing lesson: when a fix is "durably enforced," 
 protocol rule AND, wherever feasible, a code-level structural guard that makes the specific defect class
 impossible to reintroduce — a divergence-log entry alone is a historical record, not a guardrail.**
 
+**Update 5 — a truncated focus-ring halo traced to a zero-slack `overflow-hidden` wrapper (L-31).** The user
+reported the rail's keyboard focus ring (`Button`'s own real, correct `focus-visible:ring-[3px]` — never
+rail-specific, never touched by this fix) appeared truncated around the rail icons. Investigated live via
+genuine keyboard Tab navigation (not `.focus()`, which was found not to reliably trigger `:focus-visible`
+depending on the browser's last-input-modality heuristic) before proposing anything, per the user's explicit
+"recognize the issue, recommend a fix, don't act without my feedback" instruction: measured the rail nav
+column's own `<div overflow-hidden>` wrapper and found its rendered box was pixel-identical to the buttons it
+contained — zero padding slack of its own — so its `overflow-hidden` clipped the ENTIRE 3px ring on every
+side. Confirmed this was not an Origin-contamination issue either direction: Origin's own real ring is plain
+CSS `outline` (`FOCUS.style`), not `box-shadow`, but an ancestor's `overflow-hidden` clips both identically —
+the ring mechanism was never the problem, only the surrounding layout's slack. Validated the fix with a
+throwaway DOM mutation before committing to it: removing the inner wrapper's `overflow-hidden` (keeping
+`min-h-0 flex-1`, the actual footer-anchoring mechanism from F-11) let the ring render fully, with zero
+regression to footer anchoring, and confirmed the outer rail column already independently stretches to the
+same fixed height with its own `overflow-hidden` + real 8px padding — meaning it already redundantly guards
+against the transient "all sections render before `ResizeObserver` trims them" overflow flash this inner
+wrapper's `overflow-hidden` was likely also there for. Fixed for real once approved, verified again via
+keyboard navigation and a rebuilt production build. **The standing lesson, folded into CLAUDE.md checklist
+item 21: an `overflow-hidden` wrapper sized with zero slack around its children clips anything meant to
+render outside those children's own box — not only scrollbars (item 14's original, narrower framing), but
+focus rings, badges, carets, any decorative overlay — enumerate everything allowed to render outside a
+wrapper's direct children before adding `overflow-hidden` to it, or when auditing one that already has it.**
+
 
 
 Whenever the Intake agent finds an element in the source that isn't cleanly pairable to an existing

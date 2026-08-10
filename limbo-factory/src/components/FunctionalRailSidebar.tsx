@@ -807,8 +807,23 @@ export function FunctionalRailSidebar({
               reordering the DOM or by absolute/fixed positioning, and the footer's own items still
               render in normal top-to-bottom order (Profile above Settings) — only the GROUP as a
               whole is bottom-anchored. Preserve this same flex-1-spacer approach in any real Build
-              reimplementation. */}
-          <div ref={trackRef} aria-label="Main navigation" role="navigation" className="flex min-h-0 flex-1 flex-col gap-1 overflow-hidden">
+              reimplementation.
+
+              QA finding (see divergence row L-31): this div previously ALSO carried `overflow-hidden`
+              directly on itself. That wrapper has no padding of its own — its rendered box is sized
+              EXACTLY to the 38px-wide rail buttons it contains (confirmed via getBoundingClientRect:
+              its own left/right edges were pixel-identical to a button's) — so its own overflow-hidden
+              clipped anything rendered even 1px outside a button's own box, including the ENTIRE 3px
+              `focus-visible:ring-[3px]` ring every real Button already renders (Button's own real,
+              shared, correct convention — not something added for the rail). Removed `overflow-hidden`
+              from this specific div; the outer rail column (the `p-2` dark surface wrapping this whole
+              group, two levels up) already stretches to the same fixed rail height and already carries
+              its own `overflow-hidden` with real 8px slack on every side — verified this still fully
+              suppresses the transient "all `TOP_SECTIONS` render before the ResizeObserver-driven
+              `pinnedCount` trims them down" flash (see the `recalc()` effect below) this div's own
+              overflow-hidden was ALSO incidentally guarding against, while now giving the focus ring
+              genuine room to render. `min-h-0 flex-1` (the actual footer-anchoring mechanism) stays. */}
+          <div ref={trackRef} aria-label="Main navigation" role="navigation" className="flex min-h-0 flex-1 flex-col gap-1">
             {pinnedSections.map((section) => (
               <RailIconButton
                 key={section.id}

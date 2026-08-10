@@ -529,6 +529,23 @@ a genuinely new failure category is found — not evidence the list is now compl
     one visual property while silently leaving another stale — exactly what happened here across two separate
     commits before the icon half was caught.
 
+21. **Any `overflow-hidden` wrapper sized with zero padding slack around its own children will clip anything meant
+    to render OUTSIDE those children's own box — not just scrollbars (item 14's original framing), but focus
+    rings, absolutely-positioned badges, dropdown carets, or any other decorative element that legitimately
+    extends past its host element's border box.** The Rail Sidebar's nav column (L-31) wrapped its buttons in a
+    `<div overflow-hidden>` sized *exactly* to the 38px buttons themselves (confirmed via `getBoundingClientRect`:
+    the wrapper's own left/right edges were pixel-identical to a button's) — so every rail button's real, correct
+    `focus-visible:ring-[3px]` (`Button`'s own shared convention, untouched and already correct) was invisible,
+    clipped by a container with zero slack for it to render into. Before adding `overflow-hidden` to any wrapper,
+    or auditing one that already has it, explicitly enumerate everything that's allowed to render outside its
+    direct children's own boxes at rest, hover, focus, and every other interactive state — an outline/box-shadow
+    ring, a notification dot, a tooltip arrow, anything with a negative margin or absolute positioning — and
+    confirm real measured slack (not assumed) exists between the child's own edge and the clipping boundary for
+    each one. If a nested wrapper's `overflow-hidden` is redundant with an ancestor's own (as it was here — the
+    outer rail column already stretched to the same fixed height and already clipped with real padding), prefer
+    removing the tighter, zero-slack one and relying on the looser ancestor instead of trying to add padding to
+    the tight one, which risks visually shifting the very layout the wrapper was sized around.
+
 
 
 ## Three machines, one branch
