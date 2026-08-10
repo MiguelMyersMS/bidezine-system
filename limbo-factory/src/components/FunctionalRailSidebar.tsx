@@ -876,10 +876,25 @@ export function FunctionalRailSidebar({
                       design system and changing its base recipe is a wider decision than this rail
                       component's own scope covers. Flagged back to the user as a broader question:
                       should every real menu-item primitive (DropdownMenuItem/ContextMenuItem/
-                      MenubarItem/CommandItem, etc.) gain this truncation by default system-wide? */}
+                      MenubarItem/CommandItem, etc.) gain this truncation by default system-wide?
+
+                      QA finding (see divergence row L-32): `filled={section.id === activeSectionId}`
+                      on the icon below was DEAD CODE -- DropdownMenuItem's own `fillActionIcons`
+                      wiring unconditionally overrides any icon child's `filled` prop based on its
+                      own hover/press tracking, so this explicit value never actually applied, and
+                      there was no other visual difference (background, text weight) for the
+                      currently-active stashed section at all. FIXED at the primitive level, not
+                      here: DropdownMenuItem now accepts a real `isActive` prop (mirroring Button's
+                      own `active` and Sidebar's own `SidebarMenuButton.isActive`), which drives
+                      background + font-weight + icon-fill together from one boolean -- passed
+                      below instead of the old dead `filled` prop. */}
                   {stashedSections.map((section) => (
-                    <DropdownMenuItem key={section.id} onSelect={() => handleRailClick(section)}>
-                      <section.icon className="size-4" filled={section.id === activeSectionId} />
+                    <DropdownMenuItem
+                      key={section.id}
+                      isActive={section.id === activeSectionId}
+                      onSelect={() => handleRailClick(section)}
+                    >
+                      <section.icon className="size-4" />
                       <span className="min-w-0 flex-1 truncate">{section.label}</span>
                     </DropdownMenuItem>
                   ))}

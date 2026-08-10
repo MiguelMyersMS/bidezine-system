@@ -89,11 +89,28 @@ function DropdownMenuGroup({
   )
 }
 
+/**
+ * Deliberate divergence from shadcn's own real source, which has no concept of a persistently
+ * "selected/current" menu item at all (only `DropdownMenuCheckboxItem`/`DropdownMenuRadioItem`,
+ * a different semantic — a toggleable/mutually-exclusive setting, not "this item represents the
+ * page/section you're currently on"). Added `isActive`, mirroring the exact convention this
+ * system's own real `Button`/`SidebarMenuButton` already use for the identical concept:
+ * `data-active`/`data-[active=true]:bg-accent`/`font-medium`, plus feeding the same shared
+ * `useActionIconFill` hook so the icon fills too — one boolean drives background, text weight, AND
+ * icon fill together (see CLAUDE.md's Primitive Fidelity Checklist item 20 on why these must never
+ * be two separately-maintained conditionals). Reuses `bg-accent`/`text-accent-foreground` — the
+ * SAME token pair this component already uses for its own `focus:`/`DropdownMenuSubTrigger`'s
+ * `data-[state=open]:` states — rather than borrowing `SidebarMenuButton`'s `--sidebar-accent`
+ * tokens verbatim, since those are a separate palette scoped to a real `<SidebarProvider>` tree
+ * (the same reasoning divergence row L-9 already established for why `SidebarMenuButton` itself
+ * isn't a clean drop-in outside a real Sidebar instance).
+ */
 function DropdownMenuItem({
   className,
   children,
   disabled,
   inset,
+  isActive = false,
   onMouseDown,
   onMouseEnter,
   onMouseLeave,
@@ -102,9 +119,10 @@ function DropdownMenuItem({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Item> & {
   inset?: boolean
+  isActive?: boolean
   variant?: "default" | "destructive"
 }) {
-  const actionIcon = useActionIconFill<HTMLDivElement>({ disabled })
+  const actionIcon = useActionIconFill<HTMLDivElement>({ active: isActive, disabled })
 
   return (
     <DropdownMenuPrimitive.Item
@@ -112,9 +130,10 @@ function DropdownMenuItem({
       data-slot="dropdown-menu-item"
       data-inset={inset}
       data-variant={variant}
+      data-active={isActive}
       disabled={disabled}
       className={cn(
-        "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive!",
+        "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-[active=true]:bg-accent data-[active=true]:font-medium data-[active=true]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive!",
         className
       )}
       onMouseDown={(event) => {

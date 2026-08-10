@@ -157,6 +157,30 @@ render outside those children's own box — not only scrollbars (item 14's origi
 focus rings, badges, carets, any decorative overlay — enumerate everything allowed to render outside a
 wrapper's direct children before adding `overflow-hidden` to it, or when auditing one that already has it.**
 
+**Update 6 — overflow menu icon color confirmed correct; missing selection indicator fixed at the primitive
+level (L-32).** The user flagged two overflow-menu ("More") behaviors, again asking to recognize and
+recommend before acting. (1) Icon color vs. label color: read the real vendored shadcn source directly and
+confirmed `DropdownMenuItem`'s own base recipe (`[&_svg:not([class*='text-'])]:text-muted-foreground`) is
+byte-identical in bidezine's port — a deliberate, universal shadcn convention (muted icon, full-color label),
+not a rail-specific or bidezine-introduced divergence. Left unchanged. (2) No visual indicator for the
+currently-selected stashed section: confirmed a genuine gap — the only attempt (`filled={...}` passed
+directly to the icon) was dead code, since `DropdownMenuItem`'s own `fillActionIcons` wiring unconditionally
+overrides any icon's `filled` prop from its own hover/press tracking. Checked both real reference points:
+Origin's own `OverflowMenuItem` has a complete active-state contract (solid background, full-contrast text,
+bold label, filled icon); bidezine's own closer-fit precedent is `SidebarMenuButton`'s already-shipped
+`data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium` convention, driven by one `isActive`
+boolean that also feeds the shared icon-fill hook. **Fixed at the primitive level, not scoped to the rail:**
+added a real `isActive` prop to `DropdownMenuItem` itself (a deliberate, documented divergence from shadcn's
+source, which has no such concept), reusing this component's OWN existing `bg-accent`/`text-accent-foreground`
+tokens (already used by its `focus:` state) rather than borrowing `SidebarMenuButton`'s separately-scoped
+`--sidebar-accent` palette. Verified live and in a rebuilt production build, for two different selections, with
+zero regression to the plain showcase site's own DropdownMenu demo. Updated the showcase site's own DropdownMenu
+API reference table so this is discoverable for any future consumer. **The standing lesson, folded into
+CLAUDE.md checklist item 22: when a real primitive lacks a concept a sibling primitive already has
+(`Button`/`SidebarMenuButton`'s own `active`/`isActive`), extend the shared primitive itself with the same
+convention — a locally-scoped workaround at one call site cannot substitute for a capability gap in the
+primitive, and often silently fails outright (as the dead `filled` prop did here).**
+
 
 
 Whenever the Intake agent finds an element in the source that isn't cleanly pairable to an existing

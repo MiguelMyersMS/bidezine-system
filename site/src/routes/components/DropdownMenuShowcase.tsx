@@ -145,6 +145,13 @@ const apiRows: ApiRow[] = [
     default: `"center"`,
     description: "DropdownMenuContent: alignment relative to the trigger.",
   },
+  {
+    prop: "isActive",
+    type: "boolean",
+    default: "false",
+    description:
+      "DropdownMenuItem: marks this item as representing the current page/section (not a checkbox/radio toggle) — adds a persistent bg-accent/font-medium treatment and fills any icon child, mirroring Button's own `active` and Sidebar's SidebarMenuButton.isActive convention.",
+  },
 ]
 
 export function DropdownMenuShowcase() {
@@ -157,12 +164,17 @@ export function DropdownMenuShowcase() {
           <code className="rounded bg-muted px-1 py-0.5 text-sm">
             reference/shadcn-ui/apps/v4/registry/new-york-v4/ui/dropdown-menu.tsx
           </code>{" "}
-          , with one deliberate divergence: <code className="rounded bg-muted px-1 py-0.5 text-sm">
+          , with two deliberate divergences: <code className="rounded bg-muted px-1 py-0.5 text-sm">
             DropdownMenuContent
           </code>{" "}
           composes the real <code className="rounded bg-muted px-1 py-0.5 text-sm">ScrollArea</code>{" "}
           primitive instead of shadcn&rsquo;s plain <code className="rounded bg-muted px-1 py-0.5 text-sm">overflow-y-auto</code>{" "}
-          div (shadcn&rsquo;s own source never composes the two — see CLAUDE.md&rsquo;s Scroll region protocol).
+          div (shadcn&rsquo;s own source never composes the two — see CLAUDE.md&rsquo;s Scroll region protocol), and{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-sm">DropdownMenuItem</code> gains an{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-sm">isActive</code> prop shadcn&rsquo;s own source has
+          no equivalent for — a persistent "this represents the current page/section" indicator (background,
+          font weight, and icon fill together), mirroring the same concept <code className="rounded bg-muted px-1 py-0.5 text-sm">Button</code>{" "}
+          and <code className="rounded bg-muted px-1 py-0.5 text-sm">SidebarMenuButton</code> already use.
         </p>
       </div>
       <ExampleBrowser examples={examples} />

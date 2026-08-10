@@ -546,6 +546,24 @@ a genuinely new failure category is found — not evidence the list is now compl
     removing the tighter, zero-slack one and relying on the looser ancestor instead of trying to add padding to
     the tight one, which risks visually shifting the very layout the wrapper was sized around.
 
+22. **When a real primitive genuinely lacks a concept another real primitive already has (e.g. a "persistently
+    selected/current" state), extend the shared primitive itself with the SAME convention, rather than patching
+    around the gap at one call site.** `DropdownMenuItem` had zero concept of a persistently-active row (only
+    `DropdownMenuCheckboxItem`/`DropdownMenuRadioItem`, a different toggle semantic) — its own `useActionIconFill`
+    call didn't even accept an `active` parameter, unlike `Button` and `SidebarMenuButton`, which both already do.
+    A rail component needing "this menu item represents the current page/section" had nothing to reuse, and its
+    own attempt (an explicit `filled={...}` prop passed directly to an icon child) silently did nothing at all,
+    since `fillActionIcons` unconditionally overrides any icon's `filled` value from the primitive's own hover/
+    press tracking — a locally-scoped workaround couldn't have worked here even in principle. The fix was to add
+    `isActive` to `DropdownMenuItem` itself, mirroring `Button`/`SidebarMenuButton`'s own already-established
+    naming and mechanism (one boolean → `data-active` → background + `font-medium` + feeding the same shared
+    icon-fill hook), reusing this component's OWN existing `bg-accent`/`text-accent-foreground` tokens (already
+    used by its `focus:` state and `DropdownMenuSubTrigger`'s `data-[state=open]:` state) rather than a different
+    primitive's separately-scoped palette. Before scoping a fix to one rail/consumer call site, check whether the
+    gap is actually in the shared primitive itself, and whether an analogous concept already exists on a sibling
+    primitive (`Button`, `SidebarMenuButton`, etc.) that the fix should mirror for consistency — a real per-item
+    "selected" indicator is a primitive-level capability question, not a one-off styling patch.
+
 
 
 ## Three machines, one branch
