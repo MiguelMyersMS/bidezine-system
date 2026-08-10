@@ -48,7 +48,7 @@ _None._
 
 ## Laptop B — Blair
 
-**Baseline** — branch `main`, last verified commit `83a2c5b`, working tree clean and pushed to `origin/main`.
+**Baseline** — branch `main`, last verified commit `c41db05`, working tree clean and pushed to `origin/main`.
 
 ### Active task
 
