@@ -39,47 +39,71 @@ one. If a fact in it becomes stale (a task finishes, a plan changes), replace th
 old one there "for the record." History belongs in the append-only logs; `HANDOFF.md` only ever describes
 right now.
 
+**The second rule: one section per machine — only ever edit your own.** `HANDOFF.md` carries one top-level
+section per machine (Laptop A, Laptop B, PC), each with its own Baseline / Active task / What's done /
+What's next / Blockers. Read all of them — they tell you which files the other machines are in, which is
+how you stay room-by-room — but **write only to the section for the machine you are running on.** Never
+edit, summarise, tidy or "fix" another machine's section, even when it looks stale: you cannot verify
+another machine's working tree from here, and overwriting it destroys the only record that machine has.
+Because all three machines work `main` directly, `HANDOFF.md` is the one file every session is required to
+touch; the `---` dividers between machine sections exist to hold those edits far enough apart that git
+merges them automatically instead of raising a conflict. Keep them.
+
 **Required update points — update `HANDOFF.md` in the SAME commit as the work it describes, not after:**
-1. **Starting a new task or resuming an interrupted one** — update "Active task" to describe what's being
-   worked on and why, in enough detail that a fresh session could continue without any other context.
-2. **Completing a meaningful unit of work** — move it out of "Active task" into "What's done," overwriting
-   that section's own prior content to describe the CURRENT end state (not "also did X" appended to what
-   was already there — rewrite the whole section to reflect where things stand now). Update "Baseline" to
-   the new commit/tag if one was made.
-3. **When a task is fully finished and there is nothing in progress** — collapse ALL sections back to their
-   empty/minimal state (see the template below) except "Baseline," which should point at the final
+1. **Starting a new task or resuming an interrupted one** — update your machine's "Active task" to describe
+   what's being worked on and why, in enough detail that a fresh session could continue without any other context.
+2. **Completing a meaningful unit of work** — move it out of your machine's "Active task" into that same
+   machine's "What's done," overwriting that subsection's own prior content to describe the CURRENT end
+   state (not "also did X" appended to what was already there — rewrite the whole subsection to reflect
+   where things stand now). Update your machine's "Baseline" to the new commit/tag if one was made.
+3. **When a task is fully finished and there is nothing in progress** — collapse your machine's subsections
+   back to their empty/minimal state (see the template below) except its "Baseline," which should point at the final
    commit/tag. Do not leave completed-task detail sitting in "What's done" indefinitely — once it's
    durably recorded in the real logs (`LIMBO-PROTOCOL-LOG.md`, a divergence log, commit messages), it no
    longer needs to live in `HANDOFF.md` too. `HANDOFF.md` empty and clean is the correct end state, not a
    failure to document — it means "there is nothing to hand off."
 
-**Template (this is what a fully-clean `HANDOFF.md` looks like):**
+**Template (this is what a fully-clean `HANDOFF.md` looks like — one block per machine, `---` between):**
 ```markdown
-## Baseline
-- Branch: `main`
-- Last verified commit: `<hash>`
-- Tag: `<tag, if one exists>`
-- Working tree: clean, pushed to `origin/main`
+## Laptop A — Miguel
 
-## Active task
+**Baseline** — branch `main`, last verified commit `<hash>`, tag `<tag, if one exists>`, working tree
+clean and pushed to `origin/main`.
+
+### Active task
 _None. Nothing in progress._
 
-## What's done (most recent, current state — not a history)
+### What's done (current state — not a history)
 _(only if there's something a new session needs to know that isn't yet durably logged elsewhere)_
 
-## What's next
+### What's next
 _Nothing queued. Awaiting new instructions._
 
-## Open questions / blockers
+### Open questions / blockers
 _None._
+
+---
+
+## Laptop B — Blair
+
+_(the same five subsections, owned and written only by Laptop B)_
+
+---
+
+## PC — third machine
+
+_(the same five subsections; until the machine is set up, this section reads "Not connected yet.")_
 ```
 
 **Recovery workflow for a NEW/replacement chat session (do this before touching any code):**
-1. Read `HANDOFF.md` in full.
+1. Read `HANDOFF.md` in full — every machine's section, not just your own. Your own section is the one you
+   are resuming; the others tell you which files are currently being touched elsewhere, so you can stay
+   out of them.
 2. Run `git log --oneline -10`, `git status`, and `git tag` (or check the specific tag `HANDOFF.md`
-   names) to confirm the claimed baseline commit is real, current, and the working tree matches what
-   `HANDOFF.md` describes (clean vs. dirty, pushed vs. ahead/behind).
-3. If `HANDOFF.md` names an "Active task" or specific files, open those files and confirm the live code
+   names) to confirm the baseline claimed in **your machine's** section is real, current, and the working
+   tree matches what it describes (clean vs. dirty, pushed vs. ahead/behind). Another machine's baseline
+   being stale is expected and is not yours to correct.
+3. If your machine's section names an "Active task" or specific files, open those files and confirm the live code
    actually matches what's described — never assume a prior session's own claim of "done" or "verified" is
    still accurate without checking the real, current source (this is the same rule Primitive Fidelity
    Checklist item 5 already states for any other "resolved" record in this project).
