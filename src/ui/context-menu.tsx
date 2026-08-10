@@ -6,7 +6,17 @@ import { ContextMenu as ContextMenuPrimitive } from "radix-ui"
 
 import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
-import { ScrollArea } from "@/ui/scroll-area"
+import { ScrollArea, useScrollAreaOverflow } from "@/ui/scroll-area"
+
+/**
+ * Reads the enclosing `ScrollArea`'s real overflow state via React Context (not a CSS
+ * `group-data-*` selector — see scroll-area.tsx's authoring note for why that approach breaks
+ * whenever `ScrollArea` instances nest) to conditionally reserve the scrollbar's end-side gutter.
+ */
+function ContextMenuScrollGutter({ children }: { children: React.ReactNode }) {
+  const { scrollableY } = useScrollAreaOverflow()
+  return <div className={cn(scrollableY && "pe-2")}>{children}</div>
+}
 
 function ContextMenu({
   ...props
@@ -142,7 +152,7 @@ function ContextMenuContent({
         {...props}
       >
         <ScrollArea className="flex-1 min-h-0 overflow-hidden">
-          <div className="group-data-[scrollable-y=true]/scroll-area:pe-2">{children}</div>
+          <ContextMenuScrollGutter>{children}</ContextMenuScrollGutter>
         </ScrollArea>
       </ContextMenuPrimitive.Content>
     </ContextMenuPrimitive.Portal>

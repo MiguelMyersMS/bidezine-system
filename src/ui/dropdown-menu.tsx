@@ -6,7 +6,7 @@ import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui"
 
 import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
-import { ScrollArea } from "@/ui/scroll-area"
+import { ScrollArea, useScrollAreaOverflow } from "@/ui/scroll-area"
 
 function DropdownMenu({
   ...props
@@ -34,6 +34,16 @@ function DropdownMenuTrigger({
 }
 
 /**
+ * Reads the enclosing `ScrollArea`'s real overflow state via React Context (not a CSS
+ * `group-data-*` selector — see scroll-area.tsx's authoring note for why that approach breaks
+ * whenever `ScrollArea` instances nest) to conditionally reserve the scrollbar's end-side gutter.
+ */
+function DropdownMenuScrollGutter({ children }: { children: React.ReactNode }) {
+  const { scrollableY } = useScrollAreaOverflow()
+  return <div className={cn(scrollableY && "pe-2")}>{children}</div>
+}
+
+/**
  * Deliberate divergence from shadcn's own real source (which uses a plain `overflow-y-auto` div
  * here) — a real `ScrollArea` is composed inside instead, per the two-layer scroll region pattern
  * (see CLAUDE.md's "Scroll region protocol"). `Content` itself is the OUTER layer: it keeps its own
@@ -42,9 +52,9 @@ function DropdownMenuTrigger({
  * correctly shrink to the remaining space rather than growing past the cap and being silently
  * clipped. The inner content wrapper adds an extra end-side gutter on top of Content's own padding
  * so real menu items never sit flush against the scrollbar thumb — but ONLY when `ScrollArea` itself
- * reports the content is actually tall enough to scroll (`group-data-[scrollable-y=true]/scroll-area:`),
- * never unconditionally: a short menu that fits without scrolling must not carry dead empty space on
- * its end side just because it happens to be wrapped in `ScrollArea`.
+ * reports the content is actually tall enough to scroll, never unconditionally: a short menu that
+ * fits without scrolling must not carry dead empty space on its end side just because it happens to
+ * be wrapped in `ScrollArea`.
  */
 function DropdownMenuContent({
   className,
@@ -64,7 +74,7 @@ function DropdownMenuContent({
         {...props}
       >
         <ScrollArea className="flex-1 min-h-0 overflow-hidden">
-          <div className="group-data-[scrollable-y=true]/scroll-area:pe-2">{children}</div>
+          <DropdownMenuScrollGutter>{children}</DropdownMenuScrollGutter>
         </ScrollArea>
       </DropdownMenuPrimitive.Content>
     </DropdownMenuPrimitive.Portal>

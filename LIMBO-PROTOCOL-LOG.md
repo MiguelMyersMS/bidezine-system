@@ -86,7 +86,30 @@ the Rail Sidebar's tree panel; verified both directions live (gutter present whe
 absent when collapsed back to fitting) — this two-directional check is now folded into CLAUDE.md's protocol
 itself as a mandatory verification step, not just a one-off fix.
 
-## Divergence-handling rule (mandatory, no exceptions)
+**Update 3 — Update 2's own CSS mechanism was itself broken (logged as L-26).** The user reported, repeatedly
+and directly, that the exact same scrolling/gutter issues were STILL visible on the real showcase site
+(`localhost:4188`) despite Update 2 being marked resolved — and explicitly called out that verification was
+not rigorous enough ("I thought I was specific on using multiple agents to not rely on one approving things
+for the sake of approving"). Re-investigating from scratch (not trusting the earlier "resolved" status)
+found the root cause: Tailwind's `group-data-[scrollable-y=true]/scroll-area:pe-2` variant compiles to a
+plain CSS descendant combinator that matches **any** ancestor sharing the `group/scroll-area` class +
+attribute — not specifically the *nearest* one. Since `site/src/components/Layout.tsx` wraps every page's
+own content in its own page-level `ScrollArea` (almost always scrollable), every nested component demo's
+conditional gutter silently inherited that outer instance's `true` state regardless of its own real overflow
+— meaning Update 2's fix was effectively always-on almost everywhere on the real site, while appearing correct
+in `limbo-factory` (which has no equivalent nested-`ScrollArea`-in-`ScrollArea` structure) and in any check
+that didn't specifically nest one `ScrollArea` inside another. **Fixed by replacing the CSS mechanism with a
+React Context** (`ScrollAreaOverflowContext`/`useScrollAreaOverflow()`, exported from `src/ui/scroll-area.tsx`
+and `@bidezine/system`), which always resolves to the nearest enclosing `Provider` regardless of naming
+collisions. All real consumers (the four migrated `src/ui` components, the Rail Sidebar's tree panel, and two
+additional, previously-unaudited `ScrollArea` usages found in `limbo-factory/src/App.tsx` while sweeping the
+factory line itself) were migrated to the hook. **The standing lesson, worth restating for future occupants:
+never use a CSS `group`/`data-*` attribute selector to read a nested primitive's own state — use React
+Context instead**, since CSS selectors of that shape cannot express "nearest ancestor" semantics the way
+`useContext` can. See CLAUDE.md's Scroll region protocol for the full technical writeup and the corrected
+guidance (which previously, incorrectly, recommended the CSS variant this update replaces).
+
+
 
 Whenever the Intake agent finds an element in the source that isn't cleanly pairable to an existing
 bidezine equivalent — icons, gaps, paddings, blocks, layouts, animations, effects, colors, fonts, anything —

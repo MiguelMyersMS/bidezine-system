@@ -43,10 +43,23 @@ import { cn } from "@/lib/utils"
  * origin design system this pattern was ported from names this exact anti-pattern explicitly
  * (`SC.UNCONDITIONAL-SCROLLBAR-GAP`) and guards against it with a real overflow measurement
  * (`el.scrollHeight > el.clientHeight`, re-checked via `ResizeObserver`), applying the gutter only
- * when that's true. `ScrollArea` below reproduces that check itself (`data-scrollable-y`/
- * `data-scrollable-x` on `Root`, kept current via `ResizeObserver`) so every consumer gets correct
- * conditional behavior for free — apply the gutter with a `group-data-[scrollable-y=true]/scroll-area:`
- * (or `-x-`) variant instead of a bare utility class, never unconditionally.
+ * when that's true. `ScrollArea` below reproduces that check itself and exposes it through
+ * `useScrollAreaOverflow()` (a React Context hook) — call it inside a consumer's own content
+ * wrapper and apply the gutter conditionally in JS: `className={cn(scrollableY && "pe-2")}`.
+ *
+ * Use the Context hook, NOT a CSS `group`/`data-*` attribute selector, for this. `Root` DOES also
+ * carry `data-scrollable-y`/`data-scrollable-x` DOM attributes (handy for tests/debugging), but a
+ * Tailwind `group-data-[scrollable-y=true]/scroll-area:` variant compiles to a plain CSS descendant
+ * combinator (`:is(:where(.group\/scroll-area)[data-scrollable-y=true] *)`) that matches ANY
+ * ancestor sharing that class+attribute — not specifically the *nearest* one. Every `ScrollArea`
+ * instance shares the same `group/scroll-area` class name, so nesting one `ScrollArea` inside
+ * another (e.g. a component demo's own `ScrollArea` living inside this site's page-level
+ * `ScrollArea`, which is almost always scrollable) leaks the OUTER instance's overflow state into
+ * the INNER one's conditional class, even though they're functionally unrelated. This was a real,
+ * shipped bug: every migrated component's conditional gutter silently stayed "on" everywhere on the
+ * showcase site, masked only because it was never tested with a genuinely non-scrollable outer page.
+ * React Context does not have this problem — a `useContext` call always resolves to the *nearest*
+ * enclosing `Provider`, which is exactly the semantics this needs.
  *
  * Internal implementation note — why `Viewport` is `w-full flex-1 min-h-0`, not `size-full`.
  *
@@ -66,6 +79,24 @@ import { cn } from "@/lib/utils"
  * constrained space directly, so it works identically whether the ancestor's height came from an
  * explicit `height` or from a `max-height`-clamped auto box.
  */
+type ScrollAreaOverflow = { scrollableY: boolean; scrollableX: boolean }
+
+const ScrollAreaOverflowContext = React.createContext<ScrollAreaOverflow>({
+  scrollableY: false,
+  scrollableX: false,
+})
+
+/**
+ * Reads the nearest enclosing `ScrollArea`'s real overflow state — use this (not a CSS `group-data-*`
+ * selector) to conditionally apply the scrollbar-side gutter on a `ScrollArea`'s own inner content.
+ * See the "two-layer scroll region" note above for why the CSS-selector approach is unsound whenever
+ * `ScrollArea` instances nest (which happens site-wide here, since every page's own content already
+ * lives inside a page-level `ScrollArea`).
+ */
+function useScrollAreaOverflow(): ScrollAreaOverflow {
+  return React.useContext(ScrollAreaOverflowContext)
+}
+
 function ScrollArea({
   className,
   children,
@@ -98,7 +129,7 @@ function ScrollArea({
       data-slot="scroll-area"
       data-scrollable-y={scrollableY}
       data-scrollable-x={scrollableX}
-      className={cn("group/scroll-area relative flex flex-col", className)}
+      className={cn("relative flex flex-col", className)}
       {...props}
     >
       <ScrollAreaPrimitive.Viewport
@@ -106,7 +137,9 @@ function ScrollArea({
         data-slot="scroll-area-viewport"
         className="min-h-0 w-full flex-1 rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1"
       >
-        {children}
+        <ScrollAreaOverflowContext.Provider value={{ scrollableY, scrollableX }}>
+          {children}
+        </ScrollAreaOverflowContext.Provider>
       </ScrollAreaPrimitive.Viewport>
       <ScrollBar />
       <ScrollAreaPrimitive.Corner />
@@ -141,4 +174,4 @@ function ScrollBar({
   )
 }
 
-export { ScrollArea, ScrollBar }
+export { ScrollArea, ScrollBar, useScrollAreaOverflow }

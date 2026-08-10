@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react"
-import { Badge, ScrollArea, Separator, Tabs, TabsContent, TabsList, TabsTrigger, cn } from "@bidezine/system"
+import { Badge, ScrollArea, Separator, Tabs, TabsContent, TabsList, TabsTrigger, cn, useScrollAreaOverflow } from "@bidezine/system"
 import { PhaseRail } from "@/components/PhaseRail"
 import { BlockingQuestionCard, DivergenceCategoriesAccordion, RisksList } from "@/components/DivergenceView"
 import { ThemeToggle } from "@/components/ThemeToggle"
@@ -64,13 +64,42 @@ export function App() {
             </div>
           ) : (
             <ScrollArea className="h-full">
-              <div className="p-6 pr-8">
+              <PlaceholderPhaseGutter>
                 <PlaceholderPhase />
-              </div>
+              </PlaceholderPhaseGutter>
             </ScrollArea>
           )}
         </div>
       </main>
+    </div>
+  )
+}
+
+/**
+ * Reads the enclosing `ScrollArea`'s real overflow state via React Context (`useScrollAreaOverflow`)
+ * so the extra end-side gutter beyond the base `p-6` is only reserved when content actually
+ * overflows — not a bare unconditional `pr-8`, which would leave dead space here every time this
+ * placeholder's short static text fits without scrolling (see the L-26 note on
+ * `PanelTreeScrollGutter` in FunctionalRailSidebar.tsx for the full root-cause writeup of why this
+ * must be Context-based rather than a CSS `group-data-*` selector).
+ */
+function PlaceholderPhaseGutter({ children }: { children: React.ReactNode }) {
+  const { scrollableY } = useScrollAreaOverflow()
+  return <div className={cn("p-6", scrollableY ? "pr-8" : "pr-6")}>{children}</div>
+}
+
+/**
+ * Reads the enclosing `ScrollArea`'s real overflow state via React Context (`useScrollAreaOverflow`)
+ * so the quadrant's left column only reserves scrollbar clearance when its content genuinely
+ * overflows — matching the same Context-based pattern used throughout this session's L-26 fix
+ * rather than a bare unconditional gutter or a CSS `group-data-*` selector (see the note on
+ * `PanelTreeScrollGutter` in FunctionalRailSidebar.tsx for the full root-cause writeup).
+ */
+function QuadrantScrollGutter({ children }: { children: React.ReactNode }) {
+  const { scrollableY } = useScrollAreaOverflow()
+  return (
+    <div className={cn("flex flex-col gap-4 px-[8px]", scrollableY && "pr-4")}>
+      {children}
     </div>
   )
 }
@@ -86,7 +115,7 @@ function QuadrantLayout({
     <div className="grid h-full min-h-0 w-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-0 overflow-hidden">
       <div className="h-full min-h-0 min-w-0 w-full overflow-hidden">
         <ScrollArea className="h-full">
-          <div className="flex flex-col gap-4 px-[8px]">{children}</div>
+          <QuadrantScrollGutter>{children}</QuadrantScrollGutter>
         </ScrollArea>
       </div>
       <div className="box-border h-full min-h-0 min-w-0 w-full px-[8px]">

@@ -150,11 +150,30 @@ correctly) is not the same as one that doesn't collide with anything next to it.
    (`SC.UNCONDITIONAL-SCROLLBAR-GAP`, in `RailNav.tsx`'s own real source), gating its own equivalent gutter on
    a live `el.scrollHeight > el.clientHeight` measurement (`navScrollable`, re-checked via `ResizeObserver`).
    `ScrollArea`'s own `Root` (`src/ui/scroll-area.tsx`) reproduces that exact measurement itself and exposes
-   it as `data-scrollable-y`/`data-scrollable-x` (kept current via `ResizeObserver`, watching both the
-   viewport and its content) — apply the gutter with a `group-data-[scrollable-y=true]/scroll-area:` (or
-   `-x-`) variant, never a bare utility class. This was itself a real, shipped bug in this codebase's own
-   scroll-region migration (`DropdownMenuContent`/`ContextMenuContent`/`CommandList`/`ComboboxList`, and the
-   Rail Sidebar Limbo transformation's own tree panel) before being caught and fixed system-wide.
+   it two ways: as `data-scrollable-y`/`data-scrollable-x` DOM attributes on `Root` (for tests/debugging/
+   introspection only), and — the mechanism to actually USE — via **`useScrollAreaOverflow()`**, a React
+   Context hook. Call it inside a consumer's own inner content wrapper and apply the gutter conditionally in
+   JS: `className={cn(scrollableY && "pe-2")}`.
+
+   **Use the Context hook, never a CSS `group`/`data-*` attribute selector, for this.** An earlier version of
+   this exact protocol recommended `group-data-[scrollable-y=true]/scroll-area:pe-2`, which was a real,
+   shipped, system-wide bug (logged as **L-26**): that Tailwind variant compiles to a plain CSS descendant
+   combinator (`:is(:where(.group\/scroll-area)[data-scrollable-y=true] *)`) that matches **any** ancestor
+   sharing that class + attribute — not specifically the *nearest* one. Every `ScrollArea` instance shares the
+   same `group/scroll-area` class name, so nesting one `ScrollArea` inside another silently leaks the OUTER
+   instance's overflow state into the INNER one's conditional class, even though they're functionally
+   unrelated. This is not a hypothetical edge case here: `site/src/components/Layout.tsx` wraps every single
+   page's `<main>` content in its own page-level `ScrollArea` (almost always scrollable), so every migrated
+   component's demo on the showcase site inherited that outer instance's `true` state regardless of its own
+   actual overflow — meaning the "conditional gutter" fix was **silently always-on almost everywhere on the
+   real site**, while appearing to work in isolated/unit-style checks that didn't nest `ScrollArea`s. React
+   Context does not have this problem: a `useContext` call always resolves to the *nearest* enclosing
+   `Provider`, which is exactly the semantics this needs. If you're extending a component that renders its
+   gutter-bearing element as a *sibling* of `ScrollArea` rather than a *child* of it (i.e. `ScrollArea` doesn't
+   directly wrap the element needing the hook), split out a small child component so `useScrollAreaOverflow()`
+   is called from something that actually renders inside `ScrollArea`'s own children — see `CommandListInner`/
+   `ComboboxListInner` in `src/ui/command.tsx`/`combobox.tsx`, or `PanelTreeScrollGutter`/`QuadrantScrollGutter`
+   in `limbo-factory/` for worked examples of this split.
 
 **Both relationships need their own explicit measurement** (`getBoundingClientRect` on the real, rendered
 DOM, scrollbar actually visible via a genuine scroll interaction — not assumed from a screenshot): the gap
@@ -440,7 +459,35 @@ a genuinely new failure category is found — not evidence the list is now compl
     only fully reliable contract, treat the name-suffix fallback as a convenience for simple cases only, never
     as something to depend on for anything wrapped or renamed.
 
-## Three machines, one branch
+16. **A CSS `group`/`data-*` attribute selector cannot express "nearest ancestor" — if a mechanism needs that
+    semantic, it must be React Context, not a Tailwind `group-data-[...]/name:` variant.** A conditional
+    scrollbar gutter (checklist item 3 in the Scroll region protocol above) was implemented via
+    `group-data-[scrollable-y=true]/scroll-area:pe-2`, which appeared correct in isolated checks but was a
+    real, shipped, system-wide bug (**L-26**): that Tailwind variant compiles to a plain CSS descendant
+    combinator matching **any** ancestor sharing the group name + attribute, not the nearest one. The instant
+    two instances of the same primitive nest (which happens whenever a page-level layout wraps its own content
+    in the same primitive a component demo also uses internally — exactly `site/src/components/Layout.tsx`'s
+    structure), the outer instance's state silently overrides the inner one's, and every check that doesn't
+    specifically construct a nested scenario will pass while the real, deployed site is broken almost
+    everywhere. Before reaching for `group-data-*`/`peer-data-*` to read a primitive's own internal state from
+    one of its descendants, ask: could two instances of this primitive ever nest on a real page? If yes (and
+    for a widely-reused primitive like `ScrollArea`, assume yes), expose the state via a React Context +
+    exported hook instead — `useContext` always resolves to the nearest `Provider`, which is the actual
+    semantic needed, and a CSS selector of this shape structurally cannot replicate that.
+
+17. **Any fix explicitly described as system-wide, cross-cutting, or "apply this everywhere" must be verified
+    by dispatching multiple independent background agents whose findings are then personally re-checked — not
+    self-approved by the same agent/pass that made the change.** This was a standing, repeatedly-stated user
+    requirement this session ("I thought I was specific on using multiple agents to not rely on one approving
+    things for the sake of approving"), and it caught a real gap: a dispatched independent scroll-audit agent's
+    own findings needed correction too (it used the same kind of unscoped `document.querySelector` that
+    checklist item 10 already warns against, producing at least one unreliable "Defect A" measurement it
+    admitted was a proxy). The correct workflow is therefore three-layered, not two: (1) make the fix, (2)
+    dispatch independent agents to audit it fresh, (3) personally re-verify the agents' own specific claims
+    with fresh, properly-scoped `getBoundingClientRect`/computed-style measurements before reporting anything
+    as confirmed — an agent's report is a lead to re-check, not a verdict to relay verbatim.
+
+
 
 Laptop A, Laptop B, and a PC all work `main` directly. `origin` is the only source of truth — unpushed
 work does not travel.

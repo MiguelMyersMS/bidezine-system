@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/dialog"
-import { ScrollArea } from "@/ui/scroll-area"
+import { ScrollArea, useScrollAreaOverflow } from "@/ui/scroll-area"
 
 function Command({
   className,
@@ -104,10 +104,13 @@ function CommandInput({
  * height cap and clipping), matching this component's pre-migration contract where `className`
  * could override the `max-h-[300px]`/overflow behavior directly — not on the inner `List`, which no
  * longer owns any height/overflow of its own and would silently swallow such an override. The end-
- * side gutter (`group-data-[scrollable-y=true]/scroll-area:pe-2`) is conditional on `ScrollArea`
- * actually reporting overflow, never a bare unconditional `pe-2` — see CLAUDE.md's protocol note on
- * why an unconditional gutter is its own bug (dead empty space whenever content fits without
- * scrolling).
+ * side gutter (`pe-2`, applied conditionally via `useScrollAreaOverflow()`) is conditional on
+ * `ScrollArea` actually reporting overflow, never a bare unconditional `pe-2` — see CLAUDE.md's
+ * protocol note on why an unconditional gutter is its own bug (dead empty space whenever content
+ * fits without scrolling). The conditional class is read via React Context rather than a CSS
+ * `group-data-*` selector because the latter matches ANY ancestor sharing the same group name/data
+ * attribute (not just the nearest one), which silently breaks whenever `ScrollArea` instances nest
+ * anywhere in the page (see scroll-area.tsx's authoring note).
  */
 function CommandList({
   className,
@@ -120,12 +123,27 @@ function CommandList({
         className
       )}
     >
-      <CommandPrimitive.List
-        data-slot="command-list"
-        className="group-data-[scrollable-y=true]/scroll-area:pe-2"
-        {...props}
-      />
+      <CommandListInner {...props} />
     </ScrollArea>
+  )
+}
+
+/**
+ * Split out from `CommandList` solely so `useScrollAreaOverflow()` can be called from a component
+ * that actually renders as a child of `ScrollArea` (inside its Context Provider) — the hook can't
+ * resolve correctly if called directly in `CommandList`, since `CommandList` renders the `ScrollArea`
+ * itself rather than being rendered inside one.
+ */
+function CommandListInner({
+  ...props
+}: React.ComponentProps<typeof CommandPrimitive.List>) {
+  const { scrollableY } = useScrollAreaOverflow()
+  return (
+    <CommandPrimitive.List
+      data-slot="command-list"
+      className={cn(scrollableY && "pe-2")}
+      {...props}
+    />
   )
 }
 

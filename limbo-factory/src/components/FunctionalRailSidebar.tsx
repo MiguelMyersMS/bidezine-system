@@ -66,6 +66,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
   UserIcon,
+  useScrollAreaOverflow,
   VehicleCarProfileIcon,
   VehicleTruckProfileIcon,
 } from "@bidezine/system"
@@ -392,6 +393,19 @@ function PanelBadge({ label }: { label: string }) {
       {label}
     </Badge>
   )
+}
+
+/**
+ * Reads the enclosing `ScrollArea`'s real overflow state via React Context (`useScrollAreaOverflow`)
+ * rather than the CSS `group-data-[scrollable-y=true]/scroll-area:` selector this file used before —
+ * that selector matches ANY ancestor sharing the `group/scroll-area` class + attribute, not just the
+ * nearest one, which silently broke here once the site wraps every page (including this rail panel)
+ * in its own outer, almost-always-scrollable `ScrollArea` (see src/ui/scroll-area.tsx's authoring
+ * note for the full root-cause writeup, logged as L-26).
+ */
+function PanelTreeScrollGutter({ children }: { children: React.ReactNode }) {
+  const { scrollableY } = useScrollAreaOverflow()
+  return <div className={cn("p-1.5", scrollableY && "pr-4")}>{children}</div>
 }
 
 function PanelTree({
@@ -1103,9 +1117,10 @@ export function FunctionalRailSidebar({
                   from L-21 is unaffected (still ~8.8px). */}
               <div className="flex-1 min-h-0 overflow-hidden p-2">
                 <ScrollArea className="size-full">
-                  {/* DEPLOYMENT NOTE: `pr-4` is now CONDITIONAL
-                      (`group-data-[scrollable-y=true]/scroll-area:pr-4`), not a bare unconditional
-                      utility — matching origin's own real mechanism (RailNav.tsx's `navScrollable`
+                  {/* DEPLOYMENT NOTE: `pr-4` is now CONDITIONAL, read via `useScrollAreaOverflow()`
+                      (React Context — see `PanelTreeScrollGutter` above) rather than the
+                      `group-data-[scrollable-y=true]/scroll-area:pr-4` CSS selector this file used
+                      before — matching origin's own real mechanism (RailNav.tsx's `navScrollable`
                       state, computed via `el.scrollHeight > el.clientHeight` and re-checked on
                       resize, gates `paddingRight: navScrollable ? SPACE[2] : 0` — origin's own code
                       even names the anti-pattern this guards against, `SC.UNCONDITIONAL-SCROLLBAR-GAP`).
@@ -1113,11 +1128,13 @@ export function FunctionalRailSidebar({
                       the tree happens to fit without scrolling — exactly what was found here: this
                       panel's own content frequently fits without overflowing, so the previous bare
                       `pr-4` was reserving 16px of unused space on the right for a scrollbar that
-                      wasn't even there. `ScrollArea`'s own `Root` now exposes `data-scrollable-y`
-                      (kept current via `ResizeObserver`, see src/ui/scroll-area.tsx) specifically so
-                      every consumer can condition its own gutter on it instead of reimplementing this
-                      check locally. */}
-                  <div className="p-1.5 group-data-[scrollable-y=true]/scroll-area:pr-4">
+                      wasn't even there. The CSS `group-data-*` selector was later found to ALSO match
+                      the site's own outer page-level `ScrollArea` (an unrelated ancestor that wraps
+                      every page's content and is itself almost always scrollable), silently forcing
+                      this gutter on regardless of this panel's own actual overflow state — logged as
+                      L-26; fixed by switching to Context, which always resolves to the nearest
+                      Provider rather than any matching ancestor. */}
+                  <PanelTreeScrollGutter>
                     <PanelTree
                       nodes={filteredNodes}
                       depth={0}
@@ -1130,9 +1147,10 @@ export function FunctionalRailSidebar({
                     {query.trim() && filteredNodes.length === 0 && (
                       <p className="px-2 py-3 text-xs text-muted-foreground">No matches for “{query}”.</p>
                     )}
-                  </div>
+                  </PanelTreeScrollGutter>
                 </ScrollArea>
               </div>
+
             </div>
           </Presence>
         )}

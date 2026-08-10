@@ -13,7 +13,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/ui/input-group"
-import { ScrollArea } from "@/ui/scroll-area"
+import { ScrollArea, useScrollAreaOverflow } from "@/ui/scroll-area"
 
 const Combobox = ComboboxPrimitive.Root
 
@@ -187,7 +187,12 @@ function ComboboxContent({
  * The consumer-facing `className` prop lands on `ScrollArea` (the element that actually owns the
  * height cap and clipping), matching this component's pre-migration contract where `className`
  * could override the `max-h-[min(...)]`/overflow behavior directly — not on the inner `List`, which
- * no longer owns any height/overflow of its own and would silently swallow such an override.
+ * no longer owns any height/overflow of its own and would silently swallow such an override. The
+ * end-side gutter is conditional on `ScrollArea` actually reporting overflow, read via
+ * `useScrollAreaOverflow()` (React Context) rather than a CSS `group-data-*` selector — the latter
+ * matches ANY ancestor sharing the same group name/data attribute, not just the nearest one, which
+ * silently breaks whenever `ScrollArea` instances nest anywhere in the page (see scroll-area.tsx's
+ * authoring note).
  */
 function ComboboxList({ className, ...props }: ComboboxPrimitive.List.Props) {
   return (
@@ -197,12 +202,24 @@ function ComboboxList({ className, ...props }: ComboboxPrimitive.List.Props) {
         className
       )}
     >
-      <ComboboxPrimitive.List
-        data-slot="combobox-list"
-        className="p-1 group-data-[scrollable-y=true]/scroll-area:pe-2 data-empty:p-0"
-        {...props}
-      />
+      <ComboboxListInner {...props} />
     </ScrollArea>
+  )
+}
+
+/**
+ * Split out from `ComboboxList` solely so `useScrollAreaOverflow()` can be called from a component
+ * that actually renders as a child of `ScrollArea` (inside its Context Provider) — see the matching
+ * note on `CommandListInner` in command.tsx for why this split is necessary.
+ */
+function ComboboxListInner({ ...props }: ComboboxPrimitive.List.Props) {
+  const { scrollableY } = useScrollAreaOverflow()
+  return (
+    <ComboboxPrimitive.List
+      data-slot="combobox-list"
+      className={cn("p-1 data-empty:p-0", scrollableY && "pe-2")}
+      {...props}
+    />
   )
 }
 
