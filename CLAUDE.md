@@ -624,6 +624,22 @@ a genuinely new failure category is found — not evidence the list is now compl
     element still renders at the intended size — the inset should be invisible to anyone reading the resulting
     on-screen dimensions, only present in the underlying layout allocation.
 
+    **CORRECTION (see divergence row L-36):** the first pass at this fix only compensated the WIDTH side of the
+    added inset (bumping `minSize`/`defaultSize`/`maxSize`), and forgot HEIGHT entirely — `react-resizable-panels`
+    has no min/default/max-height prop for a horizontal group (height is always "100% of the group's own
+    cross-axis"), so the padding silently shrank the visible card's height with nothing compensating for it,
+    reported directly by the user as "reduce the sidebar entirely." **The general rule this generalizes to:**
+    whenever an inset is added to satisfy a clipping ancestor on MULTIPLE sides, verify EVERY affected dimension
+    has an equivalent compensation mechanism available, not just the one the primitive's own props happen to
+    expose most obviously (width, here) — if a dimension has no such prop (height, in a horizontal
+    `react-resizable-panels` group), compensate the CONTAINER instead: make the container itself larger on that
+    axis than its own slot (via `calc(100% + 2×inset)` plus matching negative margins to hold its visual
+    position), so the contained element keeps its full original size while the container absorbs the extra
+    slack invisibly. After any such fix, verify by comparing the affected element directly against its most
+    relevant real sibling (here: the panel against the Rail's own height/top/bottom, not just against the
+    resizable group's own box) — comparing only against the wrapping primitive can hide a regression that's
+    only obvious when checked against the actual visual neighbor a user would notice it drifting from.
+
 
 
 ## Three machines, one branch

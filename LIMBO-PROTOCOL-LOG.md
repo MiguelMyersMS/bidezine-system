@@ -273,6 +273,54 @@ be visible in its live inline styles, not its exported className recipe — befo
 will render fully; if the fix requires an inset that would otherwise skew a numeric size the user (or a real
 reference source) cares about, compensate for it in the size props so the visible result stays exact.**
 
+**Update 10 — Update 9's own shadow-inset fix (L-35) only compensated WIDTH for the added padding, silently
+shrinking the visible panel's HEIGHT (L-36); the follow-up fix to that then over-corrected by removing right-side
+padding entirely, clipping the shadow's rounded-corner bleed (L-37).** Reported directly by the user, immediately
+after Update 9/L-35 shipped: "the resizable approach works really well but in order to fix the issue with the
+shadow i see it has been decided to reduce the sidebar entirely... is it possible to avoid that down size without
+truncating the shadow and allowing the resizing capability?" Per the user's own "recognize, recommend, don't act"
+instruction, re-examined L-35's fix before touching anything: `react-resizable-panels` has no min/default/max-
+HEIGHT prop for a horizontal group (a panel's height is always simply "100% of the group's own cross-axis"), so
+while L-35 correctly compensated width (`minSize`/`defaultSize`/`maxSize` bumped by `2 × PANEL_SHADOW_INSET`), the
+`p-2` padding added on all four sides inside `ResizablePanel` silently ate 16px (8px top + 8px bottom) off the
+visible card's height with nothing making up for it — measured live: panel height 638px vs. the group's own
+654px, a real unintended regression, not a deliberate tradeoff. **L-36 fix (approved before acting):** applied the
+same width-side trick to height — instead of shrinking the visible card to fit inside a fixed-size group, the
+group itself is made 16px taller than its own flex-item slot (`height: calc(100% + PANEL_SHADOW_INSET * 2)`) with
+symmetric negative `marginTop`/`marginBottom` (`-PANEL_SHADOW_INSET` each) pulling it back to the exact same
+visual position — the visible card lands at precisely its original height again, flush with the Rail on both
+edges, with the extra 16px existing purely as invisible slack for the group's own clipping boundary. Verified
+live: panel height (654px) now exactly matches Rail height, top/bottom edges match Rail's exactly (0px
+difference), full 240–380px drag range unaffected. L-36 also removed the padding on the panel's right side
+entirely at the same time, reasoning that edge is a functional attachment point to the drag handle rather than
+open background needing shadow clearance. **That reasoning was wrong, caught by the user immediately after
+("the shadow at the right side of the sidebar is truncated"), fixed as L-37:** the panel still has rounded
+corners (`border-radius: 12`), and a `box-shadow` wrapping a rounded corner needs clearance in TWO directions at
+once — the top-right/bottom-right corners still need room to bleed rightward AND up/down simultaneously. Zeroing
+the right-side slack clipped exactly that corner-bleed region (confirmed via a zoomed screenshot of the top-right
+corner: the shadow's curve abruptly stopped instead of bleeding outward, unlike the other three corners). Also
+re-checked bidezine's own real `ResizableHandle` convention: it always renders as an independent thin-line flex
+item between two panels, never overlapping into or pressed flush against one — so there was no real convention
+here worth preserving by forcing the card flush against the handle. Fixed by restoring padding on all four sides
+(back to `p-2`) and restoring the full `2 × PANEL_SHADOW_INSET` width compensation on both left and right — the
+L-36 height fix (taller group + negative margins) was left untouched, since it addresses a separate concern.
+Verified live after this second fix: 8px slack confirmed on all four sides again, panel width still exactly
+300px at rest, height/top/bottom still exactly matching the Rail (unaffected by this change), zoomed screenshot
+confirms the shadow's curve now bleeds cleanly at both right corners, matching the other two. Full drag range
+re-confirmed unaffected. `limbo-factory` typechecks and builds cleanly in production mode (checked after each of
+the two fixes, not just once at the end). **Standing lesson, folded into CLAUDE.md checklist item 25 as a
+correction:** whenever an inset is added to satisfy a clipping ancestor on multiple sides, verify EVERY affected
+dimension has an equivalent compensation mechanism, not just the one a primitive's props happen to expose most
+obviously (width) — if a dimension has no such prop (height, here), compensate the container itself instead
+(make it larger than its own slot via negative margins), and always re-verify the fixed element directly against
+its most relevant real visual neighbor (the Rail's own height, not just the resizable group's own box) — checking
+only against the wrapping primitive can hide a regression that's only obvious when checked against the actual
+neighbor a user would notice it drifting from. Separately, this also reinforces checklist item 14 (decorative
+overlay geometry): a shadow's own bleed radius around a ROUNDED corner needs slack in two directions
+simultaneously at that corner, not just along each flat edge independently — an edge can look "fine" in isolation
+(flush, no visible gap along the straight run) while still clipping the shadow specifically at the corner where
+it curves.
+
 
 
 Whenever the Intake agent finds an element in the source that isn't cleanly pairable to an existing

@@ -306,19 +306,51 @@ const FOOTER_SECTIONS: RailSection[] = [{ id: "settings", label: "Settings", ico
  * (mirroring origin's own 24px/`SPACE[6]` safety-margin reasoning) exactly when the real panel
  * reaches `PANEL_MAX_WIDTH`, and no further.
  *
- * `PANEL_SHADOW_INSET` (see divergence row L-35, part 2): `ResizablePanelGroup`'s own rendered box
- * carries a real `overflow: hidden` (set internally by the vendored `react-resizable-panels`
- * library, not something in bidezine's own `src/ui/resizable.tsx` recipe — confirmed live via
- * `getComputedStyle`). With the panel's own `shadow-md` sitting flush against the group's edges
- * (zero slack, measured), the group clipped it — the same "ancestor overflow-hidden clips a
- * descendant's decoration" pattern as L-31's focus-ring bug, just with an un-removable ancestor this
- * time (the clipping is baked into the vendored library, unlike L-31's bidezine-authored wrapper).
- * `PANEL_MIN_WIDTH`/`PANEL_DEFAULT_WIDTH`/`PANEL_MAX_WIDTH` above describe the panel's real, VISIBLE
- * bordered/elevated card size (matching origin's real numbers exactly) — `PANEL_SHADOW_INSET` is
- * added on top of each when sizing the actual `ResizablePanel` (which allocates layout space, not
- * visible pixels), so the visible card gets genuine slack on every side for its shadow to bleed into
- * before hitting the group's clipping boundary, while still rendering at exactly the sizes origin's
- * own instruction specifies.
+ * `PANEL_SHADOW_INSET` (see divergence row L-35, part 2, later corrected by L-36 — see below):
+ * `ResizablePanelGroup`'s own rendered box carries a real `overflow: hidden` (set internally by the
+ * vendored `react-resizable-panels` library, not something in bidezine's own `src/ui/resizable.tsx`
+ * recipe — confirmed live via `getComputedStyle`). With the panel's own `shadow-md` sitting flush
+ * against the group's edges (zero slack, measured), the group clipped it — the same "ancestor
+ * overflow-hidden clips a descendant's decoration" pattern as L-31's focus-ring bug, just with an
+ * un-removable ancestor this time (the clipping is baked into the vendored library, unlike L-31's
+ * bidezine-authored wrapper). `PANEL_MIN_WIDTH`/`PANEL_DEFAULT_WIDTH`/`PANEL_MAX_WIDTH` above
+ * describe the panel's real, VISIBLE bordered/elevated card size (matching origin's real numbers
+ * exactly).
+ *
+ * CORRECTION (see divergence row L-36): L-35's first pass at this fix added `PANEL_SHADOW_INSET`
+ * padding on ALL FOUR sides inside `ResizablePanel`, and only compensated the WIDTH side of that
+ * inset (bumping `minSize`/`defaultSize`/`maxSize` up by `2 × PANEL_SHADOW_INSET`) — the HEIGHT side
+ * was never compensated, since `react-resizable-panels` has no min/default/max-HEIGHT prop for a
+ * horizontal group (a panel's height is always simply "100% of the group's own cross-axis"). The
+ * user caught this directly ("in order to fix the issue with the shadow i see it has been decided
+ * to reduce the sidebar entirely... is it possible to avoid that down size"): the visible card was
+ * measured 16px SHORTER than the group's own box (8px top + 8px bottom), no longer reaching the
+ * same top/bottom edges the Rail column still does — a real, unintended regression, not a
+ * deliberate tradeoff. FIXED by applying the SAME width-side trick to height too: rather than
+ * shrinking the VISIBLE card to fit inside a fixed-size group, the GROUP itself is made 16px TALLER
+ * than its own flex-item slot (`height: calc(100% + PANEL_SHADOW_INSET * 2)`) with symmetric
+ * negative `marginTop`/`marginBottom` (`-PANEL_SHADOW_INSET` each) pulling it back to the exact same
+ * visual position — the visible card (still with its own top/bottom padding) lands at precisely its
+ * original height again, flush with the Rail, with the extra 16px existing purely as invisible
+ * slack for the group's own clipping boundary.
+ *
+ * SECOND CORRECTION (see divergence row L-37): L-36 also removed the padding on the panel's RIGHT
+ * side entirely, reasoning that edge is a functional attachment point to the drag handle (mirroring
+ * origin's own "grip inset WITHIN the panel's right edge"), not open background needing shadow
+ * clearance. That reasoning missed something real: the panel still has ROUNDED corners
+ * (`borderRadius: 12`), and a shadow wrapping a rounded corner needs clearance in TWO directions at
+ * once — the top-right and bottom-right corners still need room to bleed rightward AND up/down
+ * simultaneously. Zeroing the right slack clipped exactly that corner-bleed region, reported
+ * directly by the user ("the shadow at the right side of the sidebar is truncated") and confirmed
+ * visually via a zoomed screenshot of the top-right corner (the shadow's soft curve abruptly stopped
+ * instead of continuing to bleed outward, unlike every other corner). Also, bidezine's own real
+ * `ResizableHandle` convention (confirmed via its existing use in the showcase site) always sits as
+ * an independent thin-line flex item BETWEEN two panels, never overlapping/inset into one the way
+ * origin's own hand-rolled grip does — so there was no real convention to preserve by forcing the
+ * card flush against the handle in the first place. FIXED by restoring the padding on all four
+ * sides again (back to `p-2`, matching L-35's original shape) and restoring the full
+ * `2 × PANEL_SHADOW_INSET` width compensation on `ResizablePanel`'s own size props — the height fix
+ * from L-36 (taller group + negative margins) is untouched and still correct.
  */
 const PANEL_DEFAULT_WIDTH = 300
 const PANEL_MIN_WIDTH = 240
@@ -1075,7 +1107,15 @@ export function FunctionalRailSidebar({
                 play. */}
             <ResizablePanelGroup
               orientation="horizontal"
-              style={{ width: PANEL_GROUP_WIDTH, height: "100%" }}
+              style={{
+                width: PANEL_GROUP_WIDTH,
+                // QA finding (see divergence row L-36): a taller-than-slot group + negative
+                // top/bottom margins, NOT a shrunk visible panel — see the full writeup below,
+                // right where the previous (regressed) approach used to just say `height: "100%"`.
+                height: `calc(100% + ${PANEL_SHADOW_INSET * 2}px)`,
+                marginTop: -PANEL_SHADOW_INSET,
+                marginBottom: -PANEL_SHADOW_INSET,
+              }}
             >
               {/* QA finding / feature request (see divergence row L-35): origin's real panel resize
                   (RailNav.tsx) is hand-rolled — `onMouseDown` on a `role="separator"` div starts
@@ -1136,20 +1176,28 @@ export function FunctionalRailSidebar({
                 maxSize={PANEL_MAX_WIDTH + PANEL_SHADOW_INSET * 2}
                 className="flex flex-col"
               >
-                {/* QA finding (see divergence row L-35, part 2): `ResizablePanelGroup`'s own rendered
-                    box carries a real `overflow: hidden` (confirmed live via `getComputedStyle` — set
-                    internally by the vendored `react-resizable-panels` library itself, not something
-                    in bidezine's own `src/ui/resizable.tsx` recipe, so it can't simply be removed the
-                    way L-31 removed a bidezine-authored `overflow-hidden`). The panel's own `shadow-md`
-                    (a `box-shadow`, painted OUTSIDE its own border box) was measured flush against the
-                    group's own edges on every side (`slackLeft`/`slackTop`/`slackBottom` all 0px) —
-                    the exact same "ancestor overflow-hidden clips a descendant's decoration when
-                    there's zero slack" pattern as L-31's focus-ring bug, just with an un-removable
-                    ancestor this time. FIXED by adding a real inset wrapper INSIDE `ResizablePanel`
-                    (its own root node has an inline `padding: 0px`, confirmed via `getComputedStyle` —
-                    a class added directly to `ResizablePanel` itself can't override an inline style, so
-                    the inset has to live on a nested plain div instead) so the shadow-bearing div has
-                    genuine slack before hitting the group's clipping boundary on every side. */}
+                {/* QA finding (see divergence row L-35, part 2, corrected by L-36 and L-37 — see the
+                    `PANEL_SHADOW_INSET` doc comment above for the full writeup): `ResizablePanelGroup`'s
+                    own rendered box carries a real `overflow: hidden` (confirmed live via
+                    `getComputedStyle` — set internally by the vendored `react-resizable-panels`
+                    library itself, not something in bidezine's own `src/ui/resizable.tsx` recipe, so
+                    it can't simply be removed the way L-31 removed a bidezine-authored
+                    `overflow-hidden`). The panel's own `shadow-md` (a `box-shadow`, painted OUTSIDE
+                    its own border box) was measured flush against the group's own edges — the exact
+                    same "ancestor overflow-hidden clips a descendant's decoration when there's zero
+                    slack" pattern as L-31's focus-ring bug, just with an un-removable ancestor this
+                    time. FIXED by adding a real inset wrapper INSIDE `ResizablePanel` (its own root
+                    node has an inline `padding: 0px`, confirmed via `getComputedStyle` — a class added
+                    directly to `ResizablePanel` itself can't override an inline style, so the inset has
+                    to live on a nested plain div instead) so the shadow-bearing div has genuine slack
+                    on EVERY side before hitting the group's clipping boundary — including the right
+                    (L-37: even though that edge attaches to the drag handle, the panel's ROUNDED
+                    corners still need bleed room in two directions at once at the top-right/
+                    bottom-right corners specifically; removing that slack clipped the shadow's curve
+                    right at the corner, not just along the flat edge). Width is compensated on
+                    `ResizablePanel`'s own size props above (`2 × PANEL_SHADOW_INSET`, left AND right);
+                    height is compensated by the group's own taller-than-slot height + negative
+                    margins, see the JSX above this panel. */}
                 <div className="h-full w-full p-2">
                   <div
                     data-state={openSection ? "open" : "closed"}
