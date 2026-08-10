@@ -513,6 +513,22 @@ a genuinely new failure category is found — not evidence the list is now compl
     conclusively (picking the least-invasive of the already-documented options) rather than leaving them to
     accumulate and resurface as fresh-seeming bug reports.
 
+20. **"Selected/active" emphasis on a row (bold text, filled icon, whatever else marks it as current) must be
+    driven from ONE reused state-detection mechanism, never two separate implementations for text vs. icon that
+    can silently drift out of sync.** The Rail Sidebar's panel tree (L-28/L-29) bolded a selected leaf's AND its
+    ancestor groups' text first, in its own pass — then, in a separate follow-up, needed a second pass to also
+    fill their icons, because the leaf row's icon-fill already worked (it reused `Button`'s own built-in
+    `aria-pressed` → `useActionIconFill` → `fillActionIcons` wiring) but the newly-added group-row ancestor logic
+    was wired up for the text (`className`) only, not also passed through to the icon. The safe pattern, applied
+    once found: compute the "is this row on the active path" boolean ONCE, then feed it into the SAME primitive
+    mechanism that already drives both text weight and icon fill together (here, that mechanism is `Button`'s own
+    `aria-pressed` prop) rather than writing one conditional for the `className` and a second, independent
+    conditional for a `filled` prop. Whenever a row/element has multiple visual properties that are all supposed
+    to track the same underlying state (selected, active, expanded, on-path, etc.), route all of them through the
+    same boolean and the same primitive-level hook, so a future edit to how that state is computed can't update
+    one visual property while silently leaving another stale — exactly what happened here across two separate
+    commits before the icon half was caught.
+
 
 
 ## Three machines, one branch

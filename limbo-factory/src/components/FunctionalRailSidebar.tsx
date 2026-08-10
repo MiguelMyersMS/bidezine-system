@@ -321,6 +321,24 @@ function containsActiveItem(nodes: PanelNode[], activeItemId: string | null): bo
   )
 }
 
+/**
+ * Single source of truth for "this row is on the active path" emphasis (L-28/L-29's own lesson,
+ * folded into CLAUDE.md's Primitive Fidelity Checklist item 20: text weight and icon fill must be
+ * driven from ONE reused boolean/mechanism, never two separately-maintained conditionals that can
+ * drift out of sync — which is exactly what happened here across two separate passes before the
+ * icon half was caught). Returns BOTH the label className and the `aria-pressed` value together, so
+ * a future edit to either the leaf row or the group row can't update one without the other: spread
+ * the `ariaPressed` result directly onto `Button`'s own `aria-pressed` prop (which its built-in
+ * `useActionIconFill`/`fillActionIcons` wiring already reads for icon fill — see src/ui/button.tsx),
+ * and the `className` result into the row's own `cn(...)` call for the label weight/leading.
+ */
+function pathEmphasis(isOnActivePath: boolean) {
+  return {
+    ariaPressed: isOnActivePath,
+    className: isOnActivePath ? "leading-none font-medium" : "font-normal",
+  }
+}
+
 function RailIconButton({
   section,
   state,
@@ -444,6 +462,7 @@ function PanelTree({
       {nodes.map((node) => {
         if (node.kind === "leaf") {
           const isSelected = node.id === activeItemId
+          const emphasis = pathEmphasis(isSelected)
           const Icon = node.icon
           if (node.disabled) {
             return (
@@ -471,7 +490,7 @@ function PanelTree({
               key={node.id}
               type="button"
               variant="ghost"
-              aria-pressed={isSelected}
+              aria-pressed={emphasis.ariaPressed}
               onClick={() => onSelectLeaf(node.id)}
               // QA finding (see divergence row L-12): `px-2` alone didn't actually win — Button's
               // own default-size recipe carries `has-[>svg]:px-3` (12px, conditional on containing
@@ -481,16 +500,13 @@ function PanelTree({
               // failure class as M-18/M-19. Explicitly repeating the override AS a `has-[>svg]:`
               // variant (not just the plain utility) puts it in the same conflict group so it
               // actually replaces the base rule.
-              // L-28: the selected row's own label now carries `leading-none font-medium` (on top
-              // of the shared `text-sm`) instead of the unselected `font-normal` — matching origin's
-              // real derivation (RailNav.tsx: `labelFont = isActive ? TYPE.labelL : TYPE.bodyM`,
-              // where TYPE.labelL is 500-weight vs. bodyM's 400). `leading-none` has no visible
-              // effect on centering here (the row's height is fixed via `h-9`/`items-center` and
-              // the label is single-line/`truncate`), but is included to match the exact utility
-              // combination confirmed in this system's own ScrollArea demo heading.
+              // L-28/L-29: label weight/leading AND icon fill (via `aria-pressed` above, read by
+              // Button's own useActionIconFill/fillActionIcons) both derive from the SAME
+              // `pathEmphasis(isSelected)` call — see checklist item 20 for why this must stay a
+              // single shared mechanism rather than two independently-maintained conditionals.
               className={cn(
                 "h-9 w-full justify-start gap-1.5 rounded-md px-2 has-[>svg]:px-2 text-left text-sm hover:bg-accent",
-                isSelected ? "leading-none font-medium" : "font-normal"
+                emphasis.className
               )}
               style={{
                 // QA finding (see divergence row L-10): this used to be `background: isSelected ?
@@ -519,6 +535,7 @@ function PanelTree({
         // whenever the currently selected leaf lives anywhere in this group's subtree, regardless
         // of expand state (see the `containsActiveItem` doc comment above for the origin citation).
         const isAncestorOfActive = containsActiveItem(node.children, activeItemId)
+        const emphasis = pathEmphasis(isAncestorOfActive)
         return (
           <Collapsible key={node.id} open={isOpen} onOpenChange={() => onToggle(node.id)}>
             <CollapsibleTrigger asChild>
@@ -540,25 +557,18 @@ function PanelTree({
               <Button
                 type="button"
                 variant="ghost"
-                // L-29: `aria-pressed` reuses the EXACT same mechanism the leaf Button above already
-                // relies on for its own icon fill (Button's own `useActionIconFill` reads
-                // `props["aria-pressed"]` as its `active` input, then `fillActionIcons` clones every
-                // icon child with the resulting `filled` value automatically — see src/ui/button.tsx).
-                // No explicit `filled={...}` prop needed at this call site: setting `aria-pressed`
-                // here is enough to make this group's own content icon (node.icon) fill whenever the
-                // group is an ancestor of the active leaf, exactly mirroring the leaf row's existing
-                // `aria-pressed={isSelected}` pattern rather than introducing a second, parallel
-                // fill mechanism for this one call site.
-                aria-pressed={isAncestorOfActive}
+                // L-28/L-29: label weight/leading AND icon fill both derive from the SAME
+                // `pathEmphasis(isAncestorOfActive)` call (checklist item 20) — `aria-pressed` here
+                // is read automatically by Button's own `useActionIconFill`/`fillActionIcons` wiring
+                // (src/ui/button.tsx) to fill this group's own content icon (node.icon), with no
+                // separate `filled={...}` prop needed at this call site.
+                aria-pressed={emphasis.ariaPressed}
                 // QA finding (see divergence row L-12): same has-[>svg]:px-3 vs px-2 conflict-group
                 // gap as the leaf Button above — repeating the override as a has-[>svg]: variant
                 // makes it actually win over Button's own default-size base recipe.
-                // L-28: same selected-label treatment as the leaf row above, applied whenever this
-                // group is an ANCESTOR of the active leaf (i.e. "the parents it belongs to") — not
-                // only the leaf itself gets the bolder/tighter label.
                 className={cn(
                   "h-9 w-full justify-start gap-1.5 rounded-md px-2 has-[>svg]:px-2 text-left text-sm hover:bg-accent",
-                  isAncestorOfActive ? "leading-none font-medium" : "font-normal"
+                  emphasis.className
                 )}
                 style={{ color: "var(--foreground)" }}
               >
