@@ -19,14 +19,34 @@
 
 ---
 
-## Laptop A — Miguel
+## Laptop A — Miguel  ·  PRIMARY
 
-**Baseline** — branch `main`, last verified commit `5826b0d` plus the just-committed weight-showcase
-caption removal below, working tree clean once this session's final commit lands, pushed to `origin/main`.
+**Baseline** — branch `main`, last verified commit `9ea37de` plus this session's commit adding
+`docs/SANDBOX-SPEC.md`, working tree clean once that commit lands, pushed to `origin/main`.
+
+This machine is the designated **primary** (`.env`: `MACHINE_NAME=Laptop A`). A formal
+primary/satellite rename of all three machines is deliberately deferred to Sandbox Milestone 8 —
+see `docs/SANDBOX-SPEC.md` §8. Renaming earlier would break Laptop B's local, gitignored `.env`,
+which cannot be fixed from here.
 
 ### Active task
 
-_None. Badge status-variant + weight work (L-6 groundwork) is complete, verified, committed, and pushed._
+**Sandbox — Milestone 1: the store and the gate.** `docs/SANDBOX-SPEC.md` is written and approved in
+principle; work has started on M1. Read the spec first — it is the single source of truth for this
+project, and everything below assumes it.
+
+M1 splits into two tracks running in parallel:
+
+- **Miguel (portal work, blocking):** provision a Fabric SQL Database, register an Entra service
+  principal, and put the connection details into `.env`. Until this lands, nothing can be run against
+  a real database — only authored.
+- **AI (repo work, non-blocking):** author the full schema, the three database roles, the gate
+  procedure, and a migration runner under `db/`. All of it is written to be run the moment the
+  database exists; none of it requires the database to author.
+
+**Critical sequencing constraint, from the spec:** `limbo-factory/` stays running and authoritative
+through M1–M4. Nothing in its current working state is touched until M5 swaps the read path. Do not
+start renaming Limbo → Sandbox, and do not touch `limbo-factory/src/data/rail-sidebar.ts`, before then.
 
 ### What's done (current state — not a history)
 
