@@ -42,9 +42,14 @@ import { cn } from "@/lib/utils"
  * hover when composed via `asChild`) but sets `text-muted-foreground` at rest instead of inheriting
  * `currentColor` — reusing the same `--muted-foreground` token already used for description/secondary
  * text elsewhere in the system (e.g. `Breadcrumb`, `Field`'s description text), so it reads as
- * intentionally quieter without introducing a new color. Contrast re-verified for this specific usage:
- * `muted-foreground` against a white badge-less background is 4.73:1 (passes the 4.5:1 AA threshold for
- * normal-size text) at rest, and the hover state (`accent-foreground` on `bg-accent`) is 16.42:1.
+ * intentionally quieter without introducing a new color. Contrast depends on the host surface this badge
+ * sits on, since `muted` has no background fill of its own — verified against every surface it's realistically
+ * placed on: `muted-foreground` reaches 4.73:1 on a plain white/`--background` surface, 4.53:1 on `--sidebar`
+ * (the Rail Sidebar's own surface — barely clears the 4.5:1 AA threshold for normal-size text), and only
+ * 4.34:1 on `--muted` (fails 4.5:1 AA). **Do not place a `muted` badge directly on a `bg-muted` surface** —
+ * verify contrast against the actual host background before use, the same way this doc comment does, rather
+ * than assuming the white-background figure applies everywhere. The hover state (`accent-foreground` on
+ * `bg-accent`) is a comfortable 16.42:1 regardless of host surface, since hover replaces the background outright.
  *
  * Accessibility notes for consumers (not enforced by the component, since color usage is a per-instance
  * choice):

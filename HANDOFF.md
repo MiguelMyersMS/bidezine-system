@@ -92,10 +92,15 @@ _None. Badge status-variant + weight work (L-6 groundwork) is complete, verified
   rest, `bg-accent`/`text-accent-foreground` on hover when composed via `asChild`) but sets
   `text-muted-foreground` at rest instead of inheriting `currentColor` — reuses the pre-existing
   `--muted-foreground` token already used for description/secondary text elsewhere (`Breadcrumb`, `Field`'s
-  description text), so **no new color token was authored** for this one. Contrast re-verified for this
-  specific usage: `muted-foreground` at rest is 4.73:1 against white (passes AA 4.5:1), hover state
-  (`accent-foreground` on `bg-accent`) is 16.42:1. Documented in `badge.tsx`'s own doc comment,
-  `BadgeShowcase.tsx`'s new "Muted" example (both weights) and updated `apiRows`/intro paragraph.
+  description text), so **no new color token was authored** for this one. Contrast depends on the host
+  surface (this variant has no background fill of its own): `muted-foreground` reaches 4.73:1 on plain
+  white/`--background`, 4.53:1 on `--sidebar` (the Rail Sidebar's own surface — barely clears AA 4.5:1),
+  and only 4.34:1 on `--muted` (fails AA 4.5:1) — **do not place this badge directly on a `bg-muted`
+  surface**. Hover state (`accent-foreground` on `bg-accent`) is 16.42:1 regardless of host surface. This
+  host-surface caveat was added after an independent code-review audit agent (`badge-muted-audit`) caught
+  the original doc comment overclaiming the white-background figure as universally applicable. Documented in
+  `badge.tsx`'s own doc comment, `BadgeShowcase.tsx`'s new "Muted" example (both weights) and updated
+  `apiRows`/intro paragraph.
   - Verified: `npx tsc --noEmit` clean (root + `site/`), `npm run build` succeeds (dist rebuilt since the
     new variant literal is part of `Badge`'s exported prop type), dev server hot-reloaded and returns 200
     on `/components/badge`.
