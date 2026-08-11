@@ -9,8 +9,10 @@ it, don't delete it, as new cases are learned.
 ## The two source-of-truth files
 
 - [`tokens/light.tokens.json`](/tokens/light.tokens.json) / [`tokens/dark.tokens.json`](/tokens/dark.tokens.json)
-  — bidezine's real, currently-shipping semantic color tokens (shadcn/ui's own unmodified values). Every
-  color used anywhere in `@bidezine/system` traces back to one of these.
+  — bidezine's real, currently-shipping semantic color tokens: primarily shadcn/ui's own unmodified
+  values, plus a small number of bidezine Adjustments layered in alongside them (e.g. `success`/`warning`/
+  `info`, added for Badge's status variants — each explicitly marked as such via its own `$description`).
+  Every color used anywhere in `@bidezine/system` traces back to one of these.
 - [`scripts/lib/color.mjs`](/scripts/lib/color.mjs) — the conversion utility. Use it, don't hand-convert.
 
 ## Step 1 — Identify what color space the values need to end up in
