@@ -180,9 +180,23 @@ start renaming Limbo → Sandbox, and do not touch `limbo-factory/src/data/rail-
     `.bg-{status}-soft`/`.text-{status}-soft-foreground` utilities and their hover variants exist,
     `npx tsc --noEmit` clean (root + `site/`), dev server hot-reloaded and returns 200 on
     `/components/badge`.
-  - Commits: `61b88cc` (initial tone axis, contained the theme-registration bug above), follow-up commit
-    fixing the `@theme inline` registration + doc corrections (see git log for hash). All pushed to
-    `origin/main`.
+  - Commits: `61b88cc` (initial tone axis, contained the theme-registration bug above), `9ea37de`
+    (`@theme inline` registration fix + doc corrections). All pushed to `origin/main`.
+  - **Operational gotcha found afterward, worth knowing for any future `@bidezine/system` source change**:
+    the user reported the soft badges "look not right" in the live `site/` dev server (`localhost:5173`)
+    even after both fix commits were pushed and `dist/` was rebuilt correctly on disk. Root cause: the
+    site's Vite dev server process (`site/`, port 5173) had been running continuously since *before* any
+    of these token/CSS fixes — Vite's default file watcher ignores `node_modules` (including symlinked
+    workspace packages like `site/node_modules/@bidezine/system` → repo root), so it never picked up
+    the rebuilt `dist/system.css`, silently continuing to serve a stale, pre-fix transform of the
+    stylesheet indefinitely. **Rebuilding `dist/` after a source change is necessary but not sufficient
+    when a `site/` dev server is already running against the linked package — the dev server itself must
+    be restarted (kill + `npm run dev` again) to pick up the change; a browser hard-refresh alone is not
+    enough, since the stale content lives in Vite's own server-side transform cache, not the browser's.**
+    Verified the fix by curling the dev server's actual served CSS (`http://localhost:5173/src/index.css`)
+    directly after restart and confirming all 8 `.bg-*-soft`/`.text-*-soft-foreground` utility classes are
+    present in what it serves (not just what's on disk in `dist/`) — checking disk output alone is not
+    proof a *running* dev server has picked it up.
 
 
 - Rail Sidebar panel resize (`react-resizable-panels`) ships with correct shadow clearance on all four
