@@ -975,6 +975,10 @@ export function FunctionalRailSidebar({
   height = 550,
   fontFamily,
   adjacentContent,
+  logoLabel = "BiDezine",
+  logoHref,
+  logoIcon,
+  logoPlaceholder = false,
 }: {
   colors: RailColors
   height?: number
@@ -986,6 +990,48 @@ export function FunctionalRailSidebar({
    * preview but not representative of a real deployment — pass real content wherever possible.
    */
   adjacentContent?: React.ReactNode
+  /**
+   * M-9 LOGO CONTRACT (see rail-sidebar.ts row M-9 for the full decision record). This is the
+   * name shown in the logo slot's hover tooltip (Radix `Tooltip`, always visible regardless of
+   * rail state — matches origin's `LogoSlotDark`, see M-5/L-1). Defaults to "BiDezine" for this
+   * design system's own brand; ANY other consumer overriding `logoIcon` below MUST also override
+   * this to their own product/brand name, never leave it as "BiDezine".
+   */
+  logoLabel?: string
+  /**
+   * M-9 LOGO CONTRACT: when provided, the logo slot renders as a real hyperlink
+   * (`<a href={logoHref} target="_blank" rel="noreferrer">`) that navigates to this URL on click
+   * — e.g. a marketing site, a docs home, or an internal app root. When omitted, the logo slot
+   * renders as a plain, non-interactive `<div>` (no click behavior), matching the pre-M-9
+   * behavior for consumers that don't want the logo to be clickable.
+   */
+  logoHref?: string
+  /**
+   * M-9 LOGO CONTRACT — mandatory process, not just a prop: before writing any code that wires a
+   * specific logo into a real consumer's Rail Sidebar, the AI (or human implementer) MUST
+   * explicitly ask the requester for their logo, in SVG format, sized to fit this slot's real
+   * rendered box (38×38px rail-button hit area; the icon itself renders at a 24×24px / `size-6`
+   * mark inside it — see `BIDEZINE_LOGO_VIEWBOX`'s own 26.064×24 aspect for this component's own
+   * default mark as a sizing reference). Never invent, guess, or auto-generate a logo. If the
+   * requester has no logo ready yet, there are exactly two acceptable interim states, both
+   * explicit and visible (never silently substitute one for the other):
+   *   1. Leave `logoIcon` unset — renders this design system's own default BiDezine mark
+   *      (`BIDEZINE_LOGO_PATH`) as a clearly-temporary stand-in, OR
+   *   2. Set `logoPlaceholder` to `true` — renders an empty, bordered box with no mark at all, a
+   *      deliberate "logo pending" signal distinct from the branded default, for consumers who
+   *      don't want BiDezine's own mark shown even temporarily.
+   * Once the real SVG is supplied, pass its markup as `logoIcon` (a `<svg>` element/fragment,
+   * NOT an `<img>` — see CLAUDE.md's "SVG icons must be rendered as inline `<svg>`" rule) sized to
+   * this same 24×24px slot; also set `logoLabel` to the real brand/product name at the same time.
+   */
+  logoIcon?: React.ReactNode
+  /**
+   * M-9 LOGO CONTRACT: renders an empty, outlined placeholder box instead of this design system's
+   * own default BiDezine mark when no real `logoIcon` has been supplied yet. Ignored if `logoIcon`
+   * is also provided (an explicit `logoIcon` always wins). See `logoIcon`'s own doc comment above
+   * for the full request/interim-state process this flag is part of.
+   */
+  logoPlaceholder?: boolean
 }) {
   const [openPanel, setOpenPanel] = useState<string | null>("slides")
   const [activeSectionId, setActiveSectionId] = useState("slides")
@@ -1150,19 +1196,48 @@ export function FunctionalRailSidebar({
           <div className="flex flex-col gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
-                <div
-                  className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg"
-                  style={{ color: colors.fgHover }}
-                >
-                  <svg viewBox={BIDEZINE_LOGO_VIEWBOX} className="size-6" fill="currentColor" aria-hidden="true">
-                    <path d={BIDEZINE_LOGO_PATH} />
-                  </svg>
-                </div>
+                {/* M-9 LOGO CONTRACT: the slot becomes a real hyperlink only when a consumer
+                    supplies `logoHref` — otherwise it stays a plain, non-interactive `<div>` (no
+                    click affordance), matching pre-M-9 behavior. `asChild` on TooltipTrigger means
+                    whichever element renders here (a/div) receives the trigger's own hover/focus
+                    wiring directly — no extra wrapper needed either way. */}
+                {logoHref ? (
+                  <a
+                    href={logoHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg"
+                    style={{ color: colors.fgHover }}
+                  >
+                    {logoIcon ?? (logoPlaceholder ? (
+                      <div className="size-6 rounded border border-dashed" style={{ borderColor: colors.fgHover }} aria-hidden="true" />
+                    ) : (
+                      <svg viewBox={BIDEZINE_LOGO_VIEWBOX} className="size-6" fill="currentColor" aria-hidden="true">
+                        <path d={BIDEZINE_LOGO_PATH} />
+                      </svg>
+                    ))}
+                  </a>
+                ) : (
+                  <div
+                    className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg"
+                    style={{ color: colors.fgHover }}
+                  >
+                    {logoIcon ?? (logoPlaceholder ? (
+                      <div className="size-6 rounded border border-dashed" style={{ borderColor: colors.fgHover }} aria-hidden="true" />
+                    ) : (
+                      <svg viewBox={BIDEZINE_LOGO_VIEWBOX} className="size-6" fill="currentColor" aria-hidden="true">
+                        <path d={BIDEZINE_LOGO_PATH} />
+                      </svg>
+                    ))}
+                  </div>
+                )}
               </TooltipTrigger>
               {/* Origin's LogoSlotDark always shows a hover tooltip with the logo label (default
                   "BiDezine", see divergence row M-9), even when the slot has no onClick — matches
-                  that behavior here via the real Tooltip primitive (L-1). */}
-              <TooltipContent side="right">BiDezine</TooltipContent>
+                  that behavior here via the real Tooltip primitive (L-1). Now sourced from the
+                  configurable `logoLabel` prop instead of a hardcoded string, so a consumer
+                  supplying their own `logoIcon`/`logoHref` also gets their own brand name shown. */}
+              <TooltipContent side="right">{logoLabel}</TooltipContent>
             </Tooltip>
           </div>
           <div className="mx-0 my-2 h-px max-w-full" style={{ background: colors.divider }} />
