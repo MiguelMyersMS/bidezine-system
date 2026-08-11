@@ -795,9 +795,22 @@ function RailIconButton({
   )
 }
 
+// Default badge treatment for this rail's panel tree: variant="muted" weight="regular" (see divergence
+// row L-6 in limbo-factory/src/data/rail-sidebar.ts, and the "Guidance for an AI composing NEW Badge
+// usage" note in src/ui/badge.tsx's own doc comment). `muted` keeps these dense, frequently-repeated
+// inline counts/labels ("+23", "New", "+05") visually receding rather than competing with row content —
+// `secondary`'s filled-pill look was too visually loud for a badge that appears many times per panel.
+// `weight="regular"` is the advised AI default per the same guidance; bolder `weight="emphasis"` or a
+// different `variant` (e.g. `warning`/`info`) remains valid and available for a specific badge that
+// genuinely needs to stand out (an alert-level status, something explicitly requested), just not the
+// unexamined default for every new one.
 function PanelBadge({ label }: { label: string }) {
   return (
-    <Badge variant="secondary" className="ml-2 shrink-0 px-1.5 py-0 text-[10px]">
+    <Badge
+      variant="muted"
+      weight="regular"
+      className="ml-2 shrink-0 px-1.5 py-0 text-[10px]"
+    >
       {label}
     </Badge>
   )

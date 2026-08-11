@@ -79,6 +79,17 @@ import { cn } from "@/lib/utils"
  * status). This is a font-weight-only axis — it does not change color, size, or padding, and combines
  * with every `variant` value.
  *
+ * **Guidance for an AI composing NEW Badge usage** (this does not change the prop's own default, which
+ * stays `"emphasis"` for backward compatibility — see above): prefer `weight="regular"` unless the
+ * surrounding context, a specific pill's semantic weight, or an explicit user instruction calls for the
+ * bolder `"emphasis"` look. `"emphasis"` is a fully supported, valid choice — never disallowed — but it
+ * should be a deliberate pick (the content genuinely needs to stand out: an alert-level status, a
+ * prominent unread count) rather than the unexamined default for every new badge a task happens to add.
+ * The Rail Sidebar's own panel-tree badges (`PanelBadge` in `FunctionalRailSidebar.tsx`) are the reference
+ * example of this guidance in practice: `variant="muted" weight="regular"` by default (see L-6 in
+ * `limbo-factory/src/data/rail-sidebar.ts`), reserving other variants/weights for when a badge's own
+ * content or an explicit instruction specifically warrants it.
+ *
  * `tone` (bidezine Adjustment, independent of `variant` and `weight`): a third orthogonal axis, opt-in via
  * `tone="soft"` (default remains `"solid"`, i.e. every existing usage of `success`/`warning`/`info`/
  * `destructive` renders exactly as before). `soft` is a lighter, tinted-background + saturated-text

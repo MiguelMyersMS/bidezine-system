@@ -198,6 +198,36 @@ start renaming Limbo → Sandbox, and do not touch `limbo-factory/src/data/rail-
     present in what it serves (not just what's on disk in `dist/`) — checking disk output alone is not
     proof a *running* dev server has picked it up.
 
+- **Badge default-usage policy decided; `L-6` resolved** — the user made two related decisions in the same
+  request: (1) the Rail Sidebar's own panel-tree badges (`PanelBadge` in
+  `limbo-factory/src/components/FunctionalRailSidebar.tsx`) now default to `variant="muted" weight="regular"`
+  instead of the `variant="secondary"` (bold) they shipped with initially — muted keeps these dense,
+  frequently-repeated inline counts ("+23", "New", "+05") visually receding rather than competing with row
+  content; (2) a general AI-usage guideline, now documented directly in `src/ui/badge.tsx`'s own `weight` doc
+  comment: an AI composing NEW Badge usage anywhere in the system should default to `weight="regular"`,
+  reserving the bolder `weight="emphasis"` for cases the user explicitly requests or that clearly warrant
+  visual prominence — emphasis remains fully valid and supported, just not the unexamined default. Note this
+  is a **usage/documentation guideline**, not a change to `Badge`'s own `weight` prop default (which stays
+  `"emphasis"` for backward compatibility with every pre-existing Badge call site, per the original
+  Reproduce-baseline rationale).
+  - `limbo-factory/src/data/rail-sidebar.ts`'s `L-6` row (Badge neutral/info/dark-surface variants) updated
+    from `status: "decision"` to `status: "resolved"` — the later `success`/`warning`/`info`/`muted`/`tone`
+    Badge work in this same session already answered the underlying mapping question (muted → neutral, the
+    four status variants → info/positive/caution/negative, `tone="soft"` → RailNav's pale atomSurface fill);
+    this pass closes the loop with the rail's own concrete default choice. The "1 remaining divergence row"
+    summary entry (`id: "remaining"`) was updated to match — only `L-7` (Collapse motion component) now
+    carries `status: "decision"`.
+  - **Deliberate, narrow exception to the Sandbox M1 sequencing constraint noted above** ("do not touch
+    `limbo-factory/src/data/rail-sidebar.ts` before Milestone 5"): this edit is a single divergence row's
+    status/detail text reflecting a decision the user made explicitly, live, in this session — not a
+    structural rename or refactor of the file, and not something that conflicts with Milestone 1–4 keeping
+    `limbo-factory/` running/authoritative. Flagged here so a future AI doesn't mistake this for a violation
+    of that constraint, and doesn't assume the constraint blocks small, explicitly-requested content fixes.
+  - Verified: `npx tsc --noEmit` clean (root + `limbo-factory/`), no `dist/` rebuild required (no
+    `badgeVariants`/`defaultVariants` change, doc-comment + call-site prop change only).
+  - Not yet independently audited by a background agent as of this writing — recommended before this is
+    treated as fully closed, per this project's standing "verify design-system changes with an independent
+    agent" instruction, since this touches the shared `src/ui/badge.tsx` doc contract.
 
 - Rail Sidebar panel resize (`react-resizable-panels`) ships with correct shadow clearance on all four
   sides and no height regression (L-35/L-36/L-37, see `limbo-factory/src/data/rail-sidebar.ts` and
@@ -248,9 +278,11 @@ start renaming Limbo → Sandbox, and do not touch `limbo-factory/src/data/rail-
 _Nothing queued. M-6/M-7/M-8/M-20/M-21/M-22 are fully resolved and merged to `main`. M-8's own
 follow-through action (revamping the existing `Sidebar` primitive to borrow Rail Sidebar's patterns) is
 explicitly deferred until AFTER Rail Sidebar itself finishes promotion out of Limbo — not queued yet.
-Remaining open Rail Sidebar divergence-list categories (unrelated to this session): H (motion), I
-(elevation), J (z-index), L (one open item), plus the still-`"decision"` H-2–H-6/L-6/L-7/L-11 rows — none
-touched this baseline; awaiting a future session's focus._
+`L-6` (Badge default-usage policy) resolved this session — see "What's done" above. Remaining open Rail
+Sidebar divergence-list categories (unrelated to this session): H (motion), I (elevation), J (z-index),
+plus the still-`"decision"` H-2–H-6/`L-7`/L-11 rows — none touched this baseline; awaiting a future
+session's focus. Recommend dispatching an independent code-review audit agent on the `L-6`/Badge
+default-policy change above before treating it as fully closed._
 
 ### Open questions / blockers
 
