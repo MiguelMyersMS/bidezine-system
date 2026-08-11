@@ -858,6 +858,33 @@ a genuinely new failure category is found — not evidence the list is now compl
     row as closed.** A row can be fully, correctly reasoned about in documentation while the corresponding
     code was never written at all; documentation completeness is not evidence of implementation completeness.
 
+27. **Any custom component placed directly under a Radix `asChild`-enabled trigger (`TooltipTrigger`,
+    `DropdownMenuTrigger`, `PopoverTrigger`, etc.) needs BOTH `React.forwardRef` AND full rest-prop forwarding
+    — a passing typecheck or build proves neither, only a live hover/focus interaction test does.** `L-1`'s
+    own, previously-working "logo tooltip shows unconditionally on hover" contract was silently broken by an
+    unrelated color-contract refactor (L-51) that extracted the logo's inline `<a>`/`<div>` markup — which,
+    being native DOM elements, accept refs automatically — into a new custom component (`RailLogoSlot`)
+    sitting directly under `<TooltipTrigger asChild>`. This broke the tooltip in TWO separate, compounding
+    ways, and fixing only one still left it broken: (1) the component was a plain function, not
+    `React.forwardRef` — Radix's `asChild`/Slot mechanism clones its child and attaches a `ref` to reach the
+    real DOM node for hover/position tracking, and a non-forwarding component silently swallows that ref with
+    zero error or warning; (2) even after adding `forwardRef`, the component destructured only its own known
+    props (`href`/`colors`/`children`), silently dropping every OTHER prop Radix's Slot clones onto the
+    child — `onPointerEnter`/`onPointerLeave`/`onFocus`/`onBlur`/`data-state`, etc. — which is the actual
+    mechanism Radix's Tooltip uses to detect hover/focus; the ref reached the DOM correctly after fix (1), but
+    Radix's own pointer-tracking handlers still never did. Both fixes were required together: `forwardRef` the
+    ref, AND accept/spread `...rest` props onto the rendered element, composing (not overwriting, not
+    overwritten by) any event handlers the component already defines internally for its own state (here,
+    `onMouseEnter`/`onMouseLeave`/`onMouseDown`/`onMouseUp` driving hover/press color, composed with whatever
+    Radix injects on those same event names). Verified only by a live Playwright hover test against the
+    running dev server (querying for the actual rendered `[role="tooltip"]`/`[data-radix-popper-content-wrapper]`)
+    — `npx tsc --noEmit` passed cleanly through both the broken and the fixed states, proving a clean
+    typecheck gives zero signal this ref/prop chain is intact. Whenever extracting inline markup that sits
+    directly under an `asChild` trigger into its own named component — for ANY reason, not just a color
+    refactor — treat `forwardRef` + full rest-prop forwarding as a mandatory pair, and re-verify the trigger's
+    real interactive behavior (hover, focus, click, whatever it drives) live afterward, not just that the
+    component renders and typechecks.
+
 
 
 ## Three machines, one branch

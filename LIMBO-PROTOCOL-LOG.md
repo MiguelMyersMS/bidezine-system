@@ -664,6 +664,49 @@ matched a real rail icon button's own measured hover/pressed computed styles exa
 visually-similar approximation. `npx tsc --noEmit` clean; no `src/ui/*.tsx` primitive was touched, so no root
 package rebuild was required. See `L-51` in `rail-sidebar.ts` for the full contract and verification detail.
 
+**Update 22 — L-1's own tooltip-on-hover contract for the logo was silently broken by Update 21's own
+`RailLogoSlot` extraction, in TWO separate, compounding ways; both found and fixed.** The user asked "is L1
+resolved to become green or still need my feedback/decision?", then, after being shown L-1 was a distinct,
+older, unrelated row (about unconditional tooltip-on-hover, not color), asked to "understand more about L1
+(LogoSlotDark) to get it resolved." Since L-1's own detail text claimed the tooltip behavior was "implemented
+and interactively verified," but that claim predated Update 21's `RailLogoSlot` extraction, it was re-verified
+live rather than trusted — per this project's own "a resolved record is only as trustworthy as its last
+verification against the real, current code" rule. A temporary Playwright script against the running dev
+server (hover the logo, no `logoHref` set — the current default) found **no tooltip appeared at all**, while
+the identical script against a real rail icon button (a working baseline) correctly found one. Root-caused to
+TWO independent defects in `RailLogoSlot`, both introduced by Update 21's extraction of the logo's previously
+inline `<a>`/`<div>` markup into its own component, sitting directly under `<TooltipTrigger asChild>`: (1) the
+component was a plain function component, not `React.forwardRef` — Radix's `asChild`/Slot mechanism clones its
+child and attaches a `ref` to reach the real DOM node for hover/position tracking; a non-forwarding component
+silently swallows that ref with zero error or warning, so Radix had nothing to attach hover tracking to. FIXED
+by converting to `React.forwardRef<HTMLAnchorElement | HTMLDivElement, ...>`, forwarding to whichever element
+it renders. Re-testing still showed no tooltip — (2) `RailLogoSlot` destructured only its own known props
+(`href`/`colors`/`children`), silently dropping every other prop Radix's Slot clones onto the child —
+`onPointerEnter`/`onPointerLeave`/`onFocus`/`onBlur`/`data-state`, etc. — which is the actual mechanism Radix's
+Tooltip uses to detect hover/focus on the real node; the ref reached the DOM correctly after fix (1), but
+Radix's own pointer-tracking handlers still never did. FIXED by accepting `...rest` and spreading it onto the
+rendered element, composing (not overwriting, not overwritten by) the component's own internal
+`onMouseEnter`/`onMouseLeave`/`onMouseDown`/`onMouseUp` color-state handlers with whatever Radix injects on the
+same event names. VERIFIED live via Playwright after both fixes, in combination: non-interactive logo (no
+`logoHref`, current default) now shows its tooltip ("BiDezine") unconditionally on hover, matching L-1's own
+"UNCONDITIONALLY" requirement; with a temporary `logoHref` wired in for testing only (reverted immediately
+after), the interactive logo showed the tooltip AND correct hover (`background: oklch(0.301 0 0)`, `color:
+oklch(0.922 0 0)`) and pressed (`background: oklch(0.348 0 0)`, `color: oklch(0.985 0 0)`) color transitions
+simultaneously — confirming Update 21's L-51 color contract has zero regression from this fix. Non-interactive
+logo hover was also re-confirmed to show ZERO color change (`getComputedStyle` identical before/after hover),
+confirming L-51's own structural interactive gate is untouched. `npx tsc --noEmit` clean after both fixes. L-1
+updated in `rail-sidebar.ts` from `status: "note"` to `status: "resolved"`, with its detail text rewritten to
+document the regression and both fixes directly, rather than leaving the now-inaccurate original claim in
+place uncorrected. The fix's rationale is also documented directly in `RailLogoSlot`'s own doc comment in
+`FunctionalRailSidebar.tsx`, framed as two SEPARATE failure modes (missing `forwardRef` vs. dropped rest
+props) so a future refactor of this component doesn't reintroduce either one silently, the same way this one
+did. This is a fresh, concrete instance of CLAUDE.md's own item 15 (name-based/runtime-identity assumptions
+breaking silently under real conditions) and item 17 (independent re-verification, not self-approval) — worth
+generalizing further: **any custom component placed directly under a Radix `asChild`-enabled trigger anywhere
+in this codebase (`TooltipTrigger`, `DropdownMenuTrigger`, `PopoverTrigger`, etc.) needs BOTH `forwardRef` AND
+full rest-prop forwarding, and passing a typecheck/build proves neither — only a live, real hover/focus
+interaction test does.**
+
 Whenever the Intake agent finds an element in the source that isn't cleanly pairable to an existing
 bidezine equivalent — icons, gaps, paddings, blocks, layouts, animations, effects, colors, fonts, anything —
 it must be listed **individually**, never batched into a vague summary, and never auto-resolved. The human

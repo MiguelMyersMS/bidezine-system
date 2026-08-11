@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
+import { forwardRef, useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { Presence } from "@radix-ui/react-presence"
 import { useOverflowFit } from "@/hooks/useOverflowFit"
 import {
@@ -626,16 +626,36 @@ function iconInteractionColors(
  *     placeholder box below is given `borderColor: "currentColor"` for the same reason) — so the
  *     mark automatically tracks every resting/hover/press color change with zero extra prop
  *     drilling.
+ *   - MUST be `React.forwardRef` (not a plain function component): the render call site wraps this
+ *     slot directly in `<TooltipTrigger asChild>` (see L-1's own tooltip contract below), and Radix's
+ *     `asChild`/`Slot` mechanism clones its child and attaches a `ref` to it so it can track real
+ *     hover/focus events on the actual DOM node. A plain (non-forwardRef) function component here
+ *     silently swallows that ref — Radix then has nothing to attach hover tracking to, so the
+ *     tooltip never opens, with NO error or warning anywhere. This is exactly what happened when this
+ *     slot was first extracted out of inline JSX for the L-1/color-contract work: extracting native
+ *     `<a>`/`<div>` markup (which accepts refs automatically) into a custom component broke the
+ *     already-working L-1 tooltip-on-hover behavior without any visible failure until hover was
+ *     actually tested live. If this component is ever refactored again, re-verify the tooltip still
+ *     opens on hover — a passing typecheck/build gives zero signal that this ref chain is intact.
+ *   - MUST accept and forward `...rest` props to the rendered element, NOT destructure only the
+ *     props this component itself defines (`href`/`colors`/`children`). `TooltipTrigger asChild`
+ *     clones its child (this component) with ADDITIONAL props merged in — `onPointerMove`,
+ *     `onPointerLeave`, `onFocus`, `onBlur`, `data-state`, etc. — which is how Radix's Tooltip
+ *     actually detects hover/focus on the real DOM node. Destructuring only the known props (as an
+ *     earlier version of this fix did, even after adding `forwardRef`) silently drops every one of
+ *     those Radix-injected props on the floor before they ever reach the rendered `<a>`/`<div>` —
+ *     the ref reaches the DOM node correctly, but Radix's own pointer-tracking handlers never do, so
+ *     the tooltip still never opens despite `forwardRef` being wired correctly. This is a SEPARATE
+ *     failure mode from the missing-forwardRef one above; fixing one without the other still leaves
+ *     the tooltip broken. Event-handler props already used internally here (`onMouseEnter`, etc.,
+ *     only wired when `isInteractive`) must be composed with — not overwritten by — the incoming
+ *     rest props, so both this component's own color-state tracking AND Radix's own hover/focus
+ *     tracking fire correctly.
  */
-function RailLogoSlot({
-  href,
-  colors,
-  children,
-}: {
-  href?: string
-  colors: RailColors
-  children: React.ReactNode
-}) {
+const RailLogoSlot = forwardRef<
+  HTMLAnchorElement | HTMLDivElement,
+  { href?: string; colors: RailColors; children: React.ReactNode } & React.HTMLAttributes<HTMLAnchorElement | HTMLDivElement>
+>(function RailLogoSlot({ href, colors, children, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp, ...rest }, ref) {
   const isInteractive = Boolean(href)
   const [isHovered, setIsHovered] = useState(false)
   const [isPressed, setIsPressed] = useState(false)
@@ -643,37 +663,55 @@ function RailLogoSlot({
   const { background, color } = iconInteractionColors(colors, { isInteractive, isHovered, isPressed })
 
   const sharedProps = {
+    ...rest,
     className: "flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg",
     style: {
       background,
       color,
       transition: isInteractive ? "background-color 150ms ease, color 150ms ease" : undefined,
+      ...rest.style,
     },
     // Only wired when interactive — see this function's own doc comment for why this must be an
-    // omission, not a no-op guard inside the handler.
+    // omission, not a no-op guard inside the handler. Composed with (not overwriting, not
+    // overwritten by) whatever Radix's Slot injects onto the same event, so both this component's
+    // own color-state tracking and Radix's own hover/focus tracking fire on every event.
     ...(isInteractive
       ? {
-          onMouseEnter: () => setIsHovered(true),
-          onMouseLeave: () => {
+          onMouseEnter: (e: React.MouseEvent<HTMLAnchorElement | HTMLDivElement>) => {
+            setIsHovered(true)
+            onMouseEnter?.(e)
+          },
+          onMouseLeave: (e: React.MouseEvent<HTMLAnchorElement | HTMLDivElement>) => {
             setIsHovered(false)
             setIsPressed(false)
+            onMouseLeave?.(e)
           },
-          onMouseDown: () => setIsPressed(true),
-          onMouseUp: () => setIsPressed(false),
+          onMouseDown: (e: React.MouseEvent<HTMLAnchorElement | HTMLDivElement>) => {
+            setIsPressed(true)
+            onMouseDown?.(e)
+          },
+          onMouseUp: (e: React.MouseEvent<HTMLAnchorElement | HTMLDivElement>) => {
+            setIsPressed(false)
+            onMouseUp?.(e)
+          },
         }
-      : {}),
+      : { onMouseEnter, onMouseLeave, onMouseDown, onMouseUp }),
   }
 
   if (href) {
     return (
-      <a href={href} target="_blank" rel="noreferrer" {...sharedProps}>
+      <a ref={ref as React.Ref<HTMLAnchorElement>} href={href} target="_blank" rel="noreferrer" {...sharedProps}>
         {children}
       </a>
     )
   }
 
-  return <div {...sharedProps}>{children}</div>
-}
+  return (
+    <div ref={ref as React.Ref<HTMLDivElement>} {...sharedProps}>
+      {children}
+    </div>
+  )
+})
 
 function RailIconButton({
   section,
