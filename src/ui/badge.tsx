@@ -113,7 +113,7 @@ import { cn } from "@/lib/utils"
  * WCAG relative luminance, not eyeballed) and all clear 7:1 (AAA for normal text, well above the 4.5:1 AA
  * floor), in both light and dark mode:
  * - light: destructive 7.05:1, success 7.04:1, warning 7.06:1, info 7.11:1
- * - dark: destructive 7.04:1, success 9.25:1, warning 8.31:1, info 7.24:1
+ * - dark: destructive 7.04:1, success 9.13:1, warning 8.31:1, info 7.24:1
  * Hover (`asChild` only) darkens the soft background slightly (`hover:bg-{status}-soft/90`) — the same
  * `/90`-on-hover convention the solid variants already use above, so this isn't a new pattern; contrast at
  * rest (the figures above) is what's guaranteed, hover is a transient interaction cue.

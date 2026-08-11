@@ -125,7 +125,7 @@ _None. Badge status-variant + weight work (L-6 groundwork) is complete, verified
     reduces that further. A soft badge needs a separately-tuned, darker/more saturated text shade (own
     OKLCH → linear sRGB → gamma sRGB → WCAG relative-luminance script, not eyeballed).
   - **Verified contrast, all ≥7:1 (AAA for normal text)**: light mode — destructive 7.05:1, success
-    7.04:1, warning 7.06:1, info 7.11:1; dark mode — destructive 7.04:1, success 9.25:1, warning 8.31:1,
+    7.04:1, warning 7.06:1, info 7.11:1; dark mode — destructive 7.04:1, success 9.13:1, warning 8.31:1,
     info 7.24:1.
   - `src/ui/badge.tsx`: `tone` implemented via `cva`'s `compoundVariants` (not a plain `variants.tone`
     class map) — each `(variant, tone)` pair for the 4 status colors gets its own complete class string
@@ -138,9 +138,32 @@ _None. Badge status-variant + weight work (L-6 groundwork) is complete, verified
   - Asked the user one targeted design question first (should `default`/`secondary` also get a soft tone,
     matching the reference image's gray badge) — user was unavailable to respond; proceeded with the
     stated recommended default (no, `secondary`/`outline` already cover that need) rather than block.
-  - Verified: `npm run tokens` (parity gate passes, 56 tokens total, up from 40), `npm run build` succeeds,
-    compiled `dist/system.css` contains all 16 new soft-token utility occurrences, `npx tsc --noEmit` clean
-    (root + `site/`), dev server hot-reloaded and returns 200 on `/components/badge`.
+  - **Critical bug caught by an independent code-review audit agent (`badge-tone-audit`), not
+    self-approved:** the first commit (`61b88cc`) added the 8 new tokens to `tokens/light.tokens.json` /
+    `tokens/dark.tokens.json` but never registered them in `src/styles/system.css`'s `@theme inline`
+    block — without that registration Tailwind v4 has no way to know `destructive-soft` etc. are valid
+    color names, so it silently generated **zero** `bg-{status}-soft`/`text-{status}-soft-foreground`
+    utility classes. `tone="soft"` rendered with no background/text color applied at all — a total
+    feature failure, not a cosmetic nit. The initial "verified: compiled `dist/system.css` contains all
+    16 new soft-token utility occurrences" claim in this same entry was itself wrong — it was a naive
+    substring count of `-soft` that matched only the raw CSS custom-property declarations (which were
+    correctly emitted), not actual `.bg-*`/`.text-*` utility selectors (which did not exist). Fixed by
+    adding the 8 missing `--color-{status}-soft`/`--color-{status}-soft-foreground` entries to
+    `@theme inline`; re-verified this time with an exact selector-anchored search
+    (`\.bg-destructive-soft\b`, etc.) confirming all 8 base utilities plus their `hover:bg-*-soft`
+    variants are now genuinely present in the compiled `dist/system.css`. Also corrected a minor factual
+    error the same audit caught: `success-soft`/`success-soft-foreground` (dark mode) was documented as
+    9.25:1 but independently recomputes to 9.13:1 (still comfortably AAA either way) — fixed in
+    `badge.tsx`'s doc comment and `tokens/dark.tokens.json`'s `$description`.
+  - Verified (final, post-fix): `npm run tokens` (parity gate passes, 56 tokens total, up from 40),
+    `npm run build` succeeds, exact-selector search of compiled `dist/system.css` confirms all 8
+    `.bg-{status}-soft`/`.text-{status}-soft-foreground` utilities and their hover variants exist,
+    `npx tsc --noEmit` clean (root + `site/`), dev server hot-reloaded and returns 200 on
+    `/components/badge`.
+  - Commits: `61b88cc` (initial tone axis, contained the theme-registration bug above), follow-up commit
+    fixing the `@theme inline` registration + doc corrections (see git log for hash). All pushed to
+    `origin/main`.
+
 
 - Rail Sidebar panel resize (`react-resizable-panels`) ships with correct shadow clearance on all four
   sides and no height regression (L-35/L-36/L-37, see `limbo-factory/src/data/rail-sidebar.ts` and
