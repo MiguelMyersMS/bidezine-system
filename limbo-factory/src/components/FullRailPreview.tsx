@@ -148,10 +148,14 @@ export function RailNavStatusPreview({
 
   return (
     <>
-      <div className="dark:hidden">
+      {/* M-21 (see rail-sidebar.ts): `w-full` on both wrappers — otherwise these plain, width-less
+          divs shrink-wrap to `FunctionalRailSidebar`'s own content width, breaking the `w-full`
+          chain `FillHeight`/`QuadrantLayout` already provide and starving `ResizablePanelGroup`'s
+          `flex-1` of any real space to grow into. */}
+      <div className="w-full dark:hidden">
         <FunctionalRailSidebar colors={colorsFor("bidezine", "light", tokens)} fontFamily="var(--font-sans, ui-sans-serif)" height={height} />
       </div>
-      <div className="hidden dark:block">
+      <div className="hidden w-full dark:block">
         <FunctionalRailSidebar colors={colorsFor("bidezine", "dark", tokens)} fontFamily="var(--font-sans, ui-sans-serif)" height={height} />
       </div>
     </>

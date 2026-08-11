@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { Presence } from "@radix-ui/react-presence"
+import { useOverflowFit } from "@/hooks/useOverflowFit"
 import {
   AppsIcon,
   Badge,
@@ -60,6 +61,7 @@ import {
   SettingsIcon,
   ShieldCheckmarkIcon,
   SlideTextMultipleIcon,
+  Skeleton,
   SportIcon,
   Tooltip,
   TooltipContent,
@@ -372,15 +374,58 @@ const FOOTER_SECTIONS: RailSection[] = [{ id: "settings", label: "Settings", ico
  * sides again (back to `p-2`, matching L-35's original shape) and restoring the full
  * `2 × PANEL_SHADOW_INSET` width compensation on `ResizablePanel`'s own size props — the height fix
  * from L-36 (taller group + negative margins) is untouched and still correct.
+ *
+ * M-7 CORRECTION (see divergence row M-7 for the full history): the paragraph above about
+ * `PANEL_GROUP_WIDTH`/an invisible filler panel described this project's own assumption at the time
+ * — that `react-resizable-panels` converts pixel `minSize`/`defaultSize`/`maxSize` to a percentage
+ * of the group's rendered width ONLY ONCE, at mount, so a stable/known total was required. Re-reading
+ * the actually-installed version's own real, current source (`node_modules/react-resizable-panels`,
+ * v4.12.2 at time of writing — never trust a prior record over the real source, per CLAUDE.md's
+ * Sandbox/Limbo fidelity checklist item on stale docs) shows this assumption was WRONG for this
+ * version: its internal `groupSize` is re-measured live (the library tracks the group element's own
+ * rendered size continuously, re-deriving each panel's percentage from pixel constraints on every
+ * resize, not just at first mount — confirmed by tracing `groupSize` through the library's resize/
+ * layout functions, which re-run this conversion on every live layout pass). This means a FIXED
+ * `PANEL_GROUP_WIDTH` was never actually required for pixel-accurate bounds — it was a workaround for
+ * a version behavior this project doesn't have. `PANEL_GROUP_WIDTH` and the fixed-width style on
+ * `ResizablePanelGroup` are removed; the group now sizes itself normally (`flex-1`, filling whatever
+ * width its real flex-row parent provides) exactly like a real consuming app's shell would provide.
+ * The invisible, `aria-hidden`/`pointer-events-none` filler `ResizablePanel` (which existed purely to
+ * give the drag handle something inert to shrink into, since this sandbox had no real adjacent page
+ * content) is replaced with a real, VISIBLE `adjacentContent` panel — see the `FunctionalRailSidebar`
+ * props and the Panel JSX below. `ADJACENT_CONTENT_MIN_WIDTH` (renamed from `PANEL_FILLER_MIN_WIDTH`)
+ * keeps the same 24px/`SPACE[6]` safety-margin reasoning, now governing the real content panel's own
+ * minimum width instead of an invisible spacer's.
+ *
+ * Also per M-7: the outer rail-to-panel `gap` (previously set to `0`, see the L-48 note on the outer
+ * flex row below) is restored to an explicit `8` — `PANEL_SHADOW_INSET`'s padding no longer does
+ * double duty as the visual gap (a workaround the user identified as unused anywhere else in this
+ * design system and asked to be reversed). `PANEL_SHADOW_INSET` still exists for its own, independent
+ * job — giving the panel's `shadow-md` clipping slack against `ResizablePanelGroup`'s un-removable
+ * `overflow: hidden` — completely unchanged by this correction.
+ */
+/**
+ * DEPLOYMENT NOTE: `RAIL_PANEL_GAP`'s `8` here is this SANDBOX example's own stand-in value, not a
+ * fixed design-system constant this component owns or hard-codes for every real deployment. The
+ * actual contract this component is responsible for is simpler and more general: whatever gap a
+ * real consuming page's own layout system commits to between adjacent regions (its own spacing
+ * token, however that consumer defines it) must be the exact, unbroken gap rendered between the
+ * rail and its neighboring content \u2014 in EVERY state (panel open, panel collapsed), not just at
+ * rest. `8` was chosen here only because it happens to match bidezine's own real `SidebarInset`
+ * `md:peer-data-[variant=inset]:m-2` (see the M-7 doc comment above), making it a convenient,
+ * already-approved value to verify the CONTRACT against in this example \u2014 not because `8` itself
+ * is the permanent, universal rail-to-content gap. A real consumer wiring this component into its
+ * own page shell should treat this value as configurable/pass-through to its own layout gap, and
+ * M-21/M-22 (rail-sidebar.ts) are the live-verified proof that whatever gap is configured stays
+ * exactly that gap across the open/collapse/reopen cycle, with no leftover invisible element (a
+ * collapsed resize handle, an unconditional content-padding) silently adding to it.
  */
 const PANEL_DEFAULT_WIDTH = 256
 const PANEL_MIN_WIDTH = 240
 const PANEL_MAX_WIDTH = 380
-const PANEL_FILLER_MIN_WIDTH = 24
-const RESIZE_HANDLE_WIDTH = 1
+const ADJACENT_CONTENT_MIN_WIDTH = 24
 const PANEL_SHADOW_INSET = 8
-const PANEL_GROUP_WIDTH =
-  PANEL_MAX_WIDTH + PANEL_SHADOW_INSET * 2 + RESIZE_HANDLE_WIDTH + PANEL_FILLER_MIN_WIDTH
+const RAIL_PANEL_GAP = 8
 
 /**
  * DEPLOYMENT NOTE (see divergence row F-7, approved): origin's own RailNav.tsx computes
@@ -406,6 +451,17 @@ const RAIL_BUTTON_SIZE = 38
 const FOOTER_GAP = 4
 const FOOTER_MAX_ICONS = 3
 const FOOTER_MAX_HEIGHT = RAIL_BUTTON_SIZE * FOOTER_MAX_ICONS + FOOTER_GAP * (FOOTER_MAX_ICONS - 1)
+
+/**
+ * M-6 overflow-fit contract (see rail-sidebar.ts for the full history): a hard ceiling on how many
+ * pinned sections the rail track will ever show at once, independent of how tall the track's
+ * container physically is. Previously this was an implicit "whatever fits" behavior derived purely
+ * from available pixel height — a sufficiently tall viewport could pin an unbounded number of rows,
+ * which was never an explicit, testable contract. `useOverflowFit` (src/hooks/useOverflowFit.ts) now
+ * enforces this ceiling directly; anything beyond it is stashed into the overflow ("More") menu
+ * regardless of available vertical space.
+ */
+const RAIL_MAX_VISIBLE_SECTIONS = 12
 
 
 function labelHits(label: string, term: string): boolean {
@@ -527,6 +583,8 @@ function RailIconButton({
       size="icon"
       aria-pressed={isActive}
       data-state={isBrowsing ? "open" : isActive ? "active" : "default"}
+      // M-6: explicit measurement marker for `useOverflowFit` — see rail-sidebar.ts row M-6.
+      data-rail-row=""
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
@@ -840,6 +898,21 @@ interface RailColors {
 }
 
 /**
+ * Mirrors `react-resizable-panels`' own `PanelImperativeHandle` shape (see
+ * `node_modules/react-resizable-panels/dist/react-resizable-panels.d.ts`) so the browsing panel's
+ * `panelRef` can be typed here without limbo-factory taking a direct dependency on that package
+ * (it's only ever installed transitively, via `@bidezine/system`'s own `src/ui/resizable.tsx`).
+ */
+interface RailPanelHandle {
+  collapse: () => void
+  expand: () => void
+  getSize: () => { asPercentage: number; inPixels: number }
+  isCollapsed: () => boolean
+  resize: (size: number | string) => void
+}
+
+
+/**
  * Guards against feeding a CSS custom property back into itself. In "bidezine" (adjusted) mode,
  * `colors.hairline` resolves to the literal passthrough string `"var(--border)"` (see
  * `FullRailPreview.tsx`'s `colorsFor` — the C-6..C-9 panel tokens are deliberately left as direct
@@ -861,6 +934,33 @@ function nonCircularVar(name: string, value: string): string | undefined {
 }
 
 /**
+ * M-7's default `adjacentContent` (see rail-sidebar.ts for the full history): a single real
+ * `Skeleton` block (from `@bidezine/system`) filling the full available width and height, per the
+ * standing "no hand-rolled components" rule — a plain `<div>` with placeholder text or a hand-styled
+ * rectangle would itself be exactly the kind of hand-rolled approximation this project's rules
+ * prohibit. Every real consumer of `FunctionalRailSidebar` is expected to pass its own real
+ * `adjacentContent`; this is only the fallback shown when one isn't supplied, kept deliberately
+ * simple (one block, not a fabricated multi-widget layout) since it exists purely to demonstrate the
+ * resize interaction reflowing real content, not to imply any particular real page structure.
+ */
+function AdjacentContentPlaceholder({ collapseLeftInset }: { collapseLeftInset: boolean }) {
+  return (
+    // M-21 FOLLOW-UP (see rail-sidebar.ts): this placeholder's own `p-4` gives real
+    // `adjacentContent` breathing room from the browsing panel's right edge when it's open — but
+    // that SAME left-side padding also stacks on top of the outer row's real `RAIL_PANEL_GAP` (8px)
+    // once the browsing panel collapses, since the widget then sits directly against the rail with
+    // nothing else between them. Measured live: 8px (real gap) + 16px (this padding, still applied)
+    // = a 24px visual gap where only 8px was intended. `collapseLeftInset` (driven by the same
+    // `isBrowsingPanelCollapsed` state that hides `ResizableHandle`) zeroes it out via inline style
+    // — not a `pl-0` class, since Tailwind's cascade order for a longhand vs. this shorthand `p-4`
+    // isn't guaranteed by className string position alone; an inline style always wins.
+    <div className="h-full w-full bg-muted/30 p-4" style={collapseLeftInset ? { paddingLeft: 0 } : undefined}>
+      <Skeleton className="h-full w-full rounded-lg" />
+    </div>
+  )
+}
+
+/**
  * DEPLOYMENT NOTE (see divergence row F-10): `height` here is a measured pixel NUMBER, not a
  * percentage/`h-full` — that's this limbo-factory preview's own plumbing (App.tsx's `FillHeight`
  * measures its stage's clientHeight via ResizeObserver and passes the number down), not something
@@ -874,10 +974,18 @@ export function FunctionalRailSidebar({
   colors,
   height = 550,
   fontFamily,
+  adjacentContent,
 }: {
   colors: RailColors
   height?: number
   fontFamily: string
+  /**
+   * M-7: real content to render in the resizable region beside the panel — the actual
+   * "rest of the page" a production consumer would place here. Falls back to a lightweight
+   * placeholder (see the `ResizablePanel` housing it) when omitted, which is fine for a quick
+   * preview but not representative of a real deployment — pass real content wherever possible.
+   */
+  adjacentContent?: React.ReactNode
 }) {
   const [openPanel, setOpenPanel] = useState<string | null>("slides")
   const [activeSectionId, setActiveSectionId] = useState("slides")
@@ -889,41 +997,17 @@ export function FunctionalRailSidebar({
   const [overflowHovered, setOverflowHovered] = useState(false)
 
   const trackRef = useRef<HTMLDivElement>(null)
-  const [pinnedCount, setPinnedCount] = useState(TOP_SECTIONS.length)
-
-  useEffect(() => {
-    const trackEl = trackRef.current
-    if (!trackEl) return
-
-    const recalc = () => {
-      // The track is the flex-1 middle segment of the rail column, so flexbox has already sized
-      // it to whatever's left after the logo row and footer group above/below it — no separate
-      // footer/logo subtraction needed here.
-      const buttonEl = trackEl.querySelector("button")
-      if (!buttonEl) return
-      const rowHeight = buttonEl.getBoundingClientRect().height
-      const rowGap = parseFloat(getComputedStyle(trackEl).rowGap || "0") || 0
-      const usableHeight = trackEl.clientHeight
-      if (rowHeight <= 0) return
-
-      // Walk one row at a time (rather than a single divide-by-constant formula) so the "stash
-      // into a menu" trigger reads as its own, independently-derived thing.
-      let fitCount = 0
-      let consumed = 0
-      while (fitCount < TOP_SECTIONS.length) {
-        const next = consumed + (fitCount === 0 ? rowHeight : rowHeight + rowGap)
-        if (next > usableHeight) break
-        consumed = next
-        fitCount += 1
-      }
-      setPinnedCount(Math.max(1, fitCount))
-    }
-
-    recalc()
-    const observer = new ResizeObserver(recalc)
-    observer.observe(trackEl)
-    return () => observer.disconnect()
-  }, [])
+  // M-6: the track is the flex-1 middle segment of the rail column, so flexbox has already sized
+  // it to whatever's left after the logo row and footer group above/below it — no separate
+  // footer/logo subtraction needed here. `data-rail-row` (set on RailIconButton's own Button below)
+  // is the explicit measurement marker the hook contract requires — see useOverflowFit.ts and
+  // rail-sidebar.ts row M-6 for the full "why not querySelector('button')" writeup.
+  const { fitCount: pinnedCount } = useOverflowFit({
+    containerRef: trackRef,
+    rowSelector: "[data-rail-row]",
+    itemCount: TOP_SECTIONS.length,
+    maxVisible: RAIL_MAX_VISIBLE_SECTIONS,
+  })
 
   const mustStash = TOP_SECTIONS.length > pinnedCount
   const pinnedSections = mustStash ? TOP_SECTIONS.slice(0, Math.max(1, pinnedCount - 1)) : TOP_SECTIONS
@@ -942,6 +1026,52 @@ export function FunctionalRailSidebar({
   const lastOpenSectionRef = useRef(openSection)
   if (openSection) lastOpenSectionRef.current = openSection
   const displaySection = openSection ?? lastOpenSectionRef.current
+
+  // M-7 FOLLOW-UP (see rail-sidebar.ts for the full history): the browsing panel and the
+  // `adjacentContent` panel used to live inside a SINGLE `Presence`-gated `ResizablePanelGroup` —
+  // the user found that collapsing the browsing panel (closing it entirely) made `adjacentContent`
+  // vanish too, since `Presence` eventually unmounts its whole subtree, and that subtree WAS the
+  // entire group, adjacent panel included. No real production consumer would want their actual page
+  // content disappearing just because a flyout panel closed, so the group itself (and the adjacent
+  // panel) now render unconditionally — only the browsing panel's own INNER content is Presence-gated
+  // (see the JSX below). The browsing panel itself needs to visually shrink to 0 width when closed
+  // (so `adjacentContent` reclaims that space) without unmounting from the group, which is exactly
+  // what `react-resizable-panels`' own `collapsible`/`collapsedSize` + imperative `panelRef` are for —
+  // reusing the primitive's real mechanism rather than hand-rolling a width animation.
+  //
+  // Collapsing happens on `onAnimationEnd` of the panel's own exit animation (not immediately on
+  // `openSection` becoming falsy) so the existing fade/zoom-out animation (L-15/L-16) still gets to
+  // play at full width first — collapsing the panel immediately would clip that animation to 0 width
+  // instantly, defeating the whole point of it. Expanding, by contrast, happens immediately (no
+  // animation to wait for before there's something visible to animate).
+  const browsingPanelRef = useRef<RailPanelHandle>(null)
+  useEffect(() => {
+    if (openSection) browsingPanelRef.current?.expand()
+  }, [openSection])
+
+  // QA finding (this session): with the browsing panel collapsed to 0 width, `ResizableHandle`
+  // still rendered as a floating grip with nothing on its left to resize against — the user
+  // explicitly asked for it to be removed entirely in that state ("there is nothing to resize").
+  // Tracked as real component state (not derived from `openPanel`, which flips the instant the
+  // rail icon is clicked/re-clicked) so the handle stays visible through the panel's own exit
+  // animation and only disappears once the panel has actually finished collapsing to 0 width —
+  // matching the same moment `adjacentContent` visibly reclaims the freed space.
+  const [isBrowsingPanelCollapsed, setIsBrowsingPanelCollapsed] = useState(false)
+
+  // Keeps `openPanel` in sync if the user manually DRAGS the handle past the panel's own `minSize`
+  // (which `collapsible` allows react-resizable-panels to auto-snap-collapse on) or drags a
+  // collapsed panel back open — without this, dragging directly (bypassing the rail's own
+  // open/close click handlers) would leave `openPanel` pointing at a section whose panel is actually
+  // visually collapsed (or vice versa), desyncing the rail's own active/browsing highlight state.
+  const handleBrowsingPanelResize = (size: { inPixels: number }) => {
+    const isNowCollapsed = size.inPixels <= 0
+    setIsBrowsingPanelCollapsed(isNowCollapsed)
+    if (isNowCollapsed && openPanel !== null) {
+      setOpenPanel(null)
+    } else if (!isNowCollapsed && openPanel === null) {
+      setOpenPanel(lastOpenSectionRef.current?.id ?? null)
+    }
+  }
 
   const handleRailClick = (section: RailSection) => {
     const isLeaf = section.items.length === 0
@@ -986,20 +1116,32 @@ export function FunctionalRailSidebar({
 
   return (
     <TooltipProvider>
-      {/* QA finding (see divergence row L-38): this row's own `gap` used to be `8`, matching the
-          approved `panelGap` (row F-4/L-44, cross-checked against bidezine's real `SidebarInset`
-          `md:peer-data-[variant=inset]:m-2` = 8px). But `PANEL_SHADOW_INSET`'s own `p-2` padding
-          (added inside `ResizablePanel` by L-35/L-36/L-37 purely to give the panel's `shadow-md`
-          slack against `ResizablePanelGroup`'s un-removable `overflow: hidden`) ALSO lands on the
-          panel's LEFT side, facing the rail — so the two additions stacked, and the actual visible,
-          shadow-bearing card sat 16px from the rail (8 + 8), not the approved 8px. Measured live via
-          Playwright: rail's own right edge at x=886, the visible card's left edge (not
-          `ResizablePanelGroup`'s own outer wrapper, which sits flush at the correct 8px) at x=902.
-          FIXED by setting this row's own `gap` to `0` and letting `PANEL_SHADOW_INSET`'s existing
-          left-side padding do double duty as BOTH the shadow's clipping slack AND the visual
-          rail-to-panel gap — no change to `PANEL_SHADOW_INSET` itself, so the shadow's full,
-          symmetric clearance (including the L-37 corner-bleed fix) is untouched. */}
-      <div className="flex" style={{ fontFamily, gap: 0, height }}>
+      {/* M-7 (see rail-sidebar.ts for the full history; supersedes the prior L-38/L-48 approach):
+          this row's own `gap` is restored to an explicit `RAIL_PANEL_GAP` (8px, matching the
+          approved `panelGap` — row F-4/L-44, cross-checked against bidezine's real `SidebarInset`
+          `md:peer-data-[variant=inset]:m-2` = 8px) rather than relying on `PANEL_SHADOW_INSET`'s own
+          padding to double as the visual gap (the user identified that reliance as an undocumented
+          workaround, unused anywhere else in this design system, and asked for it to be reversed).
+          `ResizablePanelGroup`'s own un-removable `overflow: hidden` still requires SOME internal
+          inset before the panel's `shadow-md` so the shadow isn't clipped flush against the group's
+          edge — but that inset is real, structural space belonging to the shadow-clearance concern,
+          not the rail-to-panel visual gap, and doubling both would put 16px between the rail and the
+          panel again (the exact L-38 regression). To avoid that: the panel's LEFT-side shadow inset
+          is set to 0 (the honest, explicit gap already provides real breathing room on that side, and
+          this is the side facing the dark rail, the least visually prominent edge for corner-bleed
+          softness) while top/right/bottom keep the full `PANEL_SHADOW_INSET` (unchanged from L-36/
+          L-37 — the right-side corner-bleed finding from L-37 is untouched, since only the LEFT side
+          changed here). See the `ResizablePanel`/inner-div JSX below for the exact split. */}
+      {/* M-21 (see rail-sidebar.ts for the full history): `w-full` added here (and on both mount
+          wrappers in `FullRailPreview.tsx`'s `RailNavStatusPreview`) after live measurement showed
+          this row was shrink-wrapping to its own content width instead of filling the actual
+          available stage width, even though every ancestor up the chain (`FillHeight`/
+          `QuadrantLayout`) already correctly used `w-full` — a `w-full` chain is only as strong as
+          its weakest link; ANY plain, width-less block anywhere in it breaks the whole chain back
+          to shrink-to-content. Without this, `ResizablePanelGroup`'s `flex-1` had no real space to
+          grow into, so `adjacentContent` rendered at a nearly-invisible sliver of its own minSize
+          instead of a real, visible share of the page. */}
+      <div className="flex w-full" style={{ fontFamily, gap: RAIL_PANEL_GAP, height }}>
         {/* Rail */}
         <div
           className="flex shrink-0 flex-col overflow-hidden p-2"
@@ -1268,9 +1410,8 @@ export function FunctionalRailSidebar({
         </div>
 
         {/* Panel */}
-        {displaySection && (
-          <Presence present={Boolean(openSection)}>
-            {/* QA finding (see divergence row L-15/L-16): prompted by "it is not just the border you
+        {
+          /* QA finding (see divergence row L-15/L-16): prompted by "it is not just the border you
                 need to emulate everything from the menu... the elevation token, the animations." The
                 panel behaves exactly like a menu/popover (mounts/unmounts on trigger, is dismissible),
                 so it now borrows the equivalent parts of the real DropdownMenuContent recipe
@@ -1290,27 +1431,35 @@ export function FunctionalRailSidebar({
                 @radix-ui/react-dialog itself does it \u2014 confirmed in its own compiled source:
                 `"data-state": getState(context.open)`, read from the actual open boolean, NOT from
                 Presence's render-prop `present` value), so it flips to "closed" the instant closing
-                starts \u2014 exactly when the CSS exit animation should begin playing. The `<Presence>`
-                wrapper is what keeps this element mounted in the DOM for the duration of that exit
-                animation before actually unmounting it \u2014 it's the exact same primitive every real
-                Radix Content component (Popover/DropdownMenu/Dialog) uses internally for this exact
-                problem (confirmed in @radix-ui/react-dialog's own compiled source: `<Presence present=
-                {forceMount || context.open}>{content}</Presence>`, a single plain element child, not
-                the function/render-prop form \u2014 using the render-prop form here initially caused a
-                type error, since Presence's own forceMount branch (active for that form) requires a
-                real element back, not `null`; this plain-element form matches real Radix usage anyway).
+                starts \u2014 exactly when the CSS exit animation should begin playing.
+
+                M-7 FOLLOW-UP (see rail-sidebar.ts): `<Presence>` used to wrap this ENTIRE
+                `ResizablePanelGroup` \u2014 the user found that closing the browsing panel made the
+                `adjacentContent` panel (real page content) disappear too, since Presence eventually
+                unmounts its whole child once the exit animation finishes, and that child was the
+                whole group. `<Presence>` now wraps ONLY the animated content div below (see its own
+                JSX), so the group and BOTH panels always stay mounted \u2014 the browsing panel instead
+                shrinks to 0 width via `react-resizable-panels`' own `collapsible`/`collapsedSize`
+                (see `browsingPanelRef`/the `ResizablePanel` props below), triggered from this div's own
+                `onAnimationEnd` so the exit animation still gets to play at full width first (collapsing
+                the panel immediately would clip the animation to 0 width, defeating the point of it).
                 This is not a hand-rolled setTimeout-based unmount delay standing in for a real
-                mechanism \u2014 it's the same underlying primitive, used the same way real Radix content
-                components use it, per the standing "don't reinvent the wheel, use real components"
-                rule. `displaySection` (not `openSection`) drives the header/tree content specifically
-                so the content stays rendered and visible while Presence holds the wrapper mounted for
-                the exit animation \u2014 `openSection` itself goes `undefined` the instant closing starts,
-                which would otherwise blank the panel a frame before the animation had a chance to
-                play. */}
-            <ResizablePanelGroup
+                mechanism \u2014 it's the same underlying Presence primitive, used the same way real Radix
+                content components use it, per the standing "don't reinvent the wheel, use real
+                components" rule; only WHERE it's placed in the tree changed. `displaySection` (not
+                `openSection`) drives the header/tree content specifically so the content stays
+                rendered and visible while Presence holds the div mounted for the exit animation \u2014
+                `openSection` itself goes `undefined` the instant closing starts, which would otherwise
+                blank the panel a frame before the animation had a chance to play. */
+        }
+        <ResizablePanelGroup
               orientation="horizontal"
+              className="flex-1"
               style={{
-                width: PANEL_GROUP_WIDTH,
+                // M-7: no fixed pixel width — see the doc comment above `PANEL_DEFAULT_WIDTH` for
+                // why a fixed group width is no longer needed with this project's installed
+                // `react-resizable-panels` version. The group now simply fills whatever space its
+                // real flex-row parent gives it, exactly like a real consuming app's shell would.
                 // QA finding (see divergence row L-36): a taller-than-slot group + negative
                 // top/bottom margins, NOT a shrunk visible panel — see the full writeup below,
                 // right where the previous (regressed) approach used to just say `height: "100%"`.
@@ -1349,69 +1498,94 @@ export function FunctionalRailSidebar({
                   `ResizablePanel` itself).
 
                   Origin's own max-width cap is DYNAMIC (`window.innerWidth - railW - panelGap - 24`)
-                  — "never let the panel swallow the rest of the page." This sandbox preview has no
-                  real surrounding page content to protect, and that formula has nothing stable to
-                  reference here, so `ResizablePanelGroup` is instead given an EXPLICIT fixed pixel
-                  width (`PANEL_GROUP_WIDTH`) and the real panel a real `maxSize` (`PANEL_MAX_WIDTH`).
-                  A second, empty "filler" `ResizablePanel` absorbs whatever space that leaves —
+                  — "never let the panel swallow the rest of the page." `ResizablePanelGroup` now
+                  fills its real flex-row parent (`flex-1`, no fixed pixel width — see M-7 in
+                  rail-sidebar.ts) and the real panel a real `maxSize` (`PANEL_MAX_WIDTH`). A second,
+                  REAL `adjacentContent` `ResizablePanel` absorbs whatever space that leaves —
                   `react-resizable-panels`' own built-in space allocation means the real panel
                   structurally CANNOT grow past `PANEL_MAX_WIDTH` (equivalently: past `group width -
-                  handle - filler's own minSize`), achieving the same "leave room for the rest of the
-                  page" guarantee origin's custom math was written for, without writing any of that
-                  math by hand. `PANEL_FILLER_MIN_WIDTH` (24) mirrors origin's own 24px (`SPACE[6]`)
-                  safety margin in that same viewportMax formula.
+                  handle - adjacent panel's own minSize`), achieving the same "leave room for the rest
+                  of the page" guarantee origin's custom math was written for, without writing any of
+                  that math by hand. `ADJACENT_CONTENT_MIN_WIDTH` (24) mirrors origin's own 24px
+                  (`SPACE[6]`) safety margin in that same viewportMax formula.
 
-                  DEPLOYMENT NOTE: the fixed `PANEL_GROUP_WIDTH` is specific to this sandbox preview,
-                  which has no real page content beside it and otherwise shrink-wraps to its own
-                  content width (confirmed live: leaving `ResizablePanelGroup` at its own default
-                  `w-full` let it inherit an arbitrary ambient width from this shrink-wrapping card,
-                  which skewed the panel's initial render to ~312px instead of the intended 300 —
-                  `ResizablePanel`'s `defaultSize`/`minSize`/`maxSize` pixel numbers are converted to
-                  a PERCENTAGE of the group's rendered width at mount, so they need a known, stable
-                  total to convert against). A real consuming app, with real main content next to this
-                  rail, should let `ResizablePanelGroup` size itself normally (its own `w-full`/`h-full`
-                  filling the app shell's own layout) with a real, non-empty content `ResizablePanel`
-                  in the filler's place — that real content is what naturally reflows around the
-                  resize, exactly like origin's own page content does, with no explicit group width
-                  needed at all. */}
+                  M-7 (supersedes the DEPLOYMENT NOTE this paragraph used to carry): this project's
+                  installed `react-resizable-panels` (v4.12.2) re-measures the group's own rendered
+                  size live and re-derives each panel's pixel-based percentage on every resize, not
+                  just once at mount (confirmed by tracing `groupSize` through the library's own
+                  compiled resize/layout functions) — so `ResizablePanel`'s pixel `defaultSize`/
+                  `minSize`/`maxSize` numbers stay accurate regardless of how the surrounding shell's
+                  width changes, with no fixed group width required. The former invisible/
+                  `aria-hidden`/`pointer-events-none` filler panel (which stood in for real page
+                  content this sandbox never had) is replaced below with a real, visible
+                  `adjacentContent` panel — the exact "real content next to this rail" scenario a
+                  production consumer would actually render. */}
               <ResizablePanel
-                defaultSize={PANEL_DEFAULT_WIDTH + PANEL_SHADOW_INSET * 2}
-                minSize={PANEL_MIN_WIDTH + PANEL_SHADOW_INSET * 2}
-                maxSize={PANEL_MAX_WIDTH + PANEL_SHADOW_INSET * 2}
+                defaultSize={PANEL_DEFAULT_WIDTH + PANEL_SHADOW_INSET}
+                minSize={PANEL_MIN_WIDTH + PANEL_SHADOW_INSET}
+                maxSize={PANEL_MAX_WIDTH + PANEL_SHADOW_INSET}
+                collapsible
+                collapsedSize={0}
+                panelRef={browsingPanelRef}
+                onResize={handleBrowsingPanelResize}
                 className="flex flex-col"
               >
-                {/* QA finding (see divergence row L-35, part 2, corrected by L-36 and L-37 — see the
-                    `PANEL_SHADOW_INSET` doc comment above for the full writeup): `ResizablePanelGroup`'s
-                    own rendered box carries a real `overflow: hidden` (confirmed live via
-                    `getComputedStyle` — set internally by the vendored `react-resizable-panels`
-                    library itself, not something in bidezine's own `src/ui/resizable.tsx` recipe, so
-                    it can't simply be removed the way L-31 removed a bidezine-authored
-                    `overflow-hidden`). The panel's own `shadow-md` (a `box-shadow`, painted OUTSIDE
-                    its own border box) was measured flush against the group's own edges — the exact
-                    same "ancestor overflow-hidden clips a descendant's decoration when there's zero
-                    slack" pattern as L-31's focus-ring bug, just with an un-removable ancestor this
-                    time. FIXED by adding a real inset wrapper INSIDE `ResizablePanel` (its own root
-                    node has an inline `padding: 0px`, confirmed via `getComputedStyle` — a class added
-                    directly to `ResizablePanel` itself can't override an inline style, so the inset has
-                    to live on a nested plain div instead) so the shadow-bearing div has genuine slack
-                    on EVERY side before hitting the group's clipping boundary — including the right
-                    (L-37: even though that edge attaches to the drag handle, the panel's ROUNDED
-                    corners still need bleed room in two directions at once at the top-right/
-                    bottom-right corners specifically; removing that slack clipped the shadow's curve
-                    right at the corner, not just along the flat edge). Width is compensated on
-                    `ResizablePanel`'s own size props above (`2 × PANEL_SHADOW_INSET`, left AND right);
-                    height is compensated by the group's own taller-than-slot height + negative
-                    margins, see the JSX above this panel. */}
-                <div className="h-full w-full p-2">
-                  <div
-                    data-state={openSection ? "open" : "closed"}
-                    className="flex h-full w-full flex-col overflow-hidden shadow-md data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95"
-                    style={{
-                      borderRadius: 12,
-                      background: colors.panelSurface,
-                      border: `1px solid ${colors.hairline}`,
-                    }}
-                  >
+                {/* QA finding (see divergence row L-35, part 2, corrected by L-36, L-37, and M-7 —
+                    see the `PANEL_SHADOW_INSET` doc comment above for the full writeup):
+                    `ResizablePanelGroup`'s own rendered box carries a real `overflow: hidden`
+                    (confirmed live via `getComputedStyle` — set internally by the vendored
+                    `react-resizable-panels` library itself, not something in bidezine's own
+                    `src/ui/resizable.tsx` recipe, so it can't simply be removed the way L-31 removed
+                    a bidezine-authored `overflow-hidden`). The panel's own `shadow-md` (a
+                    `box-shadow`, painted OUTSIDE its own border box) was measured flush against the
+                    group's own edges — the exact same "ancestor overflow-hidden clips a descendant's
+                    decoration when there's zero slack" pattern as L-31's focus-ring bug, just with an
+                    un-removable ancestor this time. FIXED by adding a real inset wrapper INSIDE
+                    `ResizablePanel` (its own root node has an inline `padding: 0px`, confirmed via
+                    `getComputedStyle` — a class added directly to `ResizablePanel` itself can't
+                    override an inline style, so the inset has to live on a nested plain div instead)
+                    so the shadow-bearing div has genuine slack on top/right/bottom before hitting the
+                    group's clipping boundary — including the right (L-37: even though that edge
+                    attaches to the drag handle, the panel's ROUNDED corners still need bleed room in
+                    two directions at once at the top-right/bottom-right corners specifically;
+                    removing that slack clipped the shadow's curve right at the corner, not just along
+                    the flat edge).
+
+                    M-7 CORRECTION: the LEFT side of this inset is now `0` (`pl-0`, was `p-2` on all
+                    four sides). Restoring the outer rail-to-panel `gap` (see the outer flex row's own
+                    comment above) means real, honest 8px of empty space already exists between the
+                    rail and this group's own left edge — keeping an ADDITIONAL 8px of left-side inset
+                    here would double that to 16px, the exact regression L-38 fixed. The tradeoff:
+                    the top-left/bottom-left corner shadow-bleed is clipped flush against the group's
+                    left edge on this side only (unlike the right side, which keeps its full slack).
+                    This is a deliberate, documented, low-risk tradeoff — the left edge faces the dark
+                    rail, the least visually prominent side for a soft corner shadow, and there is
+                    already 8px of real, honest gap space there for visual separation regardless of
+                    the shadow's own bleed. Width is compensated on `ResizablePanel`'s own size props
+                    above (`1 × PANEL_SHADOW_INSET`, right side only now — the left side needs no
+                    compensation since it carries no inset); height is compensated by the group's own
+                    taller-than-slot height + negative margins, see the JSX above this panel. */}
+                <div className="h-full w-full py-2 pr-2 pl-0">
+                  {displaySection && (
+                    <Presence present={Boolean(openSection)}>
+                      <div
+                        data-state={openSection ? "open" : "closed"}
+                        onAnimationEnd={(event) => {
+                          // See the M-7 FOLLOW-UP comment above the `ResizablePanelGroup`: only
+                          // collapse the panel's actual width once the exit animation finishes
+                          // playing, not the instant `openSection` goes falsy — otherwise the
+                          // panel would snap to 0 width immediately and clip the fade/zoom-out
+                          // animation before it ever gets to run.
+                          if (event.target !== event.currentTarget) return
+                          if (!openSection) browsingPanelRef.current?.collapse()
+                        }}
+                        className="flex h-full w-full flex-col overflow-hidden shadow-md data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95"
+                        style={{
+                          borderRadius: 12,
+                          background: colors.panelSurface,
+                          border: `1px solid ${colors.hairline}`,
+                        }}
+                      >
               <div className="flex flex-col gap-0.5 px-3 py-2" style={{ borderBottom: `1px solid ${colors.hairline}` }}>
                 <div className="flex items-center justify-between">
                   <div className="flex min-w-0 items-center gap-1.5">
@@ -1660,18 +1834,35 @@ export function FunctionalRailSidebar({
                 </ScrollArea>
               </div>
 
-            </div>
-                </div>
+                      </div>
+                    </Presence>
+                  )}
+                  </div>
+              </ResizablePanel>
+
+            {/* M-21 (see rail-sidebar.ts for the full history): hidden entirely (not just
+                visually) once the browsing panel has actually finished collapsing to 0 width —
+                there's nothing left to drag against at that point. `isBrowsingPanelCollapsed` is
+                real component state updated from this same panel's `onResize` callback, not
+                derived from `openPanel` (which flips the instant a rail icon is clicked, before
+                the exit animation has even started) — using `openPanel` directly would make the
+                handle vanish mid-animation, while the panel is still visibly closing. */}
+            {!isBrowsingPanelCollapsed && <ResizableHandle withHandle />}
+            {/* M-7 (see rail-sidebar.ts for the full history): this used to be an invisible,
+                `aria-hidden`/`pointer-events-none` filler panel standing in for real page content
+                this sandbox never had — purely a react-resizable-panels bookkeeping trick to cap the
+                real panel's max width (`group width - handle - filler's own minSize`). It's now a
+                REAL, visible `adjacentContent` panel: the exact "real content next to this rail"
+                scenario a production consumer would actually render, so the resize drag genuinely
+                reflows something, not an inert void. `adjacentContent` defaults to a lightweight
+                placeholder (below) when a consumer doesn't provide real content of its own — every
+                real deployment of this rail should pass its own actual page content here instead.
+                `ADJACENT_CONTENT_MIN_WIDTH` (24) still mirrors origin's own 24px (`SPACE[6]`) safety
+                margin, now governing this real content panel's own minimum width. */}
+            <ResizablePanel minSize={ADJACENT_CONTENT_MIN_WIDTH} className="min-w-0 overflow-hidden">
+              {adjacentContent ?? <AdjacentContentPlaceholder collapseLeftInset={isBrowsingPanelCollapsed} />}
             </ResizablePanel>
-            <ResizableHandle withHandle />
-            {/* Invisible filler panel — see the writeup above the real panel's `ResizablePanel`.
-                Absorbs whatever width is left in the group so the real panel structurally can't
-                grow past `group width - handle - this panel's own minSize` — the idiomatic
-                react-resizable-panels equivalent of origin's own hand-computed `viewportMax` cap. */}
-            <ResizablePanel minSize={PANEL_FILLER_MIN_WIDTH} className="pointer-events-none" aria-hidden="true" />
             </ResizablePanelGroup>
-          </Presence>
-        )}
       </div>
     </TooltipProvider>
   )

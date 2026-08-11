@@ -542,6 +542,59 @@ category in this divergence list to reach a full, uniform resolved state (previo
 B/C/G/K still carry a mix of `resolved`/`clean` rows). `rail-sidebar.ts`'s summary note updated to reflect
 this. `limbo-factory`'s `npx tsc --noEmit` re-verified clean (no code touched).
 
+**Update 19 — M-6/M-7/M-8 (rail overflow contract, real resize primitive, Sidebar-conflict deferral) approved
+and shipped, plus three follow-on bugs (M-20/M-21/M-22) found and fixed once the M-7 work was tried live.**
+The user requested formal plans for two friction points before any code changed — "for both dont act just
+give me the plan then we can work to gother to shape them and refine them before proceddedn" — then approved
+both plans and asked for a rollback checkpoint before implementation began (`checkpoint-pre-m6-m7-primitives`
+git tag + `experiment/m6-m7-primitives` branch). **M-6 (rail-track overflow budget)**: built as an explicit,
+testable CONTRACT rather than an implicit recalculation — a new `src/hooks/useOverflowFit.ts` measures rows
+via an author-provided selector, enforces a hard `maxVisible` ceiling (initially 7, raised to 12 per an
+explicit user follow-up once real section counts made 7 too restrictive), floors at 1, and recalculates via
+`ResizeObserver`; truncation is a non-issue for the icon-only rail track (labels are `sr-only`) and the
+overflow menu's own scrolling need is already satisfied for free by `DropdownMenuContent`'s composed
+`ScrollArea` (no new scrolling code needed). **M-7 (panel resize)**: resolved via bidezine's own real
+`Resizable` primitive (`src/ui/resizable.tsx`, wrapping `react-resizable-panels`) instead of a hand-rolled
+mousedown/mousemove reimplementation — directly answering the user's own concern that the prior resize
+approach "only is vissible for sandox, makinng it usless in productions." The invisible/`aria-hidden` filler
+panel is replaced with a real, visible `adjacentContent` panel (falls back to a placeholder when a consumer
+doesn't supply one), and the rail-to-panel gap workaround (`PANEL_SHADOW_INSET`'s padding doubling as the
+visual gap) is reversed per explicit user request, restored to an honest `RAIL_PANEL_GAP = 8` flex gap.
+**M-8**: no naming/documentation collision to resolve now — the existing `Sidebar` primitive and the new
+Rail Sidebar stay architecturally distinct for the duration of this Limbo transformation; the user's own
+stated plan is to revamp `Sidebar` to borrow Rail Sidebar's proven patterns AFTER promotion, not concurrently.
+
+Trying M-7 live immediately surfaced two further bugs, both reported directly by the user with a screenshot
+("I see two issues number one when I collapse the sidebar, the resize element still visible... and I don't
+see the widget that is supposed to be at the right side... This is important to me so then we can create
+contract and verify behaviors") — **M-20**: `adjacentContent` was disappearing ENTIRELY when the browsing
+panel closed (a `Presence` wrapping the whole `ResizablePanelGroup`, not just the browsing panel's own
+animated surface); fixed by moving `Presence` inward and using `react-resizable-panels`' own real
+`collapsible`/`collapsedSize={0}` mechanism instead. **M-21**: trying M-20 live (via a scratch Playwright
+script doing real `getBoundingClientRect` measurements against the running `limbo-factory` dev server, not a
+screenshot glance) found M-20's fix was structurally correct but nearly invisible, because a SEPARATE,
+pre-existing bug broke the outer `w-full` width chain (`FunctionalRailSidebar`'s own outer row and both
+`FullRailPreview.tsx` mount wrappers had no width class, shrink-wrapping the whole composite instead of
+filling the real available stage) — and the resize handle stayed visible with nothing on its left once the
+panel was genuinely collapsed, fixed with new `isBrowsingPanelCollapsed` state (driven by the panel's own
+`onResize` measurement, not the instantly-flipping `openPanel` flag, to avoid the handle vanishing mid-
+animation). Verified live through the full open→collapse→reopen round-trip with exact pixel measurements at
+every step. **M-22**: the user then reported the collapsed-state gap still looked too large; a fresh live
+measurement confirmed the resize handle was genuinely gone (M-21 held) — the real cause was
+`AdjacentContentPlaceholder`'s own unconditional `p-4` (16px) stacking on top of the real 8px
+`RAIL_PANEL_GAP`, fixed by zeroing that padding via inline style (not a `pl-0` class, since a longhand
+utility isn't guaranteed to win a shorthand's cascade tie by className position alone — the same M-18/M-19
+lesson) whenever `isBrowsingPanelCollapsed` is true. The user then clarified an important framing point for
+the record: `RAIL_PANEL_GAP = 8` is this sandbox's own stand-in demonstration value, not a fixed universal
+design-system constant — the real, general contract this component is responsible for is that whatever gap
+a real consuming page's own layout system commits to must be the exact, unbroken gap rendered between the
+rail and its neighboring content in every state, with nothing invisible (a collapsed handle, an unconditional
+content padding) silently adding to it; restated directly in `RAIL_PANEL_GAP`'s own doc comment. **All six
+items (M-6, M-7, M-8, M-20, M-21, M-22) are `status: "resolved"` in `rail-sidebar.ts`**, each with its own
+live-verified measurement contract, and the user gave final explicit approval for all of them together
+("i apporve these plans and implementation"). `limbo-factory`'s `npx tsc --noEmit` and `npm run build`
+(production `vite build`) both verified clean after every change in this update.
+
 Whenever the Intake agent finds an element in the source that isn't cleanly pairable to an existing
 bidezine equivalent — icons, gaps, paddings, blocks, layouts, animations, effects, colors, fonts, anything —
 it must be listed **individually**, never batched into a vague summary, and never auto-resolved. The human
