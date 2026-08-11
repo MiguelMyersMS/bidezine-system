@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { Presence } from "@radix-ui/react-presence"
 import {
   AppsIcon,
@@ -190,6 +190,17 @@ const SETTINGS_PANEL: PanelNode[] = [
   { kind: "leaf", id: "security", label: "Security", icon: ShieldCheckmarkIcon },
 ]
 
+// Gauge panel content — gives the first STASHED (overflow-menu) section real items, per your
+// ask: selecting "Gauge" from the overflow menu should open the actual side panel with its own
+// options, exactly like selecting a pinned section (Documents/Slides) does — not a nested popup
+// menu rendered inside the overflow dropdown itself (that DropdownMenuSub experiment has been
+// reverted below). Reuses icons already imported elsewhere in this file (no new icon introduced).
+const GAUGE_PANEL: PanelNode[] = [
+  { kind: "leaf", id: "gauge-overview", label: "Overview", icon: GridIcon },
+  { kind: "leaf", id: "gauge-performance", label: "Performance", icon: MedalIcon },
+  { kind: "leaf", id: "gauge-alerts", label: "Alerts", icon: BellIcon },
+]
+
 // Documents panel content — mirrors the real demo's Apps + Products/Orders/Sales/Customers
 // group structure, so both sides expose the same depth of nesting and badges to evaluate.
 const DOCUMENTS_PANEL: PanelNode[] = [
@@ -259,7 +270,12 @@ const TOP_SECTIONS: RailSection[] = [
   { id: "data", label: "Data", icon: DataHistogramIcon, items: [] },
   { id: "overview", label: "Overview", icon: FoodGrainsIcon, items: [] },
   { id: "savings", label: "Savings", icon: SavingsIcon, items: [] },
-  { id: "gauge", label: "Gauge", icon: GaugeIcon, items: [] },
+  // Gauge is the first STASHED (overflow-menu) section — deliberately given real `items` (not
+  // `[]`) so selecting it from the overflow menu demonstrates "selecting an overflow item opens
+  // the actual side panel with its own options," the same behavior a pinned section like
+  // Documents/Slides already has, rather than a nested popup menu living inside the overflow
+  // dropdown itself.
+  { id: "gauge", label: "Gauge", icon: GaugeIcon, items: GAUGE_PANEL },
   { id: "globe", label: "Globe", icon: GlobeLocationIcon, items: [] },
   { id: "flag", label: "Flag", icon: FlagIcon, items: [] },
   { id: "gift", label: "Gift", icon: GiftIcon, items: [] },
@@ -824,6 +840,27 @@ interface RailColors {
 }
 
 /**
+ * Guards against feeding a CSS custom property back into itself. In "bidezine" (adjusted) mode,
+ * `colors.hairline` resolves to the literal passthrough string `"var(--border)"` (see
+ * `FullRailPreview.tsx`'s `colorsFor` — the C-6..C-9 panel tokens are deliberately left as direct
+ * `var(--x)` reads of the app's own design-system tokens rather than hardcoded hex). That's fine
+ * when read directly (e.g. `borderColor: colors.hairline` elsewhere in this file), but is NOT fine
+ * when used to locally *redeclare* that same custom property on an element, as the two
+ * DropdownMenuContent/DropdownMenuSubContent style blocks below do (`"--border": colors.hairline`)
+ * — `--border: var(--border)` is a self-reference, which CSS treats as invalid at computed-value
+ * time, silently falling back to the app root's own ambient `--border` token instead. That ambient
+ * token happens to be a light, near-white value (meant for light-surface borders elsewhere in the
+ * app), which is exactly the "white line" reported as too strong on this dark popup. This helper
+ * omits the override entirely whenever the value would just be a self-reference, letting the
+ * element fall through to the *real* inherited `--border` naturally (still correct, just without
+ * the redundant, circular redeclaration) — while still allowing a genuine literal value (e.g.
+ * origin mode's real hex hairline) to override normally.
+ */
+function nonCircularVar(name: string, value: string): string | undefined {
+  return value.replace(/\s+/g, "") === `var(${name})` ? undefined : value
+}
+
+/**
  * DEPLOYMENT NOTE (see divergence row F-10): `height` here is a measured pixel NUMBER, not a
  * percentage/`h-full` — that's this limbo-factory preview's own plumbing (App.tsx's `FillHeight`
  * measures its stage's clientHeight via ResizeObserver and passes the number down), not something
@@ -949,7 +986,20 @@ export function FunctionalRailSidebar({
 
   return (
     <TooltipProvider>
-      <div className="flex" style={{ fontFamily, gap: 8, height }}>
+      {/* QA finding (see divergence row L-38): this row's own `gap` used to be `8`, matching the
+          approved `panelGap` (row F-4/L-44, cross-checked against bidezine's real `SidebarInset`
+          `md:peer-data-[variant=inset]:m-2` = 8px). But `PANEL_SHADOW_INSET`'s own `p-2` padding
+          (added inside `ResizablePanel` by L-35/L-36/L-37 purely to give the panel's `shadow-md`
+          slack against `ResizablePanelGroup`'s un-removable `overflow: hidden`) ALSO lands on the
+          panel's LEFT side, facing the rail — so the two additions stacked, and the actual visible,
+          shadow-bearing card sat 16px from the rail (8 + 8), not the approved 8px. Measured live via
+          Playwright: rail's own right edge at x=886, the visible card's left edge (not
+          `ResizablePanelGroup`'s own outer wrapper, which sits flush at the correct 8px) at x=902.
+          FIXED by setting this row's own `gap` to `0` and letting `PANEL_SHADOW_INSET`'s existing
+          left-side padding do double duty as BOTH the shadow's clipping slack AND the visual
+          rail-to-panel gap — no change to `PANEL_SHADOW_INSET` itself, so the shadow's full,
+          symmetric clearance (including the L-37 corner-bleed fix) is untouched. */}
+      <div className="flex" style={{ fontFamily, gap: 0, height }}>
         {/* Rail */}
         <div
           className="flex shrink-0 flex-col overflow-hidden p-2"
@@ -1038,7 +1088,60 @@ export function FunctionalRailSidebar({
                     )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent side="right" align="start" className="w-[180px]">
+                <DropdownMenuContent
+                  side="right"
+                  align="start"
+                  className="w-[180px]"
+                  // See divergence rows M-3/M-4: this rail overflow menu is the ONE dropdown in the
+                  // app that should visually read as "part of the dark rail it drops out of," rather
+                  // than the shared primitive's default light popover surface. Rather than editing
+                  // DropdownMenuContent/DropdownMenuItem's own default look (which would change every
+                  // other DropdownMenu system-wide), locally redefine the exact CSS custom properties
+                  // those primitives already read -- --popover/--popover-foreground/--accent/
+                  // --accent-foreground/--border, plus the two additive, fallback-only
+                  // --accent-pressed/--accent-selected slots dropdown-menu.tsx now exposes -- using
+                  // the SAME `colors` object already driving this rail's own trigger button and
+                  // RailIconButton, so hover/pressed/selected states in the popup map 1:1 to the
+                  // rail's own hover/pressed/active tokens. No other DropdownMenu instance defines
+                  // these two extra variables, so this is a scoped, non-breaking override.
+                  //
+                  // --dm-icon-fg-hover/--dm-icon-fg-selected/--dm-icon-fg-rest (new, per this
+                  // session's tweaks): the icon+label were pinned to a fixed text-muted-foreground
+                  // token regardless of state; per your ask, all three states now use the SAME three
+                  // tokens RailIconButton's own icon color already uses for those exact states --
+                  // `colors.fgSubtle` at rest, `colors.fgHover` on hover/focus, `colors.fg` on the
+                  // persistent selected/active row (mirrors RailIconButton's
+                  // `isActive || isPressed ? colors.fg : isBrowsing || isHovered ? colors.fgHover :
+                  // colors.fgSubtle` logic one section above) instead of the shared shadcn
+                  // `--muted-foreground` token, which is an unrelated design token that happened to
+                  // render close in value but was never actually the same source.
+                  style={
+                    {
+                      "--popover": colors.surface,
+                      "--popover-foreground": colors.fg,
+                      "--accent": colors.hover,
+                      "--accent-foreground": colors.fgHover,
+                      "--accent-pressed": colors.pressed,
+                      "--accent-selected": colors.active,
+                      // See `nonCircularVar`'s own doc comment above: in
+                      // "bidezine" (adjusted) mode, `colors.hairline` IS the literal string
+                      // "var(--border)" -- a direct passthrough of the app's own real border
+                      // token, not a distinct rail-specific value. Feeding that straight into this
+                      // element's own `--border` custom property redeclared it as a self-reference,
+                      // which is invalid at computed-value time and was silently falling back to
+                      // `currentColor` (the popover's own near-white text color) for the visible
+                      // `border` Tailwind class -- the reported "too strong white outline." Guarding
+                      // it here lets the element fall through to the real, correctly-scoped
+                      // ambient `--border` (the design system's own subtle dark-mode hairline token)
+                      // instead, while still allowing a genuine literal override (e.g. origin mode's
+                      // real hex hairline) to apply normally.
+                      "--border": nonCircularVar("--border", colors.hairline),
+                      "--dm-icon-fg-rest": colors.fgSubtle,
+                      "--dm-icon-fg-hover": colors.fgHover,
+                      "--dm-icon-fg-selected": colors.fg,
+                    } as CSSProperties
+                  }
+                >
                   {/* QA finding (see divergence row L-19): the real DropdownMenuItem primitive
                       (src/ui/dropdown-menu.tsx) carries no truncate/whitespace-nowrap on its own
                       base recipe -- a plain text child has no width constraint or overflow handling
@@ -1062,15 +1165,58 @@ export function FunctionalRailSidebar({
                       here: DropdownMenuItem now accepts a real `isActive` prop (mirroring Button's
                       own `active` and Sidebar's own `SidebarMenuButton.isActive`), which drives
                       background + font-weight + icon-fill together from one boolean -- passed
-                      below instead of the old dead `filled` prop. */}
+                      below instead of the old dead `filled` prop.
+
+                      Icon/text color parity (per this session's tweaks): DropdownMenuItem's own base
+                      recipe pins any icon lacking its own `text-*` class to a permanent
+                      `text-muted-foreground`, regardless of hover/focus/active state -- while this
+                      same row's TEXT normally shifts color per state
+                      (`focus:text-accent-foreground`, `data-[active=true]:text-accent-foreground`).
+                      Rather than letting the icon inherit the text's per-state color (which would
+                      make the icon change with state instead), the label span is pinned to the same
+                      steady token the icon uses, so BOTH stay in sync across every state instead of
+                      the row's `--accent`-driven one. Scoped to this call site only, not the shared
+                      primitive.
+
+                      All three states -- rest, hover, and persistent selected/active -- now use the
+                      SAME three tokens RailIconButton's own icon color already uses for those exact
+                      states: `colors.fgSubtle` at rest, `colors.fgHover` on hover, `colors.fg` on
+                      selected, via the `--dm-icon-fg-rest`/`--dm-icon-fg-hover`/
+                      `--dm-icon-fg-selected` vars set on DropdownMenuContent above (previously rest
+                      used the unrelated shared shadcn `--muted-foreground` token, which only
+                      coincidentally rendered close to `colors.fgSubtle`'s value). `group/item` on
+                      the Item plus `group-focus/item:`/`group-data-[active=true]/item:` on the
+                      icon+label reads DropdownMenuItem's own existing `data-active`/roving-tabindex-
+                      driven `:focus` state (the same mechanism its own
+                      `focus:bg-accent`/`data-[active=true]:bg-...` rules already rely on) without
+                      touching the shared primitive itself.
+
+                      QA finding: a stashed section whose own destination panel was open (the
+                      Rail's "browsing" tier -- e.g. right after first clicking "Gauge," before any
+                      leaf inside its panel was picked) had ZERO visual indicator in this menu at
+                      all -- `isActive` alone only covers the Rail's third/"active" tier (a leaf was
+                      actually selected), leaving the middle tier invisible here even though
+                      RailIconButton's own icon on the LEFT already shows it (fgHover color + inset
+                      ring). FIXED at the primitive level (see DropdownMenuItem's own doc comment):
+                      added a real `isOpen` prop, driven here by the SAME `railState()` helper the
+                      pinned RailIconButtons already use, so all three rail tiers -- default/
+                      browsing/active -- now read identically on both sides of the "More" menu.
+                      `group-data-[state=open]/item:` on the icon+label reuses the SAME
+                      `--dm-icon-fg-hover` token already used for `:focus`, matching RailIconButton's
+                      own `isBrowsing || isHovered ? colors.fgHover` rule -- "open" and "hovered" are
+                      the same visual tier there, distinct from "active." */}
                   {stashedSections.map((section) => (
                     <DropdownMenuItem
                       key={section.id}
-                      isActive={section.id === activeSectionId}
+                      className="group/item"
+                      isActive={railState(section.id) === "active"}
+                      isOpen={railState(section.id) === "browsing"}
                       onSelect={() => handleRailClick(section)}
                     >
-                      <section.icon className="size-4" />
-                      <span className="min-w-0 flex-1 truncate">{section.label}</span>
+                      <section.icon className="size-4 text-[var(--dm-icon-fg-rest)] group-focus/item:text-[var(--dm-icon-fg-hover)] group-data-[state=open]/item:text-[var(--dm-icon-fg-hover)] group-data-[active=true]/item:text-[var(--dm-icon-fg-selected)]" />
+                      <span className="min-w-0 flex-1 truncate text-[var(--dm-icon-fg-rest)] group-focus/item:text-[var(--dm-icon-fg-hover)] group-data-[state=open]/item:text-[var(--dm-icon-fg-hover)] group-data-[active=true]/item:text-[var(--dm-icon-fg-selected)]">
+                        {section.label}
+                      </span>
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>

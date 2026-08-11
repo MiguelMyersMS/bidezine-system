@@ -111,6 +111,30 @@ function DropdownMenuGroup({
  * variant `active:` rule — reusing the same already-established `--accent` token this component
  * already uses everywhere else, never a new/invented color (see rail-sidebar.ts's C-8 entry and
  * CLAUDE.md's Primitive Fidelity Checklist item 26).
+ *
+ * `--accent-pressed`/`--accent-selected` (see rail-sidebar.ts's M-3/M-4 entries): the `active:` and
+ * `data-[active=true]:` background rules read these via a CSS var-with-fallback
+ * (`var(--accent-pressed, var(--accent))`) rather than `--accent` directly. Neither variable is
+ * defined anywhere by default, so every existing consumer falls straight through to `--accent` and
+ * renders byte-identically to before this change. A consumer that DOES need its hover/pressed/
+ * persistent-active states to resolve to three visually distinct colors (e.g. the Rail's own dark
+ * overflow menu, which already tracks three distinct tokens — `colors.hover`/`colors.pressed`/
+ * `colors.active` — on its own trigger button) can locally redefine these two custom properties via
+ * an inline `style` on `DropdownMenuContent`, without touching this shared recipe's default look for
+ * anyone else.
+ *
+ * `isOpen` (see rail-sidebar.ts's M-3/M-4 entries): a second, distinct-from-`isActive` state —
+ * "this item's own destination panel/section is currently open, but nothing inside it has been
+ * chosen as the active leaf yet" — mirroring the Rail's own three-tier `default`/`browsing`/`active`
+ * distinction (`RailIconButton`'s `state` prop), which `isActive` alone could not express (a stashed
+ * section whose panel was freshly opened had zero visual indicator until a leaf inside it was
+ * picked). Sets `data-state="open"` (shared vocabulary with `DropdownMenuSubTrigger`'s own real
+ * open/closed submenu state — safe here since a plain `Item` never sets this attribute itself) and
+ * reuses the SAME `bg-accent`/`text-accent-foreground` tokens this component already uses for its
+ * own `focus:` state, rather than inventing a third token pair — a lighter treatment than
+ * `isActive`'s stronger `--accent-selected` fill, so the two tiers stay visually distinct from each
+ * other. `useActionIconFill`'s own `data-state === "open"` check already treats this as a fill
+ * trigger, so the icon fills too with no extra wiring.
  */
 function DropdownMenuItem({
   className,
@@ -118,6 +142,7 @@ function DropdownMenuItem({
   disabled,
   inset,
   isActive = false,
+  isOpen = false,
   onMouseDown,
   onMouseEnter,
   onMouseLeave,
@@ -127,6 +152,7 @@ function DropdownMenuItem({
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Item> & {
   inset?: boolean
   isActive?: boolean
+  isOpen?: boolean
   variant?: "default" | "destructive"
 }) {
   const actionIcon = useActionIconFill<HTMLDivElement>({ active: isActive, disabled })
@@ -138,9 +164,10 @@ function DropdownMenuItem({
       data-inset={inset}
       data-variant={variant}
       data-active={isActive}
+      data-state={isOpen ? "open" : undefined}
       disabled={disabled}
       className={cn(
-        "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground active:bg-accent active:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-[active=true]:bg-accent data-[active=true]:font-medium data-[active=true]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive!",
+        "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground active:bg-[var(--accent-pressed,var(--accent))] active:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground data-[active=true]:bg-[var(--accent-selected,var(--accent))] data-[active=true]:font-medium data-[active=true]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive!",
         className
       )}
       onMouseDown={(event) => {
@@ -292,6 +319,23 @@ function DropdownMenuSub({
   return <DropdownMenuPrimitive.Sub data-slot="dropdown-menu-sub" {...props} />
 }
 
+/**
+ * `--dm-subicon-fg`/`--dm-subicon-fg-hover` (see rail-sidebar.ts's M-3/M-4 follow-up): mirrors the
+ * exact fallback-var pattern already established on `DropdownMenuItem` above. This trigger's own
+ * `data-[state=open]` state is the "menu is open via this row, but nothing inside it has been
+ * chosen yet" state — the direct analog of `RailIconButton`'s own `isBrowsing` state, which reuses
+ * its HOVER token (`colors.fgHover`), never its persistent-selected token (`colors.fg`), for exactly
+ * this reason (a sub-menu being open isn't the same thing as this row being "the current page").
+ * That's why both `focus:` and `data-[state=open]:` below share the SAME `--dm-subicon-fg-hover`
+ * var rather than needing a third, `--dm-subicon-fg-selected`-style slot. Both vars default to this
+ * component's original hard-coded values (`--muted-foreground` at rest, `--accent-foreground` on
+ * focus/open), so every existing consumer renders identically to before; only a caller that defines
+ * these two custom properties (e.g. the Rail's own dark overflow menu) sees a different color. This
+ * only affects icons that DON'T already carry their own `text-*` class (per the existing
+ * `:not([class*='text-'])` guard) — the auto-appended trailing `ChevronRightIcon` below has none, so
+ * it's the one this mainly targets; a caller's own icon child can still opt out by giving itself an
+ * explicit `text-[...]` class, exactly like `DropdownMenuItem`'s rail call site already does.
+ */
 function DropdownMenuSubTrigger({
   className,
   inset,
@@ -314,7 +358,7 @@ function DropdownMenuSubTrigger({
       data-inset={inset}
       disabled={disabled}
       className={cn(
-        "flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[inset]:pl-8 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
+        "flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[inset]:pl-8 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-[var(--dm-subicon-fg,var(--muted-foreground))] focus:[&_svg:not([class*='text-'])]:text-[var(--dm-subicon-fg-hover,var(--accent-foreground))] data-[state=open]:[&_svg:not([class*='text-'])]:text-[var(--dm-subicon-fg-hover,var(--accent-foreground))]",
         className
       )}
       onMouseDown={(event) => {

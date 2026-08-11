@@ -152,6 +152,13 @@ const apiRows: ApiRow[] = [
     description:
       "DropdownMenuItem: marks this item as representing the current page/section (not a checkbox/radio toggle) — adds a persistent bg-accent/font-medium treatment and fills any icon child, mirroring Button's own `active` and Sidebar's SidebarMenuButton.isActive convention.",
   },
+  {
+    prop: "isOpen",
+    type: "boolean",
+    default: "false",
+    description:
+      "DropdownMenuItem: marks this item's own destination (e.g. a panel or section it navigates to) as currently open, but nothing inside it chosen as the active leaf yet — a lighter bg-accent/text-accent-foreground treatment than isActive, distinct from it. Sets data-state=\"open\" and feeds the same icon-fill hook as isActive.",
+  },
 ]
 
 export function DropdownMenuShowcase() {
