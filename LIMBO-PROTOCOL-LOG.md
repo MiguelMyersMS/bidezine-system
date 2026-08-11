@@ -595,6 +595,45 @@ live-verified measurement contract, and the user gave final explicit approval fo
 ("i apporve these plans and implementation"). `limbo-factory`'s `npx tsc --noEmit` and `npm run build`
 (production `vite build`) both verified clean after every change in this update.
 
+**Update 20 — a primitive-level `ScrollArea` defect (L-50) caused PanelTree rows to silently overflow/clip
+instead of truncating, with a trailing badge landing under the scrollbar.** The user reported directly, with
+a screenshot: "bug detected... when the sidebar gets reduced the rows get truncated overlaping the scrolling
+area if it exist, and if not still turncated. review this issue and provide the proper contract not ontly
+for this fix but even for everything that has been agreed." Reproduced live via a temporary Playwright
+script (no browser/Playwright MCP tool was available this session, so it was scripted directly against the
+locally-installed `node_modules/playwright` and run through the dev server) — a first measurement pass
+accidentally queried the wrong `ScrollArea` instance (the page-level outer one instead of the rail panel's
+own), caught and corrected per this project's own standing "checklist item 10" warning, by scoping via
+`closest('[data-radix-scroll-area-viewport]')` from the badge element itself. ROOT CAUSE, confirmed via real
+`getBoundingClientRect`/`scrollWidth`/`clientWidth` measurement, not assumption: Radix's `ScrollAreaViewport`
+always renders one internal child div with inline `style={{ minWidth: '100%', display: 'table' }}`, which
+sizes itself from content's max-content width rather than the viewport's real available width — defeating
+the flexbox "automatic minimum size: 0" mechanism `truncate` depends on inside a flex row. A row with a
+`shrink-0` trailing badge and a `truncate` label silently grew the whole table wrapper past the viewport's
+real `clientWidth` (measured: 242px vs. 222px), with the excess invisibly clipped by the viewport's own
+`overflowX: hidden` — no ellipsis, no horizontal scrollbar, and the badge landing directly under the
+vertical scrollbar's track, matching the reported screenshot pixel-for-pixel. CONFIRMED SAFE TO FIX AT THE
+PRIMITIVE LEVEL (a `src/ui/scroll-area.tsx` defect, not rail-scoped): grepped every real `ScrollArea`
+consumer in `src/ui/*.tsx` (`command.tsx`, `combobox.tsx`, `dropdown-menu.tsx`, `context-menu.tsx`) and
+confirmed none of them ever render `<ScrollBar orientation="horizontal">`, meaning the table wrapper's only
+legitimate purpose (deliberate horizontal-scroll content) is never exercised anywhere in this codebase.
+FIXED by adding `[&>div]:!block` to `ScrollAreaPrimitive.Viewport`'s className — Tailwind's `!` prefix
+compiles to `!important`, which per the CSS cascade DOES override Radix's plain inline `display: table`,
+forcing the wrapper to size from its containing block instead of its content. Documented the root cause and
+fix rationale directly in `src/ui/scroll-area.tsx`'s own doc comments, and appended a permanent §6 to
+`CLAUDE.md`'s Scroll region protocol ("every `ScrollArea` instance in this system assumes vertical-only
+overflow") so this stays a documented, system-wide contract rather than a one-off patch — including an
+explicit warning that any future consumer genuinely needing horizontal scroll must NOT reuse this shared
+`ScrollArea` as-is. Rebuilt the root package (`npm run build` — required, since `limbo-factory` consumes the
+built `dist/`, not raw `src/ui/`; a first re-verification pass against a stale `dist/` incorrectly showed no
+change until this was caught) and restarted the `limbo-factory` dev server with its Vite dependency cache
+cleared (`node_modules/.vite`) to force re-optimization of the rebuilt package. VERIFIED live via Playwright
+after the fix: `tableDisplay: "block"` (was `"table"`), `scrollWidth === clientWidth` (222 = 222, was 242 vs.
+222), the label now genuinely truncates ("Sport and fi…", 83.8px, was 104px with no ellipsis), and the
+"Update" badge's right edge (x≈1161) sits fully clear of the scrollbar's left edge (x≈1175) — confirmed both
+numerically and via a fresh screenshot. `npx tsc --noEmit` clean; no other real `ScrollArea` consumer was
+regressed, since none of them render horizontal scrollbars either.
+
 Whenever the Intake agent finds an element in the source that isn't cleanly pairable to an existing
 bidezine equivalent — icons, gaps, paddings, blocks, layouts, animations, effects, colors, fonts, anything —
 it must be listed **individually**, never batched into a vague summary, and never auto-resolved. The human

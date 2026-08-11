@@ -78,6 +78,48 @@ import { cn } from "@/lib/utils"
  * that percentage-resolution question entirely by letting the flex algorithm distribute the already-
  * constrained space directly, so it works identically whether the ancestor's height came from an
  * explicit `height` or from a `max-height`-clamped auto box.
+ *
+ * Internal implementation note — why `Viewport`'s own direct child is forced to `!block`.
+ *
+ * Radix's `ScrollAreaViewport` renders exactly one direct child of its own: an internal, unstyled
+ * div with an INLINE `style={{ minWidth: '100%', display: 'table' }}` (see
+ * `@radix-ui/react-scroll-area`'s own source — this div is not exposed as a prop/slot we can
+ * configure, only reachable via a `[&>div]` child selector on `Viewport`'s own className). Radix
+ * chose `display: table` deliberately: a table-formatting-context box computes its own preferred
+ * width from its content's max-content size (the same algorithm an actual `<table>` uses to size
+ * its columns), which is what lets `ScrollArea` support a genuinely wide, horizontally-scrollable
+ * child (e.g. a wide `<table>` or `<pre>`) — the table wrapper grows to that content's natural
+ * width even when it exceeds the viewport, and the *viewport's own* `overflowX: scroll` (set
+ * whenever a horizontal `ScrollBar` is rendered) then lets the user scroll to see the overflow.
+ *
+ * This system's own `ScrollArea` (this file) never renders a horizontal `ScrollBar` — grep
+ * confirms zero real usages of `<ScrollBar orientation="horizontal">` anywhere in `src/ui/*.tsx` —
+ * so `context.scrollbarXEnabled` is always `false` here and the Viewport's inline style is always
+ * `overflowX: 'hidden'`. That makes the table wrapper's whole reason for existing moot for every
+ * real consumer of this component: instead of enabling a deliberate horizontal-scroll experience,
+ * it silently lets any row wider than the viewport (e.g. a flex row with a `shrink-0` trailing
+ * badge next to a `truncate` label, once the label has already shrunk to its own zero-width floor)
+ * grow the whole table 20+px past the viewport's real clientWidth — content that then gets
+ * invisibly clipped by `overflowX: hidden` with NO ellipsis and NO scrollbar, because clipping
+ * happens at the OUTER viewport edge, not at each row's own boundary the way a normal block
+ * layout would clip/truncate. Confirmed live via Playwright + `getBoundingClientRect`: a rail-nav
+ * row ("Sport and fitness" + an "Update" badge) measured `scrollWidth: 242` against the viewport's
+ * own `clientWidth: 222` — a real 20px horizontal overflow, with the badge's right edge landing
+ * directly under the vertical scrollbar's own track, exactly matching a user report of "rows get
+ * truncated overlapping the scrolling area."
+ *
+ * Fixed by forcing that internal wrapper's `display` from `table` to `block` via a `[&>div]:!block`
+ * child selector (the `!` compiles to `!important`, which DOES win over Radix's own inline
+ * `style="display: table"` per the CSS cascade — author `!important` outranks a plain inline
+ * style). A block box's width is simply its containing block's content-box width (the Viewport,
+ * itself `w-full`) — not a function of its children's content — so every row's own `truncate`/
+ * `overflow-hidden` now clips/ellipsizes against that same fixed, correct width instead of the
+ * table wrapper silently growing to accommodate whichever row happens to be widest. Radix's own
+ * inline `minWidth: '100%'` is left untouched (harmless once `display` is `block`; it still just
+ * guarantees the wrapper doesn't shrink below its container). If a future consumer genuinely needs
+ * horizontal scrolling (rendering a horizontal `ScrollBar`), do NOT reuse this shared `ScrollArea`
+ * as-is for that case — the forced `!block` here is only correct because zero real consumers rely
+ * on the table wrapper's content-based width today; revisit this note first.
  */
 type ScrollAreaOverflow = { scrollableY: boolean; scrollableX: boolean }
 
@@ -135,7 +177,7 @@ function ScrollArea({
       <ScrollAreaPrimitive.Viewport
         ref={viewportRef}
         data-slot="scroll-area-viewport"
-        className="min-h-0 w-full flex-1 rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1"
+        className="min-h-0 w-full flex-1 rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 [&>div]:!block"
       >
         <ScrollAreaOverflowContext.Provider value={{ scrollableY, scrollableX }}>
           {children}

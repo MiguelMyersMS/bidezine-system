@@ -286,6 +286,37 @@ prove the "does it hide when not scrollable" half of the same contract.
 own *native* scrollbar; Radix's `ScrollArea` hides the native one and draws its own independent, absolutely-
 positioned track, which that CSS property has no reliable effect on.
 
+**§6 — Every `ScrollArea` instance in this system assumes vertical-only overflow; `truncate` on any child
+row is only trustworthy because of this.** Radix's `ScrollAreaViewport` always renders exactly one internal,
+Radix-controlled child div with inline `style={{ minWidth: '100%', display: 'table' }}` (source:
+`node_modules/@radix-ui/react-scroll-area/dist/index.mjs`) — a `display: table` box sizes itself from its
+content's max-content width, not from the actual available viewport width, which defeats flexbox's
+"automatic minimum size: 0" mechanism that makes `truncate` (overflow-hidden + ellipsis + nowrap) work
+correctly inside a flex row. Any row wider than the viewport (a flex row with a `shrink-0` trailing badge
+and a `truncate` label, once the label has already shrunk toward zero) silently grows the WHOLE table past
+the viewport's real `clientWidth`, and the excess is invisibly clipped by the viewport's own
+`overflowX: hidden` — with no ellipsis and no horizontal scrollbar — which can additionally land a trailing
+element's edge directly under/behind the vertical scrollbar's track. This was found and confirmed via live
+`getBoundingClientRect`/`scrollWidth`/`clientWidth` measurement (not assumed), reproducing a real reported
+bug (Rail Sidebar panel-tree rows, `L-50` in `limbo-factory/src/data/rail-sidebar.ts`) pixel-for-pixel.
+**Fixed permanently at the primitive level**: `ScrollAreaPrimitive.Viewport`'s className in
+`src/ui/scroll-area.tsx` carries `[&>div]:!block`, forcing that Radix-generated wrapper div to `display:
+block !important` (Tailwind's `!` prefix compiles to `!important`, which — per the CSS cascade — DOES
+override a plain, non-`!important` inline style) so the wrapper's width simply equals its containing
+block's content-box width instead of a function of content, letting every row's own `truncate`/
+`overflow-hidden` clip/ellipsize correctly. **This fix is only safe because every real consumer of this
+`ScrollArea` in this codebase (`command.tsx`, `combobox.tsx`, `dropdown-menu.tsx`, `context-menu.tsx`, and
+any rail/panel composition) renders vertical-only content and never mounts `<ScrollBar
+orientation="horizontal">`** — confirmed via grep across `src/ui/*.tsx` before applying the fix. **If a
+future consumer genuinely needs horizontal scroll** (e.g. a wide `<table>`/`<pre>` inside `ScrollArea`),
+that consumer must NOT reuse this shared `ScrollArea` as-is: `[&>div]:!block` would neutralize the exact
+mechanism (`display: table` sizing to content width) that real horizontal scroll depends on. Build a
+dedicated variant instead of removing the override system-wide. Whenever adding a row-based flex layout
+(icon + `truncate` label + `shrink-0` trailing badge/decoration) inside `ScrollArea`, don't assume `truncate`
+"just works" because it's a familiar utility — the Viewport it's composed inside changes what `truncate`
+can rely on, and this specific defect class was invisible to a normal code read; it only surfaced under a
+live, narrowed-width measurement.
+
 **Deliberate shadcn divergence, migrated system-wide:** `Command`, `DropdownMenu`, `ContextMenu`, and
 `Combobox` (`src/ui/command.tsx`, `dropdown-menu.tsx`, `context-menu.tsx`, `combobox.tsx`) now compose the
 real `ScrollArea` primitive per this pattern, on explicit, repeated user instruction. Verified first: shadcn's
