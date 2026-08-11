@@ -10,12 +10,12 @@ import type { ReactNode } from "react"
  */
 
 /**
- * Local showcase-only helper (not part of @bidezine/system) that places a
- * regular/emphasis badge pair side by side. No caption text — the two font
- * weights are visually distinct enough on their own that a label would be
- * redundant noise.
+ * Local showcase-only helper (not part of @bidezine/system) that places two or
+ * more badge variations side by side (e.g. regular/emphasis weight, or
+ * solid/soft tone × weight). No caption text — the visual differences are
+ * distinct enough on their own that a label would be redundant noise.
  */
-function WeightPair({ children }: { children: [ReactNode, ReactNode] }) {
+function WeightPair({ children }: { children: ReactNode[] }) {
   return (
     <div className="flex flex-wrap items-center justify-center gap-3">
       {children}
@@ -60,10 +60,18 @@ const examples: ShowcaseExample[] = [
         <Badge variant="destructive" weight="emphasis">
           Destructive
         </Badge>
+        <Badge variant="destructive" tone="soft" weight="regular">
+          Destructive
+        </Badge>
+        <Badge variant="destructive" tone="soft" weight="emphasis">
+          Destructive
+        </Badge>
       </WeightPair>
     ),
     code: `<Badge variant="destructive" weight="regular">Destructive</Badge>
-<Badge variant="destructive" weight="emphasis">Destructive</Badge> {/* default */}`,
+<Badge variant="destructive" weight="emphasis">Destructive</Badge> {/* default */}
+<Badge variant="destructive" tone="soft" weight="regular">Destructive</Badge>
+<Badge variant="destructive" tone="soft" weight="emphasis">Destructive</Badge>`,
   },
   {
     label: "Success",
@@ -75,10 +83,18 @@ const examples: ShowcaseExample[] = [
         <Badge variant="success" weight="emphasis">
           Success
         </Badge>
+        <Badge variant="success" tone="soft" weight="regular">
+          Success
+        </Badge>
+        <Badge variant="success" tone="soft" weight="emphasis">
+          Success
+        </Badge>
       </WeightPair>
     ),
     code: `<Badge variant="success" weight="regular">Success</Badge>
-<Badge variant="success" weight="emphasis">Success</Badge> {/* default */}`,
+<Badge variant="success" weight="emphasis">Success</Badge> {/* default */}
+<Badge variant="success" tone="soft" weight="regular">Success</Badge>
+<Badge variant="success" tone="soft" weight="emphasis">Success</Badge>`,
   },
   {
     label: "Warning",
@@ -90,10 +106,18 @@ const examples: ShowcaseExample[] = [
         <Badge variant="warning" weight="emphasis">
           Warning
         </Badge>
+        <Badge variant="warning" tone="soft" weight="regular">
+          Warning
+        </Badge>
+        <Badge variant="warning" tone="soft" weight="emphasis">
+          Warning
+        </Badge>
       </WeightPair>
     ),
     code: `<Badge variant="warning" weight="regular">Warning</Badge>
-<Badge variant="warning" weight="emphasis">Warning</Badge> {/* default */}`,
+<Badge variant="warning" weight="emphasis">Warning</Badge> {/* default */}
+<Badge variant="warning" tone="soft" weight="regular">Warning</Badge>
+<Badge variant="warning" tone="soft" weight="emphasis">Warning</Badge>`,
   },
   {
     label: "Info",
@@ -105,10 +129,18 @@ const examples: ShowcaseExample[] = [
         <Badge variant="info" weight="emphasis">
           Info
         </Badge>
+        <Badge variant="info" tone="soft" weight="regular">
+          Info
+        </Badge>
+        <Badge variant="info" tone="soft" weight="emphasis">
+          Info
+        </Badge>
       </WeightPair>
     ),
     code: `<Badge variant="info" weight="regular">Info</Badge>
-<Badge variant="info" weight="emphasis">Info</Badge> {/* default */}`,
+<Badge variant="info" weight="emphasis">Info</Badge> {/* default */}
+<Badge variant="info" tone="soft" weight="regular">Info</Badge>
+<Badge variant="info" tone="soft" weight="emphasis">Info</Badge>`,
   },
   {
     label: "Outline",
@@ -185,6 +217,18 @@ const examples: ShowcaseExample[] = [
         <Badge variant="warning">Warning</Badge>
         <Badge variant="info">Info</Badge>
         <Badge variant="outline">Outline</Badge>
+        <Badge variant="success" tone="soft">
+          Success
+        </Badge>
+        <Badge variant="warning" tone="soft">
+          Warning
+        </Badge>
+        <Badge variant="info" tone="soft">
+          Info
+        </Badge>
+        <Badge variant="destructive" tone="soft">
+          Destructive
+        </Badge>
       </div>
     ),
     code: `<Badge>Badge</Badge>
@@ -193,7 +237,11 @@ const examples: ShowcaseExample[] = [
 <Badge variant="success">Success</Badge>
 <Badge variant="warning">Warning</Badge>
 <Badge variant="info">Info</Badge>
-<Badge variant="outline">Outline</Badge>`,
+<Badge variant="outline">Outline</Badge>
+<Badge variant="success" tone="soft">Success</Badge>
+<Badge variant="warning" tone="soft">Warning</Badge>
+<Badge variant="info" tone="soft">Info</Badge>
+<Badge variant="destructive" tone="soft">Destructive</Badge>`,
   },
 ]
 
@@ -204,6 +252,13 @@ const apiRows: ApiRow[] = [
     default: `"default"`,
     description:
       "Visual style. success/warning/info and muted are a bidezine Adjustment (not in shadcn's own source): success/warning/info add semantic status pills; muted is a lower-prominence variant (text-muted-foreground, no fill at rest) for badges that should recede rather than draw attention, e.g. on a dense navigation surface.",
+  },
+  {
+    prop: "tone",
+    type: `"solid" | "soft"`,
+    default: `"solid"`,
+    description:
+      'bidezine Adjustment. A third axis, independent of variant/weight, scoped to the four status colors (destructive/success/warning/info) — no-op for default/secondary/outline/ghost/muted/link, which already have their own low-emphasis treatment. "soft" swaps the solid white-on-filled-color pill for an opaque, lighter tinted background + darker/more saturated text of the same hue — verified 7:1+ contrast in both light and dark mode, independent of whatever surface the badge sits on (unlike an opacity-blend approach).',
   },
   {
     prop: "weight",
@@ -241,10 +296,16 @@ export function BadgeShowcase() {
           </code>
           /
           <code className="rounded bg-muted px-1 py-0.5 text-sm">info</code>{" "}
-          status variants and a{" "}
+          status variants, a{" "}
           <code className="rounded bg-muted px-1 py-0.5 text-sm">muted</code>{" "}
-          low-prominence variant — shadcn's own source has neither concept.
-          See <code className="rounded bg-muted px-1 py-0.5 text-sm">
+          low-prominence variant, and a{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-sm">tone</code>{" "}
+          axis (<code className="rounded bg-muted px-1 py-0.5 text-sm">
+            "solid" | "soft"
+          </code>
+          ) for lighter, tinted-background alternatives to the four status
+          colors — shadcn's own source has none of these concepts. See{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-sm">
             src/ui/badge.tsx
           </code>{" "}
           for the full rationale.

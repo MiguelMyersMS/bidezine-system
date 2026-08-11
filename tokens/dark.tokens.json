@@ -34,6 +34,18 @@
   "info": { "$type": "color", "$description": "bidezine Adjustment — see light.tokens.json.", "$value": { "colorSpace": "oklch", "components": [0.623, 0.214, 259.815] } },
   "info-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.97, 0.02, 262] } },
 
+  "destructive-soft": { "$type": "color", "$description": "bidezine Adjustment — see light.tokens.json for the full rationale. Dark-mode pair: an opaque dark tint of destructive's own hue (not an alpha blend), paired with destructive-soft-foreground: 7.04:1 contrast.", "$value": { "colorSpace": "oklch", "components": [0.24, 0.05, 22.216] } },
+  "destructive-soft-foreground": { "$type": "color", "$description": "bidezine Adjustment — lighter/saturated shade of destructive's own hue for legibility on the dark destructive-soft tint. See light.tokens.json.", "$value": { "colorSpace": "oklch", "components": [0.75, 0.15, 22.216] } },
+
+  "success-soft": { "$type": "color", "$description": "bidezine Adjustment — see destructive-soft. Paired with success-soft-foreground: 9.25:1 contrast.", "$value": { "colorSpace": "oklch", "components": [0.24, 0.05, 162.48] } },
+  "success-soft-foreground": { "$type": "color", "$description": "bidezine Adjustment — see destructive-soft-foreground; success's own hue.", "$value": { "colorSpace": "oklch", "components": [0.795, 0.17, 162.48] } },
+
+  "warning-soft": { "$type": "color", "$description": "bidezine Adjustment — see destructive-soft. Paired with warning-soft-foreground: 8.31:1 contrast.", "$value": { "colorSpace": "oklch", "components": [0.24, 0.05, 70] } },
+  "warning-soft-foreground": { "$type": "color", "$description": "bidezine Adjustment — see destructive-soft-foreground; warning's own hue.", "$value": { "colorSpace": "oklch", "components": [0.79, 0.17, 70] } },
+
+  "info-soft": { "$type": "color", "$description": "bidezine Adjustment — see destructive-soft. Paired with info-soft-foreground: 7.24:1 contrast.", "$value": { "colorSpace": "oklch", "components": [0.24, 0.05, 259.815] } },
+  "info-soft-foreground": { "$type": "color", "$description": "bidezine Adjustment — see destructive-soft-foreground; info's own hue.", "$value": { "colorSpace": "oklch", "components": [0.745, 0.13, 259.815] } },
+
   "border": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.1 } },
   "input": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.15 } },
   "ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.556, 0, 0] } },

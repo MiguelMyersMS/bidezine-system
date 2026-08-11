@@ -104,6 +104,43 @@ _None. Badge status-variant + weight work (L-6 groundwork) is complete, verified
   - Verified: `npx tsc --noEmit` clean (root + `site/`), `npm run build` succeeds (dist rebuilt since the
     new variant literal is part of `Badge`'s exported prop type), dev server hot-reloaded and returns 200
     on `/components/badge`.
+  - Commits: `3f068d2` (add `muted` variant), `02abcfb` (fix contrast doc claim after independent audit
+    finding on host-surface dependency). All pushed to `origin/main`.
+- **Badge `tone` axis added (`"solid" | "soft"`)** — a third orthogonal axis on top of `variant`/`weight`,
+  requested to add a lighter, tinted-background alternative to the four solid status colors
+  (destructive/success/warning/info), matching a reference screenshot the user provided of another design
+  system's soft-badge treatment (mapped as a *concept*, not copied literally, per this project's existing
+  reference-mapping convention for status colors). Default remains `"solid"` — every existing Badge usage
+  is unaffected. `default`/`secondary`/`outline`/`ghost`/`muted`/`link` don't participate in `tone` (already
+  have their own neutral/low-emphasis look); it's a documented no-op for those six, not an error.
+  - **8 new opaque color tokens** added to `tokens/light.tokens.json` / `tokens/dark.tokens.json`:
+    `{status}-soft` / `{status}-soft-foreground` for each of the 4 status colors. Deliberately NOT an
+    opacity blend (`bg-{status}/N`) — that approach is what `muted` uses and is exactly why `muted`'s own
+    contrast is host-surface-dependent (see above). These are independently-authored opaque tokens (same
+    hue angle as the existing solid `{status}` tokens, different L/C), so soft-badge contrast is fixed
+    regardless of what surface the badge sits on.
+  - **Why new tokens were required, not reuse**: verified numerically that reusing the existing solid
+    `{status}` color as text on any realistic tint of itself drops contrast below AA for 3 of 4 colors —
+    the solid tokens were tuned for ~4.9–5.2:1 against pure white, and any tinting of the background only
+    reduces that further. A soft badge needs a separately-tuned, darker/more saturated text shade (own
+    OKLCH → linear sRGB → gamma sRGB → WCAG relative-luminance script, not eyeballed).
+  - **Verified contrast, all ≥7:1 (AAA for normal text)**: light mode — destructive 7.05:1, success
+    7.04:1, warning 7.06:1, info 7.11:1; dark mode — destructive 7.04:1, success 9.25:1, warning 8.31:1,
+    info 7.24:1.
+  - `src/ui/badge.tsx`: `tone` implemented via `cva`'s `compoundVariants` (not a plain `variants.tone`
+    class map) — each `(variant, tone)` pair for the 4 status colors gets its own complete class string
+    (no bg-*/text-* conflicts ever coexist in one output), while the 6 non-participating variants keep
+    their classes directly on `variants.variant` so `tone` is a true no-op for them.
+  - `site/src/routes/components/BadgeShowcase.tsx`: the Destructive/Success/Warning/Info examples now show
+    solid + soft side by side (both weights, 4 badges per example, no captions — same "let the visuals
+    speak" convention already established for weight), Demo example extended with 4 soft badges,
+    `apiRows` gained a `tone` row, intro paragraph updated.
+  - Asked the user one targeted design question first (should `default`/`secondary` also get a soft tone,
+    matching the reference image's gray badge) — user was unavailable to respond; proceeded with the
+    stated recommended default (no, `secondary`/`outline` already cover that need) rather than block.
+  - Verified: `npm run tokens` (parity gate passes, 56 tokens total, up from 40), `npm run build` succeeds,
+    compiled `dist/system.css` contains all 16 new soft-token utility occurrences, `npx tsc --noEmit` clean
+    (root + `site/`), dev server hot-reloaded and returns 200 on `/components/badge`.
 
 - Rail Sidebar panel resize (`react-resizable-panels`) ships with correct shadow clearance on all four
   sides and no height regression (L-35/L-36/L-37, see `limbo-factory/src/data/rail-sidebar.ts` and
