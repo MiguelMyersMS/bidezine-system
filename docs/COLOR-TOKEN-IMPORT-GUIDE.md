@@ -64,6 +64,15 @@ Either way: **never hand-write an oklch/hex value from guessing or "close enough
 must trace to a real source — the origin's actual code, the human's actual hex pick, or an actual existing
 bidezine token — never invented or approximated by the AI.
 
+**Worked example — bidezine's own `success`/`warning`/`info` Badge tokens** (`tokens/light.tokens.json` /
+`tokens/dark.tokens.json`, first shipped alongside `src/ui/badge.tsx`'s status-variant Adjustment): these
+are a third case, distinct from both options above — a genuinely new *semantic concept* bidezine's own
+token set didn't have (positive/caution/informational status), authored fresh in OKLCH and verified for
+WCAG AA contrast (4.5:1+) against white text, rather than reused from an existing stop or converted from a
+human-supplied hex. See `src/ui/badge.tsx`'s own doc comment for the full contrast numbers and rationale —
+referenced here as the canonical example of "add a wholly new semantic color, from scratch, without
+contaminating from another design system's literal values."
+
 ### bidezine's own achromatic (grayscale) lightness stops, for reuse
 
 | Token | Light `L` | Dark `L` |

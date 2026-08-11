@@ -21,13 +21,12 @@
 
 ## Laptop A — Miguel
 
-**Baseline** — branch `main`, last verified commit `718834c` (L-3/L-4/L-11 resolution), working tree
-currently has uncommitted changes for the Badge status-variant work below — not yet committed/pushed.
+**Baseline** — branch `main`, last verified commit `5826b0d` plus the just-committed weight-showcase
+caption removal below, working tree clean once this session's final commit lands, pushed to `origin/main`.
 
 ### Active task
 
-_Badge status variants (L-6 groundwork) — implementation complete, verified, awaiting final commit._
-See the new "What's done" entry below for full detail. Not yet committed to `main`.
+_None. Badge status-variant + weight work (L-6 groundwork) is complete, verified, committed, and pushed._
 
 ### What's done (current state — not a history)
 
@@ -52,17 +51,39 @@ See the new "What's done" entry below for full detail. Not yet committed to `mai
   - Full rationale, accessibility contract (color-not-alone guidance, focus-visible/tab-order behavior,
     truncation, minimum-size), and explicit non-adoption notes are documented directly in `src/ui/badge.tsx`'s
     own doc comment above `badgeVariants`.
-  - `site/src/routes/components/BadgeShowcase.tsx` updated with Success/Warning/Info demo entries, updated
-    API table, and a note explaining this is an Adjustment.
   - Verified: `npx tsc --noEmit` clean (both root package and `site/`), `npm run build` (production `vite
     build`) succeeds, compiled `dist/system.css` confirmed to contain `.bg-success`/`.bg-warning`/`.bg-info`
     plus their `dark:.../60` and `hover:.../90` `color-mix()` variants. Site dev server confirmed the
-    `/components/badge` route returns 200. **Not yet visually reviewed by the user in a live browser** —
-    recommend a quick look at `/components/badge` in both light and dark mode before treating the exact
-    hue/lightness choices as final (same "Color Token Lab" sign-off precedent used for the Rail dark-token
-    work).
-  - `L-6` itself (`limbo-factory/src/data/rail-sidebar.ts`) intentionally NOT touched — user said they'll
-    decide how to approach it only after reviewing this bidezine-side implementation.
+    `/components/badge` route returns 200 in both light and dark mode.
+  - `L-6` itself (`limbo-factory/src/data/rail-sidebar.ts`) intentionally NOT touched — remains
+    `status: "decision"` pending the user's own follow-up on how to map this bidezine-side implementation
+    onto RailNav specifically. See that row's own note for current status.
+- **Badge `weight` prop (`"regular"` | `"emphasis"`, default `"emphasis"`) added to `src/ui/badge.tsx`** —
+  a second, independent bidezine Adjustment axis, orthogonal to `variant` (color). Requested after the user
+  found the new solid-fill status badges "too visually heavy" — `weight="regular"` (`font-normal`) is a
+  lighter opt-in for lower-emphasis inline status labels; the default (`"emphasis"`, `font-medium`)
+  preserves shadcn's own unconditional upstream baseline exactly, so no existing Badge usage anywhere in
+  the codebase changes appearance. Documented in the same `badge.tsx` doc comment and in `apiRows` in
+  `BadgeShowcase.tsx`. The status-variant *tokens* this Badge work relies on (not `weight` itself, which is
+  a font-weight axis with no token) are now also cross-referenced as a canonical worked example in
+  `docs/COLOR-TOKEN-IMPORT-GUIDE.md`'s Step 3 (see below).
+  - `site/src/routes/components/BadgeShowcase.tsx` restructured twice this session, ending at: every
+    single-variant example (Default, Secondary, Destructive, Success, Warning, Info, Outline, Ghost, Link)
+    shows both `weight` values side by side with **no caption text** — the two font weights are visually
+    distinct enough on their own, so a label was removed as redundant per direct user feedback. `Link` uses
+    two separate `asChild` anchors (one per weight); `Demo` (the multi-badge composite) is left at a single
+    weight since duplicating it per weight would be an unwieldy 14-badge grid, and weight is already
+    exhaustively covered by the other 9 single-variant examples. An earlier iteration of this rework had a
+    standalone "Weight — regular vs emphasis" example demoing only 4 of 9 variants — removed because it
+    read as (and wasn't) a restriction on which variants support `weight`; `weight` combines with every
+    `variant` value, always has.
+  - Verified: `npx tsc --noEmit` clean in `site/` after each rework pass, dev server hot-reloaded and
+    returned 200 on `/components/badge` throughout, no `src/ui/badge.tsx` or `dist/` changes needed for the
+    showcase-only reworks (component code was already correct; only the demo layout changed).
+  - Commits: `8a78de3` (success/warning/info variants), `4077c02` (weight prop + first showcase pass),
+    `5826b0d` (fold weight into every variant example instead of a standalone example), plus this session's
+    final commit removing the regular/emphasis caption text per direct user feedback ("no need to put text
+    beside it... visually humans can understand the difference"). All pushed to `origin/main`.
 
 - Rail Sidebar panel resize (`react-resizable-panels`) ships with correct shadow clearance on all four
   sides and no height regression (L-35/L-36/L-37, see `limbo-factory/src/data/rail-sidebar.ts` and

@@ -10,26 +10,15 @@ import type { ReactNode } from "react"
  */
 
 /**
- * Local showcase-only helper (not part of @bidezine/system) that labels a
- * regular/emphasis badge pair so the weight difference reads clearly at a
- * glance, instead of two unlabeled badges side by side.
+ * Local showcase-only helper (not part of @bidezine/system) that places a
+ * regular/emphasis badge pair side by side. No caption text — the two font
+ * weights are visually distinct enough on their own that a label would be
+ * redundant noise.
  */
 function WeightPair({ children }: { children: [ReactNode, ReactNode] }) {
-  const [regular, emphasis] = children
   return (
-    <div className="flex flex-wrap items-end justify-center gap-6">
-      <div className="flex flex-col items-center gap-1.5">
-        <span className="text-[11px] tracking-wide text-muted-foreground uppercase">
-          weight="regular"
-        </span>
-        {regular}
-      </div>
-      <div className="flex flex-col items-center gap-1.5">
-        <span className="text-[11px] tracking-wide text-muted-foreground uppercase">
-          weight="emphasis" (default)
-        </span>
-        {emphasis}
-      </div>
+    <div className="flex flex-wrap items-center justify-center gap-3">
+      {children}
     </div>
   )
 }
