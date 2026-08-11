@@ -21,7 +21,7 @@
 
 ## Laptop A — Miguel
 
-**Baseline** — branch `main`, last verified commit `83a2c5b`, working tree clean and pushed to `origin/main`.
+**Baseline** — branch `main`, last verified commit `70d2f4c`, working tree clean and pushed to `origin/main`.
 
 ### Active task
 
@@ -35,10 +35,52 @@ _None. Nothing in progress._
 - Factory-line preview stage (`limbo-factory/src/App.tsx`) anchors the Rail+Panel composite
   (`justify-start`) instead of centering it, fixing the Rail being almost entirely clipped (L-38, see
   `limbo-factory/src/data/rail-sidebar.ts` and `LIMBO-PROTOCOL-LOG.md` Update 11). User-confirmed live.
+- **M-6/M-7/M-8 approved and shipped, plus three follow-on bugs (M-20/M-21/M-22) found and fixed while
+  trying M-7 live — all six `status: "resolved"` in `limbo-factory/src/data/rail-sidebar.ts`.**
+  - **M-6** (rail overflow budget): new `limbo-factory/src/hooks/useOverflowFit.ts` — an explicit,
+    ResizeObserver-driven contract (author-provided row selector, hard `maxVisible` ceiling, currently
+    `RAIL_MAX_VISIBLE_SECTIONS = 12`, raised from an initial `7` per direct user follow-up). Overflow
+    items go to the "More" menu, never truncate/scroll on the rail track itself (icon-only, `sr-only`
+    labels); the overflow menu's own scrolling is already free via `DropdownMenuContent`'s composed
+    `ScrollArea`.
+  - **M-7** (panel resize): real bidezine `Resizable` primitive (`src/ui/resizable.tsx`) replaces the
+    hand-rolled mousedown/mousemove drag — directly fixes the user's concern that the old approach was
+    "only visible for sandbox, useless in production." The invisible filler panel is replaced by a real,
+    visible `adjacentContent` panel prop (with a placeholder fallback). The `PANEL_SHADOW_INSET` padding
+    workaround that doubled as the visual rail-to-panel gap is reversed — restored to an honest
+    `RAIL_PANEL_GAP = 8` flex gap, per explicit user request.
+  - **M-8**: no Sidebar-naming conflict to resolve now — deferred by design; `Sidebar` gets revamped to
+    borrow Rail Sidebar's proven patterns only AFTER Rail Sidebar promotes out of Limbo.
+  - **M-20**: `adjacentContent` was disappearing entirely (not just shrinking) whenever the browsing
+    panel closed — a `Presence` wrapping the whole `ResizablePanelGroup` instead of just the browsing
+    panel's own animated surface. Fixed with `Presence` scoped inward + `react-resizable-panels`' real
+    `collapsible`/`collapsedSize={0}`.
+  - **M-21**: live Playwright measurement (real `getBoundingClientRect`, not a screenshot) found M-20's
+    fix was correct but nearly invisible, because a separate pre-existing bug broke the outer `w-full`
+    width chain in the preview harness (`FunctionalRailSidebar`'s outer row + both `FullRailPreview.tsx`
+    mount wrappers had no width class). Also fixed: the resize handle now hides once the browsing panel
+    is genuinely collapsed (`isBrowsingPanelCollapsed`, driven by the panel's own `onResize`, not the
+    instantly-flipping `openPanel` flag).
+  - **M-22**: user reported the collapsed-state gap still looked too large. Live measurement disproved
+    the user's own "leftover resize handle" hypothesis (M-21 held, handle genuinely gone) — real cause
+    was `AdjacentContentPlaceholder`'s unconditional `p-4` (16px) stacking on the real 8px
+    `RAIL_PANEL_GAP` (24px total). Fixed via a `collapseLeftInset` prop zeroing `paddingLeft` with an
+    inline `style` (not a `pl-0` class — per the established M-18/M-19 cascade-tie lesson). `8` was then
+    explicitly clarified by the user as this sandbox's own stand-in value, not a universal design-system
+    constant — restated directly in `RAIL_PANEL_GAP`'s own doc comment.
+  - Full rationale + live-measured before/after numbers for all six: `limbo-factory/src/data/rail-sidebar.ts`
+    and `LIMBO-PROTOCOL-LOG.md` Update 19 (append-only). `npx tsc --noEmit` and `npm run build`
+    (production `vite build`) both verified clean in `limbo-factory` after every change.
+  - Rollback point if any of this needs reverting: git tag `checkpoint-pre-m6-m7-primitives`.
 
 ### What's next
 
-_Nothing queued. Awaiting new instructions._
+_Nothing queued. M-6/M-7/M-8/M-20/M-21/M-22 are fully resolved and merged to `main`. M-8's own
+follow-through action (revamping the existing `Sidebar` primitive to borrow Rail Sidebar's patterns) is
+explicitly deferred until AFTER Rail Sidebar itself finishes promotion out of Limbo — not queued yet.
+Remaining open Rail Sidebar divergence-list categories (unrelated to this session): H (motion), I
+(elevation), J (z-index), L (one open item), plus the still-`"decision"` H-2–H-6/L-6/L-7/L-11 rows — none
+touched this baseline; awaiting a future session's focus._
 
 ### Open questions / blockers
 
