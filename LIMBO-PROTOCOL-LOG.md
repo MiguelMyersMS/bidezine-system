@@ -634,6 +634,36 @@ after the fix: `tableDisplay: "block"` (was `"table"`), `scrollWidth === clientW
 numerically and via a fresh screenshot. `npx tsc --noEmit` clean; no other real `ScrollArea` consumer was
 regressed, since none of them render horizontal scrollbars either.
 
+**Update 21 — L-51: the rail's logo slot gained the same hover/press/selected color contract as the rail's
+own icon buttons, gated so it only applies when the logo is actually interactive.** The user asked directly:
+"the logo should use the same color as the icon when selected by default and govering [hovering] over should
+apply the same color to the fill area as the other buttons... presing the icon logo should apply the color of
+the fill area for press used on the other icons... this interactive behavior should only apply if the icon
+triggers an action or a hyperlink, otherwhise the icon should not have a hover or pressed state just default
+using the same token color as the other icons when selected" — also framing it as "very specific for the rail
+but maybe in the future can be used for other primitives." IMPLEMENTED in `FunctionalRailSidebar.tsx` via two
+new, deliberately generic building blocks: `iconInteractionColors(colors, state)`, a pure function
+reproducing `RailIconButton`'s own already-approved color ladder (pressed > active > hovered/browsing >
+resting), gated by an `isInteractive` flag that unconditionally returns a transparent background and a
+`restColor` (defaulting to `colors.fg` — the same tone the icon buttons use for their `active`/`pressed`
+tiers, not the dimmer `colors.fgSubtle` resting tone, since the logo isn't a togglable nav item and should
+always read as prominent by default) whenever `isInteractive` is false, regardless of any hover/press state
+passed in; and `RailLogoSlot({ href, colors, children })`, which replaces the two previously-duplicated inline
+`<a>`/`<div>` branches with one component, deriving `isInteractive = Boolean(href)` and — critically — only
+spreading the `onMouseEnter/Leave/Down/Up` handlers onto the rendered element when interactive (an omission
+from the props object, not an internal no-op guard), so a non-interactive logo is structurally incapable of
+ever entering a hover/pressed state. The placeholder box's border color was changed from a hardcoded
+`colors.fgHover` to `currentColor`, so it automatically tracks whatever color `RailLogoSlot` computes with
+zero extra prop drilling, matching the default SVG mark's existing `fill="currentColor"`. VERIFIED live via a
+temporary Playwright script (deleted after use): with no `logoHref` set (the current default, decorative),
+the logo's resting color matched an active rail button's foreground color exactly, and hovering it produced
+zero change at all — confirming the structural interactive gate holds. With a temporary `logoHref` wired in
+for the test only (reverted immediately after), the logo's hover state (`color: oklch(0.922 0 0)`,
+`background: oklch(0.301 0 0)`) and pressed state (`color: oklch(0.985 0 0)`, `background: oklch(0.348 0 0)`)
+matched a real rail icon button's own measured hover/pressed computed styles exactly — true parity, not a
+visually-similar approximation. `npx tsc --noEmit` clean; no `src/ui/*.tsx` primitive was touched, so no root
+package rebuild was required. See `L-51` in `rail-sidebar.ts` for the full contract and verification detail.
+
 Whenever the Intake agent finds an element in the source that isn't cleanly pairable to an existing
 bidezine equivalent — icons, gaps, paddings, blocks, layouts, animations, effects, colors, fonts, anything —
 it must be listed **individually**, never batched into a vague summary, and never auto-resolved. The human

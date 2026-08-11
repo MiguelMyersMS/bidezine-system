@@ -547,6 +547,134 @@ function pathEmphasis(isOnActivePath: boolean) {
   }
 }
 
+/**
+ * Shared background/foreground escalation for every rail-style icon affordance (`RailIconButton`,
+ * the overflow trigger, and — per divergence row L-1 — the logo slot). Deliberately written as a
+ * plain, colors-in/colors-out function (not a hook, not rail-scoped state) so it's trivially
+ * reusable by any FUTURE primitive that needs this exact same background+foreground ladder,
+ * per the user's own framing: "this behavior right now is very specific for the rail but maybe in
+ * the future can be used for other primitives."
+ *
+ * Given the caller's local hover/pressed interaction state (plus persistent active/browsing state
+ * where applicable), returns the same background+foreground pair `RailIconButton` already computes
+ * inline (see its own `background`/`color` derivation a few lines below):
+ *   - pressed:           background = colors.pressed, foreground = colors.fg
+ *   - active:             background = colors.active,  foreground = colors.fg
+ *   - hovered/browsing:   background = colors.hover,   foreground = colors.fgHover
+ *   - resting (default):  background = "transparent",  foreground = `restColor`
+ *
+ * `isInteractive` is the load-bearing gate requested in L-1: when `false`, hover/pressed/active/
+ * browsing are never even consulted — the function unconditionally returns the resting pair, with
+ * `restColor` substituted directly (no fallback to `colors.fgSubtle`, since a purely decorative
+ * icon isn't a togglable nav item and has no "unselected" tier to fall back to). This is what makes
+ * a non-interactive logo (no `href`, no click action) permanently render with zero hover/press
+ * treatment — not just visually inert by coincidence, but structurally incapable of entering those
+ * states at all, since the caller must simply never wire mouse handlers when `isInteractive` is
+ * `false` (see `RailLogoSlot` below, which enforces exactly that).
+ *
+ * `restColor` defaults to `colors.fg` — the SAME foreground tone `RailIconButton` uses for its own
+ * `active`/`pressed` tiers (its "selected" color) — because the logo slot's own resting state is
+ * meant to already read as that same "selected" tone by default (L-1: "the logo should use the same
+ * color as the icon when selected by default"), not the dimmer `colors.fgSubtle` a regular,
+ * currently-unselected nav icon rests at. A future caller wanting the dimmer resting tone instead
+ * (e.g. if this were reused for an ordinary unselected icon button) can simply pass
+ * `restColor: colors.fgSubtle`.
+ */
+function iconInteractionColors(
+  colors: RailColors,
+  state: {
+    isInteractive: boolean
+    isActive?: boolean
+    isBrowsing?: boolean
+    isHovered: boolean
+    isPressed: boolean
+    restColor?: string
+  },
+): { background: string; color: string } {
+  const { isInteractive, isActive = false, isBrowsing = false, isHovered, isPressed, restColor = colors.fg } = state
+  if (!isInteractive) return { background: "transparent", color: restColor }
+  if (isPressed) return { background: colors.pressed, color: colors.fg }
+  if (isActive) return { background: colors.active, color: colors.fg }
+  if (isHovered || isBrowsing) return { background: colors.hover, color: colors.fgHover }
+  return { background: "transparent", color: restColor }
+}
+
+/**
+ * L-1: the rail's logo slot, extracted out of the main render so its interactive-vs-decorative
+ * contract lives in exactly one place instead of being duplicated across the "renders as `<a>`" and
+ * "renders as `<div>`" branches that used to exist inline. Reported directly: "the logo should use
+ * the same color as the icon when selected by default and govering [hovering] over should apply the
+ * same color to the fill area as the other buttons... presing the icon logo should apply the color
+ * of the fill area for press used on the other icons... this interactive behavior should only apply
+ * if the icon triggers an action or a hyperlink, otherwhise the icon should not have a hover or
+ * pressed state just default using the same token color as the other icons when selected."
+ *
+ * CONTRACT:
+ *   - `isInteractive` (derived here as `Boolean(href)` — the only "triggers an action or hyperlink"
+ *     signal this slot currently exposes; if a future `onClick` prop is ever added to the logo slot,
+ *     it must be OR'd into this same `isInteractive` check, not treated as a separate gate) controls
+ *     BOTH which element renders (`<a>` vs plain `<div>`) AND whether hover/press handlers are wired
+ *     at all. A non-interactive logo never calls `setIsHovered`/`setIsPressed` — those handlers are
+ *     omitted from the spread entirely, not merely guarded inside — so it is structurally impossible
+ *     for a decorative logo to show a hover/press color, not just visually coincidental.
+ *   - Color/background come from `iconInteractionColors` (see above), the SAME shared ladder
+ *     `RailIconButton` uses, so the logo's hover/press tones can never independently drift from the
+ *     rail's own icon buttons.
+ *   - `children` (the actual mark — `logoIcon`, the placeholder box, or the default BiDezine SVG)
+ *     is rendered with no color styling of its own; it relies on inheriting `color` from this
+ *     wrapper via `currentColor` (the default SVG already sets `fill="currentColor"`; the
+ *     placeholder box below is given `borderColor: "currentColor"` for the same reason) — so the
+ *     mark automatically tracks every resting/hover/press color change with zero extra prop
+ *     drilling.
+ */
+function RailLogoSlot({
+  href,
+  colors,
+  children,
+}: {
+  href?: string
+  colors: RailColors
+  children: React.ReactNode
+}) {
+  const isInteractive = Boolean(href)
+  const [isHovered, setIsHovered] = useState(false)
+  const [isPressed, setIsPressed] = useState(false)
+
+  const { background, color } = iconInteractionColors(colors, { isInteractive, isHovered, isPressed })
+
+  const sharedProps = {
+    className: "flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg",
+    style: {
+      background,
+      color,
+      transition: isInteractive ? "background-color 150ms ease, color 150ms ease" : undefined,
+    },
+    // Only wired when interactive — see this function's own doc comment for why this must be an
+    // omission, not a no-op guard inside the handler.
+    ...(isInteractive
+      ? {
+          onMouseEnter: () => setIsHovered(true),
+          onMouseLeave: () => {
+            setIsHovered(false)
+            setIsPressed(false)
+          },
+          onMouseDown: () => setIsPressed(true),
+          onMouseUp: () => setIsPressed(false),
+        }
+      : {}),
+  }
+
+  if (href) {
+    return (
+      <a href={href} target="_blank" rel="noreferrer" {...sharedProps}>
+        {children}
+      </a>
+    )
+  }
+
+  return <div {...sharedProps}>{children}</div>
+}
+
 function RailIconButton({
   section,
   state,
@@ -1196,41 +1324,21 @@ export function FunctionalRailSidebar({
           <div className="flex flex-col gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
-                {/* M-9 LOGO CONTRACT: the slot becomes a real hyperlink only when a consumer
-                    supplies `logoHref` — otherwise it stays a plain, non-interactive `<div>` (no
-                    click affordance), matching pre-M-9 behavior. `asChild` on TooltipTrigger means
-                    whichever element renders here (a/div) receives the trigger's own hover/focus
+                {/* M-9/L-1 LOGO CONTRACT: `RailLogoSlot` (defined above) owns both which element
+                    renders (`<a>` only when `logoHref` is supplied, otherwise a plain,
+                    non-interactive `<div>`) AND whether hover/press color states are wired at all —
+                    see its own doc comment for the full contract. `asChild` on TooltipTrigger means
+                    whichever element `RailLogoSlot` renders receives the trigger's own hover/focus
                     wiring directly — no extra wrapper needed either way. */}
-                {logoHref ? (
-                  <a
-                    href={logoHref}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg"
-                    style={{ color: colors.fgHover }}
-                  >
-                    {logoIcon ?? (logoPlaceholder ? (
-                      <div className="size-6 rounded border border-dashed" style={{ borderColor: colors.fgHover }} aria-hidden="true" />
-                    ) : (
-                      <svg viewBox={BIDEZINE_LOGO_VIEWBOX} className="size-6" fill="currentColor" aria-hidden="true">
-                        <path d={BIDEZINE_LOGO_PATH} />
-                      </svg>
-                    ))}
-                  </a>
-                ) : (
-                  <div
-                    className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg"
-                    style={{ color: colors.fgHover }}
-                  >
-                    {logoIcon ?? (logoPlaceholder ? (
-                      <div className="size-6 rounded border border-dashed" style={{ borderColor: colors.fgHover }} aria-hidden="true" />
-                    ) : (
-                      <svg viewBox={BIDEZINE_LOGO_VIEWBOX} className="size-6" fill="currentColor" aria-hidden="true">
-                        <path d={BIDEZINE_LOGO_PATH} />
-                      </svg>
-                    ))}
-                  </div>
-                )}
+                <RailLogoSlot href={logoHref} colors={colors}>
+                  {logoIcon ?? (logoPlaceholder ? (
+                    <div className="size-6 rounded border border-dashed" style={{ borderColor: "currentColor" }} aria-hidden="true" />
+                  ) : (
+                    <svg viewBox={BIDEZINE_LOGO_VIEWBOX} className="size-6" fill="currentColor" aria-hidden="true">
+                      <path d={BIDEZINE_LOGO_PATH} />
+                    </svg>
+                  ))}
+                </RailLogoSlot>
               </TooltipTrigger>
               {/* Origin's LogoSlotDark always shows a hover tooltip with the logo label (default
                   "BiDezine", see divergence row M-9), even when the slot has no onClick — matches
