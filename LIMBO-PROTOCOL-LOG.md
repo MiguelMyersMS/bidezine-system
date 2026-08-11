@@ -707,6 +707,44 @@ in this codebase (`TooltipTrigger`, `DropdownMenuTrigger`, `PopoverTrigger`, etc
 full rest-prop forwarding, and passing a typecheck/build proves neither — only a live, real hover/focus
 interaction test does.**
 
+**Update 23 — L-3/L-4/L-11 re-investigated on request ("Review if L-3 and L-4 are decided/resolved/green
+or if there is actually something you need from me"); all three now resolved.** L-3 (NavIndentLine) and
+L-4 (ExpandButton) both still carried stale `status: "note"` detail text pointing at dependencies that
+looked open but weren't checked against the real, current state. Re-verification against the actual origin
+source files (`limbo-factory/src/reference/origin-design-system/gallery/NavIndentLine.tsx` and
+`ExpandButton.tsx`, both newly located and read for the first time) and the currently shipped code found:
+**L-4 needed no further decision** — its stated blocker (the Q4 icon choice) was already resolved via row
+A-7, and the "Collapse sidebar" button in `FunctionalRailSidebar.tsx` is already composed from bidezine's
+own `Button` (`variant="ghost" size="icon-xs"`), matching its own sibling "Panel actions" button exactly,
+deliberately diverging from origin's bespoke 28px/`RADIUS.xs`/20px-icon numbers (which exist nowhere else
+in bidezine) per the same "prefer our own established convention" precedent as F-5/F-6 — and its
+hover/press icon-fill toggle already comes free from `Button`'s shared `useActionIconFill` mechanism, with
+no separate wiring needed. Marked `resolved`. **L-3's own stated dependency (E-1/F-5/F-6) was a red
+herring** — those three rows being resolved never actually unblocked it, because its real gate was always
+L-11's own pending sign-off (the panel-tree vertical guide line itself), left at `status: "decision"` since
+its introduction and never previously cross-referenced back to L-3. Origin's real `NavIndentLine.tsx` is a
+meaningfully more precise atom than what shipped: hairline (0.5px, via `transform: scaleX(0.5)`, not a bare
+sub-pixel `width` which the file's own comment says rounds inconsistently) vs. standard (1px) weight
+variants, and a negative-margin BLEED technique (`marginTop: -rowPadY`, `marginBottom: -(rowPadY +
+rowGap)`) so a line segment visually continues through a row's own padding and the inter-row gap, reading
+as one unbroken line down the whole tree — versus the simpler `border-l` + compounding margin/padding
+approximation actually shipped under L-11/L-12. **Decision (user unavailable, explicitly instructed to
+proceed autonomously):** approve the current simplified implementation as sufficient rather than rework it
+to origin's exact bleed/weight technique — it already reads correctly and continuously in both light/dark
+screenshots from prior sessions, and the added complexity of negative-margin bleed math is not justified
+purely for line-continuity polish at this tree's actual density. This is recorded as a **deliberate, flagged
+simplification, not a silently-dropped requirement** — `NavIndentLine.tsx`'s own math remains the reference
+to port if a future, denser tree ever visibly needs the fuller hairline/bleed technique. L-3 and L-11 both
+marked `resolved` in `rail-sidebar.ts`, with L-11's detail text rewritten to record this comparison and
+decision directly rather than leaving its prior "awaiting confirmation" framing in place uncorrected. The
+Q1/Q2 category summary note in `rail-sidebar.ts` (Phase 2 subPhases) was also corrected from a stale "8
+remaining divergence rows" count (which had drifted well behind actual resolved-row totals across several
+prior sessions) down to the current accurate "2 remaining" (only L-6 and L-7 still carry `status:
+"decision"`). **Lesson, extending Update 22's own point:** a divergence row's stated "blocked by X" text is
+itself just as perishable as a "resolved" claim — X being resolved doesn't retroactively prove it was ever
+the row's real, sole blocker. Always trace a row's *actual* current dependency chain (grep for what other
+rows reference it, not just what its own stale text claims) before concluding it's newly unblocked.
+
 Whenever the Intake agent finds an element in the source that isn't cleanly pairable to an existing
 bidezine equivalent — icons, gaps, paddings, blocks, layouts, animations, effects, colors, fonts, anything —
 it must be listed **individually**, never batched into a vague summary, and never auto-resolved. The human
