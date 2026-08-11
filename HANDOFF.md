@@ -81,9 +81,24 @@ _None. Badge status-variant + weight work (L-6 groundwork) is complete, verified
     returned 200 on `/components/badge` throughout, no `src/ui/badge.tsx` or `dist/` changes needed for the
     showcase-only reworks (component code was already correct; only the demo layout changed).
   - Commits: `8a78de3` (success/warning/info variants), `4077c02` (weight prop + first showcase pass),
-    `5826b0d` (fold weight into every variant example instead of a standalone example), plus this session's
-    final commit removing the regular/emphasis caption text per direct user feedback ("no need to put text
-    beside it... visually humans can understand the difference"). All pushed to `origin/main`.
+    `5826b0d` (fold weight into every variant example instead of a standalone example), `a9e3a8c` (remove
+    the regular/emphasis caption text per direct user feedback — "no need to put text beside it... visually
+    humans can understand the difference"), `c4a84a2` (fixed a stale contradiction in
+    `docs/COLOR-TOKEN-IMPORT-GUIDE.md`'s opening description, caught by an independent code-review audit
+    agent, not self-approved). All pushed to `origin/main`.
+- **Badge `muted` variant added to `src/ui/badge.tsx`** — a third bidezine Adjustment `variant` value,
+  requested for a Rail Sidebar use case needing a badge that visually recedes (e.g. an inline count) rather
+  than a solid-fill pill competing with the surrounding nav content. Structured like `ghost` (no fill at
+  rest, `bg-accent`/`text-accent-foreground` on hover when composed via `asChild`) but sets
+  `text-muted-foreground` at rest instead of inheriting `currentColor` — reuses the pre-existing
+  `--muted-foreground` token already used for description/secondary text elsewhere (`Breadcrumb`, `Field`'s
+  description text), so **no new color token was authored** for this one. Contrast re-verified for this
+  specific usage: `muted-foreground` at rest is 4.73:1 against white (passes AA 4.5:1), hover state
+  (`accent-foreground` on `bg-accent`) is 16.42:1. Documented in `badge.tsx`'s own doc comment,
+  `BadgeShowcase.tsx`'s new "Muted" example (both weights) and updated `apiRows`/intro paragraph.
+  - Verified: `npx tsc --noEmit` clean (root + `site/`), `npm run build` succeeds (dist rebuilt since the
+    new variant literal is part of `Badge`'s exported prop type), dev server hot-reloaded and returns 200
+    on `/components/badge`.
 
 - Rail Sidebar panel resize (`react-resizable-panels`) ships with correct shadow clearance on all four
   sides and no height regression (L-35/L-36/L-37, see `limbo-factory/src/data/rail-sidebar.ts` and

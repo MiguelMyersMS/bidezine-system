@@ -141,6 +141,21 @@ const examples: ShowcaseExample[] = [
 <Badge variant="ghost" weight="emphasis">Ghost</Badge> {/* default */}`,
   },
   {
+    label: "Muted",
+    render: () => (
+      <WeightPair>
+        <Badge variant="muted" weight="regular">
+          Muted
+        </Badge>
+        <Badge variant="muted" weight="emphasis">
+          Muted
+        </Badge>
+      </WeightPair>
+    ),
+    code: `<Badge variant="muted" weight="regular">Muted</Badge>
+<Badge variant="muted" weight="emphasis">Muted</Badge> {/* default */}`,
+  },
+  {
     label: "Link",
     render: () => (
       <WeightPair>
@@ -185,10 +200,10 @@ const examples: ShowcaseExample[] = [
 const apiRows: ApiRow[] = [
   {
     prop: "variant",
-    type: `"default" | "secondary" | "destructive" | "success" | "warning" | "info" | "outline" | "ghost" | "link"`,
+    type: `"default" | "secondary" | "destructive" | "success" | "warning" | "info" | "outline" | "ghost" | "muted" | "link"`,
     default: `"default"`,
     description:
-      "Visual style. success/warning/info are a bidezine Adjustment (not in shadcn's own source) for semantic status pills.",
+      "Visual style. success/warning/info and muted are a bidezine Adjustment (not in shadcn's own source): success/warning/info add semantic status pills; muted is a lower-prominence variant (text-muted-foreground, no fill at rest) for badges that should recede rather than draw attention, e.g. on a dense navigation surface.",
   },
   {
     prop: "weight",
@@ -226,7 +241,9 @@ export function BadgeShowcase() {
           </code>
           /
           <code className="rounded bg-muted px-1 py-0.5 text-sm">info</code>{" "}
-          status variants — shadcn's own source has no status-badge concept.
+          status variants and a{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-sm">muted</code>{" "}
+          low-prominence variant — shadcn's own source has neither concept.
           See <code className="rounded bg-muted px-1 py-0.5 text-sm">
             src/ui/badge.tsx
           </code>{" "}

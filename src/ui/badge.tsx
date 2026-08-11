@@ -35,6 +35,17 @@ import { cn } from "@/lib/utils"
  * There is deliberately no `neutral` variant: bidezine's existing `secondary` and `outline` variants
  * already cover a neutral/muted badge need without introducing a redundant token.
  *
+ * `muted` (bidezine Adjustment): a lower-prominence badge for contexts that need a badge to visually
+ * recede rather than draw attention — e.g. an inline count or status pill on a dense navigation surface
+ * (the Rail Sidebar was the motivating case) where a solid-fill badge would compete with the
+ * surrounding content. Structured like `ghost` (no fill at rest, `bg-accent`/`text-accent-foreground` on
+ * hover when composed via `asChild`) but sets `text-muted-foreground` at rest instead of inheriting
+ * `currentColor` — reusing the same `--muted-foreground` token already used for description/secondary
+ * text elsewhere in the system (e.g. `Breadcrumb`, `Field`'s description text), so it reads as
+ * intentionally quieter without introducing a new color. Contrast re-verified for this specific usage:
+ * `muted-foreground` against a white badge-less background is 4.73:1 (passes the 4.5:1 AA threshold for
+ * normal-size text) at rest, and the hover state (`accent-foreground` on `bg-accent`) is 16.42:1.
+ *
  * Accessibility notes for consumers (not enforced by the component, since color usage is a per-instance
  * choice):
  * - Status badges convey meaning via color. Do not rely on color alone — pair with a text label (as in
@@ -81,6 +92,8 @@ const badgeVariants = cva(
         outline:
           "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+        muted:
+          "text-muted-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         link: "text-primary underline-offset-4 [a&]:hover:underline",
       },
       weight: {
