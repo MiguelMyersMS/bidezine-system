@@ -25,6 +25,15 @@
   "destructive": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.704, 0.191, 22.216] } },
   "destructive-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.58, 0.22, 27] } },
 
+  "success": { "$type": "color", "$description": "bidezine Adjustment — see light.tokens.json. Same hue as light mode, lighter/desaturated to match destructive's own light<->dark relationship (dark badge fill uses this at 60% opacity over the dark surface, mirroring destructive's dark treatment).", "$value": { "colorSpace": "oklch", "components": [0.696, 0.17, 162.48] } },
+  "success-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.97, 0.02, 150] } },
+
+  "warning": { "$type": "color", "$description": "bidezine Adjustment — see light.tokens.json.", "$value": { "colorSpace": "oklch", "components": [0.72, 0.16, 70] } },
+  "warning-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.97, 0.02, 68] } },
+
+  "info": { "$type": "color", "$description": "bidezine Adjustment — see light.tokens.json.", "$value": { "colorSpace": "oklch", "components": [0.623, 0.214, 259.815] } },
+  "info-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.97, 0.02, 262] } },
+
   "border": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.1 } },
   "input": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.15 } },
   "ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.556, 0, 0] } },

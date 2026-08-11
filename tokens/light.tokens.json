@@ -25,6 +25,15 @@
   "destructive": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.577, 0.245, 27.325] } },
   "destructive-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.97, 0.01, 17] } },
 
+  "success": { "$type": "color", "$description": "bidezine Adjustment (not a shadcn/ui token — shadcn's own upstream source has no success/warning/info concept). Authored fresh for the design system's status-badge vocabulary; matches destructive's lightness/chroma weight, own hue. WCAG contrast vs white text: 4.94:1.", "$value": { "colorSpace": "oklch", "components": [0.527, 0.154, 150.069] } },
+  "success-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.97, 0.02, 150] } },
+
+  "warning": { "$type": "color", "$description": "bidezine Adjustment. WCAG contrast vs white text: 4.91:1.", "$value": { "colorSpace": "oklch", "components": [0.554, 0.146, 68.36] } },
+  "warning-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.97, 0.02, 68] } },
+
+  "info": { "$type": "color", "$description": "bidezine Adjustment. WCAG contrast vs white text: 5.17:1.", "$value": { "colorSpace": "oklch", "components": [0.546, 0.215, 262.881] } },
+  "info-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.97, 0.02, 262] } },
+
   "border": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.922, 0, 0] } },
   "input": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.922, 0, 0] } },
   "ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.708, 0, 0] } },

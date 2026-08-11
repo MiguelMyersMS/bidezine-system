@@ -25,6 +25,21 @@ const examples: ShowcaseExample[] = [
     code: `<Badge variant="destructive">Destructive</Badge>`,
   },
   {
+    label: "Success",
+    render: () => <Badge variant="success">Success</Badge>,
+    code: `<Badge variant="success">Success</Badge>`,
+  },
+  {
+    label: "Warning",
+    render: () => <Badge variant="warning">Warning</Badge>,
+    code: `<Badge variant="warning">Warning</Badge>`,
+  },
+  {
+    label: "Info",
+    render: () => <Badge variant="info">Info</Badge>,
+    code: `<Badge variant="info">Info</Badge>`,
+  },
+  {
     label: "Outline",
     render: () => <Badge variant="outline">Outline</Badge>,
     code: `<Badge variant="outline">Outline</Badge>`,
@@ -52,12 +67,18 @@ const examples: ShowcaseExample[] = [
         <Badge>Badge</Badge>
         <Badge variant="secondary">Secondary</Badge>
         <Badge variant="destructive">Destructive</Badge>
+        <Badge variant="success">Success</Badge>
+        <Badge variant="warning">Warning</Badge>
+        <Badge variant="info">Info</Badge>
         <Badge variant="outline">Outline</Badge>
       </div>
     ),
     code: `<Badge>Badge</Badge>
 <Badge variant="secondary">Secondary</Badge>
 <Badge variant="destructive">Destructive</Badge>
+<Badge variant="success">Success</Badge>
+<Badge variant="warning">Warning</Badge>
+<Badge variant="info">Info</Badge>
 <Badge variant="outline">Outline</Badge>`,
   },
 ]
@@ -65,9 +86,10 @@ const examples: ShowcaseExample[] = [
 const apiRows: ApiRow[] = [
   {
     prop: "variant",
-    type: `"default" | "secondary" | "destructive" | "outline" | "ghost" | "link"`,
+    type: `"default" | "secondary" | "destructive" | "success" | "warning" | "info" | "outline" | "ghost" | "link"`,
     default: `"default"`,
-    description: "Visual style.",
+    description:
+      "Visual style. success/warning/info are a bidezine Adjustment (not in shadcn's own source) for semantic status pills.",
   },
   {
     prop: "asChild",
@@ -88,7 +110,21 @@ export function BadgeShowcase() {
           <code className="rounded bg-muted px-1 py-0.5 text-sm">
             reference/shadcn-ui/apps/v4/registry/new-york-v4/ui/badge.tsx
           </code>{" "}
-          unchanged.
+          unchanged, plus a bidezine Adjustment adding{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-sm">
+            success
+          </code>
+          /
+          <code className="rounded bg-muted px-1 py-0.5 text-sm">
+            warning
+          </code>
+          /
+          <code className="rounded bg-muted px-1 py-0.5 text-sm">info</code>{" "}
+          status variants — shadcn's own source has no status-badge concept.
+          See <code className="rounded bg-muted px-1 py-0.5 text-sm">
+            src/ui/badge.tsx
+          </code>{" "}
+          for the full rationale.
         </p>
       </div>
       <ExampleBrowser examples={examples} />

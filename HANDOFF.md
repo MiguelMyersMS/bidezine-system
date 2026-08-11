@@ -21,13 +21,48 @@
 
 ## Laptop A — Miguel
 
-**Baseline** — branch `main`, last verified commit `70d2f4c`, working tree clean and pushed to `origin/main`.
+**Baseline** — branch `main`, last verified commit `718834c` (L-3/L-4/L-11 resolution), working tree
+currently has uncommitted changes for the Badge status-variant work below — not yet committed/pushed.
 
 ### Active task
 
-_None. Nothing in progress._
+_Badge status variants (L-6 groundwork) — implementation complete, verified, awaiting final commit._
+See the new "What's done" entry below for full detail. Not yet committed to `main`.
 
 ### What's done (current state — not a history)
+
+- **Badge status variants (`success`/`warning`/`info`) added to the real `src/ui/badge.tsx`** — a
+  bidezine Adjustment (not a shadcn port; shadcn's own upstream `badge.tsx` has no status-badge concept),
+  requested by the user ahead of resolving Rail Sidebar's own `L-6` row (which maps this onto RailNav
+  specifically — deferred separately, not touched here).
+  - New tokens `success`/`success-foreground`, `warning`/`warning-foreground`, `info`/`info-foreground`
+    authored fresh in OKLCH in `tokens/light.tokens.json` + `tokens/dark.tokens.json` (light/dark parity
+    verified via `npm run tokens`), wired into `src/styles/system.css`'s `@theme inline` block. Colors are
+    NOT copied from `limbo-factory/src/reference/origin-design-system/tokens.ts` (deliberately, per
+    "no contamination") — only the *concept* (positive/caution/informational semantic pill) was mapped;
+    hue/lightness/chroma were authored independently and verified for WCAG AA contrast against white text
+    in light mode (success 4.94:1, warning 4.91:1, info 5.17:1 — all above the 4.5:1 threshold, matching
+    `destructive`'s own 4.76:1).
+  - `badge.tsx`'s `cva` recipe mirrors the existing `destructive` variant exactly (solid `bg-{status}` +
+    hardcoded `text-white`, `dark:bg-{status}/60` opacity blend) for consistency with bidezine's own
+    solid-fill badge convention — deliberately NOT origin's subtle/pastel-fill convention. No `neutral`
+    variant added; `secondary`/`outline` already cover that need.
+  - Also added `text-ellipsis` to the base recipe (alongside the pre-existing `overflow-hidden
+    whitespace-nowrap`) so long badge text truncates gracefully instead of hard-clipping.
+  - Full rationale, accessibility contract (color-not-alone guidance, focus-visible/tab-order behavior,
+    truncation, minimum-size), and explicit non-adoption notes are documented directly in `src/ui/badge.tsx`'s
+    own doc comment above `badgeVariants`.
+  - `site/src/routes/components/BadgeShowcase.tsx` updated with Success/Warning/Info demo entries, updated
+    API table, and a note explaining this is an Adjustment.
+  - Verified: `npx tsc --noEmit` clean (both root package and `site/`), `npm run build` (production `vite
+    build`) succeeds, compiled `dist/system.css` confirmed to contain `.bg-success`/`.bg-warning`/`.bg-info`
+    plus their `dark:.../60` and `hover:.../90` `color-mix()` variants. Site dev server confirmed the
+    `/components/badge` route returns 200. **Not yet visually reviewed by the user in a live browser** —
+    recommend a quick look at `/components/badge` in both light and dark mode before treating the exact
+    hue/lightness choices as final (same "Color Token Lab" sign-off precedent used for the Rail dark-token
+    work).
+  - `L-6` itself (`limbo-factory/src/data/rail-sidebar.ts`) intentionally NOT touched — user said they'll
+    decide how to approach it only after reviewing this bidezine-side implementation.
 
 - Rail Sidebar panel resize (`react-resizable-panels`) ships with correct shadow clearance on all four
   sides and no height regression (L-35/L-36/L-37, see `limbo-factory/src/data/rail-sidebar.ts` and
