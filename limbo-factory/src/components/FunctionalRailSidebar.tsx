@@ -34,9 +34,6 @@ import {
   GridIcon,
   HatGraduationIcon,
   ImageShadowIcon,
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
   MailTemplateIcon,
   MedalIcon,
   MegaphoneIcon,
@@ -59,7 +56,7 @@ import {
   RibbonIcon,
   SavingsIcon,
   ScrollArea,
-  SearchIcon,
+  SearchInput,
   SettingsIcon,
   ShieldCheckmarkIcon,
   SlideTextMultipleIcon,
@@ -280,14 +277,22 @@ const FOOTER_SECTIONS: RailSection[] = [{ id: "settings", label: "Settings", ico
 /**
  * QA finding / feature request (see divergence row L-35): origin's real panel resize (RailNav.tsx)
  * enforces a hard-coded `const PANEL_MIN_WIDTH = 240` — its own mouse-drag handler clamps every
- * drag with `Math.max(PANEL_MIN_WIDTH, Math.min(viewportMax, ...))`. `PANEL_DEFAULT_WIDTH` mirrors
- * origin's own `LAYOUT.panelW = 300`, the panel's un-resized starting width (matches this file's own
- * previous hard-coded `width: 300`, now handed to `ResizablePanel`'s `defaultSize` instead of a
- * static inline style). These are the two real numbers being emulated from origin's own source —
- * NOT its resize mechanism itself, which was a hand-rolled `window.addEventListener("mousemove"/
- * "mouseup")` pair. Bidezine's real `ResizablePanelGroup`/`ResizablePanel`/`ResizableHandle`
- * primitive (src/ui/resizable.tsx, wrapping `react-resizable-panels`) replaces that hand-rolled
- * mechanism entirely — see the Panel JSX below for the rest of the writeup.
+ * drag with `Math.max(PANEL_MIN_WIDTH, Math.min(viewportMax, ...))`. Bidezine's real
+ * `ResizablePanelGroup`/`ResizablePanel`/`ResizableHandle` primitive (src/ui/resizable.tsx, wrapping
+ * `react-resizable-panels`) replaces that hand-rolled `window.addEventListener("mousemove"/
+ * "mouseup")` resize mechanism entirely — see the Panel JSX below for the rest of the writeup.
+ *
+ * CORRECTION (see divergence row F-3, resolved): `PANEL_MIN_WIDTH = 240` is kept because it is
+ * independently a real bidezine value — it matches the `Sidebar` primitive's own `min-w-60` token
+ * (confirmed at divergence row F-8) — NOT because it happens to equal origin's own hard-coded 240.
+ * `PANEL_DEFAULT_WIDTH`, however, previously mirrored origin's own `LAYOUT.panelW = 300` verbatim
+ * (this file's own prior hard-coded `width: 300`) purely because "that's what origin used" — with no
+ * bidezine token or pattern backing that specific number. That is the exact "diverge to match origin
+ * instead of reusing what bidezine already has" mistake the color-token fixes at divergence rows
+ * C-6–C-9 (and CLAUDE.md Primitive Fidelity Checklist item 26) were written to catch. Bidezine's own
+ * `Sidebar` primitive (src/ui/sidebar.tsx) already defines a real, native default panel width of
+ * `16rem` (256px) — so `PANEL_DEFAULT_WIDTH` now reuses that bidezine value (256) instead of origin's
+ * arbitrary 300, the panel-width equivalent of reusing `--accent` instead of inventing a new color.
  *
  * `PANEL_MAX_WIDTH`/`PANEL_FILLER_MIN_WIDTH`/`RESIZE_HANDLE_WIDTH`/`PANEL_GROUP_WIDTH` have no
  * origin equivalent by name — origin computes its own max DYNAMICALLY every drag
@@ -352,7 +357,7 @@ const FOOTER_SECTIONS: RailSection[] = [{ id: "settings", label: "Settings", ico
  * `2 × PANEL_SHADOW_INSET` width compensation on `ResizablePanel`'s own size props — the height fix
  * from L-36 (taller group + negative margins) is untouched and still correct.
  */
-const PANEL_DEFAULT_WIDTH = 300
+const PANEL_DEFAULT_WIDTH = 256
 const PANEL_MIN_WIDTH = 240
 const PANEL_MAX_WIDTH = 380
 const PANEL_FILLER_MIN_WIDTH = 24
@@ -360,6 +365,32 @@ const RESIZE_HANDLE_WIDTH = 1
 const PANEL_SHADOW_INSET = 8
 const PANEL_GROUP_WIDTH =
   PANEL_MAX_WIDTH + PANEL_SHADOW_INSET * 2 + RESIZE_HANDLE_WIDTH + PANEL_FILLER_MIN_WIDTH
+
+/**
+ * DEPLOYMENT NOTE (see divergence row F-7, approved): origin's own RailNav.tsx computes
+ * `FOOTER_MAX_HEIGHT = LAYOUT.railButton * FOOTER_MAX_ICONS + SPACE[1] * (FOOTER_MAX_ICONS - 1)`
+ * — a hard cap on the footer group's own height, silently clipping any 4th+ footer icon by design
+ * (`Math.min(footerSlotRef.current?.offsetHeight ?? 0, FOOTER_MAX_HEIGHT)` feeds directly into the
+ * nav-item budget calculation, so an oversized footer can't eat into the space available for the
+ * scrollable rail sections above it). The user's approval was specifically of the CONCEPT — "the
+ * three icon cap" — not of reusing origin's literal 122px as an opaque magic number. Re-derived it
+ * from bidezine's own already-implemented values instead: `RAIL_BUTTON_SIZE` (38px, the real
+ * `size-[38px]` used by every RailIconButton/Profile-slot button in this rail, matching origin's
+ * `LAYOUT.railButton` exactly) and `FOOTER_GAP` (4px, the real `gap-1` on the footer's own flex
+ * column, line ~1056) — both values already shipped in this component, not introduced for this fix.
+ * `FOOTER_MAX_HEIGHT` computes to 122px either way (38×3 + 4×2), so the NUMBER is unchanged from
+ * origin, but it's now backed by bidezine's own real, already-verified constants rather than a
+ * borrowed literal — the same "clean coincidence, now actually checked" outcome as F-4. Applied as
+ * a real `maxHeight` + `overflow-hidden` on the footer's own flex column (previously this cap was
+ * documented but NOT implemented in code at all — the footer container had no max-height/clipping
+ * of any kind, a silent gap since this rail currently only ships 2 footer items (Profile, Settings),
+ * so the cap was never yet exercised or missed in practice).
+ */
+const RAIL_BUTTON_SIZE = 38
+const FOOTER_GAP = 4
+const FOOTER_MAX_ICONS = 3
+const FOOTER_MAX_HEIGHT = RAIL_BUTTON_SIZE * FOOTER_MAX_ICONS + FOOTER_GAP * (FOOTER_MAX_ICONS - 1)
+
 
 function labelHits(label: string, term: string): boolean {
   return label.toLowerCase().indexOf(term) !== -1
@@ -597,13 +628,15 @@ function PanelTree({
                 key={node.id}
                 aria-disabled="true"
                 // QA finding (see divergence row L-13): this plain div had no vertical padding at
-                // all (relying solely on `items-center` + fixed `h-9` for centering), while every
+                // all (relying solely on `items-center` + fixed height for centering), while every
                 // real Button row (leaf/group/selected) carries `py-2` (8px) from Button's own base
                 // recipe, which we never override. No visible difference today — both approaches
                 // center content identically inside a fixed-height flex row — but the underlying
                 // values didn't actually match. Added `py-2` explicitly so this row's computed
                 // padding is identical to every other row, not just visually equivalent.
-                className="flex h-9 items-center gap-1.5 rounded-md px-2 py-2 text-sm"
+                // DEPLOYMENT NOTE (see divergence rows F-5/F-6, log entry L-43): `h-8` (32px), not
+                // `h-9` (36px) — see the group-toggle row's own comment below for the full rationale.
+                className="flex h-8 items-center gap-1.5 rounded-md px-2 py-2 text-sm"
                 style={{ color: "var(--muted-foreground)", opacity: 0.5 }}
               >
                 <Icon className="size-4 shrink-0" />
@@ -632,7 +665,7 @@ function PanelTree({
               // `pathEmphasis(isSelected)` call — see checklist item 20 for why this must stay a
               // single shared mechanism rather than two independently-maintained conditionals.
               className={cn(
-                "h-9 w-full justify-start gap-1.5 rounded-md px-2 has-[>svg]:px-2 text-left text-sm hover:bg-accent",
+                "h-8 w-full justify-start gap-1.5 rounded-md px-2 has-[>svg]:px-2 text-left text-sm hover:bg-accent",
                 emphasis.className
               )}
               style={{
@@ -680,7 +713,22 @@ function PanelTree({
                   tree (SidebarMenuButton calls useSidebar(), which throws without one) and doesn't
                   fit this panel's own composition, and (b) explicit user preference: parent and
                   child rows should look like the same kind of element, nested at different levels,
-                  not visually demoted by depth. */}
+                  not visually demoted by depth.
+
+                  DEPLOYMENT NOTE (see divergence rows F-5/F-6, log entry L-43): the shared row
+                  height itself was ALSO revisited and changed from h-9 (36px) to h-8 (32px). 36px
+                  never matched any real bidezine convention at any depth. 32px does, on TWO
+                  independent counts: (1) it's bidezine's own Sidebar SidebarMenuButton top-level row
+                  height, and (2) — the stronger precedent, since this tree genuinely nests 3-5
+                  levels deep, not just one — it's the SAME uniform height DropdownMenuItem and
+                  DropdownMenuSubTrigger/ContextMenuSubTrigger/MenubarSubTrigger already use at EVERY
+                  nesting depth in production (measured live via getBoundingClientRect: both render
+                  at exactly 32px, with zero shrink no matter how many Sub levels are nested). Sidebar
+                  intentionally shrinks to 28px one level deep, but Sidebar's own sub-menu component
+                  has no 3rd/4th/5th-level variant to extend that shrink from — the Dropdown/Context/
+                  Menubar family is the only bidezine precedent that actually proves "uniform height
+                  works at arbitrary depth" in a shipped component, so it — not Sidebar's one-level
+                  shrink — is the correct precedent for this arbitrarily-deep tree. */}
               <Button
                 type="button"
                 variant="ghost"
@@ -694,7 +742,7 @@ function PanelTree({
                 // gap as the leaf Button above — repeating the override as a has-[>svg]: variant
                 // makes it actually win over Button's own default-size base recipe.
                 className={cn(
-                  "h-9 w-full justify-start gap-1.5 rounded-md px-2 has-[>svg]:px-2 text-left text-sm hover:bg-accent",
+                  "h-8 w-full justify-start gap-1.5 rounded-md px-2 has-[>svg]:px-2 text-left text-sm hover:bg-accent",
                   emphasis.className
                 )}
                 style={{ color: "var(--foreground)" }}
@@ -1031,7 +1079,15 @@ export function FunctionalRailSidebar({
           </div>
 
           <div className="mx-0 my-2 h-px max-w-full" style={{ background: colors.divider }} />
-          <div className="flex flex-col gap-1">
+          {/* F-7 (approved 3-icon cap): caps the footer group's own rendered height so it can never
+              grow past FOOTER_MAX_HEIGHT (122px = 3 rail buttons + 2 gaps), silently clipping any
+              4th+ footer item — matches origin's own defensive budget cap (see the FOOTER_MAX_HEIGHT
+              doc comment above `const RAIL_BUTTON_SIZE` for the full derivation). `overflow-hidden`
+              is required for the cap to actually clip rather than just stop growing the flex parent. */}
+          <div
+            className="flex flex-col gap-1 overflow-hidden"
+            style={{ maxHeight: FOOTER_MAX_HEIGHT }}
+          >
             {/* Pinned utility button — a permanently disabled "Profile" slot. Unlike the primary
                 sections, this never gets absorbed by the overflow menu; it stays put in the
                 footer zone above Settings, matching the demo's non-interactive utility slot. */}
@@ -1128,9 +1184,11 @@ export function FunctionalRailSidebar({
                   `react-resizable-panels`) built for precisely this. `ResizablePanel`'s own
                   `minSize`/`defaultSize` are interpreted as PIXELS by this project's installed
                   version (confirmed via its real `.d.ts`: "Numbers are interpreted as pixels"), a
-                  direct, unit-for-unit match for origin's own `PANEL_MIN_WIDTH`/`LAYOUT.panelW`
-                  constants (see `PANEL_MIN_WIDTH`/`PANEL_DEFAULT_WIDTH` above) — no unit conversion
-                  or approximation needed.
+                  direct, unit-for-unit match for `PANEL_MIN_WIDTH`/`PANEL_DEFAULT_WIDTH` above — no
+                  unit conversion or approximation needed. (See divergence row F-3, resolved:
+                  `PANEL_DEFAULT_WIDTH` is bidezine's own native `Sidebar` default of 256px, not
+                  origin's `LAYOUT.panelW = 300` — `PANEL_MIN_WIDTH` remains 240 only because that
+                  independently matches bidezine's own `min-w-60` token, per row F-8.)
 
                   Only the actual PANEL box (this component's own bordered/elevated surface) and its
                   own trailing resize edge move into this `ResizablePanelGroup` — the Rail column
@@ -1285,18 +1343,19 @@ export function FunctionalRailSidebar({
                       to visually overlap. Fixed by switching to bidezine's own InputGroup/
                       InputGroupAddon/InputGroupInput primitives, purpose-built for exactly this
                       icon+input composition — the icon and input are flex siblings with real gap
-                      spacing, so there's no padding-override arithmetic (or cascade pitfall) at all. */}
-                  <InputGroup className="h-8 text-sm">
-                    <InputGroupAddon>
-                      <SearchIcon className="size-3.5 text-muted-foreground" />
-                    </InputGroupAddon>
-                    <InputGroupInput
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      placeholder="Search"
-                      className="text-sm"
-                    />
-                  </InputGroup>
+                      spacing, so there's no padding-override arithmetic (or cascade pitfall) at all.
+
+                      Follow-up (A-6/L-5 parity): now swapped again to the already-shipped
+                      SearchInput primitive itself, so this sandbox reuses the SAME clear-button
+                      behavior already validated for CommandInput/SearchInput rather than carrying
+                      a locally-composed search row with no clear affordance. */}
+                  <SearchInput
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search"
+                    className="h-8 text-sm"
+                    inputClassName="text-sm"
+                  />
                 </div>
               )}
 

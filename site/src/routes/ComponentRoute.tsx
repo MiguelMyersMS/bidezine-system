@@ -24,6 +24,7 @@ import { InputOTPShowcase } from "./components/InputOTPShowcase"
 import { ToggleShowcase } from "./components/ToggleShowcase"
 import { ToggleGroupShowcase } from "./components/ToggleGroupShowcase"
 import { InputGroupShowcase } from "./components/InputGroupShowcase"
+import { SearchInputShowcase } from "./components/SearchInputShowcase"
 import { FieldShowcase } from "./components/FieldShowcase"
 import { FormShowcase } from "./components/FormShowcase"
 import { ComboboxShowcase } from "./components/ComboboxShowcase"
@@ -90,6 +91,7 @@ const showcases: Record<string, React.ComponentType> = {
   "toggle": ToggleShowcase,
   "toggle-group": ToggleGroupShowcase,
   "input-group": InputGroupShowcase,
+  "search-input": SearchInputShowcase,
   "field": FieldShowcase,
   "form": FormShowcase,
   "combobox": ComboboxShowcase,

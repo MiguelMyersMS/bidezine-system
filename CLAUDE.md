@@ -96,6 +96,14 @@ _(the same five subsections; until the machine is set up, this section reads "No
 ```
 
 **Recovery workflow for a NEW/replacement chat session (do this before touching any code):**
+0. **Determine which machine you're on before touching `HANDOFF.md`.** Check `MACHINE_NAME`/
+   `MACHINE_OWNER` in the local, gitignored `.env` (see `.env.example`) — the `SessionStart` hook in
+   `.claude/settings.json` also prints this identity automatically at the start of every session. This
+   tells you exactly which `## <name> — <owner>` section in `HANDOFF.md` you're allowed to write to,
+   without having to ask the user or guess from conversation context. If `.env` has no `MACHINE_NAME` set
+   (first time on this machine), ask the user which machine this is ("Laptop A", "Laptop B", or "PC")
+   before writing anything to `HANDOFF.md`, then set `MACHINE_NAME`/`MACHINE_OWNER` in `.env` so future
+   sessions on this machine don't have to ask again.
 1. Read `HANDOFF.md` in full — every machine's section, not just your own. Your own section is the one you
    are resuming; the others tell you which files are currently being touched elsewhere, so you can stay
    out of them.
@@ -728,6 +736,96 @@ a genuinely new failure category is found — not evidence the list is now compl
     relevant real sibling (here: the panel against the Rail's own height/top/bottom, not just against the
     resizable group's own box) — comparing only against the wrapping primitive can hide a regression that's
     only obvious when checked against the actual visual neighbor a user would notice it drifting from.
+
+26. **Before proposing ANY new/invented VALUE — color, size, spacing, radius, duration, or any other
+    constant — for a divergence row, grep bidezine's own real primitives in `src/ui/` for an existing
+    convention/token covering that same concept, and reuse it; never accept "that's what origin used" as
+    sufficient justification on its own.** This item started narrower (color only) and was broadened after
+    a second, structurally identical mistake surfaced in a different category. Four color divergence rows
+    (C-6/C-7/C-8/C-9, Rail Sidebar) were originally written up proposing a `--muted` candidate for a
+    checked-row tint and brand-new hex values (`#E0E1E6`/`#363A3F`) for a pressed icon-button background —
+    flagged directly by the user: "we already have way to manage menus from the design system that we have
+    why do we want to diverge and come up with a different color tokens... it seems like you are even
+    creating or adding new colors for it." A grep across `src/ui/` for `data-active|data-\[state=checked\]|
+    active:` immediately surfaced FOUR existing, working conventions for these exact semantics:
+    `DropdownMenuItem`'s own `isActive` prop (`data-[active=true]:bg-accent`), `SidebarMenuButton`'s real CSS
+    `active:bg-sidebar-accent`, `NavigationMenuLink`'s `data-[active=true]:bg-accent/50`, and `Toggle`'s
+    `data-[state=on]:bg-accent` — every one of them reuses `--accent` (or a sibling token family), sometimes
+    at reduced opacity for a softer tint, never a bespoke color. The fix in every case was to extend the
+    relevant primitive's own base recipe with the SAME already-established token/mechanism
+    (`DropdownMenuCheckboxItem` gained `data-[state=checked]:bg-accent/50` mirroring `NavigationMenuLink`;
+    `DropdownMenuItem`/`DropdownMenuCheckboxItem` gained `active:bg-accent active:text-accent-foreground`
+    mirroring `SidebarMenuButton`; `Button`'s `ghost` variant gained the identical `active:` rule
+    system-wide) — never a per-call-site override with a new value.
+
+    **The same mistake then recurred in a sizing/layout context** (divergence row F-3, Rail Sidebar):
+    `PANEL_DEFAULT_WIDTH` mirrored origin's own `LAYOUT.panelW = 300` verbatim, justified only as "one of the
+    two real numbers being emulated from origin's own source" — with no bidezine token checked or found to
+    back that specific number. The user caught this too, immediately after the color fix, and named the
+    pattern explicitly: "we need to stay true to bidezine's protocols and rules and patterns why do we want
+    to go back to the origin's 300 pixels." Checking bidezine's own primitives found the answer immediately:
+    the `Sidebar` primitive (`src/ui/sidebar.tsx`) already defines a real, native default panel width of
+    `16rem`/256px. Fixed by changing `PANEL_DEFAULT_WIDTH` from 300 (origin's number, no bidezine token) to
+    256 (bidezine's own native default) — the sizing equivalent of reusing `--accent` instead of inventing a
+    hex value. (`PANEL_MIN_WIDTH = 240` was deliberately left unchanged: it is NOT an origin-borrowed value
+    merely because it happens to equal origin's own hard-coded 240 — it independently matches bidezine's own
+    `min-w-60` token, per divergence row F-8, so no divergence existed there to begin with. `PANEL_MAX_WIDTH
+    = 380` was also left unchanged: it has no origin equivalent by name at all and was already documented as
+    a demo-reasonable max, not a borrowed number — the check here is to catch VALUES ACTUALLY COPIED FROM
+    ORIGIN with no bidezine backing, not to force every constant in a file to trace to a token regardless of
+    its actual provenance.)
+
+    This is the direct extension of the project's own "no hand-rolled components" rule to ANY constant, not
+    color alone: an origin number kept "because that's what origin used," or an AI-invented value that
+    merely looks plausible in isolation, are exactly as much an unforced divergence as a hand-rolled `<div>`
+    standing in for a real component — and just as easy to miss in review, since a size/color/duration
+    candidate can look "reasonable" without ever being checked against what bidezine's own primitives already
+    define for that same concept. Whenever a divergence row proposes keeping or introducing ANY constant,
+    the mandatory first check is: does a real bidezine primitive already define an equivalent for this exact
+    concept? If yes, reuse it, even when origin's own number is the one already sitting in the code.
+
+    **A third, distinct axis surfaced investigating divergence rows F-5/F-6** (Rail Sidebar nav-tree row
+    height): checking a value against a matching primitive's OWN default (the F-3 axis above) is not the same
+    check as verifying consistency against a DIFFERENT bidezine component that serves a similar/related
+    purpose. The user pushed past "does h-10/min-h-7 match origin's 40px/28px" to ask whether those numbers
+    were consistent with bidezine's own real `Sidebar` component (the literal component shown in a screenshot
+    of the live site) for row-height/hit-target conventions. Investigation found neither origin number was
+    actually adopted in the shipped code (`PanelTree` uses a uniform `h-9`/36px at every depth already, per
+    row L-9) — but the real, useful finding was live-measuring bidezine's OWN shipped `Sidebar` demo
+    (`localhost:5173/components/sidebar`) via `getBoundingClientRect`: `SidebarMenuButton` (parent row) = 32px,
+    `SidebarMenuSubButton` (one nested level) = 28px — a real, hard-coded parent→child shrink, confirmed
+    identical in the original shadcn source too. But this convention is a fixed TWO-level hierarchy only — no
+    recursive/N-level sub-menu component exists in bidezine or shadcn's own source, and `SidebarMenuSubButton`
+    requires a live `SidebarProvider` — so it has no defined answer for a genuinely deep tree (3–5 levels),
+    which was this Rail Sidebar's actual requirement. A shrink-with-depth scale mirroring that 32→28 ratio was
+    proposed and explicitly rejected by the user (rows become illegibly small / sub-hit-target past a few
+    levels), confirming the existing uniform-height choice as correct — but only after the cross-component
+    check was actually run, not assumed. **The generalized rule: before approving a divergence row's numeric
+    value, check it against (a) whether it matches origin, (b) whether a bidezine primitive already defines a
+    native default for that exact same component/concept, AND (c) whether OTHER bidezine components serving a
+    similar/related purpose (nav rows, list rows, hit targets) already establish a convention this value
+    should be consistent with or deliberately, defensibly diverge from — a numeric coincidence with origin, or
+    even with one bidezine primitive's own default, is not sufficient proof of system-wide consistency on its
+    own.**
+
+    **A fourth, distinct pitfall surfaced resolving divergence row F-7** (Rail Sidebar footer's 3-icon height
+    cap): a user's approval of a divergence row's CONCEPT is not proof the concept was ever actually wired
+    into the real component's code — the two must be checked separately. F-7 (`FOOTER_MAX_HEIGHT = 122px`)
+    had been approved by the user, but specifically as "the three icon cap" behavior, not as a rubber-stamp of
+    origin's literal number. Re-checking the real `FunctionalRailSidebar.tsx` source (not just the divergence
+    row's own text) turned up a second, more fundamental gap: the footer's flex column had NO max-height or
+    `overflow-hidden` of any kind — the cap had been documented as approved but never actually implemented,
+    silently (invisible in this rail's own configuration, since it currently ships only 2 footer items, well
+    under the 3-icon threshold that would ever trigger clipping). Fixed by re-deriving the constant from
+    bidezine's own already-shipped values (`RAIL_BUTTON_SIZE=38`, the real `size-[38px]` every `RailIconButton`
+    already uses, matching origin's `LAYOUT.railButton` exactly; `FOOTER_GAP=4`, the real `gap-1` already on
+    the footer's own flex column) rather than origin's bare literal — landing on the identical 122px, but now
+    backed by bidezine's own real constants — and applying `overflow-hidden` + `maxHeight` to the actual
+    footer container. **The generalized rule: when a divergence row moves from `"decision"` to `"resolved"`
+    on a user's approval, always re-open the real component source and confirm the approved behavior is
+    actually implemented in code — not just that the row's own detail text describes it — before treating the
+    row as closed.** A row can be fully, correctly reasoned about in documentation while the corresponding
+    code was never written at all; documentation completeness is not evidence of implementation completeness.
 
 
 

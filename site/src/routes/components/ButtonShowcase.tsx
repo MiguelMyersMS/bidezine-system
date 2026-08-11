@@ -254,8 +254,20 @@ export function ButtonShowcase() {
           <code className="rounded bg-muted px-1 py-0.5 text-sm">
             reference/shadcn-ui/apps/v4/registry/new-york-v4/ui/button.tsx
           </code>{" "}
-          unchanged. Examples below reproduce the source&rsquo;s own demos before any
-          styling adjustments.
+          with one deliberate divergence: the <code className="rounded bg-muted px-1 py-0.5 text-sm">ghost</code>{" "}
+          variant gains an <code className="rounded bg-muted px-1 py-0.5 text-sm">
+            active:bg-accent active:text-accent-foreground dark:active:bg-accent/50
+          </code>{" "}
+          pressed-state rule shadcn&rsquo;s own source has no equivalent for (shadcn ships zero built-in
+          pressed/mousedown background for any Button variant). It reuses the exact same{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-sm">--accent</code> token the variant&rsquo;s own{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-sm">hover:</code> already uses — never a new
+          color — mirroring <code className="rounded bg-muted px-1 py-0.5 text-sm">SidebarMenuButton</code>&rsquo;s
+          own already-established <code className="rounded bg-muted px-1 py-0.5 text-sm">
+            active:bg-sidebar-accent
+          </code>{" "}
+          convention. Other examples below reproduce the source&rsquo;s own demos before any styling
+          adjustments.
         </p>
       </div>
       <ExampleBrowser examples={examples} />

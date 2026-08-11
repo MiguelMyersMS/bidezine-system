@@ -164,17 +164,29 @@ export function DropdownMenuShowcase() {
           <code className="rounded bg-muted px-1 py-0.5 text-sm">
             reference/shadcn-ui/apps/v4/registry/new-york-v4/ui/dropdown-menu.tsx
           </code>{" "}
-          , with two deliberate divergences: <code className="rounded bg-muted px-1 py-0.5 text-sm">
+          , with three deliberate divergences: <code className="rounded bg-muted px-1 py-0.5 text-sm">
             DropdownMenuContent
           </code>{" "}
           composes the real <code className="rounded bg-muted px-1 py-0.5 text-sm">ScrollArea</code>{" "}
           primitive instead of shadcn&rsquo;s plain <code className="rounded bg-muted px-1 py-0.5 text-sm">overflow-y-auto</code>{" "}
-          div (shadcn&rsquo;s own source never composes the two — see CLAUDE.md&rsquo;s Scroll region protocol), and{" "}
+          div (shadcn&rsquo;s own source never composes the two — see CLAUDE.md&rsquo;s Scroll region protocol);{" "}
           <code className="rounded bg-muted px-1 py-0.5 text-sm">DropdownMenuItem</code> gains an{" "}
           <code className="rounded bg-muted px-1 py-0.5 text-sm">isActive</code> prop shadcn&rsquo;s own source has
           no equivalent for — a persistent "this represents the current page/section" indicator (background,
           font weight, and icon fill together), mirroring the same concept <code className="rounded bg-muted px-1 py-0.5 text-sm">Button</code>{" "}
-          and <code className="rounded bg-muted px-1 py-0.5 text-sm">SidebarMenuButton</code> already use.
+          and <code className="rounded bg-muted px-1 py-0.5 text-sm">SidebarMenuButton</code> already use; and both{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-sm">DropdownMenuItem</code> and{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-sm">DropdownMenuCheckboxItem</code> gain an{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-sm">active:bg-accent active:text-accent-foreground</code>{" "}
+          pressed-state rule (shadcn&rsquo;s source has no distinct mousedown/pressed background for any menu row),
+          and <code className="rounded bg-muted px-1 py-0.5 text-sm">DropdownMenuCheckboxItem</code> gains{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-sm">data-[state=checked]:bg-accent/50</code>{" "}
+          for a checked-row resting tint. Both reuse the exact <code className="rounded bg-muted px-1 py-0.5 text-sm">--accent</code>{" "}
+          token this component already uses for its own <code className="rounded bg-muted px-1 py-0.5 text-sm">focus:</code>{" "}
+          state — never a new color — mirroring <code className="rounded bg-muted px-1 py-0.5 text-sm">SidebarMenuButton</code>&rsquo;s{" "}
+          own already-established <code className="rounded bg-muted px-1 py-0.5 text-sm">active:bg-sidebar-accent</code>{" "}
+          and <code className="rounded bg-muted px-1 py-0.5 text-sm">NavigationMenuLink</code>&rsquo;s own{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-sm">data-[active=true]:bg-accent/50</code> conventions.
         </p>
       </div>
       <ExampleBrowser examples={examples} />

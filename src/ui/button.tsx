@@ -7,6 +7,18 @@ import { Slot } from "radix-ui"
 import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
 
+/**
+ * `ghost`'s own `active:` rule (added alongside its pre-existing `hover:`) is a deliberate
+ * divergence from shadcn's real upstream source, which ships zero built-in pressed/mousedown
+ * background for ANY Button variant (verified byte-identical against reference/shadcn-ui's own
+ * button.tsx before this was added). It reuses the exact same `--accent` token pair the variant's
+ * own `hover:` already uses — never a new/invented color — mirroring the identical, already-
+ * established `active:bg-sidebar-accent active:text-sidebar-accent-foreground` convention on this
+ * system's own `SidebarMenuButton` (src/ui/sidebar.tsx). See CLAUDE.md's Primitive Fidelity
+ * Checklist item 26 for the rule this codifies: before proposing ANY new color for an interactive
+ * state, check whether an existing bidezine primitive already implements that same state semantic,
+ * and reuse its exact token rather than inventing a new one.
+ */
 const buttonVariants = cva(
   "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
@@ -20,7 +32,7 @@ const buttonVariants = cva(
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost:
-          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+          "hover:bg-accent hover:text-accent-foreground active:bg-accent active:text-accent-foreground dark:hover:bg-accent/50 dark:active:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

@@ -1,11 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { Command as CommandPrimitive } from "cmdk"
-import { SearchIcon } from "@/icons/generated"
+import { Command as CommandPrimitive, useCommandState } from "cmdk"
+import { SearchIcon, XIcon } from "@/icons/generated"
 
 import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
+import { Button } from "@/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -62,10 +63,43 @@ function CommandDialog({
   )
 }
 
+/**
+ * Deliberate divergence from shadcn's own real source (which renders `SearchIcon` +
+ * `CommandPrimitive.Input` only) — a clear (X) button is added, per the approved A-6/L-5 plan
+ * (validated first in `limbo-factory`'s `SearchClearButtonLab`). cmdk's own internal `search` store
+ * value is kept in sync in BOTH controlled and uncontrolled modes (cmdk's `Input` implementation
+ * pushes a controlled `value` prop into its internal store via an effect), so reading it via
+ * `useCommandState` correctly reflects the input's real current text either way — this avoids
+ * needing to know whether the consumer passed `value`/`onValueChange` at all.
+ *
+ * Clearing has to go through the underlying native `<input>` element rather than any cmdk API,
+ * because cmdk's `Input` only exposes an `onChange`-driven path (internal `setState` when
+ * uncontrolled, or the consumer's own `onValueChange` when controlled) — there is no public
+ * imperative "set value" method. Using the native property setter + a real `input` event fires
+ * that exact same `onChange` path cmdk already wires up, so clearing behaves identically to the
+ * user deleting the text themselves in either mode.
+ */
 function CommandInput({
   className,
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Input>) {
+  const inputRef = React.useRef<HTMLInputElement>(null)
+  const search = useCommandState((state) => state.search)
+  const hasValue = search.length > 0
+  const disabled = props.disabled
+
+  const clear = () => {
+    const input = inputRef.current
+    if (!input) return
+    const setter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      "value"
+    )?.set
+    setter?.call(input, "")
+    input.dispatchEvent(new Event("input", { bubbles: true }))
+    input.focus()
+  }
+
   return (
     <div
       data-slot="command-input-wrapper"
@@ -73,13 +107,37 @@ function CommandInput({
     >
       <SearchIcon className="size-4 shrink-0 opacity-50" />
       <CommandPrimitive.Input
+        ref={inputRef}
         data-slot="command-input"
         className={cn(
           "flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
           className
         )}
         {...props}
+        onKeyDown={(event) => {
+          props.onKeyDown?.(event)
+          // Escape clears the query first instead of bubbling up to close a parent
+          // dialog/sheet/dropdown this search box may be nested inside (CommandDialog's own
+          // Radix Dialog closes on Escape by default) — matches origin's D3 contract.
+          if (event.key === "Escape" && hasValue) {
+            event.stopPropagation()
+            clear()
+          }
+        }}
       />
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-xs"
+        aria-label="Clear search"
+        aria-hidden={!hasValue}
+        tabIndex={hasValue ? 0 : -1}
+        disabled={disabled}
+        className={cn("shrink-0", !hasValue && "invisible")}
+        onClick={clear}
+      >
+        <XIcon />
+      </Button>
     </div>
   )
 }

@@ -3,6 +3,12 @@ import {
   Button,
   CheckIcon,
   ChevronDownIcon,
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
   MoreHorizontalIcon,
   PanelLeftIcon,
   SearchIcon,
@@ -66,9 +72,71 @@ function IconCompare({ v }: { v: IconVisual }) {
   )
 }
 
+/**
+ * Real, interactive preview of the panel-header "\u22ef" (More) menu — built entirely from the
+ * actual bidezine DropdownMenu primitives (never hand-rolled markup), reproducing exactly the rows
+ * FunctionalRailSidebar.tsx composes at this location. Open it and hover/click/toggle the rows to
+ * see the RESOLVED, live behavior for C-6/C-7/C-8 — no simulation, no approximation.
+ */
+function PanelHeaderMenuDemo() {
+  const [searchChecked, setSearchChecked] = useState(true)
+  return (
+    <div className="flex flex-col items-start gap-1">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon-xs" aria-label="More">
+            <MoreHorizontalIcon />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem inset>Expand all</DropdownMenuItem>
+          <DropdownMenuItem inset>Collapse all</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuCheckboxItem checked={searchChecked} onCheckedChange={setSearchChecked}>
+            Search box
+          </DropdownMenuCheckboxItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <p className="text-xs text-muted-foreground italic">
+        Click to open, then hover, click-hold, and toggle "Search box" — this is the real, live
+        panel-header menu, now with its resolved hover/pressed/checked states applied.
+      </p>
+    </div>
+  )
+}
+
+/**
+ * Real, interactive preview of the panel-header "\u22ef" TRIGGER button itself (distinct from the
+ * menu rows above) — the actual Button/ghost/icon-xs recipe used at this call site. Press and hold
+ * to confirm the resolved pressed behavior for C-9.
+ */
+function EllipsisTriggerDemo() {
+  return (
+    <div className="flex flex-col items-start gap-1">
+      <Button variant="ghost" size="icon-xs" aria-label="More">
+        <MoreHorizontalIcon />
+      </Button>
+      <p className="text-xs text-muted-foreground italic">
+        Press and hold — now shows a real, distinct pressed state (active:bg-accent), reusing the
+        same --accent token the hover state already used.
+      </p>
+    </div>
+  )
+}
+
+function ColorUsageDemo({ kind }: { kind: NonNullable<ColorVisual["usageDemo"]> }) {
+  return kind === "panel-header-menu" ? <PanelHeaderMenuDemo /> : <EllipsisTriggerDemo />
+}
+
 function ColorCompare({ v }: { v: ColorVisual }) {
   return (
-    <div className="flex flex-wrap items-center gap-6">
+    <div className="flex flex-col gap-3">
+      {v.locationHint ? (
+        <p className="text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">Used in:</span> {v.locationHint}
+        </p>
+      ) : null}
+      <div className="flex flex-wrap items-center gap-6">
       <div className="flex flex-col items-center gap-1">
         <div
           className="h-14 w-14 rounded-md border dark:hidden"
@@ -119,6 +187,12 @@ function ColorCompare({ v }: { v: ColorVisual }) {
         </p>
       </div>
       {v.afterNote ? <p className="max-w-64 text-xs text-muted-foreground italic">{v.afterNote}</p> : null}
+      </div>
+      {v.usageDemo ? (
+        <div className="rounded-md border bg-muted/30 p-3">
+          <ColorUsageDemo kind={v.usageDemo} />
+        </div>
+      ) : null}
     </div>
   )
 }

@@ -104,6 +104,13 @@ function DropdownMenuGroup({
  * tokens verbatim, since those are a separate palette scoped to a real `<SidebarProvider>` tree
  * (the same reasoning divergence row L-9 already established for why `SidebarMenuButton` itself
  * isn't a clean drop-in outside a real Sidebar instance).
+ *
+ * `active:bg-accent active:text-accent-foreground` (a true CSS `:active`/mousedown pseudo-class,
+ * distinct from the persistent `isActive` prop above) mirrors `SidebarMenuButton`'s own identical
+ * `active:bg-sidebar-accent active:text-sidebar-accent-foreground` rule and `Button`'s own `ghost`
+ * variant `active:` rule — reusing the same already-established `--accent` token this component
+ * already uses everywhere else, never a new/invented color (see rail-sidebar.ts's C-8 entry and
+ * CLAUDE.md's Primitive Fidelity Checklist item 26).
  */
 function DropdownMenuItem({
   className,
@@ -133,7 +140,7 @@ function DropdownMenuItem({
       data-active={isActive}
       disabled={disabled}
       className={cn(
-        "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-[active=true]:bg-accent data-[active=true]:font-medium data-[active=true]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive!",
+        "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground active:bg-accent active:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-[active=true]:bg-accent data-[active=true]:font-medium data-[active=true]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive!",
         className
       )}
       onMouseDown={(event) => {
@@ -159,6 +166,16 @@ function DropdownMenuItem({
   )
 }
 
+/**
+ * `data-[state=checked]:bg-accent/50` (a distinct-but-related, softer resting tint for a checked
+ * row, plus the same `active:` pressed rule DropdownMenuItem now carries) is a deliberate divergence
+ * from shadcn's own real source, which has no background treatment for the checked state at all —
+ * only the checkmark glyph. Reuses the exact `--accent` token this component already uses for its
+ * own `focus:` state, at the same reduced opacity `NavigationMenuLink`'s own established
+ * `data-[active=true]:bg-accent/50` convention already uses for an identical "distinct resting tint,
+ * stronger on focus/hover" pattern (src/ui/navigation-menu.tsx) — never a new/invented color (see
+ * rail-sidebar.ts's C-7 entry and CLAUDE.md's Primitive Fidelity Checklist item 26).
+ */
 function DropdownMenuCheckboxItem({
   className,
   children,
@@ -169,7 +186,7 @@ function DropdownMenuCheckboxItem({
     <DropdownMenuPrimitive.CheckboxItem
       data-slot="dropdown-menu-checkbox-item"
       className={cn(
-        "relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground active:bg-accent active:text-accent-foreground data-[state=checked]:bg-accent/50 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       checked={checked}

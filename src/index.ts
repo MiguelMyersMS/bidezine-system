@@ -77,6 +77,7 @@ export {
   InputGroupInput,
   InputGroupTextarea,
 } from "./ui/input-group"
+export { SearchInput, type SearchInputProps } from "./ui/search-input"
 export {
   Field,
   FieldLabel,

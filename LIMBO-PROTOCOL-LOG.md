@@ -354,7 +354,193 @@ narrower than their combined width, use an anchoring justify value (`justify-sta
 anchor's real position, never `justify-center` — centering silently assumes both children are equally safe to
 clip, which is almost never true for a rail/sidebar-style layout.
 
+**Update 12 — two separate divergence rows (C-6/C-7/C-8/C-9 colors, then F-3 sizing) were both found to have
+proposed keeping/inventing a value that diverged from bidezine's own real primitives, without ever checking
+whether bidezine already defined an equivalent (L-40, L-41).** First, the panel-header ellipsis menu's
+color divergence rows (C-7 checked-row tint, C-8 pressed menu-row background, C-9 pressed trigger background)
+were originally written up proposing genuinely NEW color values — a `--muted` candidate, and brand-new hex
+values `#E0E1E6`/`#363A3F` — even though bidezine already has an established, working convention for every
+one of these exact state semantics (`DropdownMenuItem.isActive`, `SidebarMenuButton.active:`,
+`NavigationMenuLink.data-[active=true]`, `Toggle.data-[state=on]`, all reusing `--accent`). Flagged directly
+by the user: "we already have way to manage menus from the design system that we have why do we want to
+diverge and come up with a different color tokens... it seems like you are even creating or adding new colors
+for it." Fixed at the primitive level by extending `Button`'s `ghost` variant and `DropdownMenuItem`/
+`DropdownMenuCheckboxItem` with `active:`/`data-[state=checked]:` rules reusing `--accent`, exactly mirroring
+the existing conventions — never a new token. CLAUDE.md's Primitive Fidelity Checklist gained item 26 as a
+direct result, requiring a grep for existing state conventions before proposing any new color.
 
+Then, almost immediately after, the SAME root pattern recurred in a different category: F-3's
+`PANEL_DEFAULT_WIDTH` had mirrored origin's own `LAYOUT.panelW = 300` verbatim, justified only as "one of the
+two real numbers being emulated from origin's own source" — with no check ever made for whether bidezine's
+own primitives defined an equivalent. The user caught this too, and named the pattern explicitly: "we need to
+stay true to bidezine's protocols and rules and patterns why do we want to go back to the origin's 300
+pixels." Checking bidezine's own `Sidebar` primitive found the answer immediately: it already defines a real,
+native default panel width of `16rem`/256px. Fixed by changing `PANEL_DEFAULT_WIDTH` from 300 to 256 — the
+sizing equivalent of C-6–C-9's color fix. `PANEL_MIN_WIDTH = 240` was deliberately left unchanged (it
+independently matches bidezine's own `min-w-60` token, per row F-8 — not borrowed from origin despite
+matching origin's number too); `PANEL_MAX_WIDTH = 380` was also left unchanged (no origin equivalent by name,
+already documented as a demo-reasonable max). **Standing lesson, folded into CLAUDE.md checklist item 26 as a
+broadening (not a new item):** the "grep bidezine's own primitives before accepting a new/origin-borrowed
+value" check was originally scoped to interactive-state COLORS only. It has been generalized to cover ANY
+constant proposed or kept in a divergence row — size, spacing, radius, duration, or otherwise — because the
+identical root mistake (treating "that's what origin used" as sufficient justification, without checking
+bidezine's own equivalents first) recurred in a completely different category within the same session. The
+mandatory first check for any divergence-row value going forward: does a real bidezine primitive already
+define an equivalent for this exact concept? If yes, reuse it — even when origin's own number is the one
+already sitting in the code.
+
+
+
+**Update 13 — F-5/F-6 (Rail Sidebar nav-tree row height) were resolved after the user pushed the same
+generalized rule one axis further: past origin-parity, past "does bidezine's own matching primitive have a
+native default," to whether OTHER bidezine components with a similar purpose already establish a convention
+this value should be consistent with (L-42).** Both rows were originally framed only as "does `h-10`/`min-h-7`
+numerically match origin's `hitTarget=40px`/`LIST_ROW.compact=28px`" — investigation confirmed neither origin
+number was ever actually adopted in the shipped `PanelTree` code, which already uses a uniform `h-9`/36px at
+every depth (row L-9, a prior independent decision). The user then supplied a screenshot of bidezine's own real
+`Sidebar` demo (`Documentation > Introduction/Components/Changelog`) and asked directly: is the parent row the
+same height as its children, and does this pattern extend to the Rail Sidebar's real requirement of 3–5 nested
+levels? Live-measured via `getBoundingClientRect` on `localhost:5173/components/sidebar`: `SidebarMenuButton`
+(parent) = 32px, `SidebarMenuSubButton` (one nested level) = 28px — a real, hard-coded shrink, confirmed
+identical in the original shadcn source. But this convention is a fixed TWO-level hierarchy only (no
+recursive/N-level sub-menu component exists anywhere in bidezine or shadcn's own source, and
+`SidebarMenuSubButton` requires a live `SidebarProvider` this standalone panel doesn't have) — so it has no
+defined answer for a genuinely deep tree. A shrink-with-depth scale echoing that 32→28 ratio was proposed and
+explicitly rejected by the user (rows become illegibly small / sub-hit-target by depth 4–5), confirming the
+existing uniform `h-9`/36px-at-every-depth choice as the correct, deliberate, standalone Rail Sidebar
+convention — not a claim of matching `Sidebar` (which cannot structurally extend past one level) and not a
+coincidental echo of either origin number. No code changes were needed (36px was already shipped); only the
+divergence-log documentation (F-5, F-6, new entry L-42) was corrected to reflect the now fully-verified
+reasoning. **Standing lesson, folded into CLAUDE.md checklist item 26 as a further broadening:** checking a
+value against a matching primitive's own default is NOT the same check as verifying consistency against a
+DIFFERENT bidezine component serving a similar/related purpose. The mandatory check for any divergence-row
+value going forward now has three parts: (a) does it match origin, (b) does a bidezine primitive for this exact
+component already define a native default, and (c) do OTHER bidezine components with a similar/related purpose
+(nav rows, list rows, hit targets) already establish a convention this value should align with or deliberately,
+defensibly diverge from — a numeric coincidence on any one of these three is not sufficient proof of
+system-wide consistency by itself.
+
+
+
+**Update 14 — F-5/F-6 (Rail Sidebar row height) were superseded a SECOND time, this time by actually changing
+code: the user asked whether it would be better to unify on one of the two real bidezine numbers already
+found (32px or 28px) rather than keep the h-9/36px value that matched neither (L-43).** Update 13's own
+resolution had correctly kept the shipped uniform-at-every-depth model, but the specific pixel value (36px)
+had no bidezine precedent at all — it was a prior, independent decision (L-9) made before either number was
+known. The user pushed one step further: "I just think that we are introducing more numbers for navigations
+and we should unify it." Investigated which of bidezine's two real precedents (Sidebar's 32px parent /
+28px child) actually applies to an arbitrarily deep tree, since Sidebar itself is a fixed two-level hierarchy
+and can't settle that on its own. Found the deciding evidence: `DropdownMenuItem`/`DropdownMenuSubTrigger`
+(mirrored by `ContextMenuSubTrigger`/`MenubarSubTrigger`) — where a `Sub` genuinely nests inside another `Sub`
+indefinitely — renders at a uniform 32px at every depth, live-measured via `getBoundingClientRect`, with zero
+shrink no matter how deep. This is the one bidezine precedent that actually proves "uniform height works at
+arbitrary depth" in a shipped component, and it points to 32px, not 28px (28px only ever appears in bidezine
+as a one-level-deep DEMOTED tier, never as a default/top-level height). FIXED: `PanelTree`'s shared row
+className changed from `h-9` (36px) to `h-8` (32px) in `FunctionalRailSidebar.tsx`, applied uniformly to all
+three row kinds (leaf `Button`, group-toggle `Button`, disabled placeholder `div`) that already share one
+recipe from L-9's original fix — a single class change per call site, since the height was already uniform
+and needed no per-depth logic. Doc comments rewritten to state the new rationale; `rail-sidebar.ts` F-5/F-6
+updated again to describe the `h-8`/32px resolution, and new entry L-43 documents the investigation. Root
+`npm run typecheck` and `limbo-factory`'s `npx tsc --noEmit` re-verified clean. **Standing lesson:** this is
+the practical payoff of CLAUDE.md checklist item 26's third axis (added at Update 13/L-42) — checking a value
+against a matching primitive's own default is not enough when that primitive doesn't cover the actual use
+case (arbitrary depth); the RIGHT precedent to unify on was a *different* bidezine component (Dropdown/
+Context/Menubar) chosen because it structurally matches the real requirement, not the first component found
+to look superficially similar (Sidebar).
+
+
+
+**Update 15 — F-4 (Rail Sidebar `panelGap = 8px`) was re-investigated under the same third-axis rule
+(Update 13's checklist item 26 broadening), this time confirming the existing value instead of changing
+it (L-44).** F-4 had been marked `status: "clean"` on a bare origin-parity note ("= SPACE[2] = gap-2 /
+ml-2") — never actually cross-checked against a different bidezine component doing a similar job. The
+user asked for exactly that check: "make sure that it is well similar to the sidebar in the real... instead
+of just trying to match the origin perfectly." Investigated what F-4's 8px actually governs first (the gap
+between the rail column and the expanded panel, a rail-to-content layout gap — not a row-to-row or
+icon-to-label gap within nav), then searched bidezine's real `Sidebar` primitive for an analogous concept.
+Found one: `SidebarInset` (`src/ui/sidebar.tsx`), used when a Sidebar sits beside inset content, carries
+`md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0` — an 8px (`m-2`) margin specifically
+on the side of the inset content facing away from the sidebar, i.e. bidezine's own native value for "gap
+between a nav rail/sidebar and its adjacent content panel." This independently confirms 8px — a genuine
+bidezine cross-check, not a coincidence with origin's number. Also separately verified the two NAV-internal
+gaps the user's message could otherwise have been pointing at, to rule out any actual inconsistency:
+`PanelTree`'s row-to-row gap (`gap-1`, 4px) already matches bidezine's real `SidebarMenu` (`flex flex-col
+gap-1`, 4px) exactly; the rail column's own icon-button gap (`gap-2`, 8px) is a self-contained rail
+convention, unrelated to `panelGap`. The user reviewed this finding and explicitly approved it. **No code
+change was needed** — F-4 is marked `status: "resolved"` (the green "Decided" pill in the Factory Line UI),
+recording that the 8px value was verified against a real bidezine cross-check (`SidebarInset`'s `m-2`) and
+signed off by the user, rather than left as a bare, unexamined "clean equivalent."
+`limbo-factory`'s `npx tsc --noEmit` re-verified clean (no code touched).
+**Standing lesson:** running the full three-axis check (color → own-primitive-default → cross-component
+consistency) on a row that turns out to already be correct is still a necessary and legitimate outcome —
+the goal of the checklist is verified confidence, not a guaranteed code change every time it's applied.
+
+
+
+**Update 16 — F-7 (Rail Sidebar `FOOTER_MAX_HEIGHT = 122px`, the footer's 3-icon cap) was approved by the
+user, but the approval was specifically of the CONCEPT, not origin's literal number — and the cap turned
+out to have never actually been implemented in code at all (L-45).** The user clarified directly: "For F7 I
+was actually approving the three icon cap" — i.e. the underlying behavior (silently clip any 4th+ footer
+icon so an over-sized footer group can't starve the scrollable nav section's own space budget), not a bare
+acceptance of origin's `122px` as an opaque borrowed constant. Investigating the real component source
+(`FunctionalRailSidebar.tsx`) surfaced a second, more fundamental gap: the footer's flex column had NO
+max-height or `overflow-hidden` of any kind — this divergence row had been documented but never actually
+wired into the component. Re-derived `FOOTER_MAX_HEIGHT` from bidezine's own already-shipped values rather
+than origin's literal constant: `RAIL_BUTTON_SIZE` (38px — the real `size-[38px]` already used by every
+`RailIconButton`/Profile-slot button in this rail, matching origin's own `LAYOUT.railButton` exactly) and
+`FOOTER_GAP` (4px — the real `gap-1` already on the footer's own flex column). `38×3 + 4×2 = 122px` —
+numerically identical to origin, but now backed by bidezine's own real, already-verified constants instead
+of a borrowed literal, the same "clean coincidence, now actually checked" outcome as F-4's `SidebarInset`
+cross-check. IMPLEMENTED: added `RAIL_BUTTON_SIZE`/`FOOTER_GAP`/`FOOTER_MAX_ICONS`/`FOOTER_MAX_HEIGHT`
+constants to `FunctionalRailSidebar.tsx`, and applied `overflow-hidden` + `style={{ maxHeight:
+FOOTER_MAX_HEIGHT }}` to the footer's own flex column. This rail currently ships only 2 footer items
+(Profile, Settings) — well under the 3-icon cap — so the fix has zero visible effect today; it's a
+forward-looking guard against a future consumer over-configuring `FOOTER_SECTIONS`, matching origin's own
+defensive intent exactly. `rail-sidebar.ts` F-7 updated to `status: "resolved"` (green "Decided" pill); new
+log entry L-45 documents the investigation. `limbo-factory`'s `npx tsc --noEmit` re-verified clean.
+**Standing lesson:** an "approved" divergence-row concept can still have a real implementation gap between
+what's documented and what's actually wired into the component — approving the CONCEPT of a fix is not the
+same as confirming the fix was ever actually built. Always check the real component source for the
+corresponding code, not just the divergence-row text, before marking any row resolved.
+
+
+
+**Update 17 — F-8/F-9/F-11 approved by the user, closing the entire "F — Layout / Sizing" category
+(rows F-1 through F-11) with zero remaining `status: "decision"` rows (L-46).** Verified each against
+the real component source before marking resolved, per the fourth axis added at Update 16/L-45: F-8's
+`PANEL_MIN_WIDTH = 240` is confirmed live in `FunctionalRailSidebar.tsx`, clamping the resize-drag handler
+and feeding `ResizablePanel`'s `minSize` — already implemented, and independently matches bidezine's own
+`min-w-60` token (not an origin-only number). F-9's `ITEM_SLOT = 42px` is a documentation-only derived
+quantity (`RAIL_BUTTON_SIZE`(38) + `FOOTER_GAP`(4)), not a separate code constant — confirmed the real
+`size-[38px]` rail buttons and `gap-1` track spacing it describes are both genuinely present in code.
+F-11's footer bottom-anchoring is confirmed live: the real `trackRef` div carries `flex min-h-0 flex-1
+flex-col gap-1`, the actual mechanism, not just a documented claim. **No code changes were needed for any
+of the three** — all were already correctly implemented; this was a documentation sign-off pass, verified
+against real code rather than taken on faith. `rail-sidebar.ts`'s "remaining divergence rows" summary count
+updated from 18 to 12 (F category fully closed, alongside the previously-closed B/C/G/K categories) — the
+remaining 12 open rows span categories H, I, J, L, and M only. `limbo-factory`'s `npx tsc --noEmit`
+re-verified clean. **This closes out the Rail Sidebar's "F — Layout / Sizing" category as ready for the
+next real Build phase** — every sizing/layout constant in this category is now either a verified-resolved,
+user-approved value with a real bidezine cross-check backing it, or a documented, non-blocking deployment
+note (F-10).
+
+
+
+**Update 18 — F-10 (rail must fill its container's full available height) approved by the user, bringing
+the "F — Layout / Sizing" category to a full 11-for-11 `status: "resolved"` close, with zero rows left at
+any other status (L-47).** F-10 was already a documentation-only DEPLOYMENT NOTE, not a code divergence:
+`FunctionalRailSidebar`'s limbo-factory preview deliberately takes a measured `height` NUMBER prop (via
+`App.tsx`'s `FillHeight` + `ResizeObserver`) because that's this PREVIEW TOOL's own plumbing — the real
+Build should instead rely on ordinary CSS sizing (`h-full` on the outer element, with the consumer's own
+layout providing a definite height further up the tree). **No code change was needed** — the measured-height
+prop is correct FOR THIS PREVIEW TOOL, not a bug to fix here. The user's approval locks this guidance in as
+an explicit, signed-off Build-time requirement (`status: "resolved"`) rather than leaving it as an
+unconfirmed suggestion, so a future Build implementation doesn't silently carry the preview's
+ResizeObserver-measured-height plumbing into the shipped component. With this, **the entire "F — Layout /
+Sizing" category (F-1 through F-11) is now closed with all 11 rows at `status: "resolved"`** — the first
+category in this divergence list to reach a full, uniform resolved state (previously-closed categories
+B/C/G/K still carry a mix of `resolved`/`clean` rows). `rail-sidebar.ts`'s summary note updated to reflect
+this. `limbo-factory`'s `npx tsc --noEmit` re-verified clean (no code touched).
 
 Whenever the Intake agent finds an element in the source that isn't cleanly pairable to an existing
 bidezine equivalent — icons, gaps, paddings, blocks, layouts, animations, effects, colors, fonts, anything —

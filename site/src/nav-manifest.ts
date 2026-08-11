@@ -63,6 +63,7 @@ export const navManifest: NavCategory[] = [
       { slug: "toggle", name: "Toggle", status: "ready" },
       { slug: "toggle-group", name: "Toggle Group", status: "ready" },
       { slug: "input-group", name: "Input Group", status: "ready" },
+      { slug: "search-input", name: "Search Input", status: "ready" },
       { slug: "field", name: "Field", status: "ready" },
       { slug: "form", name: "Form", status: "ready" },
       { slug: "combobox", name: "Combobox", status: "ready" },
