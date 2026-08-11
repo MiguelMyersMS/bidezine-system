@@ -1,6 +1,7 @@
 import { Badge } from "@bidezine/system"
 import { ExampleBrowser, type ShowcaseExample } from "@/components/ExampleBrowser"
 import { ApiReference, type ApiRow } from "@/components/ApiReference"
+import type { ReactNode } from "react"
 
 /**
  * Reproduces reference/shadcn-ui/apps/v4/examples/radix/badge-demo.tsx
@@ -8,55 +9,164 @@ import { ApiReference, type ApiRow } from "@/components/ApiReference"
  * instead of a single fixed demo.
  */
 
+/**
+ * Local showcase-only helper (not part of @bidezine/system) that labels a
+ * regular/emphasis badge pair so the weight difference reads clearly at a
+ * glance, instead of two unlabeled badges side by side.
+ */
+function WeightPair({ children }: { children: [ReactNode, ReactNode] }) {
+  const [regular, emphasis] = children
+  return (
+    <div className="flex flex-wrap items-end justify-center gap-6">
+      <div className="flex flex-col items-center gap-1.5">
+        <span className="text-[11px] tracking-wide text-muted-foreground uppercase">
+          weight="regular"
+        </span>
+        {regular}
+      </div>
+      <div className="flex flex-col items-center gap-1.5">
+        <span className="text-[11px] tracking-wide text-muted-foreground uppercase">
+          weight="emphasis" (default)
+        </span>
+        {emphasis}
+      </div>
+    </div>
+  )
+}
+
 const examples: ShowcaseExample[] = [
   {
     label: "Default",
-    render: () => <Badge>Badge</Badge>,
-    code: `<Badge>Badge</Badge>`,
+    render: () => (
+      <WeightPair>
+        <Badge weight="regular">Badge</Badge>
+        <Badge weight="emphasis">Badge</Badge>
+      </WeightPair>
+    ),
+    code: `<Badge weight="regular">Badge</Badge>
+<Badge weight="emphasis">Badge</Badge> {/* default */}`,
   },
   {
     label: "Secondary",
-    render: () => <Badge variant="secondary">Secondary</Badge>,
-    code: `<Badge variant="secondary">Secondary</Badge>`,
+    render: () => (
+      <WeightPair>
+        <Badge variant="secondary" weight="regular">
+          Secondary
+        </Badge>
+        <Badge variant="secondary" weight="emphasis">
+          Secondary
+        </Badge>
+      </WeightPair>
+    ),
+    code: `<Badge variant="secondary" weight="regular">Secondary</Badge>
+<Badge variant="secondary" weight="emphasis">Secondary</Badge> {/* default */}`,
   },
   {
     label: "Destructive",
-    render: () => <Badge variant="destructive">Destructive</Badge>,
-    code: `<Badge variant="destructive">Destructive</Badge>`,
+    render: () => (
+      <WeightPair>
+        <Badge variant="destructive" weight="regular">
+          Destructive
+        </Badge>
+        <Badge variant="destructive" weight="emphasis">
+          Destructive
+        </Badge>
+      </WeightPair>
+    ),
+    code: `<Badge variant="destructive" weight="regular">Destructive</Badge>
+<Badge variant="destructive" weight="emphasis">Destructive</Badge> {/* default */}`,
   },
   {
     label: "Success",
-    render: () => <Badge variant="success">Success</Badge>,
-    code: `<Badge variant="success">Success</Badge>`,
+    render: () => (
+      <WeightPair>
+        <Badge variant="success" weight="regular">
+          Success
+        </Badge>
+        <Badge variant="success" weight="emphasis">
+          Success
+        </Badge>
+      </WeightPair>
+    ),
+    code: `<Badge variant="success" weight="regular">Success</Badge>
+<Badge variant="success" weight="emphasis">Success</Badge> {/* default */}`,
   },
   {
     label: "Warning",
-    render: () => <Badge variant="warning">Warning</Badge>,
-    code: `<Badge variant="warning">Warning</Badge>`,
+    render: () => (
+      <WeightPair>
+        <Badge variant="warning" weight="regular">
+          Warning
+        </Badge>
+        <Badge variant="warning" weight="emphasis">
+          Warning
+        </Badge>
+      </WeightPair>
+    ),
+    code: `<Badge variant="warning" weight="regular">Warning</Badge>
+<Badge variant="warning" weight="emphasis">Warning</Badge> {/* default */}`,
   },
   {
     label: "Info",
-    render: () => <Badge variant="info">Info</Badge>,
-    code: `<Badge variant="info">Info</Badge>`,
+    render: () => (
+      <WeightPair>
+        <Badge variant="info" weight="regular">
+          Info
+        </Badge>
+        <Badge variant="info" weight="emphasis">
+          Info
+        </Badge>
+      </WeightPair>
+    ),
+    code: `<Badge variant="info" weight="regular">Info</Badge>
+<Badge variant="info" weight="emphasis">Info</Badge> {/* default */}`,
   },
   {
     label: "Outline",
-    render: () => <Badge variant="outline">Outline</Badge>,
-    code: `<Badge variant="outline">Outline</Badge>`,
+    render: () => (
+      <WeightPair>
+        <Badge variant="outline" weight="regular">
+          Outline
+        </Badge>
+        <Badge variant="outline" weight="emphasis">
+          Outline
+        </Badge>
+      </WeightPair>
+    ),
+    code: `<Badge variant="outline" weight="regular">Outline</Badge>
+<Badge variant="outline" weight="emphasis">Outline</Badge> {/* default */}`,
   },
   {
     label: "Ghost",
-    render: () => <Badge variant="ghost">Ghost</Badge>,
-    code: `<Badge variant="ghost">Ghost</Badge>`,
+    render: () => (
+      <WeightPair>
+        <Badge variant="ghost" weight="regular">
+          Ghost
+        </Badge>
+        <Badge variant="ghost" weight="emphasis">
+          Ghost
+        </Badge>
+      </WeightPair>
+    ),
+    code: `<Badge variant="ghost" weight="regular">Ghost</Badge>
+<Badge variant="ghost" weight="emphasis">Ghost</Badge> {/* default */}`,
   },
   {
     label: "Link",
     render: () => (
-      <Badge variant="link" asChild>
-        <a href="#link">Link</a>
-      </Badge>
+      <WeightPair>
+        <Badge variant="link" weight="regular" asChild>
+          <a href="#link">Link</a>
+        </Badge>
+        <Badge variant="link" weight="emphasis" asChild>
+          <a href="#link">Link</a>
+        </Badge>
+      </WeightPair>
     ),
-    code: `<Badge variant="link" asChild>
+    code: `<Badge variant="link" weight="regular" asChild>
+  <a href="/docs">Link</a>
+</Badge>
+<Badge variant="link" weight="emphasis" asChild> {/* default */}
   <a href="/docs">Link</a>
 </Badge>`,
   },
@@ -80,46 +190,6 @@ const examples: ShowcaseExample[] = [
 <Badge variant="warning">Warning</Badge>
 <Badge variant="info">Info</Badge>
 <Badge variant="outline">Outline</Badge>`,
-  },
-  {
-    label: "Weight — regular vs emphasis",
-    render: () => (
-      <div className="flex w-full flex-col items-center gap-3">
-        <div className="flex flex-wrap justify-center gap-2">
-          <Badge variant="success" weight="regular">
-            Success
-          </Badge>
-          <Badge variant="warning" weight="regular">
-            Warning
-          </Badge>
-          <Badge variant="info" weight="regular">
-            Info
-          </Badge>
-          <Badge variant="destructive" weight="regular">
-            Destructive
-          </Badge>
-        </div>
-        <div className="flex flex-wrap justify-center gap-2">
-          <Badge variant="success" weight="emphasis">
-            Success
-          </Badge>
-          <Badge variant="warning" weight="emphasis">
-            Warning
-          </Badge>
-          <Badge variant="info" weight="emphasis">
-            Info
-          </Badge>
-          <Badge variant="destructive" weight="emphasis">
-            Destructive
-          </Badge>
-        </div>
-      </div>
-    ),
-    code: `{/* regular: font-normal, lower-emphasis inline status label */}
-<Badge variant="success" weight="regular">Success</Badge>
-
-{/* emphasis (default): font-medium, same weight as shadcn's own baseline */}
-<Badge variant="success" weight="emphasis">Success</Badge>`,
   },
 ]
 
