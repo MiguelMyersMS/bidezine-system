@@ -50,9 +50,21 @@ import { cn } from "@/lib/utils"
  * - Minimum size: `w-fit shrink-0` (unchanged) keeps the pill from ever compressing below its own
  *   padding + text at any single character of content, so a status badge never collapses to an
  *   unreadable sliver even inside a shrinking flex row.
+ *
+ * `weight` (bidezine Adjustment, independent of `variant`): shadcn's own upstream `badge.tsx` hardcodes
+ * `font-medium` unconditionally in its base recipe — that remains this component's default (`weight`
+ * defaults to `"emphasis"`, i.e. `font-medium`), so every existing Badge usage keeps rendering exactly as
+ * before and stays faithful to shadcn's own Reproduce baseline. `weight="regular"` (`font-normal`) is a
+ * new opt-in, lighter alternative for contexts where a solid-fill status badge (`success`/`warning`/
+ * `info`/`destructive` in particular) reads as too visually heavy next to surrounding body text set in
+ * the same `font-normal` weight used elsewhere in the system (e.g. `Breadcrumb`, `Field`'s description
+ * text) — pick `weight="regular"` for lower-emphasis inline status labels, and leave the default
+ * (`"emphasis"`) for badges that need to visually stand out (e.g. a prominent count or an alert-level
+ * status). This is a font-weight-only axis — it does not change color, size, or padding, and combines
+ * with every `variant` value.
  */
 const badgeVariants = cva(
-  "inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden text-ellipsis rounded-full border border-transparent px-2 py-0.5 text-xs font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3",
+  "inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden text-ellipsis rounded-full border border-transparent px-2 py-0.5 text-xs whitespace-nowrap transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3",
   {
     variants: {
       variant: {
@@ -71,9 +83,14 @@ const badgeVariants = cva(
         ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         link: "text-primary underline-offset-4 [a&]:hover:underline",
       },
+      weight: {
+        regular: "font-normal",
+        emphasis: "font-medium",
+      },
     },
     defaultVariants: {
       variant: "default",
+      weight: "emphasis",
     },
   }
 )
@@ -81,6 +98,7 @@ const badgeVariants = cva(
 function Badge({
   className,
   variant = "default",
+  weight = "emphasis",
   asChild = false,
   ...props
 }: React.ComponentProps<"span"> &
@@ -91,7 +109,8 @@ function Badge({
     <Comp
       data-slot="badge"
       data-variant={variant}
-      className={cn(badgeVariants({ variant }), className)}
+      data-weight={weight}
+      className={cn(badgeVariants({ variant, weight }), className)}
       {...props}
     />
   )

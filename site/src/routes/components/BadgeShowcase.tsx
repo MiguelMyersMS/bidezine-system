@@ -81,6 +81,46 @@ const examples: ShowcaseExample[] = [
 <Badge variant="info">Info</Badge>
 <Badge variant="outline">Outline</Badge>`,
   },
+  {
+    label: "Weight — regular vs emphasis",
+    render: () => (
+      <div className="flex w-full flex-col items-center gap-3">
+        <div className="flex flex-wrap justify-center gap-2">
+          <Badge variant="success" weight="regular">
+            Success
+          </Badge>
+          <Badge variant="warning" weight="regular">
+            Warning
+          </Badge>
+          <Badge variant="info" weight="regular">
+            Info
+          </Badge>
+          <Badge variant="destructive" weight="regular">
+            Destructive
+          </Badge>
+        </div>
+        <div className="flex flex-wrap justify-center gap-2">
+          <Badge variant="success" weight="emphasis">
+            Success
+          </Badge>
+          <Badge variant="warning" weight="emphasis">
+            Warning
+          </Badge>
+          <Badge variant="info" weight="emphasis">
+            Info
+          </Badge>
+          <Badge variant="destructive" weight="emphasis">
+            Destructive
+          </Badge>
+        </div>
+      </div>
+    ),
+    code: `{/* regular: font-normal, lower-emphasis inline status label */}
+<Badge variant="success" weight="regular">Success</Badge>
+
+{/* emphasis (default): font-medium, same weight as shadcn's own baseline */}
+<Badge variant="success" weight="emphasis">Success</Badge>`,
+  },
 ]
 
 const apiRows: ApiRow[] = [
@@ -90,6 +130,13 @@ const apiRows: ApiRow[] = [
     default: `"default"`,
     description:
       "Visual style. success/warning/info are a bidezine Adjustment (not in shadcn's own source) for semantic status pills.",
+  },
+  {
+    prop: "weight",
+    type: `"regular" | "emphasis"`,
+    default: `"emphasis"`,
+    description:
+      "bidezine Adjustment. Font-weight axis, independent of variant. \"emphasis\" (font-medium) matches shadcn's own unconditional baseline weight and is the default, so existing usage is unaffected. \"regular\" (font-normal) is a lighter, lower-visual-weight opt-in for dense/inline status labels next to body text.",
   },
   {
     prop: "asChild",
