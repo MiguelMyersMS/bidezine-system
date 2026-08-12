@@ -1,10 +1,19 @@
 // ═══════════════════════════════════════════════════════════════════════════════════
-// Milestone 4 — import Rail Sidebar's divergence rows into the corpus.
+// Rebuild Rail Sidebar's divergence rows in the corpus from the frozen snapshot.
 //
 //   node import-rail-sidebar.mjs [--dry-run]
 //
-// Reads sandbox/src/data/rail-sidebar.ts. READS it — the spec's sequencing
-// constraint freezes that file until M5, and nothing here writes to it.
+// Originally Milestone 4's one-off importer, reading the hand-written
+// `divergenceCategories` out of sandbox/src/data/rail-sidebar.ts. That array was deleted
+// at M5 step 4 once the database path was proven equivalent, so this now reads
+// db/snapshots/rail-sidebar.json — the frozen snapshot committed in git — and only ever
+// reads it; nothing here writes to the snapshot.
+//
+// The re-pointing changes what this script IS. It was a migration tool with one job,
+// already done; it is now the RESTORE PATH. The corpus is authoritative while a component
+// is in the Sandbox, which means the corpus is also the thing that can be lost — and this
+// is what rebuilds it from git. Idempotent, so running it against a healthy corpus is a
+// no-op update rather than a duplication.
 //
 // EVERY IMPORTED ROW LANDS AT 'legacy_unverified', including the 152 the source calls
 // resolved. That state sits deliberately BEFORE 'verified' in the divergence lifecycle:
@@ -22,14 +31,11 @@
 // Idempotent — re-running updates in place rather than duplicating.
 // ═══════════════════════════════════════════════════════════════════════════════════
 
-import { mkdtemp, rm, writeFile } from "node:fs/promises"
-import { tmpdir } from "node:os"
+import { readFile, writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import { pathToFileURL } from "node:url"
-import esbuild from "esbuild"
 import { REPO_ROOT, connect, sql } from "../verifier/lib/db.mjs"
 
-const SOURCE = join(REPO_ROOT, "sandbox", "src", "data", "rail-sidebar.ts")
+const SNAPSHOT = join(REPO_ROOT, "db", "snapshots", "rail-sidebar.json")
 const SLUG = "rail-sidebar"
 const DRY = process.argv.includes("--dry-run")
 
@@ -58,26 +64,45 @@ const CATEGORY_MAP = {
 // in this component's history and must be findable under 'scroll'.
 const ROW_OVERRIDES = { "K-3": "scroll" }
 
+/**
+ * Rebuilds the category array from the frozen snapshot.
+ *
+ * This used to bundle `sandbox/src/data/rail-sidebar.ts` with esbuild and read its
+ * hand-written `divergenceCategories`. That array was deleted at M5 step 4, once the
+ * database path was proven to render exactly the same thing — so this is RE-POINTED at
+ * `db/snapshots/rail-sidebar.json` rather than retired, and in the process it stops being
+ * a one-off migration tool and becomes a real RESTORE PATH: if the corpus were ever lost
+ * or corrupted, this rebuilds it from the copy in git.
+ *
+ * Each snapshot row carries `originRecord`, the entire source object stored verbatim at
+ * the original import, so what is rebuilt here is the hand-written data itself and not a
+ * lossy re-derivation of it.
+ */
 async function loadSource() {
-  // The source is TypeScript importing a sibling without a file extension, which Node's
-  // own type stripping will not resolve. Bundling with esbuild sidesteps both.
-  const dir = await mkdtemp(join(tmpdir(), "railsidebar-"))
-  const out = join(dir, "data.mjs")
-  await esbuild.build({
-    entryPoints: [SOURCE],
-    outfile: out,
-    bundle: true,
-    format: "esm",
-    platform: "node",
-    logLevel: "silent",
-  })
-  const mod = await import(pathToFileURL(out).href)
-  await rm(dir, { recursive: true, force: true })
-  return mod
+  const snapshot = JSON.parse(await readFile(SNAPSHOT, "utf8"))
+  const byCategory = new Map()
+  for (const r of snapshot.rows) {
+    const label = r.originCategory ?? r.category
+    const [rawId, ...rest] = label.split("—")
+    const id = rawId.trim()
+    if (!byCategory.has(id)) byCategory.set(id, { id, name: rest.join("—").trim() || id, rows: [] })
+    // The verbatim record IS the source row. Falling back to the normalised columns keeps
+    // a row that somehow arrived without one from being dropped silently.
+    byCategory.get(id).rows.push(
+      r.originRecord ?? {
+        id: r.ref,
+        what: r.title,
+        status: "note",
+        detail: r.detail ?? "",
+        ...(r.visual ? { visual: r.visual } : {}),
+      },
+    )
+  }
+  return { divergenceCategories: [...byCategory.values()].sort((a, b) => a.id.localeCompare(b.id)) }
 }
 
 const { divergenceCategories } = await loadSource()
-if (!Array.isArray(divergenceCategories)) throw new Error("divergenceCategories not found in source")
+if (!Array.isArray(divergenceCategories)) throw new Error("divergenceCategories not found in the snapshot")
 
 // ── field-coverage audit, before anything is written ────────────────────────────────
 // Checklist item 12: porting a data structure requires an exhaustive field-by-field
@@ -122,7 +147,7 @@ try {
     IF NOT EXISTS (SELECT 1 FROM sandbox.component WHERE slug = @slug)
       INSERT INTO sandbox.component (slug, title, state, origin_note)
       VALUES (@slug, 'Rail Sidebar', 'build',
-        'Ported from a foreign design system''s RailNav. Divergence rows imported from sandbox/src/data/rail-sidebar.ts at Sandbox Milestone 4.');`)
+        'Ported from a foreign design system''s RailNav. Divergence rows imported at Sandbox Milestone 4; the frozen copy in git is db/snapshots/rail-sidebar.json.');`)
 
   const componentId = (
     await pool.request().input("slug", sql.NVarChar(100), SLUG)

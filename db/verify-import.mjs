@@ -1,31 +1,44 @@
 // ═══════════════════════════════════════════════════════════════════════════════════
-// Milestone 4's definition of done.
+// The corpus still matches its frozen snapshot.
 //
 //   node verify-import.mjs
 //
-// M4's claim is "every existing row is represented with no field lost — the migration is
-// the schema's proof". That claim is only worth anything if something checks it, so this
-// re-reads the TypeScript source and diffs it against the database field by field.
+// ── What this checked before, and what it checks now ────────────────────────────────
+// Originally this was Milestone 4's definition of done: it re-read the hand-written
+// `divergenceCategories` array out of sandbox/src/data/rail-sidebar.ts and diffed it
+// against the database field by field, proving the import lost nothing. That claim is
+// now permanently settled — it passed 8/8 against the real file — and at M5 step 4 that
+// array was deleted, because the app reads the corpus and a second hand-maintained copy
+// would only guarantee drift.
 //
-// It deliberately does NOT trust the import script's own success message. An importer
-// reporting "154 inserted" is an assertion by the thing that did the work — precisely
-// the shape of claim this whole project exists to stop accepting. The check has to come
-// from re-reading the source, not from the writer's own account of what it wrote.
+// So this is RE-POINTED, not retired, and its meaning has changed honestly: it now diffs
+// the live corpus against `db/snapshots/rail-sidebar.json`, the frozen snapshot committed
+// in git (SANDBOX-SPEC §4.1 — "immutable and versioned in the other, generated from a
+// single source so they can never disagree").
+//
+// **The snapshot must stay frozen for this to mean anything.** It is regenerated only by
+// deliberately running `scripts/emit-corpus-snapshot.mjs`, never automatically. That is
+// what keeps this a real check rather than the database being compared with itself: an
+// unexplained change in Fabric fails here, while an intended one appears as a visible
+// commit regenerating the snapshot. If you ever find yourself regenerating the snapshot to
+// make this pass, stop — that is the check working, and the question is why the corpus
+// changed.
+//
+// It still deliberately does NOT trust any writer's own success message. An importer
+// reporting "154 inserted" is an assertion by the thing that did the work, which is the
+// shape of claim this whole project exists to stop accepting.
 //
 // Checklist item 12 is the reason this is field-by-field rather than a count: six group
 // nodes once silently lost an `icon` field, invisible because nothing errors when a
 // field is simply absent.
 // ═══════════════════════════════════════════════════════════════════════════════════
 
-import { mkdtemp, rm } from "node:fs/promises"
-import { tmpdir } from "node:os"
+import { readFile } from "node:fs/promises"
 import { join } from "node:path"
-import { pathToFileURL } from "node:url"
-import esbuild from "esbuild"
 import { REPO_ROOT, connect, sql } from "../verifier/lib/db.mjs"
 
-const SOURCE = join(REPO_ROOT, "sandbox", "src", "data", "rail-sidebar.ts")
 const SLUG = "rail-sidebar"
+const SNAPSHOT = join(REPO_ROOT, "db", "snapshots", `${SLUG}.json`)
 
 const results = []
 const check = (ok, label, note = "") => {
@@ -33,22 +46,30 @@ const check = (ok, label, note = "") => {
   console.log(`  ${ok ? "PASS" : "FAIL"}  ${label}${note ? `\n          ${note}` : ""}`)
 }
 
-const dir = await mkdtemp(join(tmpdir(), "verify-import-"))
-const out = join(dir, "data.mjs")
-await esbuild.build({
-  entryPoints: [SOURCE],
-  outfile: out,
-  bundle: true,
-  format: "esm",
-  platform: "node",
-  logLevel: "silent",
-})
-const { divergenceCategories } = await import(pathToFileURL(out).href)
-await rm(dir, { recursive: true, force: true })
+let snapshot
+try {
+  snapshot = JSON.parse(await readFile(SNAPSHOT, "utf8"))
+} catch (error) {
+  console.error(`Cannot read the frozen snapshot at ${SNAPSHOT}\n  ${error.message}`)
+  console.error(`Generate it with: node scripts/emit-corpus-snapshot.mjs ${SLUG}`)
+  process.exit(1)
+}
 
+// Rebuilt into the same {row, cat} shape the checks below already expect, so the
+// comparisons themselves are unchanged — only where the expected values come from.
 const source = new Map()
-for (const cat of divergenceCategories) {
-  for (const row of cat.rows) source.set(row.id, { row, cat })
+for (const r of snapshot.rows) {
+  const record = r.originRecord ?? {}
+  source.set(record.id ?? r.ref, {
+    row: {
+      id: record.id ?? r.ref,
+      what: record.what ?? r.title,
+      status: record.status,
+      detail: record.detail ?? r.detail,
+      visual: record.visual ?? r.visual ?? undefined,
+    },
+    cat: { id: (r.originCategory ?? r.category).split("—")[0].trim() },
+  })
 }
 
 let pool
