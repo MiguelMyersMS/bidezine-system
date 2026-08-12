@@ -58,6 +58,68 @@ for (const file of await readdir(CHECKS_DIR)) {
   specs.push(JSON.parse(await readFile(join(CHECKS_DIR, file), "utf8")))
 }
 
+/**
+ * anchor id → the file whose markup carries it.
+ *
+ * Located by searching the real source, never declared: §5.5's whole argument for an
+ * attribute over a stored selector is that the attribute moves with the code, so the code
+ * is the only honest place to ask where it lives.
+ */
+const ANCHOR_FILES = new Map()
+const ANCHOR_CANDIDATES = []
+{
+  const SEARCH_ROOTS = ["src", "site/src", "sandbox/src"]
+  const walk = async (dir, out = []) => {
+    let entries
+    try {
+      entries = await readdir(dir, { withFileTypes: true })
+    } catch {
+      return out
+    }
+    for (const e of entries) {
+      if (e.name === "node_modules" || e.name.startsWith(".")) continue
+      const p = join(dir, e.name)
+      if (e.isDirectory()) await walk(p, out)
+      else if (/\.(tsx?|jsx?)$/.test(e.name)) out.push(p)
+    }
+    return out
+  }
+  for (const root of SEARCH_ROOTS) {
+    for (const file of await walk(join(REPO_ROOT, root))) {
+      const body = await readFile(file, "utf8")
+      for (const m of body.matchAll(/data-divergence="([\w.-]+)"/g)) {
+        ANCHOR_FILES.set(m[1], file.replace(REPO_ROOT, "").replace(/^[\\/]/, "").replace(/\\/g, "/"))
+      }
+      // The rail's anchors are emitted through a helper rather than written literally, so
+      // a literal-attribute search alone would find none of them. anchor("F-7") is the
+      // real call site, and it is just as much "in the markup" as the attribute it emits.
+      for (const m of body.matchAll(/anchor\(\s*["']([\w.-]+)["']\s*\)/g)) {
+        if (!ANCHOR_FILES.has(m[1])) {
+          ANCHOR_FILES.set(m[1], file.replace(REPO_ROOT, "").replace(/^[\\/]/, "").replace(/\\/g, "/"))
+        }
+      }
+      // Third pass, for anchors handed to the helper through a PROP rather than inline —
+      // F-2 is `anchorRef={index === 0 ? "F-2" : undefined}`, so neither search above
+      // finds it. Restricted to files that already participate in anchoring, so a bare
+      // string like "F-2" occurring in unrelated prose cannot be mistaken for a call site.
+      if (/useDivergenceAnchor|data-divergence|anchorAttrs/.test(body)) {
+        ANCHOR_CANDIDATES.push({ body, path: file.replace(REPO_ROOT, "").replace(/^[\\/]/, "").replace(/\\/g, "/") })
+      }
+    }
+  }
+}
+
+// Resolve anything the two literal searches missed, from the anchoring files collected
+// above. Runs after the walk so every candidate file is known.
+for (const spec of specs) {
+  const id = spec.anchor
+  if (ANCHOR_FILES.has(id)) continue
+  // Plain string search rather than a built regex: the ids are simple (`F-2`, `F-2-icon`)
+  // and escaping a pattern built from data is a needless way to be wrong.
+  const hit = ANCHOR_CANDIDATES.find((c) => c.body.includes(`"${id}"`) || c.body.includes(`'${id}'`))
+  if (hit) ANCHOR_FILES.set(id, hit.path)
+}
+
 /** ref → { anchors:Set, properties:Set, states:Set } */
 const derived = new Map()
 for (const spec of specs) {
@@ -170,13 +232,34 @@ try {
       properties++
     }
 
+    // ── the divergence's own anchor columns ────────────────────────────────────────
+    // Found by locating the `data-divergence` attribute in the real markup, which is the
+    // whole premise of §5.5: the anchor lives in the code, so the code is what says where
+    // it is.
+    //
+    // These were NEVER POPULATED before M7 step 4, and the consequence was not cosmetic.
+    // The gate's `evidence.current` check reads:
+    //
+    //     FROM sandbox.divergence d JOIN sandbox.source_file sf ON sf.path = d.anchor_file
+    //
+    // With `anchor_file` NULL the join matches nothing, the check emits no unmet row, and
+    // the requirement is VACUOUSLY SATISFIED. One of the gate's five requirements — "this
+    // measurement is not older than the code it describes" — has therefore never been
+    // enforced for any row since M1. Found while wiring the invalidation sweep, because
+    // the sweep needed the same column and discovered it empty.
+    const anchorRef = d.subjects.find((s) => s.anchorId === d.ref) ?? d.subjects[0]
+    const anchorFile = anchorRef ? ANCHOR_FILES.get(anchorRef.anchorId) ?? null : null
     await pool
       .request()
       .input("id", sql.Int, id)
       .input("state", sql.NVarChar(20), d.state)
       .input("relation", sql.NVarChar(20), d.relation)
+      .input("anchor_id", sql.NVarChar(50), anchorRef?.anchorId ?? null)
+      .input("anchor_file", sql.NVarChar(400), anchorFile)
       .query(`UPDATE sandbox.divergence
-              SET subject_state = @state, relation = @relation, updated_at = SYSUTCDATETIME()
+              SET subject_state = @state, relation = @relation,
+                  anchor_id = @anchor_id, anchor_file = @anchor_file,
+                  updated_at = SYSUTCDATETIME()
               WHERE divergence_id = @id`)
   }
 

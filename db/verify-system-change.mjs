@@ -28,7 +28,7 @@
 
 import { connect, sql } from "../verifier/lib/db.mjs"
 
-const REF = "__SC_TEST__"
+const REF = "__SCT__"
 const SLUG = "__sc_test__"
 
 const results = []
@@ -64,13 +64,18 @@ async function as(role, body) {
 const CLEANUP = `
   UPDATE sandbox.divergence
     SET blocked_by = NULL, state = ISNULL(blocked_from_state, 'open'), blocked_from_state = NULL
-    WHERE blocked_by IN (SELECT system_change_id FROM sandbox.system_change WHERE ref_code LIKE '${REF}%');
+    WHERE blocked_by IN (SELECT system_change_id FROM sandbox.system_change WHERE LEFT(ref_code, 7) = '__SCT__');
+  DELETE dd FROM sandbox.divergence_dependency dd JOIN sandbox.divergence d ON d.divergence_id = dd.divergence_id JOIN sandbox.component c ON c.component_id = d.component_id WHERE c.slug = '${SLUG}';
+  DELETE e FROM sandbox.evidence e JOIN sandbox.divergence d ON d.divergence_id = e.divergence_id JOIN sandbox.component c ON c.component_id = d.component_id WHERE c.slug = '${SLUG}';
   DELETE d FROM sandbox.divergence d JOIN sandbox.component c ON c.component_id = d.component_id WHERE c.slug = '${SLUG}';
   DELETE FROM sandbox.component WHERE slug = '${SLUG}';
-  DELETE FROM sandbox.system_change WHERE ref_code LIKE '${REF}%';`
+  DELETE FROM sandbox.system_change WHERE LEFT(ref_code, 7) = '__SCT__';`
 
 let divergenceId
 let scId
+// A second system change, used for the sweep section: the first one lands mid-suite to
+// prove the lifecycle, and a landed change cannot be landed twice.
+let scId2
 
 try {
   divergenceId = await as("ADMIN", async (admin) => {
@@ -153,7 +158,12 @@ try {
       .request()
       .input("system_change_id", sql.Int, scId)
       .input("impact_assessment", sql.NVarChar(sql.MAX), "Reaches every icon consumer; ~40 evidence rows would need re-verification.")
-      .input("affected_paths", sql.NVarChar(sql.MAX), JSON.stringify(["icons/manifest.json", "src/lib/**"]))
+      // FICTIONAL paths, and this matters. This change LANDS later in the suite, and
+      // landing runs the sweep. Realistic values here (`src/lib/**`, `icons/manifest.json`)
+      // match what real divergences genuinely depend on, so the suite marked 40 real
+      // evidence rows stale while reporting 17/17 — a fixture quietly invalidating the
+      // corpus it was meant to be testing beside.
+      .input("affected_paths", sql.NVarChar(sql.MAX), JSON.stringify(["__fixture__/icons.json", "__fixture__/lib/**"]))
       .execute("sandbox.usp_assess_system_change")
   })
 
@@ -232,6 +242,97 @@ try {
       !!blockOnClosed,
       "nothing new may be blocked on a change that already closed",
       (blockOnClosed ?? "IT SUCCEEDED — work could be parked behind a door that never opens").slice(0, 120),
+    )
+  })
+
+  // ── the invalidation sweep (M7 step 4) ───────────────────────────────────────────
+  //
+  // P5, in one test: a change lands in a primitive, and the evidence measured against the
+  // old version of that primitive stops being green. The case that matters is the one
+  // path-matching misses — the fixture's evidence is anchored nowhere near `src/ui/`, and
+  // is invalidated because its recorded DEPENDENCIES say it relies on Button.
+  console.log("\nlanding a system change invalidates the evidence that depended on it\n")
+
+  await as("ADMIN", async (admin) => {
+    // A dependency the fixture has and NOTHING REAL DOES.
+    //
+    // The first version of this used 'src/ui/button.tsx' with affected_paths
+    // '["src/ui/**"]', which is realistic and was exactly the problem: real rail-sidebar
+    // divergences genuinely depend on that path, so landing the fixture's change swept
+    // 40 real evidence rows and left them stale. A test fixture that mutates production
+    // data is worse than no test — it passed 17/17 while quietly invalidating the corpus.
+    //
+    // A fictional path proves the same mechanism (does dependency matching select the
+    // right rows?) while being structurally incapable of matching anything real.
+    await admin.request().input("id", sql.Int, divergenceId).query(`
+      INSERT INTO sandbox.divergence_dependency (divergence_id, path)
+      VALUES (@id, '__fixture__/only-this.tsx');
+      INSERT INTO sandbox.evidence
+        (divergence_id, kind, check_spec, raw_output, passed, verified_at_commit, verified_at_commit_at, run_id)
+      VALUES (@id, 'measurement', '{"expect":{"height":32}}', 'measured: {"height":32}', 1,
+              REPLICATE('a', 40), SYSUTCDATETIME(), NEWID());`)
+  })
+
+  // A change somewhere the fixture does NOT depend on must sweep nothing. Without this,
+  // a sweep that simply marked everything would pass the positive test and be useless.
+  const unrelatedId = await as("ADMIN", async (admin) => {
+    const r = (
+      await admin.request().query(`
+        INSERT INTO sandbox.system_change (ref_code, title, state, impact_assessment, affected_paths)
+        OUTPUT INSERTED.system_change_id
+        VALUES ('${REF}_UNRELATED', 'Fixture: a change elsewhere', 'assessing', 'Probe.', '["site/**"]')`)
+    ).recordset[0].system_change_id
+    scId2 = (
+      await admin.request().query(`
+        INSERT INTO sandbox.system_change (ref_code, title, state, impact_assessment, affected_paths)
+        OUTPUT INSERTED.system_change_id
+        VALUES ('${REF}_SWEEP', 'Fixture: a change only the fixture depends on', 'assessing', 'Probe.', '["__fixture__/**"]')`)
+    ).recordset[0].system_change_id
+    return r
+  })
+
+  await as("APP", async (app) => {
+    const radius = (
+      await app.request().input("id", sql.Int, unrelatedId).query(
+        `SELECT ref_code FROM sandbox.fn_system_change_blast_radius(@id) WHERE ref_code = 'SC-T1'`,
+      )
+    ).recordset
+    check(radius.length === 0, "a change touching an unrelated path sweeps nothing", `${radius.length} row(s) matched`)
+
+    const hit = (
+      await app.request().input("id", sql.Int, scId2).query(
+        `SELECT ref_code, reason FROM sandbox.fn_system_change_blast_radius(@id) WHERE ref_code = 'SC-T1'`,
+      )
+    ).recordset
+    check(
+      hit.length === 1 && /depends on a path/.test(hit[0].reason),
+      "a change touching a path it DOES depend on is in the blast radius, for the stated reason",
+      hit[0]?.reason,
+    )
+
+    await app
+      .request()
+      .input("system_change_id", sql.Int, scId2)
+      .input("approved_by", sql.NVarChar(100), "human:test")
+      .execute("sandbox.usp_approve_system_change")
+    const result = (
+      await app
+        .request()
+        .input("system_change_id", sql.Int, scId2)
+        .input("landed_commit", sql.Char(40), "c".repeat(40))
+        .execute("sandbox.usp_land_system_change")
+    ).recordset[0]
+    check(result.stale_evidence >= 1, "landing it marks the dependent evidence stale", JSON.stringify(result))
+
+    const ev = (
+      await app.request().input("id", sql.Int, divergenceId).query(
+        `SELECT is_stale, stale_reason FROM sandbox.evidence WHERE divergence_id = @id`,
+      )
+    ).recordset
+    check(
+      ev.every((e) => e.is_stale) && ev.every((e) => !!e.stale_reason),
+      "and every stale row carries a reason — ck_evidence_stale forbids an unexplained one",
+      ev[0]?.stale_reason?.slice(0, 90),
     )
   })
 } finally {

@@ -32,12 +32,13 @@ which cannot be fixed from here.
 
 ### Active task
 
-**M1–M6 are complete and verified. M7 is IN PROGRESS — steps 1, 2 and 3 of 5 are done.** M6 closed all three of
+**M1–M6 are complete and verified. M7 is IN PROGRESS — steps 1, 2, 3 and 4 of 5 are done.** M6 closed all three of
 its own "done when" criteria: the toggle cannot be enabled until requirements are genuinely met
 (proven by attempting it), approving takes about 3 seconds against a hard one-minute budget, and
 reopening cascades and writes a false-completion record.
 
-**Next: M7 step 4, the invalidation sweep.** Its design question is already settled — see "What's next".
+**Next: M7 step 5, one-command batch re-verification.** It is the last step, and the smallest: blocking
+already works and the sweep now produces the stale set it has to clear.
 
 **First thing to do on this machine: reconnect the sandbox MCP server.** Its tools
 (`mcp__sandbox__*`) did not attach to the last session — `ToolSearch` found none of them. The server
@@ -70,7 +71,7 @@ npm --prefix db run verify                 # 15/15 — the gate and its permissi
 npm --prefix verifier run verify           # 12/12 — the runner is worth trusting
 npm --prefix mcp run verify                # 14/14 — the agent surface, over the real protocol
 npm --prefix db run verify-import          #   9/9 — corpus vs the FROZEN snapshot (drift detection)
-npm --prefix db run verify-system-change   # 13/13 — the higher-ceremony lifecycle, as real principals
+npm --prefix db run verify-system-change   # 17/17 — the higher-ceremony lifecycle + the sweep, as real principals
 npm --prefix sandbox run verify            # 18/18 — M6: the gate refuses, approves, and cascades
 node scripts/check-declarations.mjs        #   5/5 — declarations agree with the evidence
 node scripts/check-scope-detection.mjs     # 17/17 — system vs component classification
@@ -438,6 +439,37 @@ choice, not a typo fix.
 verifier has nothing to measure for any of them. Anchors have to be added to the real markup before
 any of those rows can leave `legacy_unverified`.
 
+**M7 step 4 — the invalidation sweep.** Migration **013** adds `divergence_dependency` and
+`fn_system_change_blast_radius`, and puts the sweep inside `usp_land_system_change` so it fires on
+landing rather than on remembering to run it. `scripts/lib/dependencies.mjs` +
+`scripts/scan-dependencies.mjs` resolve each divergence's real import graph
+(`buildExportMap` expands the wildcard re-exports in `src/index.ts`, 194 declared names → **460**
+resolvable ones — without that expansion almost every `@bidezine/system` import resolves to nothing).
+Proven end to end: landing a change touching `src/ui/**` swept exactly the 7 divergences that genuinely
+depend on a primitive and marked their 40 evidence rows stale.
+
+**Three things step 4 found that were not what it went looking for:**
+
+- **`evidence.current` has been vacuously passing since M1.** The gate's requirement reads
+  `JOIN sandbox.source_file sf ON sf.path = d.anchor_file` — and `anchor_file` was **NULL on all 155
+  rows**, so the join matched nothing, no unmet row was emitted, and "this measurement is not older
+  than the code it describes" was satisfied by having nothing to compare. `source_file` was empty too.
+  Found only because the sweep needed the same column. Fixed: `declare-divergences.mjs` now locates
+  each anchor in the real markup and populates `anchor_id`/`anchor_file`, and `sync-source` fills
+  `source_file`. **A requirement that cannot fail is not a requirement** — worth grepping the other
+  four for the same shape.
+- **Migration 014 exists because 013 was right for the wrong reason.** Every swept row came back
+  labelled *"no recorded dependencies — swept because unscanned is not the same as unaffected"* when
+  all 7 had in fact matched by real dependency, caused by a leftover `LEFT JOIN ... ON 1 = 0`. The
+  reason is not decoration: "re-verify this" and "go and add an anchor" are different jobs, and a
+  sweep that always says the second trains people to ignore it.
+- **The proof suite was contaminating the corpus while reporting 17/17.** Its fixtures used realistic
+  `affected_paths` (`src/ui/**`, `src/lib/**`) and one of them LANDS mid-suite — so every run silently
+  marked all 40 real evidence rows stale. Both fixtures now use `__fixture__/` paths that nothing real
+  depends on; the sweep section moved from `swept_divergences: 8` to `1`, and a post-run count confirms
+  **40 evidence rows, 0 stale**. A fixture that mutates production data is worse than no fixture — it
+  passes, so nobody looks.
+
 ### What's next
 
 **M7 is in progress — system changes and invalidation.** Read §6's M7 section first; the notes below
@@ -472,21 +504,22 @@ are what this session learned that its "done when" list does not say.
      `blocked_by` without `state`, and `ck_divergence_blocked` refused it — *"'blocked' is not a
      mood."* Blocking now also moves the state, and `blocked_from_state` remembers what to restore,
      so unblocking is lossless.
-4. **The invalidation sweep** ← **START HERE.** **The design question is already settled** — see
-   below. `usp_land_system_change` (migration 011) is the hook it attaches to: landing is the moment
-   every evidence row measured against the old world becomes suspect.
-5. **One-command batch re-verification.** Blocking itself already works — `usp_block_divergence` plus
-   the `sandbox_block_divergence` MCP tool, and the gate reports `divergence.blocked` naming the
-   change. What remains is re-running everything a sweep marked stale, in one command.
+4. ~~**The invalidation sweep**~~ — **done.** Migrations 013 + 014, `scripts/lib/dependencies.mjs`,
+   `scripts/scan-dependencies.mjs`, **17/17**. Both halves of §6's first "done when" are covered:
+   landing marks affected evidence stale AND drops an already-`promoted` component back to `reopened`
+   with its `promoted_commit` cleared (`fn_component_unmet` would refuse a *future* promotion, but it
+   has no opinion about one that already happened). Details in "What's done".
+5. **One-command batch re-verification** ← **START HERE.** Blocking itself already works —
+   `usp_block_divergence` plus the `sandbox_block_divergence` MCP tool, and the gate reports
+   `divergence.blocked` naming the change. What remains is re-running everything a sweep marked stale,
+   in one command. §5.3 already lists batch mode as something the M2 runner is expected to grow.
 
-**Step 4's design question, decided:** *how does the sweep know which evidence a system change
-affects?* **Derive the dependency from imports, and default to over-invalidating.** For each
-divergence, resolve its `anchor_file` through its own import graph down to which `src/ui/*` primitives
-and `tokens/*` it depends on — `FunctionalRailSidebar.tsx` imports `Button`, so F-2 provably depends
-on `src/ui/button.tsx`. Mark stale any evidence whose divergence's dependency set intersects the
-change's `affected_paths`. Reuses the import scanning already in `check-quarantine.mjs`; the one new
-piece is an export-name → source-file lookup derived from `src/index.ts`, because imports cross the
-`@bidezine/system` package boundary rather than pointing at `src/ui/` directly.
+**Step 4's design question, decided and now implemented:** *how does the sweep know which evidence a
+system change affects?* **Derive the dependency from imports, and default to over-invalidating.** For
+each divergence, resolve its `anchor_file` through its own import graph down to which `src/ui/*`
+primitives and `tokens/*` it depends on — `FunctionalRailSidebar.tsx` imports `Button`, so F-2 provably
+depends on `src/ui/button.tsx`. Mark stale any evidence whose divergence's dependency set intersects
+the change's `affected_paths`.
 
 **And when the scan is unsure, mark it stale.** A false "stale" costs one batch re-run; a false
 "current" is a false green. The asymmetry is not close. *(Rejected: matching on `anchor_file` alone —
