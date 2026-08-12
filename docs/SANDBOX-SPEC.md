@@ -116,12 +116,55 @@ never disagree.
 
 | Layer | Technology | Consequence to plan for |
 |---|---|---|
-| Operational store | **Fabric SQL Database** | Azure SQL underneath → real roles and `GRANT`/`DENY`, which is what invariant 4 depends on. Auth is Entra ID, so tokens expire; needs a service principal and a defined mid-session expiry behaviour. **No offline story** — the app degrades to read-only against a cached snapshot rather than breaking. Consumes Fabric capacity. |
+| Operational store | **Fabric SQL Database** | Azure SQL underneath → real roles and `GRANT`/`DENY`, which is what invariant 4 depends on. Auth is Entra ID only — **SQL logins are not supported at all**, so every role needs its own service principal. **No offline story** — the app degrades to read-only against a cached snapshot rather than breaking. Consumes Fabric capacity. See §4.3 for platform constraints found the hard way. |
 | Analytics | **OneLake mirror → Power BI** | Free with Fabric SQL. Delivers §9's metrics with no extra pipeline. A genuine argument for choosing Fabric over plain Postgres. |
 | Agent access | **MCP server**, TypeScript SDK, `mssql`/`tedious` | The only path agents use. Scoped to the `agent_rw` role — structurally cannot write evidence. |
 | Verification | **Node + Playwright** | Already the tool used for live measurement in this project. Runs as CLI locally and in CI. Holds the only credential that can write evidence. |
 | App | **React 19 + Vite 7 + `@bidezine/system`** | Same stack as `limbo-factory/` today. No hand-rolled components, per the standing rule. |
 | Origin quarantine | **`<iframe srcdoc>` / isolated document** | Origin CSS and JS cannot reach the translation pane. Enforced by a lint rule, not by care. |
+
+### 4.3 Fabric SQL platform constraints — found by running, not by reading
+
+Every item here was discovered by executing something against the real database and
+watching it fail. None was visible in the schema, in a permissions listing, or in a
+successful migration. They are recorded here so no future session re-derives them.
+
+**`EXECUTE AS` is not supported.** Procedures declared `WITH EXECUTE AS OWNER` are
+created without complaint and then fail at call time with *"'EXECUTE AS' statement is not
+supported on the 'Microsoft Fabric' platform."* The gate originally depended on it.
+
+The replacement is **ownership chaining**, which is better anyway: every object in the
+`sandbox` schema shares one owner, so when a procedure touches a table with the same
+owner, SQL Server skips the permission check on that table entirely. A caller denied
+`UPDATE` on `divergence.state` can therefore reach it through the gate procedure and
+nowhere else — the exact property required, with no impersonation involved.
+
+Two conditions keep that working, and both must be respected when extending the gate:
+
+- **No dynamic SQL.** `EXEC`/`sp_executesql` inside a procedure breaks the chain and the
+  caller's own permissions are checked again. There is none today.
+- **One owner for the whole schema.** Creating a `sandbox` object as a different
+  principal silently breaks the chain for everything that touches it.
+
+**Two independent permission layers, and only one of them is ours.** Fabric item/workspace
+RBAC decides whether a principal may *open a connection at all* — a valid database user is
+not sufficient, and without at least Viewer the login fails with *"Validation of user's
+permissions failed."* SQL `GRANT`/`DENY` then decides what it may *do* once connected.
+
+Verified empirically against `sys.database_role_members` and `sys.database_permissions`:
+`app`/`agent`/`runner` belong to no built-in role and hold exactly one permission each
+(`CONNECT`). Granting Fabric Viewer conferred no DDL rights — `CREATE TABLE` still failed.
+**Fabric's layer cannot override a SQL `DENY`**, which is what makes invariant 4
+trustworthy on this platform rather than merely intended.
+
+**Item-level permission grants are not available via the REST API today**, so scoping
+access to a single database item is not currently possible. The workspace is therefore
+named `bidezine-sandbox` and holds only Sandbox items; non-Sandbox work goes elsewhere.
+This is a naming discipline standing in for a missing platform feature — if item-level
+sharing ships, prefer it.
+
+**SQL authentication does not exist here.** Entra ID only. Every role needs its own
+service principal; there is no password-based fallback for local development.
 
 ---
 

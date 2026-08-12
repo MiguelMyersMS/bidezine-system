@@ -1,0 +1,16 @@
+{
+  "name": "bidezine-sandbox-db",
+  "version": "0.0.0",
+  "description": "Schema, roles and migration runner for the Sandbox's Fabric SQL Database.",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "migrate": "node run.mjs migrations",
+    "bootstrap": "node run.mjs bootstrap",
+    "verify": "node verify-invariant.mjs"
+  },
+  "dependencies": {
+    "mssql": "^11.0.1"
+  }
+}
