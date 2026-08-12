@@ -219,6 +219,107 @@ function parseEvidence(raw, checkSpec) {
   }
 }
 
+/**
+ * Every machine, what it owns, and how that work is going — M8's "watch another machine's
+ * component progress" (spec §6).
+ *
+ * Read as `app_rw`, which is a SELECT and nothing more. That is the honest shape of
+ * observation: the same connection that renders this view is DENIED the writes it would
+ * need to act on it (migration 015's `owner_machine_id` DENY, migration 016's guard), so
+ * the read-only-ness is a property of the credential rather than of the component that
+ * happens to be rendering.
+ *
+ * `isThisMachine` is computed HERE, against `.env`, rather than in the browser. The client
+ * has no way to know which machine it is running on — it would have to be told, and a
+ * value the client is told is a value the client can be wrong about.
+ */
+export async function getMachines() {
+  const { connect } = await db()
+  const here = await machineName()
+  let pool
+  try {
+    pool = await connect("APP")
+    const machines = (
+      await pool.request().query(`
+        SELECT m.machine_id, m.name, m.is_primary
+        FROM   sandbox.machine m
+        ORDER  BY m.is_primary DESC, m.name`)
+    ).recordset
+
+    // Components with their progress, joined to their owner. Unowned components are
+    // included with a NULL owner rather than dropped: "nobody has claimed this" is a real
+    // state a human needs to see, and hiding it would make the switcher's totals disagree
+    // with the corpus everyone else is reading.
+    const components = (
+      await pool.request().query(`
+        SELECT   c.slug, c.title, c.state, c.promoted_commit,
+                 owner = m.name,
+                 total    = COUNT(d.divergence_id),
+                 resolved = SUM(CASE WHEN d.state = 'resolved' THEN 1 ELSE 0 END),
+                 blocked  = SUM(CASE WHEN d.state = 'blocked'  THEN 1 ELSE 0 END),
+                 stale    = (SELECT COUNT(*) FROM sandbox.evidence e
+                             JOIN sandbox.divergence dd ON dd.divergence_id = e.divergence_id
+                             WHERE dd.component_id = c.component_id AND e.is_stale = 1)
+        FROM     sandbox.component c
+        LEFT     JOIN sandbox.machine m    ON m.machine_id   = c.owner_machine_id
+        LEFT     JOIN sandbox.divergence d ON d.component_id = c.component_id
+        GROUP BY c.component_id, c.slug, c.title, c.state, c.promoted_commit, m.name
+        ORDER BY c.slug`)
+    ).recordset
+
+    // The audit trail, most recent first. This is what makes "transferring is an audited
+    // event" visible to a person rather than only true in a table.
+    const transfers = (
+      await pool.request().query(`
+        SELECT TOP 20 c.slug, f.name AS from_name, t.name AS to_name,
+               ot.note, ot.transferred_at, ot.transferred_by
+        FROM   sandbox.ownership_transfer ot
+        JOIN   sandbox.component c ON c.component_id = ot.component_id
+        LEFT   JOIN sandbox.machine f ON f.machine_id = ot.from_machine_id
+        LEFT   JOIN sandbox.machine t ON t.machine_id = ot.to_machine_id
+        ORDER  BY ot.transfer_id DESC`)
+    ).recordset
+
+    return {
+      thisMachine: here,
+      // Said explicitly rather than inferred from a missing name. A Sandbox with no
+      // MACHINE_NAME cannot write anything (migration 016 refuses a nameless write), and
+      // that is worth stating in the UI instead of looking like an ordinary observer.
+      unidentified: !here,
+      machines: machines.map((m) => ({
+        name: m.name,
+        isPrimary: !!m.is_primary,
+        isThisMachine: !!here && m.name === here,
+        components: components.filter((c) => c.owner === m.name).map(toComponentSummary),
+      })),
+      unowned: components.filter((c) => !c.owner).map(toComponentSummary),
+      transfers: transfers.map((t) => ({
+        slug: t.slug,
+        from: t.from_name,
+        to: t.to_name,
+        note: t.note,
+        at: t.transferred_at,
+        by: t.transferred_by,
+      })),
+    }
+  } catch (error) {
+    return { error: error.message }
+  } finally {
+    await pool?.close()
+  }
+}
+
+const toComponentSummary = (c) => ({
+  slug: c.slug,
+  title: c.title,
+  state: c.state,
+  promotedCommit: c.promoted_commit,
+  total: c.total,
+  resolved: c.resolved,
+  blocked: c.blocked,
+  stale: c.stale,
+})
+
 /** Everything needed to decide one divergence, in one round trip. */
 export async function getDivergenceBundle(slug, ref) {
   const { connect, sql } = await db()
@@ -300,6 +401,25 @@ export async function getDivergenceBundle(slug, ref) {
       await pool.request().input("divergence_id", sql.Int, id).execute("sandbox.usp_divergence_gate_status")
     ).recordset
 
+    const here = await machineName()
+    const ownerRow = (
+      await pool.request().input("slug", sql.NVarChar(100), slug).query(`
+        SELECT o.owner_name, o.is_owned
+        FROM   sandbox.component c
+        CROSS  APPLY sandbox.fn_component_owner(c.component_id) o
+        WHERE  c.slug = @slug`)
+    ).recordset[0]
+
+    const ownership = {
+      thisMachine: here,
+      owner: ownerRow?.owner_name ?? null,
+      // Mirrors migration 016's fn_component_write_refusal exactly: a nameless caller may
+      // not write, an unowned component is writable by anyone, otherwise it must be yours.
+      // This is a courtesy copy for the UI — the database refuses independently, and the
+      // suite drives that path rather than this one.
+      mayWrite: !!here && (!ownerRow?.is_owned || ownerRow.owner_name === here),
+    }
+
     return {
       divergence: {
         ref,
@@ -328,6 +448,16 @@ export async function getDivergenceBundle(slug, ref) {
         relation: idRow.relation,
       },
       gate: { ready: unmet.length === 0, unmet },
+      // Ownership travels with the bundle so the widget can say WHY it will not let you
+      // approve, in the same round trip that told it the gate is clean. Fetching it
+      // separately would leave a window where the gate reads ready and ownership has not
+      // arrived — and an Approve button that is briefly enabled for a component you do not
+      // own is exactly the "every control stays live" failure the bundle-clearing comment
+      // above already records once.
+      //
+      // `mayWrite` is computed on the server, from `.env`, for the same reason
+      // `isThisMachine` is: the browser cannot know which machine it is.
+      ownership,
       evidence: evidence.map((e) => {
         const spec = parseJson(e.check_spec)
         return {
@@ -491,6 +621,11 @@ export function corpusApiMiddleware() {
         return json(payload, payload.error ? 503 : 200)
       }
 
+      if (url.startsWith("/api/machines")) {
+        const payload = await getMachines()
+        return json(payload, payload.error ? 503 : 200)
+      }
+
       // Screenshot artifacts, served adjacent to their evidence rather than linked away.
       const artifact = url.match(/^\/api\/artifact\/([\w.\-]+\.png)$/)
       if (artifact) {
@@ -524,7 +659,13 @@ export function corpusApiMiddleware() {
         // A gate refusal is 409, not 500: the request was well-formed and the system
         // deliberately declined it. Conflating the two would make a working invariant look
         // like a bug.
-        return json(payload, payload.error ? (payload.refusedByGate ? 409 : 400) : 200)
+        //
+        // An ownership refusal is 403, and separately from 409 on purpose: 409 means "come
+        // back when the evidence is there", 403 means "this is not yours and no amount of
+        // evidence changes that". A UI that showed both as the same refusal would invite
+        // someone to go and produce evidence for a component they cannot write to.
+        const status = payload.error ? (payload.refusedByOwnership ? 403 : payload.refusedByGate ? 409 : 400) : 200
+        return json(payload, status)
       }
 
       return json({ error: "unknown endpoint" }, 404)

@@ -24,6 +24,28 @@ Adjusting before verifying makes it impossible to tell a deliberate change from 
 
 ## Handoff protocol — `HANDOFF.md`
 
+> **Sandbox Milestone 8 changed what this file is for. Read this before the rules below.**
+>
+> **Ownership is no longer prose.** Which machine owns which component, what state it is in, how much of
+> its evidence is stale, and every hand-over that ever happened are rows in `sandbox.machine`,
+> `sandbox.component.owner_machine_id` and `sandbox.ownership_transfer`. Run **`node scripts/machines.mjs`**
+> — that is now the authoritative answer to "who is working on what", and it is the first thing to run
+> when picking up work, before reading anything below.
+>
+> It is **enforced, not documented**: `usp_resolve_divergence` and `usp_promote_component` require the
+> calling machine to name itself and refuse when it is not the owner (migration 016); ownership moves
+> only through `usp_transfer_component`, which demands a stated reason and writes an audit row
+> (migration 015). One caveat, stated because it matters: all three machines share one `app_rw` service
+> principal, so the machine name is asserted by the caller rather than proven by the connection. This
+> stops the ACCIDENT — a session reading a stale file and helpfully finishing another machine's work —
+> which is exactly the failure the "only edit your own section" rule below exists to prevent. It does
+> not stop a caller that lies.
+>
+> **`HANDOFF.md` survives for the residue the database has nowhere to put**: "I was midway through X,
+> and Y looked wrong." That is not a component, a divergence or an ownership record. The rules below
+> still govern that residue — in particular the one-section-per-machine rule, which is unchanged. What
+> has changed is that this file is no longer where you look to find out what another machine OWNS.
+
 `HANDOFF.md` (repo root) exists specifically because chat sessions in this environment have, more than
 once, become corrupted mid-conversation (every new message failing) with real, uncommitted work still
 sitting in the working tree — and a pasted chat transcript as the recovery mechanism is fragile: a new
@@ -134,7 +156,8 @@ _(the same five subsections; until the machine is set up, this section reads "No
 | `origin/` | **Quarantined source material** — the self-contained copy of whatever foreign system a component is being ported from, one folder per occupant. **Never imported by, and never compiled into, any bidezine app.** Where an occupant needs to actually *run* for comparison, it does so as its own standalone project under `origin/<occupant>/app/` — its own `package.json`, `tsconfig.json` and bundle — which a bidezine app embeds with `<iframe src>` and nothing more. Formerly `limbo/`. |
 | `scripts/check-quarantine.mjs` | Executable enforcement of the boundary above. Fails the build on any import from `src/`, `site/src/`, `sandbox/src/` (or the tooling trees) that reaches into `origin/`, including a relative `../../origin/...` climb that would otherwise resolve fine. Also fails if the two duplicated halves of the origin embed contract drift apart. |
 | `sandbox/` | Local dev environment (port 4199) for components mid-transformation, built entirely from real `@bidezine/system` components. Never merged into `dist/` or shipped. Formerly `limbo-factory/`. Governed by `docs/SANDBOX-SPEC.md`; `SANDBOX-PROTOCOL-LOG.md` is its append-only history. |
-| `HANDOFF.md` | Live, always-current session state snapshot — NOT a log. Overwritten in place on every update; collapses to an empty template when nothing is in progress. See "Handoff protocol" above for the full rules. |
+| `HANDOFF.md` | Live, always-current session state snapshot — NOT a log. Overwritten in place on every update; collapses to an empty template when nothing is in progress. Since Sandbox M8 it no longer carries ownership — `node scripts/machines.mjs` does. See "Handoff protocol" above. |
+| `scripts/machines.mjs` | Who owns which component, its progress, and every audited ownership hand-over. The authoritative answer to "what is that machine working on", replacing the prose that used to live in `HANDOFF.md`. |
 
 ## Rules that matter
 
@@ -909,6 +932,9 @@ a genuinely new failure category is found — not evidence the list is now compl
 
 Laptop A, Laptop B, and a PC all work `main` directly. `origin` is the only source of truth — unpushed
 work does not travel.
+
+**Who owns what is a query, not a convention** (Sandbox M8): `node scripts/machines.mjs`. One component
+belongs to one machine, and the database refuses a foreign machine's attempt to resolve or promote it.
 
 **Pull when you sit down · push when you get up · commit small and often.**
 Work room-by-room: one person per file.

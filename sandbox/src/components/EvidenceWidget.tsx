@@ -84,6 +84,8 @@ export type Bundle = {
   approvals: { approval_id: number; approved_by: string; approved_at_commit: string; note: string | null; created_at: string }[]
   falseCompletions: { false_completion_id: number; requirement_type: string; reason: string; discovered_by: string; created_at: string }[]
   headCommit: string
+  /** M8. Optional so an older/cached payload cannot break the widget — see `mayWrite`. */
+  ownership?: { thisMachine: string | null; owner: string | null; mayWrite: boolean }
   error?: string
 }
 
@@ -135,8 +137,17 @@ export function EvidenceWidget({ slug, refCode, onChanged }: { slug: string; ref
   if (!bundle) return <p className="p-4 text-sm text-muted-foreground">Loading evidence…</p>
   if (bundle.error) return <p className="p-4 text-sm text-muted-foreground">{bundle.error}</p>
 
-  const { divergence, gate, evidence, reviews, approvals, falseCompletions } = bundle
+  const { divergence, gate, evidence, reviews, approvals, falseCompletions, ownership } = bundle
   const resolved = divergence.state === "resolved"
+
+  // Defaults to TRUE when the server sent no ownership block, so an older payload shape
+  // cannot silently disable every Approve button in the app. The database is the thing
+  // that actually refuses; this layer failing open is a cosmetic bug, whereas failing
+  // closed would look exactly like the gate being broken.
+  const mayWrite = ownership?.mayWrite ?? true
+  const ownershipReason = !ownership?.thisMachine
+    ? "This Sandbox has no MACHINE_NAME set, so the database refuses any write that would have to name a machine."
+    : `${ownership.owner} owns this component. Approving it is refused by the database, not by this button.`
 
   async function act(verb: "approve" | "reopen", body: object) {
     setBusy(true)
@@ -315,25 +326,41 @@ export function EvidenceWidget({ slug, refCode, onChanged }: { slug: string; ref
           </div>
         </div>
       ) : (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             size="sm"
-            disabled={busy || !gate.ready || resolved}
+            // M8: two independent reasons this cannot succeed, and they are NOT the same
+            // refusal. A closed gate says "come back when the evidence is there"; foreign
+            // ownership says "this is not yours, and no amount of evidence changes that".
+            // Both are enforced by the database (migrations 002 and 016) — this is still
+            // the courtesy layer M6's comment above describes, now with a second reason.
+            disabled={busy || !gate.ready || resolved || !mayWrite}
             onClick={() => act("approve", {})}
             title={
-              gate.ready
-                ? "Records the approval and moves this to resolved"
-                : "The gate is closed. Pressing this cannot succeed — the database refuses the transition."
+              !mayWrite
+                ? ownershipReason
+                : gate.ready
+                  ? "Records the approval and moves this to resolved"
+                  : "The gate is closed. Pressing this cannot succeed — the database refuses the transition."
             }
           >
             {resolved ? "Resolved" : "Approve"}
           </Button>
+          {/* Reopen stays available to an observer on purpose. Migration 016 does not gate
+              it: reporting a false completion is exactly the job of someone who did not do
+              the work, and a read-only observer that cannot raise a concern is a silent
+              bystander. */}
           <Button size="sm" variant="outline" disabled={busy} onClick={() => setReopening(true)}>
             Reopen…
           </Button>
           <span className="text-xs text-muted-foreground">
             against <code>{bundle.headCommit.slice(0, 8)}</code>
           </span>
+          {!mayWrite && (
+            <Badge variant="secondary" className="ml-auto">
+              {ownership?.owner ? `owned by ${ownership.owner}` : "no machine identity"}
+            </Badge>
+          )}
         </div>
       )}
     </div>

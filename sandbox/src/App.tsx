@@ -24,6 +24,7 @@ import { LogoImportSlot } from "@/components/LogoImportSlot"
 import { DivergenceHighlight, useAnchoredRefs } from "@/components/DivergenceHighlight"
 import { NoPreviewRegistered, PREVIEW_REGISTRY, hasPreview } from "@/components/PreviewRegistry"
 import { EvidenceWidget } from "@/components/EvidenceWidget"
+import { MachineSwitcher } from "@/components/MachineSwitcher"
 import { toCategories, useCorpus, type CorpusComponent, type CorpusDivergence } from "@/data/corpus"
 import { NEGATIVE_BADGE, POSITIVE_BADGE } from "@/lib/status-colors"
 import {
@@ -377,6 +378,7 @@ function HumanDecisionsPhase({ slug, rows }: { slug: string; rows: CorpusDiverge
           <TabsTrigger value="typelab">Typography lab</TabsTrigger>
           <TabsTrigger value="categories">Full divergence list</TabsTrigger>
           <TabsTrigger value="risks">Notable risks</TabsTrigger>
+          <TabsTrigger value="machines">Machines</TabsTrigger>
         </TabsList>
         <div className="flex items-center gap-2">
           <RailSourceToggle value={railSource} onChange={setRailSource} />
@@ -443,6 +445,16 @@ function HumanDecisionsPhase({ slug, rows }: { slug: string; rows: CorpusDiverge
       <TabsContent value="risks" className="row-start-2 box-border min-h-0 min-w-0 w-full overflow-hidden p-[6px]">
         <QuadrantLayout right={renderRailNav}>
           <RisksList risks={notableRisks} />
+        </QuadrantLayout>
+      </TabsContent>
+
+      {/* M8. Mounted inside QuadrantLayout like every other tab rather than as a full-width
+          view of its own: the left column already implements the scroll-region protocol
+          correctly (its own ScrollArea plus QuadrantScrollGutter's conditional gutter), and
+          a second, parallel scroll composition built for one tab is how those two drift. */}
+      <TabsContent value="machines" className="row-start-2 box-border min-h-0 min-w-0 w-full overflow-hidden p-[6px]">
+        <QuadrantLayout right={renderRailNav}>
+          <MachineSwitcher />
         </QuadrantLayout>
       </TabsContent>
     </Tabs>
