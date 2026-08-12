@@ -1,0 +1,16 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "F-3",
+  "url": "http://localhost:4199",
+  "anchor": "F-3",
+  "_decision": "PANEL_DEFAULT_WIDTH = 256px. The row previously kept origin's own LAYOUT.panelW = 300 verbatim, justified only as 'that's what origin used', with no bidezine token behind it. Resolved by reusing bidezine's own Sidebar primitive's native default width, 16rem/256px (CLAUDE.md checklist item 26). 256 below is that decision; a measurement of 300 is the regression this catches.",
+  "_note": "Anchored to the visible panel card — the element that actually carries the shadow, radius and surface — not to the ResizablePanel wrapper, whose box additionally includes PANEL_SHADOW_INSET padding and would measure larger than the number the decision is about.",
+  "checks": [
+    {
+      "kind": "box",
+      "state": "rest",
+      "expect": { "width": 256 },
+      "tolerance": 0.5
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { Presence } from "@radix-ui/react-presence"
 import { useOverflowFit } from "@/hooks/useOverflowFit"
+import { DivergenceAnchorProvider, anchorAttrs, useDivergenceAnchor } from "@/lib/divergence-anchors"
 import {
   AppsIcon,
   Badge,
@@ -718,12 +719,20 @@ function RailIconButton({
   state,
   colors,
   onClick,
+  anchorRef,
 }: {
   section: RailSection
   state: "default" | "browsing" | "active"
   colors: RailColors
   onClick: () => void
+  /**
+   * Divergence ref to anchor this button with, if it is the representative instance. Only ONE rail
+   * button may carry it — the runner fails an anchor that matches more than one element — so the
+   * resulting evidence proves that button, not all 27 of them. See lib/divergence-anchors.tsx.
+   */
+  anchorRef?: string
 }) {
+  const anchor = useDivergenceAnchor()
   const Icon = section.icon
   const isActive = state === "active"
   const isBrowsing = state === "browsing"
@@ -751,6 +760,7 @@ function RailIconButton({
       data-state={isBrowsing ? "open" : isActive ? "active" : "default"}
       // M-6: explicit measurement marker for `useOverflowFit` — see rail-sidebar.ts row M-6.
       data-rail-row=""
+      {...(anchorRef ? anchor(anchorRef) : {})}
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
@@ -868,6 +878,7 @@ function PanelTree({
   onSelectLeaf: (id: string) => void
   colors: RailColors
 }) {
+  const anchor = useDivergenceAnchor()
   return (
     <div className="flex flex-col gap-0.5">
       {nodes.map((node) => {
@@ -937,7 +948,15 @@ function PanelTree({
               }}
             >
               <Icon className="size-4 shrink-0" />
-              <span className="flex-1 truncate">{node.label}</span>
+              {/* L-34 is anchored to the SELECTED leaf's label only. That is what makes it unique
+                  (exactly one leaf is selected at a time) and it is also the row the divergence is
+                  about: active-path rows are the ones that carried `leading-none`, collapsing the
+                  line box to the 14px font-size and clipping descenders against this same span's
+                  own `truncate` overflow. An unselected row would measure 20px whether or not the
+                  bug were present, and would prove nothing. */}
+              <span {...(isSelected ? anchor("L-34") : {})} className="flex-1 truncate">
+                {node.label}
+              </span>
               {node.badge && <PanelBadge label={node.badge} />}
             </Button>
           )
@@ -1168,6 +1187,7 @@ export function FunctionalRailSidebar({
   logoHref,
   logoIcon,
   logoPlaceholder = false,
+  anchors = false,
 }: {
   colors: RailColors
   height?: number
@@ -1221,6 +1241,14 @@ export function FunctionalRailSidebar({
    * for the full request/interim-state process this flag is part of.
    */
   logoPlaceholder?: boolean
+  /**
+   * Emit `data-divergence` anchors (SANDBOX-SPEC §5.5) so `verifier/run-checks.mjs` can resolve a
+   * divergence to the exact rendered element it describes. Off by default, and **only one rendered
+   * instance may switch it on**: the runner fails any anchor matching more than one element, and
+   * this component is mounted twice by `FullRailPreview` (a `dark:hidden` copy and a
+   * `hidden dark:block` copy, both always present in the DOM). See `lib/divergence-anchors.tsx`.
+   */
+  anchors?: boolean
 }) {
   const [openPanel, setOpenPanel] = useState<string | null>("slides")
   const [activeSectionId, setActiveSectionId] = useState("slides")
@@ -1349,7 +1377,14 @@ export function FunctionalRailSidebar({
     return "default"
   }
 
+  // Driven from the `anchors` prop DIRECTLY, not from the context hook: this component renders the
+  // provider itself, and `useContext` only ever resolves to a provider *above* the calling
+  // component — so the hook here would read the default `false` and every anchor below would
+  // silently emit nothing. Descendants (RailIconButton, PanelTree) use the hook normally.
+  const anchor = (ref: string) => anchorAttrs(anchors, ref)
+
   return (
+    <DivergenceAnchorProvider enabled={anchors}>
     <TooltipProvider>
       {/* M-7 (see rail-sidebar.ts for the full history; supersedes the prior L-38/L-48 approach):
           this row's own `gap` is restored to an explicit `RAIL_PANEL_GAP` (8px, matching the
@@ -1435,13 +1470,17 @@ export function FunctionalRailSidebar({
               overflow-hidden was ALSO incidentally guarding against, while now giving the focus ring
               genuine room to render. `min-h-0 flex-1` (the actual footer-anchoring mechanism) stays. */}
           <div ref={trackRef} aria-label="Main navigation" role="navigation" className="flex min-h-0 flex-1 flex-col gap-1">
-            {pinnedSections.map((section) => (
+            {pinnedSections.map((section, index) => (
               <RailIconButton
                 key={section.id}
                 section={section}
                 state={railState(section.id)}
                 colors={colors}
                 onClick={() => handleRailClick(section)}
+                // F-2 (railButton = 38px) is anchored to the FIRST pinned rail button only. The
+                // anchor must resolve to exactly one element, so this proves the representative
+                // instance rather than the whole set — see lib/divergence-anchors.tsx.
+                anchorRef={index === 0 ? "F-2" : undefined}
               />
             ))}
 
@@ -1617,6 +1656,7 @@ export function FunctionalRailSidebar({
               doc comment above `const RAIL_BUTTON_SIZE` for the full derivation). `overflow-hidden`
               is required for the cap to actually clip rather than just stop growing the flex parent. */}
           <div
+            {...anchor("F-7")}
             className="flex flex-col gap-1 overflow-hidden"
             style={{ maxHeight: FOOTER_MAX_HEIGHT }}
           >
@@ -1813,6 +1853,7 @@ export function FunctionalRailSidebar({
                   {displaySection && (
                     <Presence present={Boolean(openSection)}>
                       <div
+                        {...anchor("F-3")}
                         data-state={openSection ? "open" : "closed"}
                         onAnimationEnd={(event) => {
                           // See the M-7 FOLLOW-UP comment above the `ResizablePanelGroup`: only
@@ -2109,6 +2150,7 @@ export function FunctionalRailSidebar({
             </ResizablePanelGroup>
       </div>
     </TooltipProvider>
+    </DivergenceAnchorProvider>
   )
 }
 

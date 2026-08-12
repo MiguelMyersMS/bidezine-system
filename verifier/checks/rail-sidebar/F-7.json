@@ -1,0 +1,16 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "F-7",
+  "url": "http://localhost:4199",
+  "anchor": "F-7",
+  "_decision": "FOOTER_MAX_HEIGHT = 122px (the approved 3-icon cap), re-derived from bidezine's own already-shipped values rather than borrowed from origin's literal: RAIL_BUTTON_SIZE (38, the real size-[38px]) x 3 + FOOTER_GAP (4, the real gap-1) x 2 = 122.",
+  "_history": "This is the row that produced CLAUDE.md checklist item 26's fourth axis. It was recorded as APPROVED and RESOLVED while the cap was never wired into the code at all — the footer column had no max-height and no overflow rule of any kind. It was invisible because this rail ships only 2 footer items, comfortably under the 3-icon threshold that would ever clip. A documented decision is not evidence of an implemented one; this check is what makes the difference machine-checkable.",
+  "_note": "Asserts overflow: hidden alongside the height, because the cap only clips with both. A max-height on its own merely stops the flex parent growing and would leave a 4th item visibly overflowing.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "rest",
+      "expect": { "max-height": "122px", "overflow": "hidden" }
+    }
+  ]
+}

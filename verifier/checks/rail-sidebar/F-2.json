@@ -1,0 +1,23 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "F-2",
+  "url": "http://localhost:4199",
+  "anchor": "F-2",
+  "_decision": "railButton = 38px / railIcon = 20px. Approved: match the origin Rail Sidebar rail button container at 38px. The 38 below comes from that decision record, not from measuring the component and writing down what it happened to say.",
+  "_scope": "Anchored to the FIRST pinned rail button only, because an anchor must resolve to exactly one element. This proves the representative instance, not all 27 rail buttons. See sandbox/src/lib/divergence-anchors.tsx.",
+  "_history": "This value regressed once already and shipped: `size=\"icon\"` carries Button's own `size-9` (36px), and an `h-[38px] w-[38px]` override did NOT win, because tailwind-merge only dedupes within a conflict group and `size-*` vs `h-*`/`w-*` are separate groups. The button rendered 36px while the className read 38. That is precisely the class of regression this check exists to catch mechanically rather than by eye.",
+  "checks": [
+    {
+      "kind": "box",
+      "state": "rest",
+      "expect": { "width": 38, "height": 38 },
+      "tolerance": 0.5
+    },
+    {
+      "kind": "box",
+      "state": "hover",
+      "expect": { "width": 38, "height": 38 },
+      "tolerance": 0.5
+    }
+  ]
+}

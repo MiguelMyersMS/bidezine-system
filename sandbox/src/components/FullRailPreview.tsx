@@ -158,8 +158,15 @@ export function RailNavStatusPreview({
           divs shrink-wrap to `FunctionalRailSidebar`'s own content width, breaking the `w-full`
           chain `FillHeight`/`QuadrantLayout` already provide and starving `ResizablePanelGroup`'s
           `flex-1` of any real space to grow into. */}
+      {/* `anchors` is enabled on the LIGHT copy ONLY, and this is load-bearing rather than
+          arbitrary. Both copies are always present in the DOM — one is merely `display: none` — so
+          emitting `data-divergence` from both would make every anchor match two elements, and
+          `verifier/run-checks.mjs` fails an ambiguous anchor by design (it will not measure
+          whichever matched first; see CLAUDE.md checklist item 10). The light copy is the one the
+          verifier drives, since it renders with no `dark` class on the document.
+          See `sandbox/src/lib/divergence-anchors.tsx`. */}
       <div className="w-full dark:hidden">
-        <FunctionalRailSidebar colors={colorsFor("bidezine", "light", tokens)} fontFamily="var(--font-sans, ui-sans-serif)" height={height} />
+        <FunctionalRailSidebar colors={colorsFor("bidezine", "light", tokens)} fontFamily="var(--font-sans, ui-sans-serif)" height={height} anchors />
       </div>
       <div className="hidden w-full dark:block">
         <FunctionalRailSidebar colors={colorsFor("bidezine", "dark", tokens)} fontFamily="var(--font-sans, ui-sans-serif)" height={height} />
