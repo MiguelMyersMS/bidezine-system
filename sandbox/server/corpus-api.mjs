@@ -142,16 +142,333 @@ export async function getCorpus() {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════════
+// Milestone 6 — the evidence bundle, the gate, and the two human acts.
+// ═══════════════════════════════════════════════════════════════════════════════════
+
+/**
+ * The commit an approval is recorded against, read SERVER-SIDE and never accepted from
+ * the client. `approval.approved_at_commit` is the whole reason an approval means
+ * anything later: it says which code was approved. A client-supplied value would let the
+ * one field that pins an approval to reality be whatever the caller typed.
+ */
+async function headCommit() {
+  const { execFileSync } = await import("node:child_process")
+  const root = join(HERE, "..", "..")
+  return execFileSync("git", ["rev-parse", "HEAD"], { cwd: root }).toString().trim()
+}
+
+/** Who is acting. The Sandbox is a local, per-machine tool, so the machine identity in
+ * .env IS the person. Prefixed `human:` because `approval` is the one table a person
+ * writes to directly — worth being able to tell that apart from any agent id at a glance. */
+async function actor() {
+  const { loadEnv } = await db()
+  loadEnv()
+  return `human:${process.env.MACHINE_NAME ?? "unknown-machine"}`
+}
+
+/**
+ * Pulls `expected` and `measured` back out of an evidence row so the widget can show them
+ * side by side rather than as a wall of text.
+ *
+ * M6 asks for deliverables "rendered as what they actually are — measured numbers as
+ * expected-vs-actual side by side". The runner already writes both into `raw_output` in a
+ * fixed shape; parsing happens here rather than in the browser so the raw text stays the
+ * record of truth and the widget cannot quietly reformat it into something friendlier than
+ * it is. `raw` is returned alongside, always, for exactly that reason.
+ */
+function parseEvidence(raw, checkSpec) {
+  const expectedFromSpec = checkSpec?.expect ?? null
+  const measuredMatch = raw?.match(/measured:\s*(\{[\s\S]*?\})\s*(?:\n\n|$)/)
+  let measured = null
+  if (measuredMatch) {
+    try {
+      measured = JSON.parse(measuredMatch[1])
+    } catch {
+      measured = null
+    }
+  }
+  const artifactMatch = raw?.match(/file:\s*(verifier\/artifacts\/\S+\.png)/)
+  return {
+    expected: expectedFromSpec,
+    measured,
+    // The failure lines the runner emits, if any — the reason, not a restatement.
+    failures: raw?.includes("FAILURES:") ? raw.split("FAILURES:")[1].trim() : null,
+    artifactPath: artifactMatch?.[1] ?? null,
+  }
+}
+
+/** Everything needed to decide one divergence, in one round trip. */
+export async function getDivergenceBundle(slug, ref) {
+  const { connect, sql } = await db()
+  let pool
+  try {
+    pool = await connect("APP")
+    const idRow = (
+      await pool
+        .request()
+        .input("slug", sql.NVarChar(100), slug)
+        .input("ref", sql.NVarChar(20), ref)
+        .query(`SELECT d.divergence_id, d.state, d.anchor_id, d.anchor_file, d.reopened_count,
+                       d.title, d.detail, d.category, d.origin_category, d.origin_record, d.visual
+                FROM sandbox.divergence d
+                JOIN sandbox.component c ON c.component_id = d.component_id
+                WHERE c.slug = @slug AND d.ref_code = @ref`)
+    ).recordset[0]
+    if (!idRow) return { error: `No divergence ${slug}/${ref}` }
+    const id = idRow.divergence_id
+
+    const evidence = (
+      await pool.request().input("id", sql.Int, id).query(
+        `SELECT evidence_id, kind, check_spec, raw_output, passed, is_stale,
+                verified_at_commit, verified_at_commit_at, run_id, artifact_hash, created_at
+         FROM sandbox.evidence WHERE divergence_id = @id ORDER BY evidence_id DESC`,
+      )
+    ).recordset
+
+    const reviews = (
+      await pool.request().input("id", sql.Int, id).query(
+        `SELECT r.review_id, r.author_agent_id, r.builder_agent_id, r.verdict, r.claim,
+                r.reviewed_at_commit, r.created_at,
+                (SELECT STRING_AGG(CAST(rc.evidence_id AS NVARCHAR(20)), ',')
+                 FROM sandbox.review_citation rc WHERE rc.review_id = r.review_id) AS cites
+         FROM sandbox.review r WHERE r.divergence_id = @id ORDER BY r.review_id DESC`,
+      )
+    ).recordset
+
+    const approvals = (
+      await pool.request().input("id", sql.Int, id).query(
+        `SELECT approval_id, approved_by, approved_at_commit, note, created_at
+         FROM sandbox.approval WHERE divergence_id = @id ORDER BY approval_id DESC`,
+      )
+    ).recordset
+
+    const falseCompletions = (
+      await pool.request().input("id", sql.Int, id).query(
+        `SELECT false_completion_id, requirement_type, reason, discovered_by, created_at
+         FROM sandbox.false_completion WHERE divergence_id = @id ORDER BY false_completion_id DESC`,
+      )
+    ).recordset
+
+    // The gate is COMPUTED, never stored and never inferred here. Asking the database what
+    // is unmet — rather than reimplementing its rules in JavaScript — is what keeps the UI
+    // incapable of disagreeing with the thing that actually enforces the transition.
+    // The parameter name must match the procedure's own (@divergence_id) — `.execute()`
+    // binds by name, not by position, so a differently-named input is simply not supplied.
+    const unmet = (
+      await pool.request().input("divergence_id", sql.Int, id).execute("sandbox.usp_divergence_gate_status")
+    ).recordset
+
+    return {
+      divergence: {
+        ref,
+        id,
+        state: idRow.state,
+        title: idRow.title,
+        detail: idRow.detail,
+        category: idRow.category,
+        originCategory: idRow.origin_category,
+        anchorId: idRow.anchor_id,
+        anchorFile: idRow.anchor_file,
+        reopenedCount: idRow.reopened_count,
+        visual: parseJson(idRow.visual),
+        originRecord: parseJson(idRow.origin_record),
+      },
+      gate: { ready: unmet.length === 0, unmet },
+      evidence: evidence.map((e) => {
+        const spec = parseJson(e.check_spec)
+        return {
+          id: Number(e.evidence_id),
+          kind: e.kind,
+          passed: !!e.passed,
+          stale: !!e.is_stale,
+          commit: e.verified_at_commit,
+          commitAt: e.verified_at_commit_at,
+          runId: e.run_id,
+          artifactHash: e.artifact_hash,
+          createdAt: e.created_at,
+          spec,
+          raw: e.raw_output,
+          ...parseEvidence(e.raw_output, spec),
+        }
+      }),
+      reviews: reviews.map((r) => ({
+        id: r.review_id,
+        author: r.author_agent_id,
+        builder: r.builder_agent_id,
+        verdict: r.verdict,
+        claim: r.claim,
+        commit: r.reviewed_at_commit,
+        createdAt: r.created_at,
+        cites: (r.cites ?? "").split(",").filter(Boolean).map(Number),
+      })),
+      approvals,
+      falseCompletions,
+      headCommit: await headCommit(),
+    }
+  } finally {
+    await pool?.close()
+  }
+}
+
+/**
+ * The toggle. Calls the gate procedure and nothing else.
+ *
+ * `app_rw` is DENIED `UPDATE` on `divergence.state` (migration 002), so this procedure is
+ * the only path that exists — the button is not "disabled in the UI", it is incapable of
+ * succeeding until the gate is clean. A refusal comes back with the full unmet list,
+ * because a gate that says only "no" teaches the caller nothing.
+ */
+export async function approve(slug, ref, note) {
+  const { connect, sql } = await db()
+  let pool
+  try {
+    pool = await connect("APP")
+    const row = (
+      await pool
+        .request()
+        .input("slug", sql.NVarChar(100), slug)
+        .input("ref", sql.NVarChar(20), ref)
+        .query(`SELECT d.divergence_id FROM sandbox.divergence d
+                JOIN sandbox.component c ON c.component_id = d.component_id
+                WHERE c.slug = @slug AND d.ref_code = @ref`)
+    ).recordset[0]
+    if (!row) return { error: `No divergence ${slug}/${ref}` }
+
+    const by = await actor()
+    const commit = await headCommit()
+    await pool
+      .request()
+      .input("divergence_id", sql.Int, row.divergence_id)
+      .input("approved_by", sql.NVarChar(100), by)
+      .input("commit_sha", sql.Char(40), commit)
+      .input("note", sql.NVarChar(sql.MAX), note || null)
+      .execute("sandbox.usp_resolve_divergence")
+    return { ok: true, approvedBy: by, commit }
+  } catch (error) {
+    // The gate's own refusal text, passed through verbatim rather than summarised.
+    return { error: error.message, refusedByGate: /Gate refused/.test(error.message) }
+  } finally {
+    await pool?.close()
+  }
+}
+
+/**
+ * Reopen. Requires a reason, and writes the false_completion row.
+ *
+ * That record is the highest-signal data the system produces (spec §5.1): it attaches to
+ * the REQUIREMENT TYPE that was falsely passed, so M9's ranked list of which requirements
+ * get falsified most often is the work queue for turning prose rules into executable ones.
+ * Reopening without a reason would produce a row that cannot feed that list, which is why
+ * the reason is required here and NOT NULL in the schema.
+ */
+export async function reopen(slug, ref, requirementType, reason) {
+  if (!reason?.trim()) return { error: "A reason is required to reopen." }
+  const { connect, sql } = await db()
+  let pool
+  try {
+    pool = await connect("APP")
+    const row = (
+      await pool
+        .request()
+        .input("slug", sql.NVarChar(100), slug)
+        .input("ref", sql.NVarChar(20), ref)
+        .query(`SELECT d.divergence_id FROM sandbox.divergence d
+                JOIN sandbox.component c ON c.component_id = d.component_id
+                WHERE c.slug = @slug AND d.ref_code = @ref`)
+    ).recordset[0]
+    if (!row) return { error: `No divergence ${slug}/${ref}` }
+
+    const by = await actor()
+    await pool
+      .request()
+      .input("divergence_id", sql.Int, row.divergence_id)
+      .input("requirement_type", sql.NVarChar(50), requirementType || "unspecified")
+      .input("reason", sql.NVarChar(sql.MAX), reason.trim())
+      .input("discovered_by", sql.NVarChar(100), by)
+      .execute("sandbox.usp_reopen_divergence")
+    return { ok: true, discoveredBy: by }
+  } catch (error) {
+    return { error: error.message }
+  } finally {
+    await pool?.close()
+  }
+}
+
+function readBody(req) {
+  return new Promise((resolve) => {
+    let data = ""
+    req.on("data", (c) => (data += c))
+    req.on("end", () => {
+      try {
+        resolve(JSON.parse(data || "{}"))
+      } catch {
+        resolve({})
+      }
+    })
+  })
+}
+
 /** Vite middleware. Mounted on both the dev and the preview server. */
 export function corpusApiMiddleware() {
   return async (req, res, next) => {
-    if (!req.url?.startsWith("/api/corpus")) return next()
-    const payload = await getCorpus()
-    res.setHeader("Content-Type", "application/json")
-    // No caching: the point of reading live is that it is live. Staleness is expressed in
-    // the payload's own `stale` flag, never by a browser silently serving an old body.
-    res.setHeader("Cache-Control", "no-store")
-    res.statusCode = payload.error ? 503 : 200
-    res.end(JSON.stringify(payload))
+    const url = req.url ?? ""
+    if (!url.startsWith("/api/")) return next()
+
+    const json = (payload, status = 200) => {
+      res.setHeader("Content-Type", "application/json")
+      // No caching: the point of reading live is that it is live. Staleness is expressed in
+      // the payload's own `stale` flag, never by a browser silently serving an old body.
+      res.setHeader("Cache-Control", "no-store")
+      res.statusCode = status
+      res.end(JSON.stringify(payload))
+    }
+
+    try {
+      if (url.startsWith("/api/corpus")) {
+        const payload = await getCorpus()
+        return json(payload, payload.error ? 503 : 200)
+      }
+
+      // Screenshot artifacts, served adjacent to their evidence rather than linked away.
+      const artifact = url.match(/^\/api\/artifact\/([\w.\-]+\.png)$/)
+      if (artifact) {
+        const { readFile } = await import("node:fs/promises")
+        const file = join(HERE, "..", "..", "verifier", "artifacts", artifact[1])
+        try {
+          const png = await readFile(file)
+          res.setHeader("Content-Type", "image/png")
+          res.setHeader("Cache-Control", "no-store")
+          res.statusCode = 200
+          return res.end(png)
+        } catch {
+          return json({ error: "artifact not found" }, 404)
+        }
+      }
+
+      const bundle = url.match(/^\/api\/divergence\/([\w-]+)\/([\w.-]+)$/)
+      if (bundle && req.method === "GET") {
+        const payload = await getDivergenceBundle(bundle[1], decodeURIComponent(bundle[2]))
+        return json(payload, payload.error ? 404 : 200)
+      }
+
+      const act = url.match(/^\/api\/divergence\/([\w-]+)\/([\w.-]+)\/(approve|reopen)$/)
+      if (act && req.method === "POST") {
+        const body = await readBody(req)
+        const [, slug, ref, verb] = act
+        const payload =
+          verb === "approve"
+            ? await approve(slug, decodeURIComponent(ref), body.note)
+            : await reopen(slug, decodeURIComponent(ref), body.requirementType, body.reason)
+        // A gate refusal is 409, not 500: the request was well-formed and the system
+        // deliberately declined it. Conflating the two would make a working invariant look
+        // like a bug.
+        return json(payload, payload.error ? (payload.refusedByGate ? 409 : 400) : 200)
+      }
+
+      return json({ error: "unknown endpoint" }, 404)
+    } catch (error) {
+      return json({ error: error.message }, 500)
+    }
   }
 }

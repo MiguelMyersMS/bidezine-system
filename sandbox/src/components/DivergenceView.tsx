@@ -79,6 +79,8 @@ export function DivergenceCategoriesAccordion({
   anchoredRefs,
   activeRef,
   onHighlight,
+  onReview,
+  reviewingRef,
 }: {
   categories: DivergenceCategory[]
   /** Refs genuinely present in the live DOM right now — see `useAnchoredRefs`. A row offers a
@@ -87,6 +89,10 @@ export function DivergenceCategoriesAccordion({
   anchoredRefs: Set<string>
   activeRef: string | null
   onHighlight: (ref: string | null) => void
+  /** M6: open this row's evidence bundle. Optional so the component still renders in
+   * contexts that have no widget mounted. */
+  onReview?: (ref: string | null) => void
+  reviewingRef?: string | null
 }) {
   return (
     <Accordion type="multiple" className="w-full">
@@ -132,13 +138,13 @@ export function DivergenceCategoriesAccordion({
                           </CardTitle>
                           <Badge className={cn("shrink-0", badge.className)}>{badge.label}</Badge>
                         </div>
-                        {anchored ? (
-                          <div>
-                            {/* Only rendered for rows with a real `data-divergence` anchor on
-                                screen. The absence of this control on the other ~147 rows is not an
-                                oversight — it is an honest readout of how much of the corpus is
-                                actually tied to rendered markup, which is the gap M5's anchoring
-                                work exists to close. */}
+                        <div className="flex flex-wrap gap-2">
+                          {anchored ? (
+                            /* Only rendered for rows with a real `data-divergence` anchor on
+                               screen. The absence of this control on the other ~147 rows is not an
+                               oversight — it is an honest readout of how much of the corpus is
+                               actually tied to rendered markup, which is the gap M5's anchoring
+                               work exists to close. */
                             <Button
                               type="button"
                               size="sm"
@@ -148,8 +154,22 @@ export function DivergenceCategoriesAccordion({
                             >
                               {isActive ? "Highlighting" : "Highlight in preview"}
                             </Button>
-                          </div>
-                        ) : null}
+                          ) : null}
+                          {onReview ? (
+                            /* M6. Offered on EVERY row, not only anchored ones: a row with no
+                               evidence is exactly the case the gate exists to refuse, and hiding
+                               the widget there would hide the refusal too. */
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant={reviewingRef === row.id ? "secondary" : "outline"}
+                              aria-pressed={reviewingRef === row.id}
+                              onClick={() => onReview(reviewingRef === row.id ? null : row.id)}
+                            >
+                              {reviewingRef === row.id ? "Reviewing" : "Evidence & approval"}
+                            </Button>
+                          ) : null}
+                        </div>
                       </CardHeader>
                       <CardContent className="flex flex-col gap-2">
                         <p className="text-xs text-muted-foreground">{row.detail}</p>

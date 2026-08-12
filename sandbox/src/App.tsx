@@ -23,6 +23,7 @@ import { TypographyLab } from "@/components/TypographyLab"
 import { LogoImportSlot } from "@/components/LogoImportSlot"
 import { DivergenceHighlight, useAnchoredRefs } from "@/components/DivergenceHighlight"
 import { NoPreviewRegistered, PREVIEW_REGISTRY, hasPreview } from "@/components/PreviewRegistry"
+import { EvidenceWidget } from "@/components/EvidenceWidget"
 import { toCategories, useCorpus, type CorpusComponent, type CorpusDivergence } from "@/data/corpus"
 import { NEGATIVE_BADGE, POSITIVE_BADGE } from "@/lib/status-colors"
 import {
@@ -328,7 +329,11 @@ function HumanDecisionsPhase({ slug, rows }: { slug: string; rows: CorpusDiverge
   // The preview is the one genuinely per-occupant piece; everything above is data.
   const preview = PREVIEW_REGISTRY[slug]
   const renderRailNav = (height: number) =>
-    preview ? (
+    reviewingRef ? (
+      <div className="h-full w-full" style={{ height }}>
+        <EvidenceWidget slug={slug} refCode={reviewingRef} />
+      </div>
+    ) : preview ? (
       preview({ source: railSource, tokens: proposedDarkRailTokens, height })
     ) : (
       <NoPreviewRegistered slug={slug} />
@@ -339,6 +344,12 @@ function HumanDecisionsPhase({ slug, rows }: { slug: string; rows: CorpusDiverge
   // column to sit above the rail on the right.
   const [activeRef, setActiveRef] = useState<string | null>(null)
   const anchoredRefs = useAnchoredRefs()
+
+  // M6. Opening a row's evidence bundle replaces the preview pane rather than opening a
+  // dialog over it: the bundle is what the minute of review is spent on, and a modal would
+  // put it on top of the very component the evidence is about. Highlighting the same row in
+  // the preview stays available by switching back.
+  const [reviewingRef, setReviewingRef] = useState<string | null>(null)
 
   // The origin pane is a quarantined iframe in its own document, so nothing here can reach inside
   // it to measure an anchor — and it carries none by design, being reference material rather than
@@ -423,6 +434,8 @@ function HumanDecisionsPhase({ slug, rows }: { slug: string; rows: CorpusDiverge
             anchoredRefs={anchoredRefs}
             activeRef={activeRef}
             onHighlight={setActiveRef}
+            onReview={setReviewingRef}
+            reviewingRef={reviewingRef}
           />
         </QuadrantLayout>
       </TabsContent>

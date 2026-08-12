@@ -130,14 +130,42 @@ try {
   const noOrigin = recordset.filter((r) => !r.origin_category).length
   check(noOrigin === 0, "every row records the source category it came from")
 
-  // Nothing may arrive pre-blessed. The source calls 152 of these resolved; the corpus
-  // must not, because none has ever been through the gate — the gate did not exist when
-  // they were written.
+  // ── Nothing may be blessed except through the gate ────────────────────────────────
+  //
+  // This check used to assert that EVERY row sat at 'legacy_unverified'. That was right
+  // for M4, when nothing had ever moved — and it became wrong the moment M6 shipped,
+  // because a row legitimately reaching 'resolved' through the gate then failed it. A
+  // check that goes red the first time the system is used as designed is not protecting
+  // the invariant, it is protecting the corpus from being used.
+  //
+  // The INTENT survives intact, and is actually stronger stated this way: a row may sit at
+  // 'legacy_unverified' (never gated), or have moved — but a 'resolved' row must carry the
+  // human approval that only the gate procedure can write, and the gate refuses to write
+  // one until evidence and an independent review exist. So "pre-blessed" is now defined by
+  // what a state is BACKED BY rather than by nothing having happened yet.
   const states = recordset.reduce((a, r) => ((a[r.state] = (a[r.state] ?? 0) + 1), a), {})
+  const LEGITIMATE = new Set(["legacy_unverified", "open", "proposed", "decided", "implemented", "verified", "resolved", "reopened", "deferred", "blocked"])
+  const bogus = Object.keys(states).filter((s) => !LEGITIMATE.has(s))
+  check(bogus.length === 0, "every row is in a real lifecycle state", `${JSON.stringify(states)}${bogus.length ? ` — unknown: ${bogus.join(", ")}` : ""}`)
+
+  const resolvedRefs = recordset.filter((r) => r.state === "resolved").map((r) => r.ref_code)
+  const approvedRefs = new Set(
+    (
+      await pool.request().query(`
+        SELECT DISTINCT d.ref_code
+        FROM   sandbox.approval a
+        JOIN   sandbox.divergence d ON d.divergence_id = a.divergence_id
+        JOIN   sandbox.component c  ON c.component_id = d.component_id
+        WHERE  c.slug = '${SLUG}'`)
+    ).recordset.map((r) => r.ref_code),
+  )
+  const unbacked = resolvedRefs.filter((ref) => !approvedRefs.has(ref))
   check(
-    Object.keys(states).length === 1 && states.legacy_unverified === source.size,
-    "nothing arrived pre-blessed — every row sits at legacy_unverified",
-    JSON.stringify(states),
+    unbacked.length === 0,
+    "no row is 'resolved' without the human approval only the gate can write",
+    resolvedRefs.length === 0
+      ? "no rows are resolved yet"
+      : `${resolvedRefs.length} resolved, ${approvedRefs.size} approved${unbacked.length ? ` — unbacked: ${unbacked.join(", ")}` : ""}`,
   )
 
   const cats = recordset.reduce((a, r) => ((a[r.category] = (a[r.category] ?? 0) + 1), a), {})

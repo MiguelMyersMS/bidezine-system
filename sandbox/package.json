@@ -13,7 +13,8 @@
     "build": "node ../scripts/check-quarantine.mjs && npm run origin:build && tsc --noEmit && vite build",
     "preview": "vite preview --port 4199 --strictPort",
     "check:quarantine": "node ../scripts/check-quarantine.mjs",
-    "check:origin-pane": "node ../scripts/verify-origin-quarantine.mjs"
+    "check:origin-pane": "node ../scripts/verify-origin-quarantine.mjs",
+    "verify": "node verify-approval.mjs"
   },
   "dependencies": {
     "@bidezine/system": "file:..",
