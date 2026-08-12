@@ -54,7 +54,7 @@ convenient it is.
 1. **Agents propose and implement. Agents never attest.** Producing a claim about correctness is not an
    agent capability.
 2. **Evidence is machine-produced; judgment is human-produced.** Anything objectively checkable is
-   measured by a runner. Anything subjective is decided by Miguel. Nothing in between.
+   measured by a runner. Anything subjective is decided by a human. Nothing in between.
 3. **"Done" is a state transition with entry requirements**, not a field an actor sets.
 4. **The approval gate is computed, never written.** No role in the system has permission to set it
    directly.

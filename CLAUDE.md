@@ -65,7 +65,7 @@ merges them automatically instead of raising a conflict. Keep them.
 
 **Template (this is what a fully-clean `HANDOFF.md` looks like — one block per machine, `---` between):**
 ```markdown
-## Laptop A — Miguel
+## Laptop A (main)
 
 **Baseline** — branch `main`, last verified commit `<hash>`, tag `<tag, if one exists>`, working tree
 clean and pushed to `origin/main`.
@@ -84,25 +84,25 @@ _None._
 
 ---
 
-## Laptop B — Blair
+## Laptop B
 
 _(the same five subsections, owned and written only by Laptop B)_
 
 ---
 
-## PC — third machine
+## PC
 
 _(the same five subsections; until the machine is set up, this section reads "Not connected yet.")_
 ```
 
 **Recovery workflow for a NEW/replacement chat session (do this before touching any code):**
-0. **Determine which machine you're on before touching `HANDOFF.md`.** Check `MACHINE_NAME`/
-   `MACHINE_OWNER` in the local, gitignored `.env` (see `.env.example`) — the `SessionStart` hook in
+0. **Determine which machine you're on before touching `HANDOFF.md`.** Check `MACHINE_NAME`
+   in the local, gitignored `.env` (see `.env.example`) — the `SessionStart` hook in
    `.claude/settings.json` also prints this identity automatically at the start of every session. This
-   tells you exactly which `## <name> — <owner>` section in `HANDOFF.md` you're allowed to write to,
+   tells you exactly which `## <name>` section in `HANDOFF.md` you're allowed to write to,
    without having to ask the user or guess from conversation context. If `.env` has no `MACHINE_NAME` set
    (first time on this machine), ask the user which machine this is ("Laptop A", "Laptop B", or "PC")
-   before writing anything to `HANDOFF.md`, then set `MACHINE_NAME`/`MACHINE_OWNER` in `.env` so future
+   before writing anything to `HANDOFF.md`, then set `MACHINE_NAME` in `.env` so future
    sessions on this machine don't have to ask again.
 1. Read `HANDOFF.md` in full — every machine's section, not just your own. Your own section is the one you
    are resuming; the others tell you which files are currently being touched elsewhere, so you can stay

@@ -151,7 +151,7 @@ try {
   await mustFail(
     app,
     "gate REFUSES resolution with no evidence",
-    `EXEC sandbox.usp_resolve_divergence ${divergenceId}, 'Miguel', '${"d".repeat(40)}';`,
+    `EXEC sandbox.usp_resolve_divergence ${divergenceId}, 'human-approver', '${"d".repeat(40)}';`,
     "evidence.present",
   )
   await app.close()
@@ -177,7 +177,7 @@ try {
   await mustFail(
     app,
     "gate STILL refuses — evidence alone is not enough",
-    `EXEC sandbox.usp_resolve_divergence ${divergenceId}, 'Miguel', '${"d".repeat(40)}';`,
+    `EXEC sandbox.usp_resolve_divergence ${divergenceId}, 'human-approver', '${"d".repeat(40)}';`,
     "review.present",
   )
   await app.close()
@@ -207,7 +207,7 @@ try {
   await mustPass(
     app,
     "gate ALLOWS resolution once every requirement is genuinely met",
-    `EXEC sandbox.usp_resolve_divergence ${divergenceId}, 'Miguel', '${"d".repeat(40)}';`,
+    `EXEC sandbox.usp_resolve_divergence ${divergenceId}, 'human-approver', '${"d".repeat(40)}';`,
   )
 
   const state = (

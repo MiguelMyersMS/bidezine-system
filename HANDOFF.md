@@ -19,7 +19,7 @@
 
 ---
 
-## Laptop A — Miguel  ·  PRIMARY
+## Laptop A (main)
 
 **Baseline** — branch `main`, last verified commit `9ea37de` plus this session's commit adding
 `docs/SANDBOX-SPEC.md`, working tree clean once that commit lands, pushed to `origin/main`.
@@ -95,10 +95,10 @@ at the repo root.
   names deliberately: they record what was true when written, and that data file is additionally
   stored verbatim in `origin_record`, so editing it would break the byte-identical guarantee
   `verify-import` checks (re-run after the rename: still 8/8). `sandbox/` builds clean.
-- **Laptop B's and the PC's sections were path-renamed too, at Miguel's explicit instruction**, as an
+- **Laptop B's and the PC's sections were path-renamed too, at the owner's explicit instruction**, as an
   exception to the "only edit your own section" rule. Strictly a mechanical path substitution — no
   claim either machine made was altered, only strings pointing at directories that no longer exist.
-  Blair: if this conflicts with local edits, keep yours and re-apply the paths.
+  Laptop B: if this conflicts with local edits, keep yours and re-apply the paths.
 - **The dev server command changed**: `npm --prefix sandbox run dev` (port 4199, unchanged).
 
 ### What's next
@@ -133,7 +133,7 @@ _None._
 
 ---
 
-## Laptop B — Blair
+## Laptop B
 
 **Baseline** — branch `main`, last verified commit `a984c7b`, working tree clean and pushed to `origin/main`.
 
@@ -174,10 +174,10 @@ _None. Nothing in progress._
   F-7's implementation gap). Remaining open categories in the Rail Sidebar divergence list: H (motion), I
   (elevation), J (z-index), L (component gaps, 1 open item), M (naming/API conflicts) — 12 rows total, none
   touched this baseline.
-- **Machine-identity protocol added**: `.env.example` now documents `MACHINE_NAME`/`MACHINE_OWNER`; the
+- **Machine-identity protocol added**: `.env.example` now documents `MACHINE_NAME`; the
   `SessionStart` hook in `.claude/settings.json` prints this machine's `HANDOFF.md` identity automatically;
   `CLAUDE.md`'s Recovery workflow gained a step 0 covering it. This machine's `.env` is set to
-  `MACHINE_NAME=Laptop B` / `MACHINE_OWNER=Blair`.
+  `MACHINE_NAME=Laptop B`.
 
 ### What's next
 
@@ -189,7 +189,7 @@ _None._
 
 ---
 
-## PC — third machine
+## PC
 
 _Not connected yet. Leave this section as-is until the machine is set up._
 

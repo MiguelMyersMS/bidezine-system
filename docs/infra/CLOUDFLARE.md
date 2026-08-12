@@ -54,7 +54,7 @@ for what visitors see at `bs.bidezine.systems`.
 ## A red herring worth remembering
 
 At one point a completely different, self-contained static bundle turned up at
-`C:\Users\miguelmyers\Downloads\bidezinesystem Design System\dist\deploy\`, produced by a
+`C:\Users\<you>\Downloads\bidezinesystem Design System\dist\deploy\`, produced by a
 separate design tool. It had no build step, loaded React/ReactDOM/Babel from the unpkg
 CDN, transpiled JSX in-browser, and its own README called its bundle *"the
 design-system recreation used for previewing"* — i.e. explicitly **not** meant to be the
