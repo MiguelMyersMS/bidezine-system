@@ -278,49 +278,46 @@ start renaming Limbo → Sandbox, and do not touch `limbo-factory/src/data/rail-
 _Nothing queued. M-6/M-7/M-8/M-20/M-21/M-22 are fully resolved and merged to `main`. M-8's own
 follow-through action (revamping the existing `Sidebar` primitive to borrow Rail Sidebar's patterns) is
 explicitly deferred until AFTER Rail Sidebar itself finishes promotion out of Limbo — not queued yet.
-`L-6` (Badge default-usage policy) and `L-7` (Collapse motion component, see "What's done" below) both
-resolved this session. Every row in `limbo-factory/src/data/rail-sidebar.ts` now carries `status: "resolved"`
-or `"note"` — zero rows remain `status: "decision"`. Remaining open Rail Sidebar divergence-list categories
-(unrelated to this session): H (motion — H-2–H-6 deferred/greenlit pending a future system-wide motion-token
-upgrade), I (elevation), J (z-index) — none touched this baseline; awaiting a future session's focus.
-Recommend dispatching an independent code-review audit agent on the `L-6`/Badge default-policy change and
-the `L-7`/Collapse animation change above before treating either as fully closed._
+`L-6` (Badge default-usage policy) and `L-7` (Collapse motion component, see "What's done" below) are both
+resolved and committed (`21365c9`). Every row in `limbo-factory/src/data/rail-sidebar.ts` now carries
+`status: "resolved"` or `"note"` — zero rows remain `status: "decision"`. The `notableRisks` tracker
+(`limbo-factory/src/App.tsx`'s "Notable risks" tab) was also just re-audited against the divergence rows it
+cites and 7 of its 11 entries were found stale (some resolved rows never fed back into the risk items that
+referenced them) — see "What's done" below. Remaining open Rail Sidebar divergence-list categories
+(unrelated to this session): I (elevation), J (z-index) — none touched this baseline; awaiting a future
+session's focus. Two genuinely still-open items surfaced by the risk audit, not fabricated as done: R-3c/
+R-11c (a dedicated, separately-invoked Independent Audit agent has still never run against the whole
+component, only scoped diffs), R-5b (Sidebar/Rail Sidebar token-collision check, correctly deferred to
+Promote time), R-9b (Escalation agent verification of Collapse's deterministic unmount)._
 
-- **`L-7` (Collapse motion component) resolved** — the Rail Sidebar's `PanelTree` group-node
-  `CollapsibleContent` (`limbo-factory/src/components/FunctionalRailSidebar.tsx`) now animates open/close
-  using `data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up
+- **`L-7` (Collapse motion component) resolved and committed (`21365c9`)** — the Rail Sidebar's `PanelTree`
+  group-node `CollapsibleContent` (`limbo-factory/src/components/FunctionalRailSidebar.tsx`) now animates
+  open/close using `data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up
   overflow-hidden`, reusing the same `tw-animate-css` keyframe technique already adopted by bidezine's real
   `Accordion` primitive (`src/ui/accordion.tsx`) — Collapsible's own dedicated keyframe pair, driven by
   Radix's `--radix-collapsible-content-height` (not Accordion's `--radix-accordion-content-height`). No
   fixed pixel height anywhere — height is measured live by Radix from the actual rendered content on every
-  open, matching the user's own expectation that this stays dynamic rather than a hardcoded value.
-  - Deliberately does NOT reimplement origin's bespoke `<Collapse>` (hand-rolled
-    `grid-template-rows: 0fr↔1fr` + a `setTimeout`-based JS timer for deterministic unmount, driven by its
-    own `MOTION.slow`/`MOTION.ease` tokens — see `limbo-factory/src/reference/origin-design-system/motion.tsx`).
-    Radix's own `CollapsibleContent` already unmounts (renders `null`) once fully closed — a different,
-    equally valid native mechanism for the same "no lingering DOM/focusable elements" goal, without a
-    bespoke timer.
-  - Decouples `L-7` from `H-2`–`H-6`'s still-deferred motion-DURATION/EASING token upgrade: this needed zero
-    new tokens, only reuse of `tw-animate-css`, already a root `package.json` dependency.
-  - **Real implementation gap caught and fixed along the way**: `limbo-factory` runs its own independent
-    Tailwind build (`@tailwindcss/vite` over its own `src/index.css`) that never imported `tw-animate-css` —
-    the root package's `src/styles/system.css` does import it, but that's pre-compiled into the static
-    `dist/system.css` this app consumes as a built dependency, so `animate-collapsible-down`/`-up` would
-    have been dead, no-op class names in this app specifically (present in the DOM, matching no real CSS
-    rule). Fixed by adding `tw-animate-css` as an explicit `devDependency` in `limbo-factory/package.json`
-    and importing it in `limbo-factory/src/index.css`; verified by curling the live dev server's actual
-    compiled CSS (`http://127.0.0.1:4199/src/index.css`) and confirming
-    `animate-collapsible-down`/`animate-collapsible-up`/`--radix-collapsible-content-height` are present as
-    real, matched rules — not just checking that the class name string appeared in source.
-  - Scoped to `FunctionalRailSidebar.tsx`'s call site only — bidezine's shared `src/ui/collapsible.tsx`
-    primitive itself was NOT changed, so this is not a new system-wide default for every `Collapsible`
-    usage, only this rail's own `PanelTree` groups (kept intentionally revertible per the user's own
-    "if i don't like it i can revert it" framing before approval).
-  - User approved live in the `limbo-factory` preview ("i see then a[pp]rove you can make it green now")
-    before this row was marked `status: "resolved"` in `rail-sidebar.ts` — not marked resolved until that
-    explicit sign-off, per the user's own stated constraint.
-  - Verified: `npx tsc --noEmit` clean in `limbo-factory/` both before and after the `tw-animate-css`
-    dependency fix. Not yet independently audited by a background agent, nor committed as of this writing.
+  open. Deliberately does NOT reimplement origin's bespoke `<Collapse>` (hand-rolled JS-timer unmount);
+  Radix's own `CollapsibleContent` already unmounts (renders `null`) once closed, a different, equally valid
+  native mechanism. Scoped to `FunctionalRailSidebar.tsx`'s call site only — `src/ui/collapsible.tsx` itself
+  untouched. Real implementation gap caught and fixed along the way: `limbo-factory` runs its own independent
+  Tailwind build that never imported `tw-animate-css` (the root package's pre-compiled `dist/system.css`
+  doesn't propagate that dependency's utilities into a separate consumer's own JIT pass) — fixed by adding
+  it as an explicit devDependency and verifying the live compiled CSS output directly. User approved live
+  before the row was marked resolved. Independently code-reviewed by a background agent before commit (found
+  and fixed one stale doc-comment). `npx tsc --noEmit` clean.
+- **"Notable risks" tracker (`notableRisks` in `rail-sidebar.ts`) audited for staleness, 7 of 11 entries
+  corrected** — prompted by "can you review them and see if by chance some are not up to date?" Cross-checked
+  every risk's `refs` id against the real, current `status` of those divergence rows rather than trusting
+  each risk's own `done` flags. Found and fixed: R-3a/R-3b (Category H/K items already resolved but still
+  read `done: false`), R-4b (F/G spot-check already happened, still `false`), R-5a (naming decision was
+  already made in `M-8`, resolved weeks earlier, but R-5 never referenced it at all), R-6b (superseded —
+  `L-7` explicitly chose not to copy origin's `Collapse.tsx`, so the item was reworded rather than left
+  perpetually `false`), R-9a (the Radix-reuse decision was actually made in `L-7`, not `H-6`), R-1b (the
+  actionable-icon audit it asks for was already performed exhaustively in `L-20`/`L-27`). `R-1` and `R-6` now
+  render fully resolved (green) via `isRiskResolved()`; R-3, R-5, R-9 correctly remain partially open since
+  each still has one genuinely unfinished item, not fabricated as done. Full rationale in
+  `LIMBO-PROTOCOL-LOG.md` Update 25 (append-only). `npx tsc --noEmit` clean.
 
 
 ### Open questions / blockers

@@ -737,7 +737,7 @@ export const notableRisks: RiskNote[] = [
     detail: "Q1 is resolved: the icon pipeline now supports `filled?: boolean`. Build must apply it only to actionable hover/selected/active states; static/non-interactive icon display remains regular.",
     actionItems: [
       { id: "R-1a", text: "Q1 answered \u2014 generated icons now expose filled?: boolean for actionable states", done: true, refs: ["Q1", "A-9"] },
-      { id: "R-1b", text: "During Build, audit actionable icon usages so filled is opt-in by state and non-interactive icons remain regular", done: false, refs: ["A-1", "A-8", "A-9"] },
+      { id: "R-1b", text: "During Build, audit actionable icon usages so filled is opt-in by state and non-interactive icons remain regular \u2014 done: L-20/L-27 ran a full, exhaustive hover/press/select sweep across every actionable icon in the component (5 pinned rail buttons, footer, Collapse sidebar, all 11 overflow-menu items, all 23 leaf/group tree items across both panel trees) with zero failures on the final pass", done: true, refs: ["A-1", "A-8", "A-9", "L-20", "L-27"] },
     ],
   },
   {
@@ -756,8 +756,8 @@ export const notableRisks: RiskNote[] = [
     title: "Inline CSS-in-JS is incompatible with our Tailwind v4 paradigm",
     detail: "A large, trap-prone mechanical translation task \u2014 some values have no Tailwind utility without arbitrary-value syntax.",
     actionItems: [
-      { id: "R-3a", text: "Category H (Motion) items individually decided (duration/easing per transition) \u2014 H-1 (rail hover/press, 150ms) done; H-2 through H-6 (panel reveal + Collapse) remain open", done: false, refs: ["H-1", "H-2", "H-3", "H-4", "H-5", "H-6"] },
-      { id: "R-3b", text: "Category K (focus ring / scrollbar CSS injection) individually decided", done: false, refs: ["K-1", "K-2", "K-3", "K-4"] },
+      { id: "R-3a", text: "Category H (Motion) items individually decided (duration/easing per transition) \u2014 H-1 (rail hover/press, 150ms) done; H-2 through H-6 (panel reveal + Collapse) closed via explicit user deferral (\u201cno need to resolve it at this instance\u201d), pending a planned system-wide animation-token upgrade \u2014 not a per-item timing/easing resolution, but a real, closed decision for this phase", done: true, refs: ["H-1", "H-2", "H-3", "H-4", "H-5", "H-6"] },
+      { id: "R-3b", text: "Category K (focus ring / scrollbar CSS injection) individually decided", done: true, refs: ["K-1", "K-2", "K-3", "K-4"] },
       { id: "R-3c", text: "Independent Audit agent confirms no runtime <style> injection survived into Build output", done: false },
     ],
   },
@@ -767,7 +767,7 @@ export const notableRisks: RiskNote[] = [
     detail: "At least 7 visual decisions changed mid-development (button size, radius, panel typography, active-row background, etc.). Confirm which version is \u201cfinal\u201d before Build starts.",
     actionItems: [
       { id: "R-4a", text: "Confirm current live ExpandButton.tsx source (not stale QA docs) is the reference for Q4", done: true, refs: ["Q4"] },
-      { id: "R-4b", text: "Spot-check remaining categories (F, G) against origin source, not just docs, before Build", done: false, refs: ["F-3", "F-7", "G-1"] },
+      { id: "R-4b", text: "Spot-check remaining categories (F, G) against origin source, not just docs, before Build \u2014 done: F-3 re-derived against bidezine's own Sidebar default (not origin's bare 300px literal), F-7 re-derived from bidezine's own RailIconButton/footer constants (not origin's bare 122px literal), G-1 confirmed against FunctionalRailSidebar.tsx's live raw 12px value and visually approved", done: true, refs: ["F-3", "F-7", "G-1"] },
     ],
   },
   {
@@ -775,8 +775,8 @@ export const notableRisks: RiskNote[] = [
     title: "Our own Sidebar primitive defines conflicting concepts",
     detail: "Both could be called \u201csidebar\u201d but are architecturally incompatible organisms \u2014 risk of consumer confusion and token collisions.",
     actionItems: [
-      { id: "R-5a", text: "Decide final naming (\u201cRail Sidebar\u201d vs existing \u201cSidebar\u201d) to avoid nav-manifest / export collisions", done: false },
-      { id: "R-5b", text: "Confirm neither component's token names or CSS classes collide at Promote time", done: false },
+      { id: "R-5a", text: "Decide final naming (\u201cRail Sidebar\u201d vs existing \u201cSidebar\u201d) to avoid nav-manifest / export collisions \u2014 decided (see M-8): no rename, no merged API; the two stay architecturally distinct organisms for this phase, with existing Sidebar deliberately revisited at Promote time to borrow proven Rail Sidebar patterns rather than the two being unified now", done: true, refs: ["M-8"] },
+      { id: "R-5b", text: "Confirm neither component's token names or CSS classes collide at Promote time", done: false, refs: ["M-8"] },
     ],
   },
   {
@@ -785,7 +785,7 @@ export const notableRisks: RiskNote[] = [
     detail: "Its behavior is documented but exact timing/easing values live only in the origin project's MOTION constants, not captured here \u2014 a documentation gap.",
     actionItems: [
       { id: "R-6a", text: "MOTION constants (fast/medium/reveal, easing curves) sourced directly from origin tokens.ts", done: true, refs: ["H-1", "H-2", "H-3", "H-4"] },
-      { id: "R-6b", text: "Collapse.tsx (grid-template-rows, deterministic unmount) copied into the self-contained reference before Build", done: false, refs: ["H-6"] },
+      { id: "R-6b", text: "Collapse.tsx (grid-template-rows, deterministic unmount) copied into the self-contained reference before Build \u2014 superseded: L-7 explicitly decided NOT to reimplement origin's bespoke Collapse.tsx, reusing bidezine's own Radix Collapsible + tw-animate-css pattern instead (same technique Accordion already uses), so the exact timing/easing values this row worried about are no longer needed at all \u2014 the gap this risk described was closed by a different, deliberately chosen path, not by copying the file", done: true, refs: ["H-6", "L-7"] },
     ],
   },
   {
@@ -810,7 +810,7 @@ export const notableRisks: RiskNote[] = [
     title: "Collapse's deterministic unmount isn't covered by Radix's CollapsibleContent by default",
     detail: "If Build uses Radix Collapsible, unmount timing must be verified against the behavior contract or it will be flagged as a regression by the Escalation agent.",
     actionItems: [
-      { id: "R-9a", text: "H-6 (Collapse animation) explicitly decided: reuse Radix Collapsible vs. reimplement custom unmount timing", done: false, refs: ["H-6"] },
+      { id: "R-9a", text: "Explicitly decided: reuse Radix Collapsible (with tw-animate-css's collapsible-down/-up keyframes) rather than reimplement origin's custom JS-timer unmount \u2014 see L-7", done: true, refs: ["H-6", "L-7"] },
       { id: "R-9b", text: "Escalation agent independently verifies chosen approach preserves deterministic unmount before Audit", done: false },
     ],
   },

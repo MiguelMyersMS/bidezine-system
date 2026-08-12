@@ -796,6 +796,55 @@ completely absent from the *sandbox's own* compiled output; the only real proof 
 served/compiled CSS for the specific selector, not just confirming the source file references the right
 class name.
 
+**Update 25 — "Notable risks" tab audited for staleness against the divergence tracker; 7 of 11 risk rows
+had drifted out of sync with rows they themselves reference.** Prompted directly: "lets go now after the
+notable risks... can you review them and see if by chance some are not up to date?" Cross-checked every
+`refs` id across all 11 `notableRisks` entries (`limbo-factory/src/data/rail-sidebar.ts`) against the
+current, real `status` of those divergence rows — not trusting each risk's own `done`/`false` flags at face
+value, per this project's own repeated "verify against actual current state" principle. Found:
+- **R-3a/R-3b** (Category H motion, Category K focus-ring/scrollbar) still read `done: false` and, for R-3a,
+  "H-2 through H-6... remain open" — but every H-* and K-* row referenced is now `status: "resolved"` (H-2–H-6
+  via explicit user deferral to a future animation-token upgrade, K-1–K-4 fully resolved). Flipped both to
+  `done: true`, rewording R-3a to describe the deferral honestly rather than implying a still-open item.
+- **R-4b** ("Spot-check remaining categories F, G against origin source") — still `done: false`, but F-3,
+  F-7, and G-1 are all `resolved` and their own detail text confirms the origin-source comparison actually
+  happened (F-3/F-7 re-derived against bidezine's own existing defaults instead of origin's bare literals;
+  G-1 confirmed against the live component and visually approved). Flipped to `done: true`.
+- **R-5** (Sidebar naming collision) — `R-5a` still asked to "decide final naming," `done: false`, with no
+  reference at all to `M-8` (already `resolved`), which explicitly decided this exact question weeks earlier:
+  no rename, no merged API, the two stay distinct organisms for this phase, revisited only at Promote time.
+  Added the `M-8` reference and flipped `R-5a` to `done: true`; `R-5b` (confirm no token/class collision at
+  Promote time) correctly stays `false` since that's a real, still-future Promote-phase check.
+- **R-6b** ("Collapse.tsx copied into the self-contained reference before Build") — still `done: false`,
+  referencing only `H-6`. `L-7` (this same session, Update 24) explicitly chose NOT to copy origin's
+  bespoke `Collapse.tsx`, reusing Radix Collapsible + `tw-animate-css` instead — so the literal action item
+  will never happen, but the underlying risk (losing timing/easing values because the file isn't captured)
+  is moot for a different reason: the chosen approach doesn't need those values at all. Reworded to explain
+  the superseding decision and flipped to `done: true`, adding an `L-7` ref.
+- **R-9a** ("H-6 explicitly decided: reuse Radix Collapsible vs. reimplement custom unmount timing") — still
+  `done: false` and only referenced `H-6`, which never actually made this decision (it only deferred the
+  duration/easing token question). The real decision was made and implemented in `L-7`. Reworded to point at
+  `L-7` and flipped to `done: true`; `R-9b` (Escalation agent independently verifies deterministic unmount)
+  correctly stays `false` — genuinely not yet run, a real, still-open gap distinct from the decision itself.
+- **R-1b** ("audit actionable icon usages so filled is opt-in by state...") — still `done: false`, only
+  referencing `A-1`/`A-8`/`A-9` (the capability being available, not any audit of its usage). `L-20` and
+  especially `L-27` (both `resolved`) already performed exactly this: an exhaustive hover/press/select sweep
+  across every actionable icon in the component (5 rail buttons, footer, Collapse control, all 11
+  overflow-menu items, all 23 leaf/group tree items) with zero failures on the final pass. Added `L-20`/`L-27`
+  refs and flipped to `done: true`.
+
+Net effect via `isRiskResolved()` (a risk renders green once every action item is `done`): **R-1** and **R-6**
+now render fully resolved/green, matching their real current state; R-3, R-5, and R-9 remain partially open,
+correctly, since each still has one genuinely unfinished item (R-3c independent audit, R-5b Promote-time
+collision check, R-9b Escalation-agent verification) that this pass did NOT fabricate as done. R-2, R-4a,
+R-7, R-8, R-10, R-11 were checked and found already accurate — no changes made to those. `npx tsc --noEmit`
+clean after all edits. **Lesson, extending Update 23's own point about stale "blocked by" text:** a risk
+tracker's own action items can silently drift out of sync with the divergence rows they cite as evidence,
+in either direction — some rows had been resolved without their downstream risk items ever being revisited,
+and at least one (R-5a) had its actual answer sitting in a different, unreferenced row (`M-8`) the entire
+time. Reviewing "is this risk still accurate" requires re-walking every `refs` id's live status, not just
+reading the risk's own prose.
+
 ## Factory-line interface requirements — live, in `limbo-factory/` (port 4199)
 
 - A dedicated local dev environment, on its own port, distinct from the main showcase (`4188`) and the
