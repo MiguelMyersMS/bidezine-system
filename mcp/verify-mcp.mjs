@@ -114,14 +114,16 @@ try {
   )
 
   const cats = JSON.parse(say(await client.callTool({ name: "sandbox_categories", arguments: {} })))
-  check(cats.length === 13, "the fixed category enum is reachable", `${cats.length} categories`)
+  // 15 since migration 006: importing real data demanded 'radius' and
+  // 'interaction-state', neither of which existed when the enum was designed.
+  check(cats.length === 15, "the fixed category enum is reachable", `${cats.length} categories`)
 
   // ── retrieval — the reason M3 exists ──────────────────────────────────────────────
   console.log("\nretrieval: precedent instead of invention\n")
 
   const found = JSON.parse(
     say(await client.callTool({ name: "sandbox_decisions", arguments: { keyword: "zzqqxx" } })),
-  )
+  ).matches
   check(
     found.length === 1 && found[0].ref_code === "P-1",
     "an agent can find a prior decision by keyword and cite it by ref",
@@ -130,7 +132,7 @@ try {
 
   const byCategory = JSON.parse(
     say(await client.callTool({ name: "sandbox_decisions", arguments: { category: "spacing" } })),
-  )
+  ).matches
   check(byCategory.some((d) => d.ref_code === "P-1"), "category is a working retrieval key")
 
   const none = say(

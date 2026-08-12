@@ -88,6 +88,14 @@ server.registerTool(
   },
   guard(async ({ category, keyword, limit = 10 }) => {
     const p = await db()
+    // TRUNCATED ON PURPOSE. Rationale on a real row runs to thousands of words — the
+    // Rail Sidebar corpus has single entries longer than most source files. Returning
+    // full detail for ten hits costs more context than the CLAUDE.md section this tool
+    // exists to replace, which would defeat the entire point of it. Found by using it:
+    // three rows for "scrollbar" flooded a live session.
+    //
+    // So this is a SEARCH INDEX. Scan the excerpts, pick the one that matters, then call
+    // sandbox_divergence for its full reasoning. One deep read beats ten shallow ones.
     const r = await p
       .request()
       .input("category", mssql.NVarChar(30), category ?? null)
@@ -95,8 +103,11 @@ server.registerTool(
       .input("limit", mssql.Int, limit)
       .query(`
         SELECT TOP (@limit)
-               c.slug AS component, d.ref_code, d.category, d.title, d.detail,
-               d.state, d.scope, d.anchor_file, d.updated_at
+               c.slug AS component, d.ref_code, d.category, d.state,
+               LEFT(d.title, 180)  AS title,
+               LEFT(d.detail, 320) AS detail_excerpt,
+               LEN(d.detail)       AS detail_length,
+               d.origin_category, d.updated_at
         FROM   sandbox.divergence d
         JOIN   sandbox.component c ON c.component_id = d.component_id
         WHERE  d.state IN ('resolved','deferred','legacy_unverified')
@@ -112,7 +123,10 @@ server.registerTool(
           `an absence of precedent is a reason to ask, not a licence to invent.`,
       )
     }
-    return json(r.recordset)
+    return json({
+      matches: r.recordset,
+      next: "These are EXCERPTS. Call sandbox_divergence with a component + ref_code for the full rationale of whichever one is actually relevant — do not assume the excerpt is the whole decision.",
+    })
   }),
 )
 
@@ -153,7 +167,9 @@ server.registerTool(
       SELECT c.slug, c.title, c.state, m.name AS owner_machine,
              COUNT(d.divergence_id) AS divergences,
              SUM(CASE WHEN d.state = 'resolved' THEN 1 ELSE 0 END) AS resolved,
-             SUM(CASE WHEN d.state NOT IN ('resolved','deferred') THEN 1 ELSE 0 END) AS open
+             -- [open] must be bracketed: OPEN is T-SQL's cursor keyword and an
+             -- unquoted alias is a syntax error.
+             SUM(CASE WHEN d.state NOT IN ('resolved','deferred') THEN 1 ELSE 0 END) AS [open]
       FROM   sandbox.component c
       LEFT JOIN sandbox.machine m   ON m.machine_id = c.owner_machine_id
       LEFT JOIN sandbox.divergence d ON d.component_id = c.component_id

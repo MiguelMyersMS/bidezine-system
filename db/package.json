@@ -8,9 +8,12 @@
   "scripts": {
     "migrate": "node run.mjs migrations",
     "bootstrap": "node run.mjs bootstrap",
-    "verify": "node verify-invariant.mjs"
+    "verify": "node verify-invariant.mjs",
+    "import-rail-sidebar": "node import-rail-sidebar.mjs",
+    "verify-import": "node verify-import.mjs"
   },
   "dependencies": {
+    "esbuild": "^0.27.7",
     "mssql": "^11.0.1"
   }
 }

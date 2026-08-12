@@ -31,82 +31,83 @@ which cannot be fixed from here.
 
 ### Active task
 
-_None. Sandbox Milestones 1, 2 and 3 are complete and verified against the real database._
+_None. Sandbox Milestones 1–4 are complete and verified against the real database._
 
 ### What's done (current state — not a history)
 
-Read `docs/SANDBOX-SPEC.md` before touching `db/`, `verifier/` or `mcp/`. It is the single
-source of truth for this project.
+Read `docs/SANDBOX-SPEC.md` first. It is the single source of truth for this project.
 
-- **M1 — the store and the gate.** Fabric SQL Database in the **biDezine** tenant (Microsoft's
-  corporate tenant was deliberately abandoned: it requires a Service Tree ID for app registration,
-  and bidezine's own store should not sit where access is tied to employment). Workspace
-  `bidezine-sandbox`, one SQL database, no other Fabric items. Migrations 001–005 applied; four
-  Entra service principals mapped to three roles by `db/bootstrap/`.
-- **M2 — the verifier.** `verifier/` drives a real browser against a real render, measures, and
-  writes evidence under the `runner_evidence` credential. Check specs are JSON files under
-  `verifier/checks/`, committed to git on purpose: a weak spec is a real risk and the defence is
-  that it shows up in a diff.
-- **M3 — the MCP server.** `mcp/server.mjs`, standard stdio, registered for **both** Claude Code
-  (`.mcp.json`) and Copilot (`.vscode/mcp.json`) — one server, both clients, neither able to
-  sidestep what the other cannot. Ten tools; `sandbox_decisions` is the retrieval loop that
-  replaces reading `CLAUDE.md` in full. `.github/copilot-instructions.md` carries the same protocol
-  summary Claude gets from `CLAUDE.md`. Skills under `.claude/` are Claude-only and do NOT transfer
-  — anything that must apply to both belongs in the MCP server or those two instruction files.
+- **M1 — store and gate.** Fabric SQL Database in the **biDezine** tenant, workspace
+  `bidezine-sandbox`. Migrations 001–006; four Entra service principals mapped to three roles.
+- **M2 — verifier.** `verifier/` drives a real browser, measures, and writes evidence under the
+  `runner_evidence` credential. Check specs are JSON files under `verifier/checks/`, committed to
+  git so a weak spec shows up in a diff.
+- **M3 — MCP server.** `mcp/server.mjs`, registered for **both** Claude Code (`.mcp.json`) and
+  Copilot (`.vscode/mcp.json`). `.github/copilot-instructions.md` carries the protocol for Copilot.
+  Skills under `.claude/` are Claude-only and do NOT transfer.
+- **M4 — Rail Sidebar imported.** All **154** divergence rows are in the corpus, at
+  `legacy_unverified` — a state deliberately BEFORE `verified`. The source calls 152 of them
+  resolved; the corpus does not, because none has been through the gate (it did not exist when they
+  were written). Reasoning came across so retrieval has substance; nothing arrived pre-blessed.
 
-**Three proof scripts. Re-run ALL THREE after any change under `db/`, `verifier/` or `mcp/`:**
+**Four proof scripts. Re-run ALL of them after any change under `db/`, `verifier/` or `mcp/`:**
 
 ```
-npm --prefix db run verify        # 15/15 — the gate and its permissions
-npm --prefix verifier run verify  # 12/12 — the runner is worth trusting
-npm --prefix mcp run verify       # 14/14 — the agent surface, over the real protocol
+npm --prefix db run verify         # 15/15 — the gate and its permissions
+npm --prefix verifier run verify   # 12/12 — the runner is worth trusting
+npm --prefix mcp run verify        # 14/14 — the agent surface, over the real protocol
+npm --prefix db run verify-import  #   8/8 — the corpus still matches the source
 ```
 
-They connect as the real principals and watch things fail, rather than reading permissions and
-reasoning about them. Between them: an agent cannot insert evidence, set state, or approve; a
-reviewer cannot review its own build; a passing review citing failing evidence is refuted by its own
-citation; the gate refuses and relents only as each requirement is genuinely met; reopening writes a
-false_completion row; and the runner fails correctly on a wrong expectation, a missing anchor, an
-ambiguous anchor, and a check that asserts nothing.
+They connect as real principals and watch things fail rather than reading permissions and reasoning
+about them. `verify-import` re-reads the TypeScript source and diffs field by field; it does not
+trust the importer's own success message, since that is an assertion by the thing that did the work.
 
-**Four things found by running rather than reading, each now guarded:**
+**Findings that only appeared by running things — each now guarded:**
 
-- **`EXECUTE AS` is unsupported on Fabric.** Procedures create without complaint and fail at call
-  time. The gate uses ownership chaining instead — which needs one schema owner and **no dynamic
-  SQL anywhere in a gate procedure**. Adding `EXEC`/`sp_executesql` to one would silently break it.
-- **Fabric's item RBAC gates connection only.** It maps into no SQL role and cannot override a SQL
-  DENY. Verified against `sys.database_permissions`: app/agent/runner hold exactly `CONNECT`.
-- **A screenshot asserted nothing but satisfied the gate.** Migration 005 now requires evidence of a
-  kind that can fail on its own terms. Screenshots are still captured as supporting material.
-- **`evidence_id` is a BIGINT the driver returns as a STRING.** The MCP server emitted string ids
-  and then rejected those same ids when cited back, so no review could ever have cited evidence read
-  through it. `sandbox_submit_review` now accepts both forms.
+- **`EXECUTE AS` is unsupported on Fabric.** Procedures create fine and fail at call time. The gate
+  uses ownership chaining, which needs one schema owner and **no dynamic SQL in any gate procedure**.
+- **Fabric's item RBAC gates connection only** — it maps into no SQL role and cannot override a DENY.
+- **A screenshot asserted nothing but satisfied the gate.** Migration 005 requires evidence of a kind
+  that can fail on its own terms.
+- **`evidence_id` is a BIGINT the driver returns as a STRING** — the MCP server emitted string ids
+  and rejected those same ids when cited back.
+- **`open` is a T-SQL keyword** and broke `sandbox_components` until bracketed.
+- **Retrieval returned too much to be useful.** Rationale on a real row runs to thousands of words;
+  three hits for "scrollbar" cost more context than the `CLAUDE.md` section the tool exists to
+  replace. `sandbox_decisions` is now a search INDEX returning excerpts — scan, then call
+  `sandbox_divergence` for the one that matters.
+- **Real data demanded two categories the enum lacked** (`radius`, `interaction-state`) and a home
+  for `visual`. `origin_record` now stores each source object verbatim, so losslessness is
+  structural rather than dependent on someone having mapped every field they noticed.
 
-Also: `SUSER_SNAME()` on Fabric returns `<clientId>@<tenantId>`, not a display name — compare
-against client IDs when checking provenance. Secrets and connection details are in the local,
-**gitignored** `.env`; every machine fills in its own from `.env.example`. Installing Playwright
-here needs `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` — corporate filtering blocks the browser CDN, though
-the npm registry itself is reachable and Chromium is already present at the repo root.
+Also: `SUSER_SNAME()` returns `<clientId>@<tenantId>`, not a display name. Secrets live in the
+local, **gitignored** `.env`. Playwright installs here need `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` —
+corporate filtering blocks the browser CDN, though npm itself is reachable and Chromium is already
+at the repo root.
 
-- **Rail Sidebar / `limbo-factory/` deliberately untouched, and must stay that way until M5.** Per
-  the spec's sequencing constraint it remains running and authoritative through M1–M4. Do not begin
-  the Limbo → Sandbox rename before then.
+- **Rail Sidebar / `limbo-factory/` is still frozen until M5.** M4 only READ that file. Do not
+  modify it, and do not begin the Limbo → Sandbox rename before M5.
 
 ### What's next
 
-**Sandbox Milestone 4 — Rail Sidebar as the first occupant** (`SANDBOX-SPEC.md` §6). Import the
-existing divergence rows from `limbo-factory/src/data/rail-sidebar.ts` into the database at
-`legacy_unverified` — a state deliberately BEFORE `verified`, so migrated reasoning is retained for
-retrieval without anything arriving pre-blessed. Enrich what the current shape lacks (category on the
-row, owner, tier, scope, anchor id, evidence links, commit pins) and finalise the category enum
-against real data. Done when every existing row is represented with no field lost; the migration is
-the schema's proof. Reading that file is fine — the freeze is on modifying it.
+**Sandbox Milestone 5 — the Sandbox app** (`SANDBOX-SPEC.md` §6). `limbo-factory/` → `sandbox/`,
+generalised from one hard-coded occupant to N components read from the database. Origin pane in a
+quarantined iframe with a lint rule failing the build on any import crossing that boundary;
+translation pane alongside it; divergence list with click-to-highlight via `data-divergence`, and
+live interaction — hover, press, resize — so a decision can be checked by pointing rather than by
+reading code. Done when clicking a divergence highlights the exact region in the live component, and
+origin material provably cannot reach the translation pane. Delete `rail-sidebar.ts` only after the
+database path returns equivalent content.
 
-Still genuinely open on Rail Sidebar, unrelated to the Sandbox build and not queued: divergence
-categories I (elevation) and J (z-index); and four risk items honestly unfinished rather than
-fabricated as done — R-3c/R-11c (no dedicated Independent Audit agent has run against the whole
-component, only scoped diffs), R-5b (Sidebar/Rail Sidebar token-collision check, correctly deferred
-to Promote time), and R-9b (Escalation-agent verification of Collapse's deterministic unmount).
+**Worth doing early in M5:** the 154 imported rows have no `anchor_id`/`anchor_file`, so the
+verifier has nothing to measure for any of them. Anchors have to be added to the real markup before
+any of those rows can leave `legacy_unverified`.
+
+Still genuinely open on Rail Sidebar, unrelated to the Sandbox build: divergence categories I
+(elevation) and J (z-index); and four risk items honestly unfinished — R-3c/R-11c (no dedicated
+Independent Audit agent has run against the whole component), R-5b (token-collision check, deferred
+to Promote time), R-9b (Escalation-agent verification of Collapse's deterministic unmount).
 
 ### Open questions / blockers
 
