@@ -21,7 +21,7 @@
 
 ## Laptop A (main)
 
-**Baseline** — branch `main`, last verified commit `14e4316`, working tree clean, in sync with
+**Baseline** — branch `main`, last verified commit `6510d4c`, working tree clean, in sync with
 `origin/main`. Verify this yourself (`git log --oneline -1`, `git status`) before trusting anything
 below it.
 
@@ -33,8 +33,9 @@ which cannot be fixed from here.
 ### Active task
 
 **Sandbox Milestone 5 — in progress.** M1–M4 are complete and verified. The M5 rename landed
-earlier. **Steps 1 and 3 are done and verified** — the origin quarantine, and the divergence list's
-click-to-highlight. **Steps 2 and 4 have not started.** See "What's next".
+earlier. **Steps 1, 2 and 3 are done and verified** — the origin quarantine, N components read from
+the corpus, and click-to-highlight. **Only step 4 remains**, and its precondition is now met:
+`scripts/check-corpus-equivalence.mjs` reports 154/154 rows equivalent. See "What's next".
 
 **First thing to do on this machine: reconnect the sandbox MCP server.** Its tools
 (`mcp__sandbox__*`) did not attach to the last session — `ToolSearch` found none of them. The server
@@ -202,6 +203,36 @@ nowhere to land.
 a passing verdict now would cite evidence from a different commit. A second review round against the
 fixed code is the correct next step — that is the loop working, not a blockage.
 
+**M5 step 2 — N components from the corpus — is done and verified.** The app no longer imports one
+occupant's divergences from a TypeScript file; it reads components, categories and rows from Fabric
+and offers a picker. **9/9 live checks against a real `vite preview` production build**, not only the
+dev server.
+
+- **`sandbox/server/corpus-api.mjs`** holds the `app_rw` credential and serves `/api/corpus`. It runs
+  inside the Vite process (not a second server), and is mounted on the **preview** server too — a
+  dev-only data path would leave the production build never exercised against real data, which is
+  precisely the gap checklist item 15 was written about. `app_rw` and nothing else: if a query is
+  refused, that refusal is the system working, and the fix is a deliberate grant in a migration.
+- **Offline behaviour — the spec's deferred M5 decision, now settled.** Every successful read writes
+  `sandbox/.corpus-cache.json` (gitignored). When Fabric is unreachable the API serves it flagged
+  `stale: true`, and the app shows a banner with the snapshot's age and the real failure reason.
+  **Proven by pointing the connection at an unreachable host:** 154 rows still served from a 534KB
+  snapshot. With no connection *and* no cache it errors rather than rendering an empty list, which
+  would be indistinguishable from a corpus that genuinely has no rows.
+- **Previews stay per-occupant code** (`PREVIEW_REGISTRY`) — a renderer that draws an arbitrary
+  component from a database row is not a thing. A component with no entry still shows its phases and
+  full divergence list with an explicit "no preview registered" panel, so the app's view of the corpus
+  matches the corpus, stray `__dbg__` row included.
+- **`scripts/check-corpus-equivalence.mjs` — 154/154 rows equivalent**, field by field including every
+  `visual` payload. This is what step 4 needs, and it is a **different claim** from `verify-import`:
+  that proves the corpus is a lossless copy of the file; this proves the app's *rendered view* is
+  unchanged by swapping the source. A field can round-trip into the database perfectly and still be
+  dropped on the way back out, so both are needed before the file goes.
+- Two bugs found while verifying rather than after: the app defaulted to the stray `__dbg__` fixture
+  (it sorted first alphabetically — real occupants now sort ahead of `__`-prefixed fixtures, still
+  listed rather than filtered), and backticks inside a SQL comment terminated the JS template literal,
+  producing a parse error far from its cause.
+
 **M5 step 3 — click-to-highlight — is done and verified.** Clicking "Highlight in preview" on a
 divergence row draws a ring over that exact region in the live component, labelled with the ref.
 **7/7 live checks**, including the two that are M5's own "done when" criteria: the overlay sits over
@@ -277,12 +308,7 @@ are done; the rest of the app is not.
    submitting to the corpus to clear `review.present`, by someone other than the builder — the
    database enforces that, it is not a convention.
 1. ~~Origin quarantine~~ — **done and verified.** See "What's done" above.
-2. **Generalise from one hard-coded occupant to N components read from the database.** Note that the
-   quarantine now sets the shape for this: each occupant gets `origin/<component>/app/`, its own
-   project, embedded by `<iframe src>`. `sandbox/src/components/origin-embed-protocol.ts` and its
-   duplicated counterpart under the occupant are the pattern to follow; `check-quarantine.mjs`
-   already guards any future occupant by path resolution, not by name, so nothing there needs
-   changing when the second one lands.
+2. ~~Generalise to N components read from the database~~ — **done and verified.** See "What's done".
 3. ~~Divergence list with click-to-highlight~~ — **done and verified.** See "What's done".
 4. Delete `sandbox/src/data/rail-sidebar.ts` **only** once the database path returns equivalent
    content, and re-point `db/import-rail-sidebar.mjs` / `db/verify-import.mjs` or retire them.
