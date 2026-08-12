@@ -1,0 +1,10 @@
+{
+  "component": "__verifier_test__",
+  "divergence": "T-WRONG",
+  "url": "file:./verifier/fixtures/fixture.html",
+  "anchor": "T-1",
+  "_note": "A deliberately wrong expectation. The fixture row is 36px tall; this asserts 99. Must produce a FAILING evidence row. If this ever passes, the runner is not actually comparing anything and every other passing check is worthless.",
+  "checks": [
+    { "kind": "box", "state": "rest", "expect": { "height": 99 } }
+  ]
+}

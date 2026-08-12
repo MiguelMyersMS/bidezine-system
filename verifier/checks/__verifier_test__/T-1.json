@@ -1,0 +1,39 @@
+{
+  "component": "__verifier_test__",
+  "divergence": "T-1",
+  "url": "file:./verifier/fixtures/fixture.html",
+  "anchor": "T-1",
+  "_note": "Exercises the runner itself against verifier/fixtures/fixture.html. Every expectation below is a value hard-coded in that file, so a failure here means the runner is wrong, not the subject. Created and removed by verify-runner.mjs; not a real component.",
+  "checks": [
+    {
+      "kind": "box",
+      "state": "rest",
+      "expect": { "height": 36 },
+      "tolerance": 0.5
+    },
+    {
+      "kind": "computed-style",
+      "state": "rest",
+      "expect": { "line-height": "20px", "font-weight": "500", "background-color": "rgb(244, 244, 245)" }
+    },
+    {
+      "kind": "computed-style",
+      "state": "hover",
+      "expect": { "background-color": "rgb(228, 228, 231)" }
+    },
+    {
+      "kind": "computed-style",
+      "state": "active",
+      "expect": { "background-color": "rgb(212, 212, 216)" }
+    },
+    {
+      "kind": "computed-style",
+      "state": "focus-visible",
+      "expect": { "outline-width": "3px", "outline-color": "rgb(37, 99, 235)" }
+    },
+    {
+      "kind": "screenshot",
+      "state": "hover"
+    }
+  ]
+}

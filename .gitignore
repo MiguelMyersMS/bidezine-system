@@ -45,3 +45,7 @@ reference/shadcn-ui/**/node_modules/
 reference/shadcn-ui/**/dist/
 reference/shadcn-ui/**/.next/
 reference/shadcn-ui/**/.turbo/
+
+# Sandbox verifier — screenshot artifacts. Regenerable, and their sha256 is recorded in
+# sandbox.evidence.artifact_hash, so the database already holds the part that matters.
+verifier/artifacts/

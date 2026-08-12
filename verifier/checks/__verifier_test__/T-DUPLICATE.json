@@ -1,0 +1,10 @@
+{
+  "component": "__verifier_test__",
+  "divergence": "T-DUPLICATE",
+  "url": "file:./verifier/fixtures/fixture.html",
+  "anchor": "T-DUPLICATE",
+  "_note": "Two elements share this anchor. Must FAIL rather than measure whichever matched first — CLAUDE.md checklist item 10 exists because a verification once silently measured the wrong one of several matching elements and reported success.",
+  "checks": [
+    { "kind": "box", "state": "rest", "expect": { "height": 10 } }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "bidezine-sandbox-verifier",
+  "version": "0.0.0",
+  "description": "Produces evidence for the Sandbox. Holds the only credential that may write it.",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node run-checks.mjs",
+    "sync-source": "node sync-source-files.mjs",
+    "verify": "node verify-runner.mjs"
+  },
+  "dependencies": {
+    "mssql": "^11.0.1",
+    "playwright": "^1.62.1"
+  }
+}

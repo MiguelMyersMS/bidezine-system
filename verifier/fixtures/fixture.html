@@ -1,0 +1,48 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Verifier fixture</title>
+<!--
+  A deliberately boring page with known, fixed values, used only to prove the runner
+  itself works: that it resolves a data-divergence anchor, drives real interaction
+  states, measures what is actually rendered, and fails when an expectation does not
+  hold.
+
+  It is NOT a bidezine component and must never be treated as one. Nothing here is
+  imported by anything, and the "no hand-rolled components" rule does not apply to a
+  measurement target whose whole purpose is to have hard-coded, verifiable numbers.
+
+  It also does not touch limbo-factory/, which the spec's sequencing constraint keeps
+  frozen until Milestone 5.
+-->
+<style>
+  body { margin: 0; padding: 40px; font-family: system-ui, sans-serif; background: #fff; }
+
+  .row {
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 6px;
+    background: #f4f4f5;
+    color: #18181b;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .row:hover   { background: #e4e4e7; }
+  .row:active  { background: #d4d4d8; }
+  .row:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }
+  .row:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Two elements sharing one anchor value — the runner must refuse to guess which. */
+  .dupe { display: block; height: 10px; }
+</style>
+
+<button class="row" data-divergence="T-1">Fixture row</button>
+
+<button class="row" data-divergence="T-DISABLED" disabled>Disabled row</button>
+
+<div class="dupe" data-divergence="T-DUPLICATE"></div>
+<div class="dupe" data-divergence="T-DUPLICATE"></div>

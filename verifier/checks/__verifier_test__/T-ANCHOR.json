@@ -1,0 +1,10 @@
+{
+  "component": "__verifier_test__",
+  "divergence": "T-ANCHOR",
+  "url": "file:./verifier/fixtures/fixture.html",
+  "anchor": "T-DOES-NOT-EXIST",
+  "_note": "The anchor resolves to nothing. Must produce a FAILING evidence row, not a crash — a crash would leave no trace and the divergence would merely look unverified, which is indistinguishable from never having been checked.",
+  "checks": [
+    { "kind": "box", "state": "rest", "expect": { "height": 36 } }
+  ]
+}

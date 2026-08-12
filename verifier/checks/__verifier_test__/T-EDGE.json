@@ -1,0 +1,15 @@
+{
+  "component": "__verifier_test__",
+  "divergence": "T-EDGE",
+  "url": "file:./verifier/fixtures/fixture.html",
+  "anchor": "T-1",
+  "_note": "Three ways a check can be meaningless, each of which must FAIL rather than pass or crash. Anchors are overridden per-check by verify-runner.mjs, which rewrites this spec's anchor for the first two cases.",
+  "checks": [
+    {
+      "kind": "box",
+      "state": "rest",
+      "expect": {},
+      "_why": "No expectations. A measurement that asserts nothing is not verification — it would otherwise be a passing evidence row proving nothing, the same hole migration 005 closed for screenshots."
+    }
+  ]
+}
