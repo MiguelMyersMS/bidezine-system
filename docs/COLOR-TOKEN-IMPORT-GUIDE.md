@@ -136,7 +136,7 @@ This one isn't about token values, but is closely related and easy to get wrong 
 line / comparison tool: **any UI you build to host this process must be composed entirely from real
 `@bidezine/system` components** (`Badge`, `Button`, `Checkbox`, `Card`, etc.), not hand-rolled
 `<span>`/`<div>`/`<button>` elements with inline Tailwind classes that approximate a component's look. This
-is now a repo-wide rule stated in `CLAUDE.md`, not a Limbo-only convention — treat it as absolute.
+is now a repo-wide rule stated in `CLAUDE.md`, not a Sandbox-only convention — treat it as absolute.
 
 A hand-rolled approximation will drift from the real component's actual recipe (missing `inline-flex
 items-center justify-center`, missing focus/aria states, missing disabled handling, etc.) in ways that
