@@ -21,7 +21,7 @@
 
 ## Laptop A (main)
 
-**Baseline** — branch `main`, last verified commit `6510d4c`, working tree clean, in sync with
+**Baseline** — branch `main`, last verified commit `ecd9939`, working tree clean, in sync with
 `origin/main`. Verify this yourself (`git log --oneline -1`, `git status`) before trusting anything
 below it.
 
@@ -32,10 +32,13 @@ which cannot be fixed from here.
 
 ### Active task
 
-**Sandbox Milestone 5 — in progress.** M1–M4 are complete and verified. The M5 rename landed
-earlier. **Steps 1, 2 and 3 are done and verified** — the origin quarantine, N components read from
-the corpus, and click-to-highlight. **Only step 4 remains**, and its precondition is now met:
-`scripts/check-corpus-equivalence.mjs` reports 154/154 rows equivalent. See "What's next".
+**Sandbox Milestone 5 is COMPLETE.** M1–M5 are built and verified. All four of M5's own "done when"
+criteria are met: origin material provably cannot reach the translation pane (a deliberate crossing
+import fails the build), clicking a divergence highlights the exact region in the live component, that
+region stays hoverable/clickable/resizable while highlighted, and the hand-written data file was
+deleted only after the database path was proven equivalent.
+
+**Nothing is in progress.** See "What's next" for where M6 starts and what it needs first.
 
 **First thing to do on this machine: reconnect the sandbox MCP server.** Its tools
 (`mcp__sandbox__*`) did not attach to the last session — `ToolSearch` found none of them. The server
@@ -63,15 +66,28 @@ Read `docs/SANDBOX-SPEC.md` first. It is the single source of truth for this pro
 **Four proof scripts. Re-run ALL of them after any change under `db/`, `verifier/` or `mcp/`:**
 
 ```
-npm --prefix db run verify         # 15/15 — the gate and its permissions
-npm --prefix verifier run verify   # 12/12 — the runner is worth trusting
-npm --prefix mcp run verify        # 14/14 — the agent surface, over the real protocol
-npm --prefix db run verify-import  #   8/8 — the corpus still matches the source
+npm --prefix db run verify                 # 15/15 — the gate and its permissions
+npm --prefix verifier run verify           # 12/12 — the runner is worth trusting
+npm --prefix mcp run verify                # 14/14 — the agent surface, over the real protocol
+npm --prefix db run verify-import          #   8/8 — corpus vs the FROZEN snapshot (drift detection)
+node scripts/check-corpus-equivalence.mjs  # 154/154 — what the APP renders vs that same snapshot
 ```
 
 They connect as real principals and watch things fail rather than reading permissions and reasoning
-about them. `verify-import` re-reads the TypeScript source and diffs field by field; it does not
-trust the importer's own success message, since that is an assertion by the thing that did the work.
+about them. Neither trusts a writer's own success message, since that is an assertion by the thing
+that did the work.
+
+**`verify-import` changed meaning at M5 step 4 — worth knowing before you read its name.** It used to
+re-read the hand-written TypeScript source and prove the import was lossless. That array is now
+deleted (the corpus is authoritative), so it diffs the **live corpus against
+`db/snapshots/rail-sidebar.json`**, the frozen snapshot committed in git: it detects **drift**, not
+import fidelity. `check-corpus-equivalence` is the fifth check and asks a genuinely different
+question — the app's **rendered** view vs that same snapshot, because a field can sit in the database
+perfectly and still be dropped on the way out.
+
+**The snapshot must stay frozen or both checks become meaningless.** It is regenerated only by
+deliberately running `scripts/emit-corpus-snapshot.mjs`. If you find yourself regenerating it to make
+a check pass, stop — the check is working, and the question is why the corpus changed.
 
 **Findings that only appeared by running things — each now guarded:**
 
@@ -99,10 +115,10 @@ at the repo root.
 - **M5 rename landed.** The old `limbo-factory/`, `limbo/` and `LIMBO-PROTOCOL-LOG.md` are now
   `sandbox/`, `origin/` and `SANDBOX-PROTOCOL-LOG.md`. Every move was 100% similarity — **no file
   contents were altered**. Paths and forward-looking prose were updated; **historical entries were
-  not**. The protocol log's own entries and `sandbox/src/data/rail-sidebar.ts` still use the old
-  names deliberately: they record what was true when written, and that data file is additionally
-  stored verbatim in `origin_record`, so editing it would break the byte-identical guarantee
-  `verify-import` checks (re-run after the rename: still 8/8). `sandbox/` builds clean.
+  not**. The protocol log's own entries still use the old names deliberately: they record what was
+  true when written. (The same once applied to `sandbox/src/data/rail-sidebar.ts`, whose divergence
+  array was stored verbatim in `origin_record`; that array was deleted at M5 step 4, and its verbatim
+  text now lives in `db/snapshots/rail-sidebar.json` instead.) `sandbox/` builds clean.
 - **Laptop B's and the PC's sections were path-renamed too, at the owner's explicit instruction**, as an
   exception to the "only edit your own section" rule. Strictly a mechanical path substitution — no
   claim either machine made was altered, only strings pointing at directories that no longer exist.
@@ -203,6 +219,34 @@ nowhere to land.
 a passing verdict now would cite evidence from a different commit. A second review round against the
 fixed code is the correct next step — that is the loop working, not a blockage.
 
+**M5 step 4 — the hand-written divergence data is gone; the corpus is authoritative.** The app renders
+all 154 rows from Fabric alone, verified **9/9 against a real production build** with the array removed.
+
+- **Step 4 could not be done literally, and this matters for anyone reading the spec.**
+  `sandbox/src/data/rail-sidebar.ts` exports **27 things**; only `divergenceCategories` was ever
+  migrated. Phases, blocking questions, risks, proposed tokens, logo paths and every shared **type**
+  are used across 8 files and have nowhere in the schema to live. Only the 235-line migrated array was
+  removed; a comment in its place records why and what stayed.
+- **The frozen snapshot is run EARLY, on purpose.** Deleting the array would otherwise have left 154
+  hand-written decision records in exactly one Fabric database — and Rail Sidebar is at **0 of 154 rows
+  resolved**, nowhere near the promotion at which SANDBOX-SPEC §4.1 expects a snapshot. So
+  `scripts/emit-corpus-snapshot.mjs` emits **`db/snapshots/rail-sidebar.json`** — 154 rows, each with
+  its verbatim `originRecord` — committed to git.
+- **Because that snapshot is FROZEN, the two scripts that read the deleted file were RE-POINTED rather
+  than retired** (which is what the spec prefers). All four proof suites survive:
+  - `verify-import` now diffs the **live corpus** against the frozen snapshot. Its meaning changed
+    honestly: it no longer proves the import was lossless (settled, and the source is gone) — it
+    detects **corpus drift**. Still 8/8.
+  - `import-rail-sidebar` now rebuilds the corpus **from** the snapshot. It stops being a spent
+    one-off migration tool and becomes the **restore path** — the corpus is authoritative, which means
+    the corpus is also the thing that can be lost. Dry-run rebuilds all 154 rows from git.
+  - `check-corpus-equivalence` compares the app's **rendered** view against the snapshot — a different
+    claim from `verify-import`'s stored-row check, since a field can sit in the database perfectly and
+    still be dropped on the way out.
+- **None of this is circular, and that rests entirely on the snapshot staying frozen.** It is
+  regenerated only by deliberately running the emitter. **If anyone regenerates it to make a check
+  pass, the check was working** and the real question is why the corpus changed. Noted in each file.
+
 **M5 step 2 — N components from the corpus — is done and verified.** The app no longer imports one
 occupant's divergences from a TypeScript file; it reads components, categories and rows from Fabric
 and offers a picker. **9/9 live checks against a real `vite preview` production build**, not only the
@@ -297,21 +341,41 @@ any of those rows can leave `legacy_unverified`.
 
 ### What's next
 
-**Sandbox Milestone 5, remaining work** (`SANDBOX-SPEC.md` §6). The rename and the origin quarantine
-are done; the rest of the app is not.
+**Milestone 5 is complete** (`SANDBOX-SPEC.md` §6): all four steps done and verified. **M6 is next —
+the evidence widget and the approval gate.** Read §6's M6 section before starting; the notes below are
+what this session learned that its "done when" list does not say.
 
-0. **Review has a termination rule now — apply it, don't re-review by default.** One round per batch
-   of work; fix what it finds; **re-review only if a fix touched code shared by other rows.** A round
-   that finds nothing new ends it. Without this the anchor → measure → review → fix cycle has no exit
-   and reads as a loop rather than progress. Applied to round one: the F-7 fix touched only the
-   footer and the L-34 fix touched only records, so **no second round is owed**. Verdicts still need
-   submitting to the corpus to clear `review.present`, by someone other than the builder — the
-   database enforces that, it is not a convention.
-1. ~~Origin quarantine~~ — **done and verified.** See "What's done" above.
-2. ~~Generalise to N components read from the database~~ — **done and verified.** See "What's done".
-3. ~~Divergence list with click-to-highlight~~ — **done and verified.** See "What's done".
-4. Delete `sandbox/src/data/rail-sidebar.ts` **only** once the database path returns equivalent
-   content, and re-point `db/import-rail-sidebar.mjs` / `db/verify-import.mjs` or retire them.
+**Two things M6 needs before its own work makes sense:**
+
+1. **Submit the four outstanding review verdicts.** F-2/F-3/F-7/L-34 have passing evidence; the gate
+   lists only `review.present` as unmet. The reviewer must not be the builder — the database enforces
+   that, it is not a convention. **A weakness worth knowing:** `sandbox_submit_review` takes
+   `author_agent_id` AND `builder_agent_id` as caller-supplied strings. The database enforces they
+   *differ*, not that they are genuinely different actors. Independence is structural on the values,
+   self-declared on the reality. That belongs in the flaws log, and possibly in M9's enforcement list.
+2. **Extend the M2 runner, before anchoring at scale.** Anchoring category F end-to-end found that the
+   runner cannot express two whole classes of check — and layout-sizing is the category *most*
+   friendly to mechanical measurement, yet it reaches only about two thirds of it:
+   - **Relational geometry.** F-4 (rail-to-panel gap), F-9 (rail item pitch) and F-11 (footer
+     bottom-anchoring) each assert a relationship **between two elements**. A spec addresses exactly
+     one anchor and `box` returns that one element's rect. Meanwhile checklist item 4 already requires
+     alignment claims be measured on *both* elements.
+   - **Scripted interaction.** F-8 is a drag clamp, only observable by resizing. The state vocabulary
+     is `rest`/`hover`/`active`/`focus`/`focus-visible`/`disabled` — nothing drives a sequence.
+
+   Anchoring the remaining ~147 rows first would mean discovering mid-way that a large share has
+   nowhere to land.
+
+**Review has a termination rule — apply it, don't re-review by default.** One round per batch of work;
+fix what it finds; **re-review only if a fix touched code shared by other rows.** A round that finds
+nothing new ends it. Without this the anchor → measure → review → fix cycle has no exit and reads as a
+loop rather than progress. Applied to round one: the F-7 fix touched only the footer and the L-34 fix
+touched only records, so **no second round is owed**.
+
+**Left deliberately undecided, flagged rather than fixed:** F-3's row title still reads
+`panelW = 300px` while its own detail explains the decision resolved to **256** — the card contradicts
+itself on screen. Same class as L-34's false "Schedules" claim, on a different row. Correcting an
+imported record is a policy call, and only L-34's correction was authorised.
 
 Still genuinely open on Rail Sidebar, unrelated to the Sandbox build: divergence categories I
 (elevation) and J (z-index); and four risk items honestly unfinished — R-3c/R-11c (no dedicated
