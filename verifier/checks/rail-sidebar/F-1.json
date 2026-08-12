@@ -15,8 +15,9 @@
     {
       "kind": "computed-style",
       "state": "rest",
-      "expect": { "width": "38px", "padding-left": "8px", "padding-right": "8px", "box-sizing": "border-box" },
-      "_why": "computed width reports the CONTENT box (38px) while getBoundingClientRect reports the border box (54px). Asserting both, plus the padding that reconciles them, is what makes this check fail if someone ever keeps the 54 while changing the padding — which would move every rail button without changing the number this row is about."
+      "expect": { "width": "54px", "box-sizing": "border-box", "padding-left": "8px", "padding-right": "8px" },
+      "_why": "Asserting the padding alongside the width is what makes this check fail if someone keeps the 54 but changes the padding — that would move every rail button inside it without altering the number this row is about. The content lane is the derived consequence: 54 - 8 - 8 = 38, exactly one rail button wide, which is what makes F-1's 54 and F-2's 38 consistent rather than a coincidence. Confirmed live: clientWidth 54, contentWidth 38, and the column's first child measures exactly 38.",
+      "_corrected": "The first version of this check asserted width: 38px, on the assumption that getComputedStyle().width reports the CONTENT box. It does not here: this element is box-sizing: border-box (Tailwind preflight sets it globally), and Chrome returns the border-box width, 54px. The runner caught it — a genuinely wrong expectation produced a FAILING evidence row rather than a passing one, which is the property M2 exists to have. Recorded because the mistake is easy to make in either direction and the failure mode is a silently wrong assertion, not an error."
     }
   ]
 }
