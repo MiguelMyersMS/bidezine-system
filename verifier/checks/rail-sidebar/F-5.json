@@ -1,0 +1,22 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "F-5",
+  "url": "http://localhost:4199",
+  "anchor": "F-5",
+  "_decision": "Row height is a uniform h-8 / 32px at every nesting depth. Origin's own hitTarget = 40px was never adopted; an earlier resolution kept h-9 / 36px, which was then superseded because 36px matched no bidezine convention at any depth. 32px does: it is bidezine's own Sidebar SidebarMenuButton top-level row height, and it is what the DropdownMenuItem / DropdownMenuSubTrigger / ContextMenuSubTrigger / MenubarSubTrigger family renders at EVERY nesting depth — the only bidezine precedent that actually proves uniform height works at arbitrary depth in a shipped component.",
+  "_scope": "Anchored to the top-level group row 'system-logic' (depth 0). Its pair, F-6, is anchored to that row's own child 'schedules' (depth 1). Read the two together — see F-6.json.",
+  "checks": [
+    {
+      "kind": "box",
+      "state": "rest",
+      "expect": { "height": 32 },
+      "tolerance": 0.5
+    },
+    {
+      "kind": "computed-style",
+      "state": "rest",
+      "expect": { "height": "32px", "font-size": "14px" },
+      "_why": "font-size is asserted alongside the height because the superseded 36px resolution also carried a different type scale on group rows (text-xs). A height-only check would pass on a row that had silently reverted to reading as a section caption rather than a peer of its sibling leaf rows, which is the actual thing L-9 unified."
+    }
+  ]
+}

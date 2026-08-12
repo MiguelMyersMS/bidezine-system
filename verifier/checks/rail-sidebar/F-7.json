@@ -4,13 +4,21 @@
   "url": "http://localhost:4199",
   "anchor": "F-7",
   "_decision": "FOOTER_MAX_HEIGHT = 122px (the approved 3-icon cap), re-derived from bidezine's own already-shipped values rather than borrowed from origin's literal: RAIL_BUTTON_SIZE (38, the real size-[38px]) x 3 + FOOTER_GAP (4, the real gap-1) x 2 = 122.",
-  "_history": "This is the row that produced CLAUDE.md checklist item 26's fourth axis. It was recorded as APPROVED and RESOLVED while the cap was never wired into the code at all — the footer column had no max-height and no overflow rule of any kind. It was invisible because this rail ships only 2 footer items, comfortably under the 3-icon threshold that would ever clip. A documented decision is not evidence of an implemented one; this check is what makes the difference machine-checkable.",
-  "_note": "Asserts overflow: hidden alongside the height, because the cap only clips with both. A max-height on its own merely stops the flex parent growing and would leave a 4th item visibly overflowing.",
+  "_history": "This row produced CLAUDE.md checklist item 26's fourth axis: it was recorded APPROVED and RESOLVED while the cap was never wired into the code at all. An independent review then found that the fix which closed that gap had itself introduced two defects, neither of which the first version of this spec could see, because it asserted property values rather than behaviour and ran at a single viewport.",
+  "_why_overflow_is_NOT_asserted_here": "The earlier version of this spec asserted overflow: hidden and justified it as 'the cap only clips with both'. That justification was measured and found false: the ancestor rail column already clips 34 of a 4th item's 38px, so the footer's own overflow-hidden bought ~4px — while causing the footer to collapse to 0px at short viewports (flex automatic minimum size flips to 0 under overflow: hidden) and clipping both footer buttons' focus-visible rings against zero slack. It was removed per checklist item 21. Asserting overflow here now would re-assert the defect.",
+  "_known_gap": "These checks still do not exercise the cap. This rail ships 2 footer items (~80px), comfortably under 122px, so maxHeight never engages. Proving the cap needs a 3rd and 4th item rendered, which no spec kind expresses today. Recorded rather than papered over: a pass here means the cap is correctly declared and the column renders at its natural height, NOT that clipping behaves correctly.",
   "checks": [
     {
       "kind": "computed-style",
       "state": "rest",
-      "expect": { "max-height": "122px", "overflow": "hidden" }
+      "expect": { "max-height": "122px", "flex-shrink": "0" }
+    },
+    {
+      "kind": "box",
+      "state": "rest",
+      "expect": { "height": 80, "width": 38 },
+      "tolerance": 0.5,
+      "_why": "A computed-style check alone passes on a display:none element — max-height and flex-shrink still report their values while the element renders nothing. This box check is what makes that fail, and it is also what would catch the collapse defect (46.83px at viewport height 380, 0px at 300) if the runner's viewport were ever shortened. 80 = 2 buttons x 38 + one 4px gap, this rail's real footer content."
     }
   ]
 }

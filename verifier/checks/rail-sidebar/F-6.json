@@ -1,0 +1,22 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "F-6",
+  "url": "http://localhost:4199",
+  "anchor": "F-6",
+  "_decision": "Origin's compact = 28px (NavRowShell minHeight) was never adopted and remains unused. Rows are h-8 / 32px uniformly at every depth. 28px appears in bidezine only as a ONE-LEVEL-DEEP nested tier (SidebarMenuSubButton), never as a default or top-level row height anywhere in the system — adopting it uniformly would mean permanently living at bidezine's 'already demoted one level' size for every row, including the top one.",
+  "_why_this_anchor_is_the_whole_point": "This row is anchored to 'schedules', which is the CHILD of F-5's 'system-logic'. F-5 alone cannot demonstrate this decision: a single row proves a height, not the absence of a shrink. The pair does. If a future change reintroduced bidezine's own Sidebar convention of shrinking one level down (32 -> 28), F-5 would still pass and only F-6 would fail. That asymmetry is deliberate, and it is why the two specs exist separately rather than as one check with two states.",
+  "checks": [
+    {
+      "kind": "box",
+      "state": "rest",
+      "expect": { "height": 32 },
+      "tolerance": 0.5
+    },
+    {
+      "kind": "computed-style",
+      "state": "rest",
+      "expect": { "height": "32px", "font-size": "14px" },
+      "_why": "Identical assertions to F-5 on purpose. The decision is that depth changes nothing, so the two checks agreeing IS the evidence; any future divergence between them is the regression."
+    }
+  ]
+}

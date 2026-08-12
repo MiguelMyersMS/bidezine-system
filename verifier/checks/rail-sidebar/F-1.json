@@ -1,0 +1,22 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "F-1",
+  "url": "http://localhost:4199",
+  "anchor": "F-1",
+  "_decision": "railW = 54px. Approved: match the origin Rail Sidebar rail width at 54px, rather than using bidezine's own Sidebar primitive collapsed-rail width of 48px. This is therefore a deliberate, recorded divergence from a bidezine value — not a case of reusing one — which is why the number is worth guarding mechanically: nothing in bidezine's own token set would produce 54 if it were ever lost.",
+  "_note": "Anchored to the rail column itself (the dark rounded surface holding logo, nav track and footer), not to a button inside it. 54 is the column's border-box width; it carries p-2 (8px) padding, so its content box is 38px — exactly one rail button wide, which is what makes 54 and F-2's 38 consistent rather than coincidental.",
+  "checks": [
+    {
+      "kind": "box",
+      "state": "rest",
+      "expect": { "width": 54 },
+      "tolerance": 0.5
+    },
+    {
+      "kind": "computed-style",
+      "state": "rest",
+      "expect": { "width": "38px", "padding-left": "8px", "padding-right": "8px", "box-sizing": "border-box" },
+      "_why": "computed width reports the CONTENT box (38px) while getBoundingClientRect reports the border box (54px). Asserting both, plus the padding that reconciles them, is what makes this check fail if someone ever keeps the 54 while changing the padding — which would move every rail button without changing the number this row is about."
+    }
+  ]
+}

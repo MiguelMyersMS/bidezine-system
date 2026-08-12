@@ -1,0 +1,17 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "F-2",
+  "url": "http://localhost:4199",
+  "anchor": "F-2-icon",
+  "_decision": "The second half of F-2: 'railButton = 38px / railIcon = 20px'. This spec covers the 20px icon; F-2.json covers the 38px button.",
+  "_why_a_separate_spec": "An independent review of F-2 found that its check asserted only the button box, leaving the icon half of its own decision record unguarded — correct at the time (measured 20x20), with nothing to catch a regression. A single spec addresses exactly one anchor, but `anchor` and `divergence` are SEPARATE fields in run-checks.mjs: the anchor is matched in the DOM, only `divergence` is looked up in the database. So this spec measures a different element while writing its evidence to the same divergence row. Worth knowing generally — it means a divergence asserting several things about several elements is fully checkable, contrary to what the one-anchor-per-spec shape first suggests.",
+  "_scope": "Anchored to the icon inside the FIRST pinned rail button, the same representative instance F-2 uses. Proves that icon, not all 27.",
+  "checks": [
+    {
+      "kind": "box",
+      "state": "rest",
+      "expect": { "width": 20, "height": 20 },
+      "tolerance": 0.5
+    }
+  ]
+}

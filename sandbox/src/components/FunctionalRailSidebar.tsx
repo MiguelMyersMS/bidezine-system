@@ -528,7 +528,9 @@ function containsActiveItem(nodes: PanelNode[], activeItemId: string | null): bo
  * font-size (14px, confirmed live via getComputedStyle — was `line-height: 14px` on every
  * active-path row, vs. `20px` on regular rows). The label span also carries `truncate`
  * (`overflow: hidden; text-overflow: ellipsis; white-space: nowrap`) for its horizontal ellipsis —
- * so any glyph with a descender (g/y/p/q/j — "Schedules", "System logic", etc.) rendered per the
+ * so any glyph with a descender (g/y/p/q/j — "System logic", "Monthly", etc. — NOT "Schedules",
+ * which contains no descender at all and was never affected; see L-34's own CORRECTION note in
+ * rail-sidebar.ts for how that wrong example got written down and propagated) rendered per the
  * font's own ascent/descent metrics past that reduced 14px line box, and `overflow: hidden` clipped
  * it right at the bottom, specifically only on bolded/active-path rows. Confirmed against origin's
  * real tokens (design-system's `tokens.ts`): `bodyM` (rest) and `labelL` (active) share the IDENTICAL
@@ -785,7 +787,16 @@ function RailIconButton({
         transition: "background-color 150ms ease, color 150ms ease",
       }}
     >
-      <Icon className="size-5" filled={isActive || isBrowsing || isHovered || isPressed} />
+      {/* F-2's decision is "railButton = 38px / railIcon = 20px", but its original check asserted
+          only the button box — an independent review measured the icon at 20x20 and pointed out
+          nothing guarded it. `spec.anchor` and `spec.divergence` are separate fields in the runner,
+          so a second spec can carry anchor "F-2-icon" while still writing its evidence to
+          divergence F-2. Same representative-instance caveat as the button itself. */}
+      <Icon
+        {...(anchorRef ? anchor(`${anchorRef}-icon`) : {})}
+        className="size-5"
+        filled={isActive || isBrowsing || isHovered || isPressed}
+      />
       <span className="sr-only">{section.label}</span>
     </Button>
   )
@@ -1004,6 +1015,15 @@ function PanelTree({
               <Button
                 type="button"
                 variant="ghost"
+                // F-5 / F-6 (row height unified to h-8 / 32px at EVERY nesting depth) are anchored
+                // to two specific group rows, BY NODE ID, because each anchor must resolve to
+                // exactly one element: "system-logic" is a top-level row (depth 0) and "schedules"
+                // is its child (depth 1). Anchoring by depth alone would not be unique — PanelTree
+                // recurses per group, so several sibling groups render rows at the same depth. The
+                // PAIR is the point: F-6 exists to show the height does NOT shrink one level down
+                // the way bidezine's own SidebarMenuSubButton does (28px), and a single anchored row
+                // could never demonstrate that.
+                {...(node.id === "system-logic" ? anchor("F-5") : node.id === "schedules" ? anchor("F-6") : {})}
                 // L-28/L-29: label weight/leading AND icon fill both derive from the SAME
                 // `pathEmphasis(isAncestorOfActive)` call (checklist item 20) — `aria-pressed` here
                 // is read automatically by Button's own `useActionIconFill`/`fillActionIcons` wiring
@@ -1414,6 +1434,7 @@ export function FunctionalRailSidebar({
       <div className="flex w-full" style={{ fontFamily, gap: RAIL_PANEL_GAP, height }}>
         {/* Rail */}
         <div
+          {...anchor("F-1")}
           className="flex shrink-0 flex-col overflow-hidden p-2"
           style={{ width: 54, borderRadius: 12, background: colors.surface }}
         >
@@ -1651,13 +1672,43 @@ export function FunctionalRailSidebar({
 
           <div className="mx-0 my-2 h-px max-w-full" style={{ background: colors.divider }} />
           {/* F-7 (approved 3-icon cap): caps the footer group's own rendered height so it can never
-              grow past FOOTER_MAX_HEIGHT (122px = 3 rail buttons + 2 gaps), silently clipping any
-              4th+ footer item — matches origin's own defensive budget cap (see the FOOTER_MAX_HEIGHT
-              doc comment above `const RAIL_BUTTON_SIZE` for the full derivation). `overflow-hidden`
-              is required for the cap to actually clip rather than just stop growing the flex parent. */}
+              grow past FOOTER_MAX_HEIGHT (122px = 3 rail buttons + 2 gaps) — matches origin's own
+              defensive budget cap (see the FOOTER_MAX_HEIGHT doc comment above `const
+              RAIL_BUTTON_SIZE` for the full derivation).
+
+              CORRECTION (independent review of F-7, confirmed by live re-measurement): this element
+              previously also carried `overflow-hidden`, on the reasoning that the cap "is required
+              to actually clip rather than just stop growing the flex parent." That was wrong on its
+              own terms and caused two real defects, neither visible at the single viewport the
+              check ran at:
+
+              1. **The shipped 2-item footer silently collapsed.** `overflow: hidden` flips a flex
+                 item's automatic minimum size from min-content to 0, and this column had no
+                 `shrink-0` and no `min-h-*`. Measured live: footer height 80px at viewport heights
+                 900/560, 46.83px at 380, and **0px at 300 — both buttons gone, no error**. Causation
+                 isolated at height 300: as shipped 0px; `overflow: visible` 80px; `overflow: hidden`
+                 plus `flex-shrink: 0` 80px. This is CLAUDE.md checklist item 9 — a CSS mechanic
+                 changed without re-verifying the behaviour that depended on it.
+              2. **It clipped the footer buttons' focus rings**, exactly reintroducing L-31 /
+                 checklist item 21. The container is sized to the 38px buttons with zero slack:
+                 measured left/right slack 0px on BOTH buttons, plus bottom 0px on Settings and top
+                 0px on Profile, against `Button`'s own real `focus-visible:ring-[3px]`.
+
+              Fixed per item 21's own prescription — when a nested wrapper's `overflow-hidden` is
+              redundant with a looser ancestor's, remove the tighter zero-slack one rather than
+              padding it (padding here would shift the rail layout this container was sized around).
+              The ancestor rail column already clips: an independent measurement of a hypothetical
+              4th item found it painting 0px with this `overflow-hidden` and 4px without it, because
+              that ancestor already removes 34 of the 38px. Losing 4px of clipping on a case that
+              cannot occur in this rail's own 2-item configuration is plainly the better trade than
+              a footer that vanishes and eats its own focus rings.
+
+              `shrink-0` is what actually prevents the collapse and is NOT optional — without it the
+              column shrinks under vertical pressure whether or not `overflow` is set. `maxHeight`
+              still enforces the approved cap on growth. */}
           <div
             {...anchor("F-7")}
-            className="flex flex-col gap-1 overflow-hidden"
+            className="flex shrink-0 flex-col gap-1"
             style={{ maxHeight: FOOTER_MAX_HEIGHT }}
           >
             {/* Pinned utility button — a permanently disabled "Profile" slot. Unlike the primary
