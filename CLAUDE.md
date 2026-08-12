@@ -469,6 +469,11 @@ over a dozen of these bugs accumulated underneath it. Reactive verification (che
 happens to ask about) cannot reach zero; only an exhaustive, repeatable procedure run on every primitive
 usage can. This checklist exists to make that procedure concrete instead of aspirational.
 
+**Items marked `→ ENFORCED` are machine-checked by `scripts/check-rules.mjs`, blocking in CI (Sandbox M9).**
+They are shorter here because the part you had to remember is applied for you; what remains is the judgement no
+grep can make. Their incidents live in `SANDBOX-PROTOCOL-LOG.md`'s flaws log. `ENFORCED` is not "skip it" — the
+check catches only the shape it was given.
+
 **Run every item below for every real primitive usage you touch, before calling any change "done" — not
 just the property the current task happens to mention:**
 
@@ -521,14 +526,13 @@ a genuinely new failure category is found — not evidence the list is now compl
    primitive-touching change, in miniature, so issues surface within the same turn they're introduced, not
    dozens of turns later when a human happens to notice.
 
-8. **A plain CSS mechanism standing in for a component is the same violation as hand-rolled markup — check
-   for it explicitly, don't wait to be asked.** A raw `overflow-y-auto`/`overflow-x-auto` (rendering the
-   browser/OS's own native scrollbar instead of the real `ScrollArea` primitive) is exactly as much a "no
-   hand-rolled components" violation as a raw `<button>` standing in for `Button` — it's just easier to miss
-   because there's no visibly wrong markup to spot, only a native browser affordance quietly substituting for
-   a themeable one. When auditing a component, explicitly enumerate every raw `overflow-*`/scroll-bearing
-   element and confirm there's a deliberate, recorded decision for each one (real `ScrollArea` vs. browser
-   default vs. something else) — don't only catch it when a human notices the scrollbar itself looks wrong.
+8. **A plain CSS mechanism standing in for a component is the same violation as hand-rolled markup.** A raw
+   `overflow-y-auto` substituting for the real `ScrollArea` is exactly as much a "no hand-rolled components"
+   violation as a raw `<button>` standing in for `Button` — just harder to see, because a native browser
+   affordance quietly replaces a themeable one instead of leaving visibly wrong markup.
+   → **ENFORCED** (`scroll.no-raw-overflow`). It found `SidebarContent` on its first run, months after this
+   rule was written and repeatedly quoted. What it cannot decide is whether an exception is *legitimate* —
+   every entry in its exception list must carry the architectural reason it was granted.
 
 9. **Swapping to a real primitive can silently change the CSS mechanics an existing behavior depended on —
    re-verify the behavior itself, not just that the primitive rendered.** Replacing a plain `overflow-y-auto`
@@ -607,21 +611,16 @@ a genuinely new failure category is found — not evidence the list is now compl
 15. **Anything that relies on a component's runtime identity (`.name`, `.displayName`, or a name-based string
     match) must be verified against an actual production/minified build, not just the Vite dev server — dev
     mode preserves function names; a real build routinely does not.** `src/lib/action-icons.tsx`'s own
-    `isIconElement()` check has two paths: an explicit `isActionIcon === true` marker set on every real
-    generated icon (`scripts/build-icons.mjs`), and a fallback that checks whether `.name`/`.displayName` ends
-    in `"Icon"` — with its own code comment already warning the fallback is unsafe under minification. A
-    hand-rolled icon factory in a sandbox component (returning a function literally named `SpecIcon`) relied
-    solely on that unsafe fallback. It passed every check across many turns of this session because every one
-    of those checks ran against the dev server, where the name survives — then a real `npm run build` +
-    `npm run preview` test proved every one of those icons had **silently stopped filling on hover/select
-    entirely**, with zero errors, the moment the code was minified, while real generated icons (immune via
-    their `isActionIcon` marker) kept working in the exact same bundle. This is why a class of "icon doesn't
-    fill" bug kept recurring across the whole session despite repeated fixes: every fix was re-verified the
-    same insufficient way. Fix: any hand-rolled component that needs to participate in the action-icon-fill
-    system must set `ComponentName.isActionIcon = true` explicitly, exactly like the generated pipeline does —
-    and after any icon-fill fix, build for production and test the actual built output before calling it done,
-    not only the dev server. **Two known limits of the marker approach, caught by an independent review, not
-    yet hit in practice:** the marker is read off `child.type` directly, so it does **not** survive being
+    `isIconElement()` check has two paths: an explicit `isActionIcon === true` marker, and a fallback checking
+    whether `.name`/`.displayName` ends in `"Icon"` — unsafe under minification, as its own code comment
+    warns. A hand-rolled icon relying solely on that fallback silently stopped filling on hover the moment it
+    was minified, with zero errors, while generated icons kept working in the same bundle. It survived many
+    turns of "fixes" because every re-check ran against the dev server.
+    → **The marker is ENFORCED** by `scripts/check-rules.mjs` (`icons.action-marker`), blocking in CI.
+    **The broader rule is not, and cannot be: verify anything name-dependent against a real build.** That
+    generalises well past icons — it is the reason `site/verify-sidebar-scroll.mjs` and the sandbox checks all
+    drive production output. **Two known limits of the marker, which the check also cannot see:** it is read
+    off `child.type` directly, so it does **not** survive being
     wrapped in `React.memo`/`React.forwardRef`/another HOC afterward — mark the *outermost* wrapper, not just
     the inner function, if one is ever added; and the check is `displayName ?? name` (an *or*, not both), so a
     `displayName` that doesn't end in `"Icon"` silently overrides an otherwise-fine `.name` — the marker is the
@@ -757,17 +756,13 @@ a genuinely new failure category is found — not evidence the list is now compl
 24. **Never reduce `line-height` below a font's safe descender clearance on an element that also has (or might
     ever gain) `overflow: hidden`/`truncate` — glyphs paint per the font's own ascent/descent metrics regardless
     of line-height, so a line box shrunk to exactly `font-size` (`leading-none`, line-height: 1) WILL clip
-    descenders (g/y/p/q/j) the instant anything on that element clips overflow.** The Rail Sidebar's active-path
-    tree row labels (L-34) used `"leading-none font-medium"` to bold+tighten the selected row's text — but the
-    SAME `<span>` already carried `truncate` (`overflow: hidden; text-overflow: ellipsis; white-space: nowrap`)
-    for its own horizontal ellipsis, so Inter's descender on any bolded row's "g"/"y" (e.g. "Schedules", "System
-    logic") was clipped right at the bottom of the now-14px (font-size-equal) line box — invisible on rows
-    without a descender letter, which is why it looked like it "appeared and disappeared" depending on which
-    label happened to be active. This is a deterministic interaction, not a rendering fluke: confirm via
-    `getComputedStyle` that `line-height` is genuinely ≥ the font's own safe default (Tailwind's `text-sm` pairs
-    14px with a 20px/1.43 line-height for exactly this reason) before ever applying `leading-none`/`leading-tight`
-    to real, dynamic text content (as opposed to purely decorative or icon-only elements, where a tight
-    line-height is safe because there's no descender to clip). If two visual states (active vs. inactive) are
+    descenders (g/y/p/q/j) the instant anything on that element clips overflow.** It shipped (L-34), and looked
+    like it "appeared and disappeared" depending on whether the active label happened to contain a descender.
+    → **The `leading-none` + `truncate` combination on one element is ENFORCED** by `scripts/check-rules.mjs`
+    (`text.leading-none-truncate`), blocking in CI. **The judgement it cannot make is the general one:** confirm
+    via `getComputedStyle` that `line-height` is ≥ the font's own safe default (Tailwind pairs `text-sm`'s 14px
+    with 20px/1.43 for exactly this reason) before applying any tight line-height to real, dynamic text — as
+    opposed to decorative or icon-only elements, where there is no descender to clip. If two visual states are
     both real text, check whether the origin/reference source actually changes line-height between them at all —
     here it didn't (`bodyM`/`labelL` share `lineHeight: 1.55`, only `fontWeight` differs), which is itself a signal
     that introducing a line-height change was an unforced, avoidable divergence, not something being deliberately

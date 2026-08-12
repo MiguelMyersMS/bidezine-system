@@ -255,6 +255,17 @@ Criteria are deliberately **not** fixed here. They will be derived in M9 from fa
 categories that have never been falsely passed have earned the fast lane. The schema carries `tier` and
 `tier_justification` from M1 so this is not a retrofit.
 
+**M9 finding — that rule needs a volume guard, and without one it reads backwards.** Computed against the
+real corpus (`node scripts/tier-eligibility.mjs`): nothing is resolved, in any category. So "never been
+falsely passed" is true of **12 of the 13 categories, covering 144 of 155 divergences** — the rule as
+written would fast-lane almost the entire corpus on the strength of no evidence at all. That is the same
+defect as `evidence.current`, which was satisfied for every row from M1 to M7 because its join could never
+match: *no category has been falsely passed* and *no category has been passed* are indistinguishable in the
+data and mean opposite things. The rule is therefore **≥N resolved AND zero falsified** — absence of failure
+counts only once there has been something to fail at. **N is not derived and is not pretended to be**: there
+is no throughput to derive it from, it defaults conservatively to 5, and it needs a human decision once real
+resolutions exist. Today 0/13 categories qualify, which is the correct answer rather than a missing one.
+
 ### 5.7 System changes
 
 Detected mechanically: **if the proposed fix touches `tokens/` or `src/ui/`, it is system-scoped.** If it
