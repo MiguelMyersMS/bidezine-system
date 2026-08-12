@@ -75,7 +75,20 @@ page.on("console", (m) => m.type() === "error" && noise.push(`console: ${m.text(
 
 try {
   await page.goto(BASE, { waitUntil: "networkidle" })
-  await page.getByRole("tab", { name: "Machines" }).click()
+
+  // ── readiness, not an investigation ───────────────────────────────────────────────
+  // Run immediately after editing any file the dev server watches, the first click times
+  // out: Vite is mid-reload, the HTTP probe above already answers 200, and the document
+  // that arrives is not yet interactive. Reproduced three times, always straight after an
+  // edit, never on a settled server. So the first interaction waits for the tab to be
+  // genuinely actionable rather than assuming a 200 means ready — a race worth absorbing
+  // rather than diagnosing, since nothing about it involves the code under test.
+  const machinesTab = page.getByRole("tab", { name: "Machines" })
+  await machinesTab.waitFor({ state: "visible", timeout: 30_000 })
+  await machinesTab.click({ timeout: 30_000 }).catch(async () => {
+    await page.reload({ waitUntil: "networkidle" })
+    await machinesTab.click({ timeout: 30_000 })
+  })
   await page.getByText("This machine:", { exact: false }).waitFor({ state: "visible", timeout: 45_000 })
 
   const thisMachine = (await page.locator("text=This machine:").first().textContent())?.trim()
@@ -129,9 +142,14 @@ try {
   await page.getByRole("option", { name: new RegExp(other) }).click()
 
   const notice = page.getByText("owns the components below", { exact: false })
-  await notice.waitFor({ state: "visible", timeout: 10_000 })
-  const text = (await notice.textContent()) ?? ""
-  check(true, `switching to ${other} shows the read-only explanation`)
+  // The waitFor is how the check WAITS; the check itself has to assert something, or it
+  // reports a result it never evaluated. Two `check(true, …)` calls sat here doing exactly
+  // that — passing unconditionally under labels describing assertions made by a `waitFor`
+  // reporting under a different label. Caught by review, one screen below this file's own
+  // header condemning the same shape.
+  await notice.waitFor({ state: "visible", timeout: 10_000 }).catch(() => {})
+  check(await notice.isVisible(), `switching to ${other} shows the read-only explanation`)
+  const text = (await notice.textContent().catch(() => "")) ?? ""
   check(
     /refused by the database, not by this screen/.test(text),
     "which attributes the refusal to the database, not to the UI",
@@ -142,8 +160,68 @@ try {
   // Switch back, so a human opening the app next finds it as they left it.
   await trigger.click()
   await page.getByRole("option", { name: new RegExp(me ?? "") }).first().click()
-  await notice.waitFor({ state: "hidden", timeout: 10_000 })
-  check(true, "switching back clears the read-only notice")
+  await notice.waitFor({ state: "hidden", timeout: 10_000 }).catch(() => {})
+  check(!(await notice.isVisible()), "switching back clears the read-only notice")
+
+  // ── the control itself, not just the paragraph next to it ─────────────────────────
+  // Everything above asserts that the read-only EXPLANATION renders. None of it would
+  // notice if every Approve button stayed live underneath, and `EvidenceWidget`'s
+  // `ownership?.mayWrite ?? true` fails OPEN by design — so a payload-shape drift silently
+  // re-enables approval everywhere while the read-only paragraph keeps rendering and this
+  // suite keeps passing. Raised by review; this is the check that closes it.
+  //
+  // Requires the component to actually be foreign-owned, so this section moves ownership
+  // and puts it back in a finally. That makes this the one part of this file that mutates
+  // anything.
+  const transferTo = async (from, to, note) => {
+    const res = await page.evaluate(
+      async ([f, t, n]) => {
+        const r = await fetch("/api/component/rail-sidebar/transfer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ from: f, to: t, note: n }),
+        })
+        return { status: r.status, body: await r.json() }
+      },
+      [from, to, note],
+    )
+    if (res.status !== 200) throw new Error(`transfer ${from} -> ${to} failed: ${res.body?.error}`)
+  }
+
+  await transferTo(me, other, "verify-machines-ui.mjs: proving Approve is disabled for an observer. Handed straight back.")
+  try {
+    await page.getByRole("tab", { name: "Full divergence list" }).click()
+    // The list is an Accordion and every category starts collapsed, so no row — and no
+    // "Evidence & approval" button — exists until one is expanded. Waiting for the button
+    // without this simply times out against a page that is working correctly.
+    await page.locator("[data-slot=accordion-trigger]").first().click()
+
+    const evidenceButton = page.getByRole("button", { name: "Evidence & approval" }).first()
+    await evidenceButton.waitFor({ state: "visible", timeout: 20_000 })
+    await evidenceButton.click()
+
+    const approve = page.getByRole("button", { name: /^(Approve|Resolved)$/ })
+    await approve.waitFor({ state: "visible", timeout: 45_000 })
+
+    // Necessary but NOT sufficient, and worth saying so: every row in this corpus has an
+    // unmet gate, so `!gate.ready` already disables Approve on its own. Verified by
+    // injecting the exact drift this section exists to catch (`mayWrite: true` hard-coded
+    // in the API) and re-running — this check still PASSED; only the reason below caught
+    // it. A disabled control does not tell you WHY it is disabled, and here two different
+    // mechanisms would both produce one.
+    check(await approve.isDisabled(), "Approve is disabled while another machine owns the component", "necessary but not sufficient — the gate disables it too; the reason below is the real assertion")
+    check(
+      /owns this component/.test((await approve.getAttribute("title")) ?? ""),
+      "and the reason it gives is OWNERSHIP, not the evidence gate",
+      (await approve.getAttribute("title"))?.slice(0, 110),
+    )
+    // Reopen must stay live for the same observer — the distinction the whole design rests
+    // on, and invisible in a screenshot of a disabled Approve.
+    const reopen = page.getByRole("button", { name: "Reopen…" })
+    check(await reopen.isEnabled(), "while Reopen stays ENABLED — an observer can still raise a concern")
+  } finally {
+    await transferTo(other, me, "verify-machines-ui.mjs: restoring after the disabled-Approve check.")
+  }
 
   check(noise.length === 0, "no console errors or page errors throughout", noise.slice(0, 2).join(" | ") || "clean")
 } catch (err) {
