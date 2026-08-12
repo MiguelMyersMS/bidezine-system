@@ -24,21 +24,12 @@ try {
 
   const machines = (await pool.request().query(`SELECT name, is_primary FROM sandbox.machine ORDER BY is_primary DESC, name`)).recordset
 
-  const components = (
-    await pool.request().query(`
-      SELECT   c.slug, c.state, owner = m.name,
-               total    = COUNT(d.divergence_id),
-               resolved = SUM(CASE WHEN d.state = 'resolved' THEN 1 ELSE 0 END),
-               blocked  = SUM(CASE WHEN d.state = 'blocked'  THEN 1 ELSE 0 END),
-               stale    = (SELECT COUNT(*) FROM sandbox.evidence e
-                           JOIN sandbox.divergence dd ON dd.divergence_id = e.divergence_id
-                           WHERE dd.component_id = c.component_id AND e.is_stale = 1)
-      FROM     sandbox.component c
-      LEFT     JOIN sandbox.machine m    ON m.machine_id   = c.owner_machine_id
-      LEFT     JOIN sandbox.divergence d ON d.component_id = c.component_id
-      GROUP BY c.component_id, c.slug, c.state, m.name
-      ORDER BY c.slug`)
-  ).recordset
+  // Same function the Sandbox app's /api/machines reads (migration 017). This file and
+  // `sandbox/server/corpus-api.mjs` each carried their own copy of this aggregate at M8 —
+  // both correct, but correct separately, which is the two-readings-of-one-state failure
+  // `CLAUDE.md` checklist item 20 describes. Whatever "progress" comes to mean, the CLI
+  // and the app now cannot disagree about it.
+  const components = (await pool.request().query(`SELECT * FROM sandbox.fn_component_progress() ORDER BY slug`)).recordset
 
   const here = process.env.MACHINE_NAME?.trim() || null
   console.log(`\nthis machine: ${here ?? "(MACHINE_NAME unset — this Sandbox cannot write anywhere)"}\n`)

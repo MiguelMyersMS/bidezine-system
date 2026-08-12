@@ -29,9 +29,10 @@ function corpusApi(): PluginOption {
 
 const src = fileURLToPath(new URL("./src", import.meta.url))
 
-// Fixed port, distinct from the main showcase (4188) and the icon-comparison
-// reference tool (5590) — the factory-line tracker is its own tool, never
-// linked from the public site's nav.
+// Fixed port, distinct from the main showcase (4188) — the factory-line tracker is its
+// own tool, never linked from the public site's nav. (A one-off icon-comparison tool on
+// 5590 was named here too; it was never tracked in git, had no caller, and was deleted
+// rather than left to be swept into a commit by accident a third time.)
 export default defineConfig({
   base: "/",
   plugins: [react(), tailwindcss(), corpusApi()],

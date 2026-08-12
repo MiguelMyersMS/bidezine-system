@@ -1,6 +1,11 @@
 # The Sandbox — specification
 
-> **Status:** Milestones 1–4 are built and verified against the live database. M5 is in progress.
+> **Status:** Milestones 1–8 are built and verified against the live database. M9 is next.
+>
+> This line was five milestones stale until an independent review caught it — on the file every
+> other document calls the single source of truth. Update it in the same commit that closes a
+> milestone, not afterwards: a status line nobody trusts is worse than none, because the ones
+> reading it cannot tell which parts are still current.
 >
 > **Supersedes the name "Limbo".** Renamed at M5: `limbo-factory/` → `sandbox/`, `limbo/` → `origin/`,
 > `LIMBO-PROTOCOL-LOG.md` → `SANDBOX-PROTOCOL-LOG.md`. Paths and forward-looking prose were renamed;

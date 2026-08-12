@@ -78,8 +78,8 @@ removed on purpose — it is durably recorded in the commit messages and in
 `SANDBOX-PROTOCOL-LOG.md`'s flaws log, and this file is a snapshot of *now*, not an archive. What
 stays below is the operational knowledge a fresh session needs and cannot get from either.
 
-**Ten proof scripts. Re-run ALL of them after any change under `db/`, `verifier/`, `mcp/` or
-`sandbox/server/`:**
+**Eleven proof scripts, plus one that needs the app running. Re-run ALL of them after any change
+under `db/`, `verifier/`, `mcp/` or `sandbox/server/`:**
 
 ```
 npm --prefix db run verify                 # 15/15 — the gate and its permissions
@@ -89,10 +89,21 @@ npm --prefix db run verify-import          #   9/9 — corpus vs the FROZEN snap
 npm --prefix db run verify-system-change   # 17/17 — the higher-ceremony lifecycle + the sweep, as real principals
 npm --prefix db run verify-ownership       # 16/16 — M8: a machine cannot finish another machine's work
 npm --prefix sandbox run verify            # 18/18 — M6: the gate refuses, approves, and cascades
+npm --prefix sandbox run verify-readonly   # 12/12 — M8 over real HTTP: a foreign approve is 403, an owner's is 409
 node scripts/check-declarations.mjs        #   5/5 — declarations agree with the evidence
 node scripts/check-scope-detection.mjs     # 17/17 — system vs component classification
 node scripts/check-corpus-equivalence.mjs  # 154/154 — what the APP renders vs that same snapshot
+
+# needs `npm --prefix sandbox run dev` in another terminal; REFUSES to run without it
+npm --prefix sandbox run verify-ui         # 11/11 — the machine switcher, rendered
 ```
+
+**`verify-readonly` and `verify-ui` exist because M8 was first reported with both checks run from a
+session scratchpad.** That made the milestone's strongest claim — that a foreign machine's approve is
+refused by the server rather than by a disabled button — an unrepeatable assertion by the agent that
+made the change, which is invariant 1 turned on this system's own construction. An independent review
+caught it. Any check worth citing in a report is worth committing; if it is genuinely one-off, say so
+in the report rather than quoting its score.
 
 **Run the whole set, not the one you changed.** M6's own work reverted migration 005 and every M6
 check still passed — only `verify-runner` went red. A suite you did not touch is exactly the one most
@@ -150,8 +161,17 @@ check pass, stop — the check is working, and the question is why the corpus ch
 3. **F-3's row title still reads `panelW = 300px`** while its own detail explains the decision resolved
    to **256** — the card contradicts itself on screen. Correcting an imported record is a policy call,
    and only L-34's correction was ever authorised.
-4. **`scripts/icon-comparison-server.mjs` is untracked** and has been swept into a `git add -A` twice
-   and split back out both times. It needs a decision: commit it or delete it.
+
+*The untracked `scripts/icon-comparison-server.mjs` is gone* — deleted rather than committed, on the
+owner's instruction. It had no caller and had survived two `git add -A` sweeps by being manually split
+out. `sandbox/vite.config.ts`'s port comment, its only remaining mention, was corrected in the same
+change.
+
+**It is not recoverable from git, and that is worth stating rather than assuming otherwise.** The file
+was never tracked, so no commit ever contained it — `git rm` refused it as an unknown pathspec, and
+the deletion appears in no diff. 187 lines, gone. That was the instruction and it was a reasonable one
+for a tool nothing referenced, but "git keeps it if we ever want it" is only true of files git has
+seen at least once.
 
 **Known gaps, each real and none blocking:**
 

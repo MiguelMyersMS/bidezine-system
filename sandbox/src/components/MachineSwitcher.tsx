@@ -10,12 +10,14 @@ import {
   EmptyHeader,
   EmptyTitle,
   Label,
+  Button,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
   Separator,
+  Textarea,
   cn,
 } from "@bidezine/system"
 import { NEGATIVE_BADGE, POSITIVE_BADGE, WARNING_BADGE } from "@/lib/status-colors"
@@ -51,6 +53,9 @@ import { NEGATIVE_BADGE, POSITIVE_BADGE, WARNING_BADGE } from "@/lib/status-colo
 
 type ComponentSummary = {
   slug: string
+  /** Null when unclaimed. Sent back as `from` on a transfer, so the database can refuse a
+   *  caller working from a stale reading of who owns this. */
+  owner: string | null
   title: string
   state: string
   promotedCommit: string | null
@@ -101,7 +106,107 @@ function StateBadge({ component }: { component: ComponentSummary }) {
   )
 }
 
-function ComponentCard({ component, readOnly }: { component: ComponentSummary; readOnly: boolean }) {
+/**
+ * The only reachable path to an ownership change.
+ *
+ * The note is required and the control cannot be submitted without one — the same shape
+ * the reopen flow uses for its reason, and for the same reason: `usp_transfer_component`
+ * demands a stated reason, and an audit row reading "" is an audit trail in name only.
+ *
+ * `from` is what this screen last rendered, sent as-is. If another machine moved the
+ * component since this page loaded, the database refuses with 409 rather than silently
+ * overwriting — which is the one failure `HANDOFF.md` structurally could not detect, since
+ * a file read at session start says nothing about what changed during the session.
+ */
+function TransferControl({
+  component,
+  machines,
+  onDone,
+}: {
+  component: ComponentSummary
+  machines: string[]
+  onDone: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [to, setTo] = useState<string | null>(null)
+  const [note, setNote] = useState("")
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function submit() {
+    setBusy(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/component/${component.slug}/transfer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ from: component.owner, to, note }),
+      })
+      const out = await res.json()
+      if (out.error) setError(out.error)
+      else {
+        setOpen(false)
+        setNote("")
+        onDone()
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (!open) {
+    return (
+      <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
+        {component.owner ? "Hand over…" : "Claim…"}
+      </Button>
+    )
+  }
+
+  return (
+    <div className="flex w-full flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <Label className="text-xs text-muted-foreground">To</Label>
+        <Select value={to ?? undefined} onValueChange={setTo}>
+          <SelectTrigger size="sm" className="w-[170px]">
+            <SelectValue placeholder="Machine" />
+          </SelectTrigger>
+          <SelectContent>
+            {machines
+              .filter((m) => m !== component.owner)
+              .map((m) => (
+                <SelectItem key={m} value={m}>
+                  {m}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Label className="text-xs">Reason (required — it becomes the audit record)</Label>
+      <Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="Why is this moving?" />
+      {error && <p className="text-xs text-destructive">{error}</p>}
+      <div className="flex gap-2">
+        <Button size="sm" disabled={busy || !to || !note.trim()} onClick={submit}>
+          Transfer
+        </Button>
+        <Button size="sm" variant="ghost" disabled={busy} onClick={() => setOpen(false)}>
+          Cancel
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function ComponentCard({
+  component,
+  readOnly,
+  machines,
+  onChanged,
+}: {
+  component: ComponentSummary
+  readOnly: boolean
+  machines: string[]
+  onChanged: () => void
+}) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-3">
@@ -130,6 +235,13 @@ function ComponentCard({ component, readOnly }: { component: ComponentSummary; r
           </Badge>
         )}
       </CardContent>
+      {/* Available whoever is observing. A machine that has been offline for a week would
+          otherwise hold its components hostage, and a deadlock nobody can clear from
+          outside is worse than a taking that leaves a record — migration 016's header
+          makes the same argument for why transfer itself is not ownership-gated. */}
+      <CardContent>
+        <TransferControl component={component} machines={machines} onDone={onChanged} />
+      </CardContent>
     </Card>
   )
 }
@@ -157,6 +269,7 @@ export function MachineSwitcher() {
   if (!payload) return <p className="p-4 text-sm text-muted-foreground">Reading machines…</p>
   if (payload.error) return <p className="p-4 text-sm text-muted-foreground">{payload.error}</p>
 
+  const allMachines = payload.machines.map((m) => m.name)
   const active = payload.machines.find((m) => m.name === observed) ?? null
   const readOnly = !!active && !active.isThisMachine
 
@@ -214,7 +327,9 @@ export function MachineSwitcher() {
           {active?.components.length === 1 ? "" : "s"}
         </h3>
         {active && active.components.length > 0 ? (
-          active.components.map((c) => <ComponentCard key={c.slug} component={c} readOnly={readOnly} />)
+          active.components.map((c) => (
+            <ComponentCard key={c.slug} component={c} readOnly={readOnly} machines={allMachines} onChanged={load} />
+          ))
         ) : (
           <Empty>
             <EmptyHeader>
@@ -239,7 +354,7 @@ export function MachineSwitcher() {
               work behind a ceremony that protects nothing yet.
             </p>
             {payload.unowned.map((c) => (
-              <ComponentCard key={c.slug} component={c} readOnly={false} />
+              <ComponentCard key={c.slug} component={c} readOnly={false} machines={allMachines} onChanged={load} />
             ))}
           </div>
         </>

@@ -93,6 +93,32 @@ try {
   const trigger = page.locator("#observed-machine")
   check((await trigger.getAttribute("data-slot")) === "select-trigger", "the switcher is the real Select primitive", `data-slot=${await trigger.getAttribute("data-slot")}`)
 
+  // ── the transfer control ──────────────────────────────────────────────────────────
+  // The label is not cosmetic: it is the only place the page shows whether it believes
+  // this component is owned. It read "Claim…" for an owned component on the first pass,
+  // because the API summary dropped `owner` — which would also have sent `from: undefined`
+  // and had every transfer refused as a stale read. A clean typecheck said nothing; the
+  // rendered button did.
+  const transfer = page.getByRole("button", { name: /Hand over…|Claim…/ }).first()
+  await transfer.waitFor({ state: "visible", timeout: 10_000 })
+  check(
+    (await transfer.textContent())?.includes("Hand over"),
+    "an owned component offers 'Hand over…', not 'Claim…' — the page knows it is owned",
+    (await transfer.textContent())?.trim(),
+  )
+
+  await transfer.click()
+  const submit = page.getByRole("button", { name: "Transfer", exact: true })
+  await submit.waitFor({ state: "visible", timeout: 10_000 })
+  check(
+    await submit.isDisabled(),
+    "Transfer is disabled before a destination and a reason are given",
+    "usp_transfer_component requires a note; an audit row reading '' is an audit trail in name only",
+  )
+  // Left closed rather than submitted: this check is deliberately non-mutating, and
+  // verify-readonly.mjs already drives a real transfer through the route.
+  await page.getByRole("button", { name: "Cancel", exact: true }).click()
+
   // Driven by a real interaction, not by setting a prop.
   const options = await page.evaluate(async () => (await (await fetch("/api/machines", { cache: "no-store" })).json()).machines.map((m) => m.name))
   const me = options.find((n) => thisMachine?.includes(n))

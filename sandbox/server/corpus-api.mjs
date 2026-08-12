@@ -30,6 +30,16 @@ import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 
 const HERE = dirname(fileURLToPath(import.meta.url))
+
+// ── the gate's refusal codes, as numbers rather than as prose ───────────────────────
+// These are the literal error numbers the procedures THROW: 51001 from
+// usp_resolve_divergence when the evidence gate refuses (migration 004), 51006 when
+// migration 016's ownership guard refuses. They are the contract between the database and
+// this layer — a message is written for a human and may be reworded at any time, a number
+// is not. Changing either value means changing the migration that throws it.
+const GATE_REFUSED = 51001
+const OWNERSHIP_REFUSED = 51006
+const STALE_OWNER_REFUSED = 51005
 const CACHE_FILE = join(HERE, "..", ".corpus-cache.json")
 
 // Imported lazily: `mssql` and the .env load are Node-only and comparatively slow, and
@@ -250,22 +260,13 @@ export async function getMachines() {
     // included with a NULL owner rather than dropped: "nobody has claimed this" is a real
     // state a human needs to see, and hiding it would make the switcher's totals disagree
     // with the corpus everyone else is reading.
-    const components = (
-      await pool.request().query(`
-        SELECT   c.slug, c.title, c.state, c.promoted_commit,
-                 owner = m.name,
-                 total    = COUNT(d.divergence_id),
-                 resolved = SUM(CASE WHEN d.state = 'resolved' THEN 1 ELSE 0 END),
-                 blocked  = SUM(CASE WHEN d.state = 'blocked'  THEN 1 ELSE 0 END),
-                 stale    = (SELECT COUNT(*) FROM sandbox.evidence e
-                             JOIN sandbox.divergence dd ON dd.divergence_id = e.divergence_id
-                             WHERE dd.component_id = c.component_id AND e.is_stale = 1)
-        FROM     sandbox.component c
-        LEFT     JOIN sandbox.machine m    ON m.machine_id   = c.owner_machine_id
-        LEFT     JOIN sandbox.divergence d ON d.component_id = c.component_id
-        GROUP BY c.component_id, c.slug, c.title, c.state, c.promoted_commit, m.name
-        ORDER BY c.slug`)
-    ).recordset
+    //
+    // The aggregate itself lives in `sandbox.fn_component_progress` (migration 017), not
+    // here. It used to be written out in this file AND again in `scripts/machines.mjs` —
+    // both correct, but correct SEPARATELY, so the next change to what "progress" means
+    // would have landed in whichever file was open and left the CLI and the app
+    // disagreeing about the same component with nothing failing.
+    const components = (await pool.request().query(`SELECT * FROM sandbox.fn_component_progress() ORDER BY slug`)).recordset
 
     // The audit trail, most recent first. This is what makes "transferring is an audited
     // event" visible to a person rather than only true in a table.
@@ -309,8 +310,65 @@ export async function getMachines() {
   }
 }
 
+/**
+ * Move a component between machines — the only caller of `usp_transfer_component` outside
+ * its own test.
+ *
+ * ── Why this is here and not an MCP tool ───────────────────────────────────────────
+ * Migration 015 DENIES `agent_rw` execute on that procedure, deliberately: an agent that
+ * could reassign ownership could bypass every ownership check in migration 016 in two
+ * calls, by first making itself the owner. So the transfer surface is `app_rw` only, which
+ * means the app, which means here. The absence of an agent-facing tool is the design, not
+ * an omission.
+ *
+ * ── `expectedOwner` is passed through from the caller, never read here ─────────────
+ * The procedure's compare-and-swap exists to refuse a caller acting on a STALE reading of
+ * who owns this. Looking the current owner up in this function and passing it as
+ * `@from_machine` would satisfy the check with a value read microseconds earlier and
+ * quietly disable the whole mechanism. So the client sends what it believed — what it had
+ * on screen — and the database decides whether that is still true.
+ */
+export async function transferComponent(slug, expectedOwner, toMachine, note) {
+  if (!note?.trim()) return { error: "A transfer needs a stated reason." }
+  const { connect, sql } = await db()
+  let pool
+  try {
+    pool = await connect("APP")
+    const row = (
+      await pool.request().input("slug", sql.NVarChar(100), slug).query(`SELECT component_id FROM sandbox.component WHERE slug = @slug`)
+    ).recordset[0]
+    if (!row) return { error: `No component ${slug}` }
+
+    const out = (
+      await pool
+        .request()
+        .input("component_id", sql.Int, row.component_id)
+        .input("from_machine", sql.NVarChar(50), expectedOwner || null)
+        .input("to_machine", sql.NVarChar(50), toMachine || null)
+        .input("note", sql.NVarChar(400), note.trim())
+        .execute("sandbox.usp_transfer_component")
+    ).recordset?.[0]
+    return { ok: true, owner: out?.owner, previous: out?.previous }
+  } catch (error) {
+    // 51005 is the compare-and-swap refusal: the caller's idea of the owner is out of
+    // date. Distinguished so the UI can say "re-read and try again" rather than treating
+    // it as a malformed request — matched on the number, not the wording, for the same
+    // reason `approve` does.
+    return { error: error.message, refusedByStaleOwner: error.number === STALE_OWNER_REFUSED }
+  } finally {
+    await pool?.close()
+  }
+}
+
 const toComponentSummary = (c) => ({
   slug: c.slug,
+  // Sent so the transfer control can pass it straight back as `from`, which is what makes
+  // the procedure's compare-and-swap mean anything: the value the database checks against
+  // is the one this screen actually displayed, not one re-read at submit time. Omitted at
+  // first, which silently labelled every owned component "Claim…" and would have sent
+  // `from: undefined` — read by the procedure as "unowned" and refused. Caught by looking
+  // at the rendered button, not by the typecheck, which was clean throughout.
+  owner: c.owner ?? null,
   title: c.title,
   state: c.state,
   promotedCommit: c.promoted_commit,
@@ -530,14 +588,20 @@ export async function approve(slug, ref, note) {
       .execute("sandbox.usp_resolve_divergence")
     return { ok: true, approvedBy: by, commit }
   } catch (error) {
-    // The gate's own refusal text, passed through verbatim rather than summarised. Two
-    // distinct refusals can arrive here now — the evidence gate and migration 016's
-    // ownership guard — and they are flagged separately because they call for completely
-    // different responses: go and produce evidence, versus this is not your component.
+    // The refusal text is passed through verbatim rather than summarised, but the
+    // CLASSIFICATION comes from the THROW's error number, never from its wording.
+    //
+    // An earlier version matched `/Refused:|must name the machine|No machine named/`
+    // against the message — i.e. it coupled a real behavioural distinction to migration
+    // 016's exact prose, with no test over the coupling. Rewording a message would have
+    // silently demoted every ownership refusal to a generic 400, and the argument for why
+    // 403 and 409 must stay distinguishable would have quietly stopped being true.
+    // Raised by an independent review; `verify-readonly.mjs` now asserts the
+    // classification so a reworded message fails a check instead.
     return {
       error: error.message,
-      refusedByGate: /Gate refused/.test(error.message),
-      refusedByOwnership: /Refused:|must name the machine|No machine named/.test(error.message),
+      refusedByGate: error.number === GATE_REFUSED,
+      refusedByOwnership: error.number === OWNERSHIP_REFUSED,
     }
   } finally {
     await pool?.close()
@@ -624,6 +688,17 @@ export function corpusApiMiddleware() {
       if (url.startsWith("/api/machines")) {
         const payload = await getMachines()
         return json(payload, payload.error ? 503 : 200)
+      }
+
+      // The only reachable path to an ownership change. 409 for the compare-and-swap
+      // refusal, because that one IS a conflict in the ordinary HTTP sense — someone else
+      // moved it — and is retryable after re-reading. A missing note is a 400: the request
+      // itself is incomplete.
+      const transfer = url.match(/^\/api\/component\/([\w-]+)\/transfer$/)
+      if (transfer && req.method === "POST") {
+        const body = await readBody(req)
+        const payload = await transferComponent(transfer[1], body.from, body.to, body.note)
+        return json(payload, payload.error ? (payload.refusedByStaleOwner ? 409 : 400) : 200)
       }
 
       // Screenshot artifacts, served adjacent to their evidence rather than linked away.

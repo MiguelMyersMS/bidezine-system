@@ -68,6 +68,14 @@ await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve))
 const base = `http://127.0.0.1:${server.address().port}`
 
 const bundle = async () => (await fetch(`${base}/api/divergence/${SLUG}/${REF}`)).json()
+const postTransfer = async (body) => {
+  const res = await fetch(`${base}/api/component/${SLUG}/transfer`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+  return { status: res.status, body: await res.json() }
+}
 const postApprove = async () => {
   const res = await fetch(`${base}/api/divergence/${SLUG}/${REF}/approve`, {
     method: "POST",
@@ -116,17 +124,24 @@ try {
   const mine = await bundle()
   check(mine.ownership?.mayWrite === true, "the bundle reports this machine may write", JSON.stringify(mine.ownership))
 
-  // ── hand it away ──────────────────────────────────────────────────────────────────
-  await as("APP", async (p) =>
-    p
-      .request()
-      .input("component_id", sql.Int, componentId)
-      .input("from_machine", sql.NVarChar(50), here)
-      .input("to_machine", sql.NVarChar(50), other)
-      .input("note", sql.NVarChar(400), "verify-readonly.mjs: proving a foreign write is refused. Handed straight back.")
-      .execute("sandbox.usp_transfer_component"),
+  // ── hand it away, THROUGH THE ROUTE ───────────────────────────────────────────────
+  // Deliberately the HTTP endpoint rather than direct SQL: until this route existed,
+  // `usp_transfer_component` had no caller anywhere outside its own test, so "transferring
+  // is an audited event" was true and unreachable. Exercising it here means the only path
+  // a human has to move a component is also the path this suite proves works.
+  const noNote = await postTransfer({ from: here, to: other, note: "  " })
+  check(noNote.status === 400, "a transfer with no stated reason is refused by the route", `HTTP ${noNote.status} · ${(noNote.body?.error ?? "").slice(0, 80)}`)
+
+  const stale = await postTransfer({ from: other, to: here, note: "Acting on a stale reading of the owner." })
+  check(
+    stale.status === 409 && stale.body?.refusedByStaleOwner === true,
+    "a transfer from a STALE reading of the owner is refused as a conflict, not a bad request",
+    `HTTP ${stale.status} · ${(stale.body?.error ?? "").slice(0, 100)}`,
   )
-  handedAway = true
+
+  const handOver = await postTransfer({ from: here, to: other, note: "verify-readonly.mjs: proving a foreign write is refused. Handed straight back." })
+  check(handOver.status === 200 && handOver.body?.owner === other, "a real hand-over succeeds through the route", `${handOver.body?.previous} -> ${handOver.body?.owner}`)
+  handedAway = handOver.status === 200
 
   console.log(`\nafter handing it to ${other}\n`)
 
@@ -156,20 +171,58 @@ try {
     JSON.stringify({ ownership: attempt.body?.refusedByOwnership, gate: attempt.body?.refusedByGate }),
   )
 
-  // Observation is not the only thing an observer keeps. Reopen is deliberately ungated
-  // (migration 016), and a regression there would turn "read-only observer" into "silent
-  // bystander" without failing anything else in this suite.
-  const reopenRes = await fetch(`${base}/api/divergence/${SLUG}/${REF}/reopen`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ requirementType: "", reason: "" }),
-  })
-  const reopenBody = await reopenRes.json()
-  check(
-    reopenRes.status !== 403 && !/owned by/.test(reopenBody?.error ?? ""),
-    "reopen is NOT refused on ownership grounds — an observer can still raise a concern",
-    `HTTP ${reopenRes.status} · ${(reopenBody?.error ?? "accepted").slice(0, 90)}`,
-  )
+  // NOT CHECKED HERE: that reopen stays ungated for an observer.
+  //
+  // A previous version POSTed reopen with an empty reason and asserted the response was
+  // not 403. That passed whether or not reopen was gated, because `reopen()` returns "A
+  // reason is required" BEFORE it opens a connection — the request never reached the
+  // database, so the check could not observe ownership either way. It read as HTTP-level
+  // proof and was not one. Found by an independent review.
+  //
+  // Driving it properly needs a real reason, which writes a false_completion row, moves
+  // the divergence to 'reopened' and invalidates its reviews — real mutation of a real
+  // component, for a claim that is already proven against a disposable fixture in
+  // `db/verify-ownership.mjs` ("but an observer CAN still reopen"). That suite owns this
+  // claim. A second, weaker copy here that also damaged the corpus would be worse than no
+  // copy at all.
+
+  // ── negative control ──────────────────────────────────────────────────────────────
+  // Without this, every assertion above is satisfied by an endpoint that returns 403
+  // unconditionally. Migration 016 checks ownership BEFORE the gate, so the owner-side
+  // POST must get past the ownership check and be refused by the GATE instead — a
+  // different code, a different status, from the same endpoint.
+  const back = await postTransfer({ from: other, to: here, note: "verify-readonly.mjs: restoring before the owner-side negative control." })
+  if (back.status !== 200) throw new Error(`Could not restore ownership before the negative control: ${back.body?.error}`)
+  handedAway = false
+
+  console.log(`\nand the same endpoint refuses ${here} differently, for a different reason\n`)
+
+  // Non-mutating ONLY while this row's gate is genuinely unmet — a clean gate would
+  // actually resolve it. So that is verified first and the check refuses to fire
+  // otherwise, rather than discovering it by having approved something.
+  const gateNow = await bundle()
+  const unmet = gateNow.gate?.unmet ?? []
+  if (unmet.length === 0) {
+    check(false, "the negative control has a row whose gate is unmet", `${SLUG}/${REF}'s gate is CLEAN — POSTing approve would resolve it for real. Point this check at another row.`)
+  } else {
+    const ownerAttempt = await postApprove()
+    check(
+      ownerAttempt.status === 409,
+      "an owner-side approve is NOT 403 — it gets past ownership and is refused by the gate",
+      `HTTP ${ownerAttempt.status} · unmet: ${unmet.map((u) => u.requirement).join(", ")}`,
+    )
+    check(
+      ownerAttempt.body?.refusedByGate === true && ownerAttempt.body?.refusedByOwnership !== true,
+      "and is classified as a gate refusal, so the two are genuinely distinguished",
+      JSON.stringify({ gate: ownerAttempt.body?.refusedByGate, ownership: ownerAttempt.body?.refusedByOwnership }),
+    )
+    const stillOpen = await bundle()
+    check(
+      stillOpen.divergence?.state !== "resolved",
+      "and the negative control did not resolve anything",
+      `state = ${stillOpen.divergence?.state}`,
+    )
+  }
 } catch (err) {
   console.error(`\nHARNESS ERROR: ${err.message}`)
   process.exitCode = 1
