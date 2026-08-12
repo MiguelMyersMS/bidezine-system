@@ -26,6 +26,19 @@ process.loadEnvFile(join(HERE, "..", ".env"))
 const SLUG = "__invariant_test__"
 const ANCHOR_FILE = "db/__invariant_test__.tsx"
 
+// Migration 016 requires every resolution to name the machine making it. The fixture
+// component is UNOWNED, so any known machine may write to it — but the name still has to
+// resolve to a real row in `sandbox.machine`, so it is read from the table rather than
+// typed here. That keeps this suite working through the machine rename that §8 of the
+// spec still has as an open decision, and it runs identically on all three machines,
+// which a hard-coded "Laptop A" would not.
+//
+// The ownership guard itself is not what this suite is for — verify-ownership.mjs drives
+// it against a component that IS owned. Here the name is only enough to get past it.
+const ANY_MACHINE = `DECLARE @machine NVARCHAR(50) = (SELECT TOP 1 name FROM sandbox.machine ORDER BY machine_id);`
+const RESOLVE = (id) =>
+  `${ANY_MACHINE} EXEC sandbox.usp_resolve_divergence @divergence_id = ${id}, @approved_by = 'human-approver', @commit_sha = '${"d".repeat(40)}', @machine = @machine;`
+
 const connect = (role) =>
   sql.connect({
     server: process.env.FABRIC_SQL_SERVER.split(",")[0],
@@ -151,7 +164,7 @@ try {
   await mustFail(
     app,
     "gate REFUSES resolution with no evidence",
-    `EXEC sandbox.usp_resolve_divergence ${divergenceId}, 'human-approver', '${"d".repeat(40)}';`,
+    RESOLVE(divergenceId),
     "evidence.present",
   )
   await app.close()
@@ -177,7 +190,7 @@ try {
   await mustFail(
     app,
     "gate STILL refuses — evidence alone is not enough",
-    `EXEC sandbox.usp_resolve_divergence ${divergenceId}, 'human-approver', '${"d".repeat(40)}';`,
+    RESOLVE(divergenceId),
     "review.present",
   )
   await app.close()
@@ -207,7 +220,7 @@ try {
   await mustPass(
     app,
     "gate ALLOWS resolution once every requirement is genuinely met",
-    `EXEC sandbox.usp_resolve_divergence ${divergenceId}, 'human-approver', '${"d".repeat(40)}';`,
+    RESOLVE(divergenceId),
   )
 
   const state = (

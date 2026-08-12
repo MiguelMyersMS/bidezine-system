@@ -11,7 +11,8 @@
     "verify": "node verify-invariant.mjs",
     "import-rail-sidebar": "node import-rail-sidebar.mjs",
     "verify-import": "node verify-import.mjs",
-    "verify-system-change": "node verify-system-change.mjs"
+    "verify-system-change": "node verify-system-change.mjs",
+    "verify-ownership": "node verify-ownership.mjs"
   },
   "dependencies": {
     "esbuild": "^0.27.7",

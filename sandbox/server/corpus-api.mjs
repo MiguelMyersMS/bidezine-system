@@ -168,6 +168,27 @@ async function actor() {
 }
 
 /**
+ * Which machine this Sandbox is running on — the bare name, matching a row in
+ * `sandbox.machine`.
+ *
+ * Separate from `actor()` rather than parsed back out of it: `actor()` is a display/audit
+ * string whose `human:` prefix is deliberate, and the ownership guard compares against
+ * `machine.name` exactly. Deriving one from the other by stripping a prefix would couple
+ * two things that are allowed to change independently.
+ *
+ * Returns null rather than a placeholder when MACHINE_NAME is unset. Migration 016's guard
+ * refuses a nameless write on purpose, and inventing "unknown-machine" here would turn a
+ * clear refusal ("this write must name the machine making it") into a confusing one about
+ * a machine that does not exist.
+ */
+async function machineName() {
+  const { loadEnv } = await db()
+  loadEnv()
+  const name = process.env.MACHINE_NAME?.trim()
+  return name || null
+}
+
+/**
  * Pulls `expected` and `measured` back out of an evidence row so the widget can show them
  * side by side rather than as a wall of text.
  *
@@ -374,12 +395,20 @@ export async function approve(slug, ref, note) {
       .input("divergence_id", sql.Int, row.divergence_id)
       .input("approved_by", sql.NVarChar(100), by)
       .input("commit_sha", sql.Char(40), commit)
+      .input("machine", sql.NVarChar(50), await machineName())
       .input("note", sql.NVarChar(sql.MAX), note || null)
       .execute("sandbox.usp_resolve_divergence")
     return { ok: true, approvedBy: by, commit }
   } catch (error) {
-    // The gate's own refusal text, passed through verbatim rather than summarised.
-    return { error: error.message, refusedByGate: /Gate refused/.test(error.message) }
+    // The gate's own refusal text, passed through verbatim rather than summarised. Two
+    // distinct refusals can arrive here now — the evidence gate and migration 016's
+    // ownership guard — and they are flagged separately because they call for completely
+    // different responses: go and produce evidence, versus this is not your component.
+    return {
+      error: error.message,
+      refusedByGate: /Gate refused/.test(error.message),
+      refusedByOwnership: /Refused:|must name the machine|No machine named/.test(error.message),
+    }
   } finally {
     await pool?.close()
   }

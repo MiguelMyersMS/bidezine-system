@@ -32,12 +32,16 @@ which cannot be fixed from here.
 
 ### Active task
 
-**M1–M7 are complete and verified.** All three of M7's "done when" criteria are closed, the last two
-demonstrated end to end against the REAL corpus (landing a `src/ui/**` change swept 7 divergences /
-40 evidence rows, `--stale` re-ran all 7 and 13/13 passed, and the corpus was restored byte-identical
-afterwards — 40 rows, 0 stale, same max id).
+**M1–M7 are complete and verified. M8 is IN PROGRESS — steps 1, 2 and 3 of 5 are done.**
 
-**Next: M8 — multi-machine ownership and visibility.** Nothing is in progress on this machine.
+**Done so far:** ownership is real in the database. `sandbox.machine` and
+`component.owner_machine_id` have existed since migration 001 and had never held a row — the same
+shape `affected_paths` was in before M7 used it. Migrations **015** and **016** make them
+load-bearing, and `npm --prefix db run verify-ownership` proves it at **16/16** against real
+principals. `rail-sidebar` is now genuinely owned by Laptop A, with an audit row saying so.
+
+**Next: M8 step 4 — the machine switcher in the Sandbox app** (observe another machine read-only),
+then step 5, shrinking `HANDOFF.md` itself to a pointer. See "What's next".
 
 **First thing to do on this machine: reconnect the sandbox MCP server.** Its tools
 (`mcp__sandbox__*`) did not attach to the last session — `ToolSearch` found none of them. The server
@@ -62,7 +66,7 @@ Read `docs/SANDBOX-SPEC.md` first. It is the single source of truth for this pro
   resolved; the corpus does not, because none has been through the gate (it did not exist when they
   were written). Reasoning came across so retrieval has substance; nothing arrived pre-blessed.
 
-**Nine proof scripts. Re-run ALL of them after any change under `db/`, `verifier/`, `mcp/` or
+**Ten proof scripts. Re-run ALL of them after any change under `db/`, `verifier/`, `mcp/` or
 `sandbox/server/`:**
 
 ```
@@ -71,6 +75,7 @@ npm --prefix verifier run verify           # 18/18 — the runner is worth trust
 npm --prefix mcp run verify                # 14/14 — the agent surface, over the real protocol
 npm --prefix db run verify-import          #   9/9 — corpus vs the FROZEN snapshot (drift detection)
 npm --prefix db run verify-system-change   # 17/17 — the higher-ceremony lifecycle + the sweep, as real principals
+npm --prefix db run verify-ownership       # 16/16 — M8: a machine cannot finish another machine's work
 npm --prefix sandbox run verify            # 18/18 — M6: the gate refuses, approves, and cascades
 node scripts/check-declarations.mjs        #   5/5 — declarations agree with the evidence
 node scripts/check-scope-detection.mjs     # 17/17 — system vs component classification
@@ -494,8 +499,47 @@ restored to **40 rows, 0 stale, same max evidence id, component state unchanged*
 
 ### What's next
 
+**M8 is in progress — multi-machine ownership and visibility.** Its five steps:
+
+1. ~~**Migration 015 — ownership becomes real**~~ — **done.** `machine` seeded with the three real
+   names, `owner_name` dropped (commit `277ecf9` decided machines are identified by machine, not by
+   person, and a NOT NULL column would force back exactly what that removed), `ownership_transfer`
+   audit table, `usp_transfer_component`, and a `DENY UPDATE` on `owner_machine_id` so the audit row
+   and the ownership change cannot come apart.
+2. ~~**Migration 016 — the write guard**~~ — **done.** `usp_resolve_divergence` and
+   `usp_promote_component` now require a `@machine` argument and refuse when it is not the owner.
+3. ~~**`db/verify-ownership.mjs`**~~ — **done, 16/16.**
+4. **The machine switcher in the Sandbox app** ← **START HERE.** §6's first done-when is "you can watch
+   another machine's component progress and cannot write to it" — the second half is now enforced in
+   the database, and the first half needs the app to actually let you look.
+5. **`HANDOFF.md` shrinks to a pointer.** §6's third done-when: "nothing depends on hand-maintained
+   markdown for cross-machine state." Not to be done before step 4 — deleting the only cross-machine
+   record before its replacement is visible would leave a gap rather than close one.
+
+**Three things worth knowing before continuing M8:**
+
+- **The database cannot tell the three machines apart, and this is written into migration 015 rather
+  than left to be discovered.** All three authenticate as the SAME `app_rw` service principal — the
+  four principals are divided by ROLE, not by machine (`.env.example`). So `@machine` is asserted by
+  the caller, not proven by the connection. What the guard buys is real but bounded: an honest machine
+  cannot write to another's component **by accident**, which is the failure `HANDOFF.md`'s "only edit
+  your own section" rule actually exists to prevent, and every transfer is audited. It does not stop a
+  caller that lies. Closing that needs one service principal per machine plus per-machine roles — real
+  Fabric portal work that cannot be done from a migration, so it is a decision to take deliberately,
+  not something to half-build.
+- **Reopen and block are deliberately NOT ownership-gated.** They RAISE a concern rather than settle
+  one, and gating them would mean the machine most likely to spot a defect is the only one forbidden
+  from saying so. `verify-ownership` checks this directly, because "read-only observer" quietly
+  becoming "silent bystander" is the kind of regression nothing else would catch.
+- **`usp_promote_component` has no caller anywhere in the repo.** Confirmed by grep across
+  `db/`, `mcp/`, `sandbox/`, `site/` and `verifier/`. It is exercised only through migrations, so
+  component promotion — as opposed to divergence resolution — is not yet wired to anything a human or
+  an agent can reach. Pre-existing, not introduced by M8, but M8 is when it became visible.
+
+---
+
 **M7 is COMPLETE.** All three "done when" criteria are closed and demonstrated. The notes below record
-what the work learned that §6's list does not say — keep them for M8/M9, they are not a to-do list.
+what the work learned that §6's list does not say — keep them for M9, they are not a to-do list.
 
 **The five steps, all done:**
 
