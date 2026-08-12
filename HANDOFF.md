@@ -48,7 +48,7 @@
 
 ## Laptop A (main)
 
-**Baseline** — branch `main`, last verified commit `PLACEHOLDER_COMMIT`, working tree clean, in sync
+**Baseline** — branch `main`, last verified commit `a4656fd`, working tree clean, in sync
 with `origin/main`. Verify this yourself (`git log --oneline -1`, `git status`) before trusting
 anything below it.
 
