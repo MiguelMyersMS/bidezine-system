@@ -36,9 +36,19 @@ scratchpad/
 scratch_img.*
 .reseal-needed
 
-# Per-machine editor/agent config — must NOT travel between machines
-.vscode/
+# Per-machine editor/agent config — must NOT travel between machines.
+# Written as `.vscode/*` rather than `.vscode/`, because git cannot un-ignore a file
+# inside an excluded DIRECTORY — the negation below only works against a pattern that
+# excludes the directory's contents.
+.vscode/*
 .codex/
+
+# ...except the Sandbox MCP registration, which is shared project config and MUST travel.
+# It is the Copilot half of the pair with .mcp.json (Claude Code); both point at the same
+# mcp/server.mjs. If this stops travelling, Copilot on another machine silently loses the
+# corpus and the protocol that goes with it — see docs/SANDBOX-SPEC.md and mcp/README.md.
+# It contains no secrets: credentials live in the gitignored .env.
+!.vscode/mcp.json
 
 # Vendored shadcn reference — keep the SOURCE, ignore any build artifacts inside it
 reference/shadcn-ui/**/node_modules/

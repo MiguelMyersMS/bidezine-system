@@ -1,0 +1,11 @@
+{
+  "servers": {
+    "sandbox": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${workspaceFolder}/mcp/server.mjs"],
+      "cwd": "${workspaceFolder}"
+    }
+  },
+  "inputs": []
+}
