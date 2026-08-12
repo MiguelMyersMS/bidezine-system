@@ -48,7 +48,7 @@
 
 ## Laptop A (main)
 
-**Baseline** — branch `main`, last verified commit `c513b52`, working tree clean, in sync
+**Baseline** — branch `main`, last verified commit `d17b255`, working tree clean, in sync
 with `origin/main`. Verify this yourself (`git log --oneline -1`, `git status`) before trusting
 anything below it.
 
@@ -61,7 +61,10 @@ three machines present.
 
 ### Active task
 
-**M1–M8 are complete and verified.** Nothing is in progress on this machine.
+**M1–M9 are complete.** Nothing is in progress on this machine. M9's two data-driven deliverables (the
+false-completion ranking and the tier criteria) are built but cannot yet produce a queue or a fast lane —
+the corpus has zero resolutions and one false completion, and both scripts say so rather than inventing
+thresholds. See "What's next".
 
 **First thing to do on this machine: reconnect the sandbox MCP server.** Its tools (`mcp__sandbox__*`)
 did not attach to the last session — `ToolSearch` found none of them. The server itself is fine: driven
