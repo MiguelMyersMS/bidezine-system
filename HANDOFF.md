@@ -21,7 +21,7 @@
 
 ## Laptop A (main)
 
-**Baseline** — branch `main`, last verified commit `4db6d73`, working tree clean, in sync with
+**Baseline** — branch `main`, last verified commit `691be1f`, working tree clean, in sync with
 `origin/main`. Verify this yourself (`git log --oneline -1`, `git status`) before trusting anything
 below it.
 
@@ -32,12 +32,12 @@ which cannot be fixed from here.
 
 ### Active task
 
-**M1–M6 are complete and verified. M7 is IN PROGRESS — step 1 of 5 is done.** M6 closed all three of
+**M1–M6 are complete and verified. M7 is IN PROGRESS — steps 1 and 2 of 5 are done.** M6 closed all three of
 its own "done when" criteria: the toggle cannot be enabled until requirements are genuinely met
 (proven by attempting it), approving takes about 3 seconds against a hard one-minute budget, and
 reopening cascades and writes a false-completion record.
 
-**Next: M7 step 2, scope detection from the diff.** It needs no decision from you — see "What's next".
+**Next: M7 step 3, the system_change lifecycle.** See "What's next".
 
 **First thing to do on this machine: reconnect the sandbox MCP server.** Its tools
 (`mcp__sandbox__*`) did not attach to the last session — `ToolSearch` found none of them. The server
@@ -62,7 +62,7 @@ Read `docs/SANDBOX-SPEC.md` first. It is the single source of truth for this pro
   resolved; the corpus does not, because none has been through the gate (it did not exist when they
   were written). Reasoning came across so retrieval has substance; nothing arrived pre-blessed.
 
-**Seven proof scripts. Re-run ALL of them after any change under `db/`, `verifier/`, `mcp/` or
+**Eight proof scripts. Re-run ALL of them after any change under `db/`, `verifier/`, `mcp/` or
 `sandbox/server/`:**
 
 ```
@@ -72,6 +72,7 @@ npm --prefix mcp run verify                # 14/14 — the agent surface, over t
 npm --prefix db run verify-import          #   9/9 — corpus vs the FROZEN snapshot (drift detection)
 npm --prefix sandbox run verify            # 18/18 — M6: the gate refuses, approves, and cascades
 node scripts/check-declarations.mjs        #   5/5 — declarations agree with the evidence
+node scripts/check-scope-detection.mjs     # 17/17 — system vs component classification
 node scripts/check-corpus-equivalence.mjs  # 154/154 — what the APP renders vs that same snapshot
 ```
 
@@ -445,12 +446,26 @@ are what this session learned that its "done when" list does not say.
 
 1. ~~**The divergence declaration** — subject, property, state, relation~~ — **done.** See "What's
    done". It went first because the other steps had nowhere precise to land without it.
-2. **Scope detection from the diff** ← **START HERE.** A script reading `git diff --name-only` that
-   classifies a change as system-scoped if it touches `tokens/` or `src/ui/`. This is §5.7's rule and
-   it is deliberately mechanical — *"No agent decides this."* Smallest piece, and it produces the
-   input everything downstream needs. **Needs no decision.**
-3. **`system_change` lifecycle** — propose → assess → approve → land, plus MCP tools so an agent files
-   one instead of burying a system-level decision inside a component row.
+2. ~~**Scope detection from the diff**~~ — **done.** `scripts/lib/scope.mjs` (the rule),
+   `scripts/detect-scope.mjs` (the command), `.github/workflows/scope-detection.yml` (runs on every
+   PR and push). **17/17.** Two things to know before extending it:
+   - **The rule set is wider than §5.7's two examples, deliberately.** `tokens/` and `src/ui/` alone
+     would classify a change to `src/lib/action-icons.tsx` as component-local — and checklist item 15
+     records that a change there silently stopped **every** icon filling on hover in production. Each
+     added path carries the evidence that put it there. This is a judgement about the **rule**, made
+     once and recorded — not the per-change judgement §5.7 forbids.
+   - **Tooling deliberately does NOT escalate** (`db/`, `mcp/`, `scripts/`, `sandbox/`, `site/`,
+     `origin/`). A rule set where everything is system-wide makes escalation meaningless (§9's
+     over-ceremony risk). Verified against real history too: run on commit `0c58cd3` it reports
+     SYSTEM, picking the two `src/ui/` files out of 126 changed.
+   - **The CI job reports; it does not block.** Nothing to route an escalation to until step 3 exists,
+     and a gate blocking with nowhere to go only teaches people to bypass it. Exit code **10** means
+     system-wide — not 1, so a real crash stays distinguishable from a detection.
+3. **`system_change` lifecycle** ← **START HERE.** Propose → assess → approve → land, plus MCP tools
+   so an agent files one instead of burying a system-level decision inside a component row. The table
+   already exists (migration 001) with `state`, `impact_assessment`, `landed_commit` and
+   `affected_paths` — and `detect-scope.mjs` already emits `affectedPaths` in exactly the shape that
+   column wants.
 4. **The invalidation sweep.** **The design question here is already settled** — see below.
 5. **Blocking + one-command batch re-verification.**
 
