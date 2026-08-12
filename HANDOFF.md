@@ -21,7 +21,7 @@
 
 ## Laptop A (main)
 
-**Baseline** — branch `main`, last verified commit `691be1f`, working tree clean, in sync with
+**Baseline** — branch `main`, last verified commit `498d2eb`, working tree clean, in sync with
 `origin/main`. Verify this yourself (`git log --oneline -1`, `git status`) before trusting anything
 below it.
 
@@ -32,12 +32,12 @@ which cannot be fixed from here.
 
 ### Active task
 
-**M1–M6 are complete and verified. M7 is IN PROGRESS — steps 1 and 2 of 5 are done.** M6 closed all three of
+**M1–M6 are complete and verified. M7 is IN PROGRESS — steps 1, 2 and 3 of 5 are done.** M6 closed all three of
 its own "done when" criteria: the toggle cannot be enabled until requirements are genuinely met
 (proven by attempting it), approving takes about 3 seconds against a hard one-minute budget, and
 reopening cascades and writes a false-completion record.
 
-**Next: M7 step 3, the system_change lifecycle.** See "What's next".
+**Next: M7 step 4, the invalidation sweep.** Its design question is already settled — see "What's next".
 
 **First thing to do on this machine: reconnect the sandbox MCP server.** Its tools
 (`mcp__sandbox__*`) did not attach to the last session — `ToolSearch` found none of them. The server
@@ -62,7 +62,7 @@ Read `docs/SANDBOX-SPEC.md` first. It is the single source of truth for this pro
   resolved; the corpus does not, because none has been through the gate (it did not exist when they
   were written). Reasoning came across so retrieval has substance; nothing arrived pre-blessed.
 
-**Eight proof scripts. Re-run ALL of them after any change under `db/`, `verifier/`, `mcp/` or
+**Nine proof scripts. Re-run ALL of them after any change under `db/`, `verifier/`, `mcp/` or
 `sandbox/server/`:**
 
 ```
@@ -70,6 +70,7 @@ npm --prefix db run verify                 # 15/15 — the gate and its permissi
 npm --prefix verifier run verify           # 12/12 — the runner is worth trusting
 npm --prefix mcp run verify                # 14/14 — the agent surface, over the real protocol
 npm --prefix db run verify-import          #   9/9 — corpus vs the FROZEN snapshot (drift detection)
+npm --prefix db run verify-system-change   # 13/13 — the higher-ceremony lifecycle, as real principals
 npm --prefix sandbox run verify            # 18/18 — M6: the gate refuses, approves, and cascades
 node scripts/check-declarations.mjs        #   5/5 — declarations agree with the evidence
 node scripts/check-scope-detection.mjs     # 17/17 — system vs component classification
@@ -458,16 +459,25 @@ are what this session learned that its "done when" list does not say.
      `origin/`). A rule set where everything is system-wide makes escalation meaningless (§9's
      over-ceremony risk). Verified against real history too: run on commit `0c58cd3` it reports
      SYSTEM, picking the two `src/ui/` files out of 126 changed.
-   - **The CI job reports; it does not block.** Nothing to route an escalation to until step 3 exists,
+   - **The CI job reports; it does not block.** It could now route to a system_change (step 3 exists),
      and a gate blocking with nowhere to go only teaches people to bypass it. Exit code **10** means
      system-wide — not 1, so a real crash stays distinguishable from a detection.
-3. **`system_change` lifecycle** ← **START HERE.** Propose → assess → approve → land, plus MCP tools
-   so an agent files one instead of burying a system-level decision inside a component row. The table
-   already exists (migration 001) with `state`, `impact_assessment`, `landed_commit` and
-   `affected_paths` — and `detect-scope.mjs` already emits `affectedPaths` in exactly the shape that
-   column wants.
-4. **The invalidation sweep.** **The design question here is already settled** — see below.
-5. **Blocking + one-command batch re-verification.**
+3. ~~**`system_change` lifecycle**~~ — **done.** Migrations 011 + 012, four MCP tools, **13/13**.
+   - **A real hole closed:** `system_change.state` had no `DENY`, and 002 grants `agent_rw` UPDATE on
+     the table — so an agent could `UPDATE ... SET state='approved'` and approve its own proposal.
+     Invariant 1 with nothing behind it, on the entity §5.6 calls a multiplier.
+   - **Agents propose and assess; humans approve, land and reject.** Mirrors the divergence split
+     exactly (an agent may reopen; only `app_rw` may resolve).
+   - **012 fixed a design error in 011, caught by the schema itself.** `block_divergence` set
+     `blocked_by` without `state`, and `ck_divergence_blocked` refused it — *"'blocked' is not a
+     mood."* Blocking now also moves the state, and `blocked_from_state` remembers what to restore,
+     so unblocking is lossless.
+4. **The invalidation sweep** ← **START HERE.** **The design question is already settled** — see
+   below. `usp_land_system_change` (migration 011) is the hook it attaches to: landing is the moment
+   every evidence row measured against the old world becomes suspect.
+5. **One-command batch re-verification.** Blocking itself already works — `usp_block_divergence` plus
+   the `sandbox_block_divergence` MCP tool, and the gate reports `divergence.blocked` naming the
+   change. What remains is re-running everything a sweep marked stale, in one command.
 
 **Step 4's design question, decided:** *how does the sweep know which evidence a system change
 affects?* **Derive the dependency from imports, and default to over-invalidating.** For each
