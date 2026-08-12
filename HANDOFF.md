@@ -21,9 +21,9 @@
 
 ## Laptop A (main)
 
-**Baseline** — branch `main`, last verified commit `0ea1ea4` (the commit this file's own update rides
-on top of), working tree clean, in sync with `origin/main`. Verify this yourself
-(`git log --oneline -1`, `git status`) before trusting anything below it.
+**Baseline** — branch `main`, last verified commit `7c97df6`, working tree clean, in sync with
+`origin/main`. Verify this yourself (`git log --oneline -1`, `git status`) before trusting anything
+below it.
 
 This machine is the designated **primary** (`.env`: `MACHINE_NAME=Laptop A`). A formal
 primary/satellite rename of all three machines is deliberately deferred to Sandbox Milestone 8 —
@@ -156,6 +156,10 @@ alias, compiled into the app's bundle. The old `OriginRailNavLive.tsx` mounted i
 **Sandbox Milestone 5, remaining work** (`SANDBOX-SPEC.md` §6). The rename and the origin quarantine
 are done; the rest of the app is not.
 
+0. **Get an independent review on F-2/F-3/F-7/L-34.** They are measured and have passing evidence;
+   the gate lists only `review.present` as unmet. The reviewer must not be whoever built them — the
+   database enforces this, it is not a convention. This is the first time any row has been in a
+   position to complete the full cycle.
 1. ~~Origin quarantine~~ — **done and verified.** See "What's done" above.
 2. **Generalise from one hard-coded occupant to N components read from the database.** Note that the
    quarantine now sets the shape for this: each occupant gets `origin/<component>/app/`, its own
@@ -167,6 +171,43 @@ are done; the rest of the app is not.
    press, resize — so a decision can be checked by pointing rather than by reading code.
 4. Delete `sandbox/src/data/rail-sidebar.ts` **only** once the database path returns equivalent
    content, and re-point `db/import-rail-sidebar.mjs` / `db/verify-import.mjs` or retire them.
+
+**First real divergences anchored and measured — the machinery has now been used, not just proven.**
+Before this, nothing connected the corpus to the code: zero `data-divergence` attributes anywhere in
+`src/`, `site/src/` or `sandbox/src/`; `verifier/checks/` held only `__verifier_test__`; and the gate
+for any real row returned `evidence: []`, `reviews: []`. Four rows are now anchored and measured,
+each expectation taken from the recorded decision rather than from measuring the component and
+writing down whatever it said:
+
+| Row | Decision | Check |
+|---|---|---|
+| F-2 | `railButton` = 38×38 | `box`, rest + hover |
+| F-3 | `PANEL_DEFAULT_WIDTH` = 256 | `box` |
+| F-7 | `FOOTER_MAX_HEIGHT` = 122px + `overflow: hidden` | `computed-style` |
+| L-34 | active-path label `line-height` 20px on 14px font, truncation intact | `computed-style` + screenshot |
+
+**6/6 pass, 6 evidence rows written**, pinned to commit `7c97df6`. The gate for these rows now lists
+**only** `review.present` as unmet — `evidence.present` is satisfied. That last requirement cannot be
+met by whoever built them: `ck_review_independent` refuses a review whose author is the builder, at
+the database. **An independent reviewer is the next action on these four rows.**
+
+Two structural findings, both from measuring the live DOM rather than reading code — worth knowing
+before anchoring anything else:
+
+- **`FunctionalRailSidebar` is mounted twice** (a `dark:hidden` copy and a `hidden dark:block` copy,
+  both always in the DOM, one merely `display:none`). A `data-divergence` written straight into the
+  markup matches two elements, and the runner fails an ambiguous anchor by design. Anchors are
+  therefore opt-in per instance (`anchors` prop → `lib/divergence-anchors.tsx`), enabled on the light
+  copy only.
+- **A `useContext` call in the component that RENDERS the provider reads the value above it**, not
+  its own. `FunctionalRailSidebar` renders `DivergenceAnchorProvider` in its own JSX, so the hook
+  there would have read the default `false` and emitted no attributes at all, silently and with no
+  error. It passes its own prop to `anchorAttrs` instead; only descendants use the hook. Both share
+  one implementation so they cannot drift.
+- **Known limit of §5.5, stated rather than implied:** an anchor must resolve to exactly one element,
+  so F-2's evidence proves the first rail button measured 38×38 — not that all 27 did.
+- Note: four evidence rows pinned to `8bd2142` are from an earlier run against a dirty tree; the
+  runner warned correctly, and the `7c97df6` rows supersede them.
 
 **Two loose ends noticed while doing step 1, neither touched:**
 
