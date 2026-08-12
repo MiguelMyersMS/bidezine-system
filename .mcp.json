@@ -3,6 +3,10 @@
     "figma": {
       "command": "npx",
       "args": ["-y", "figma-developer-mcp", "--stdio"]
+    },
+    "sandbox": {
+      "command": "node",
+      "args": ["mcp/server.mjs"]
     }
   }
 }

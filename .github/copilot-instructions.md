@@ -49,6 +49,39 @@ site (`npm install && npm run build` in `site/`) and deploys `site/dist` to GitH
 - `LIMBO-PROTOCOL-LOG.md` and other divergence logs are the opposite: **append-only** historical records — never delete or rewrite old entries there.
 - See `CLAUDE.md`'s "Primitive Fidelity Checklist" before calling any change to a real primitive "done" — it documents specific, recurring failure classes (className merge conflicts, clipped focus rings, unverified interactive states, etc.) that passed casual review in the past.
 
+## The Sandbox — read `docs/SANDBOX-SPEC.md`
+
+The porting process is being moved off prose-and-trust onto a system that **cannot record work as done
+unless it is provably done**. It is partly built; treat the spec as authoritative over this summary.
+
+**Use the `sandbox` MCP server** — it is registered for Copilot in `.vscode/mcp.json` and for Claude Code
+in `.mcp.json`, and it is the same server for both. Start with `sandbox_decisions` **before proposing any
+value** (a colour, size, spacing, duration, icon, token): this project treats an origin's number, or an
+invented-but-plausible value, as exactly as much an unforced divergence as a hand-rolled component, so the
+first question is always whether a precedent already exists. `sandbox_how_to_verify` explains the rest.
+
+Four things are enforced by database permissions, not by convention, and none of them are obstacles to
+route around — they are the system working:
+
+- **You cannot write evidence.** Only the verifier runner can. Add a `data-divergence` anchor to the
+  markup, write a check spec under `verifier/checks/`, and run `npm --prefix verifier run check`. The
+  runner drives a real browser and records what it measured; you never author the value.
+- **You cannot set state.** `state` columns are denied to every connecting role. Work moves between
+  states only through the gate, which returns the list of unmet requirements — treat that list as your
+  to-do list, and never conclude something is done without asking `sandbox_gate`.
+- **You cannot approve.** A human does that, after the gate opens.
+- **You cannot review your own build.** Reviewer and builder must differ, and a passing review must cite
+  evidence by id — one citing a failing or stale row is refused by its own citations.
+
+If you find that something already marked resolved was never actually finished, call `sandbox_reopen`
+immediately. You do not need permission, and quietly fixing it instead destroys the most valuable signal
+this system collects.
+
+Never run agent work under the `admin` or `runner` service principal to get past a permission error.
+
+`limbo-factory/` and `limbo/` are **frozen** until Milestone 5 of that spec — do not rename them to
+"Sandbox" or edit `limbo-factory/src/data/rail-sidebar.ts` before then.
+
 ## Licensing
 
 shadcn/ui and Radix are MIT-licensed; `THIRD-PARTY-LICENSES.md` must stay. This project's own original work may be licensed separately.

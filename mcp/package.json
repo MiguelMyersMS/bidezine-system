@@ -1,0 +1,16 @@
+{
+  "name": "bidezine-sandbox-mcp",
+  "version": "0.0.0",
+  "description": "MCP server exposing the Sandbox corpus to agents. Bound to agent_rw — structurally cannot write evidence.",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "verify": "node verify-mcp.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "mssql": "^11.0.1"
+  }
+}
