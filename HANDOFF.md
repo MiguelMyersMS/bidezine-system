@@ -21,7 +21,7 @@
 
 ## Laptop A (main)
 
-**Baseline** — branch `main`, last verified commit `ecd9939`, working tree clean, in sync with
+**Baseline** — branch `main`, last verified commit `a0c3c41`, working tree clean, in sync with
 `origin/main`. Verify this yourself (`git log --oneline -1`, `git status`) before trusting anything
 below it.
 
@@ -32,13 +32,12 @@ which cannot be fixed from here.
 
 ### Active task
 
-**Sandbox Milestone 5 is COMPLETE.** M1–M5 are built and verified. All four of M5's own "done when"
-criteria are met: origin material provably cannot reach the translation pane (a deliberate crossing
-import fails the build), clicking a divergence highlights the exact region in the live component, that
-region stays hoverable/clickable/resizable while highlighted, and the hand-written data file was
-deleted only after the database path was proven equivalent.
+**Sandbox Milestones 5 and 6 are COMPLETE.** M1–M6 are built and verified. M6 closed all three of
+its own "done when" criteria: the toggle cannot be enabled until requirements are genuinely met
+(proven by attempting it), approving takes about 3 seconds against a hard one-minute budget, and
+reopening cascades and writes a false-completion record.
 
-**Nothing is in progress.** See "What's next" for where M6 starts and what it needs first.
+**Nothing is in progress.** M7 is next — see "What's next".
 
 **First thing to do on this machine: reconnect the sandbox MCP server.** Its tools
 (`mcp__sandbox__*`) did not attach to the last session — `ToolSearch` found none of them. The server
@@ -63,15 +62,21 @@ Read `docs/SANDBOX-SPEC.md` first. It is the single source of truth for this pro
   resolved; the corpus does not, because none has been through the gate (it did not exist when they
   were written). Reasoning came across so retrieval has substance; nothing arrived pre-blessed.
 
-**Four proof scripts. Re-run ALL of them after any change under `db/`, `verifier/` or `mcp/`:**
+**Six proof scripts. Re-run ALL of them after any change under `db/`, `verifier/`, `mcp/` or
+`sandbox/server/`:**
 
 ```
 npm --prefix db run verify                 # 15/15 — the gate and its permissions
 npm --prefix verifier run verify           # 12/12 — the runner is worth trusting
 npm --prefix mcp run verify                # 14/14 — the agent surface, over the real protocol
-npm --prefix db run verify-import          #   8/8 — corpus vs the FROZEN snapshot (drift detection)
+npm --prefix db run verify-import          #   9/9 — corpus vs the FROZEN snapshot (drift detection)
+npm --prefix sandbox run verify            # 18/18 — M6: the gate refuses, approves, and cascades
 node scripts/check-corpus-equivalence.mjs  # 154/154 — what the APP renders vs that same snapshot
 ```
+
+**Run the whole set, not the one you changed.** M6's own work reverted migration 005 (see below) and
+every M6 check still passed — only `verify-runner` went red. A suite you did not touch is exactly the
+one most likely to notice what you broke.
 
 They connect as real principals and watch things fail rather than reading permissions and reasoning
 about them. Neither trusts a writer's own success message, since that is an assertion by the thing
@@ -219,6 +224,56 @@ nowhere to land.
 a passing verdict now would cite evidence from a different commit. A second review round against the
 fixed code is the correct next step — that is the loop working, not a blockage.
 
+**Milestone 6 is COMPLETE — the evidence widget and an approval gate no actor can open.**
+All three acceptance criteria met, verified against a real production build.
+
+- **The toggle is computed, not asserted.** `app_rw` is DENIED `UPDATE` on `divergence.state`, so
+  `usp_resolve_divergence` is the only path and it recomputes the gate itself. The greyed-out button
+  is a courtesy — **POSTing anyway returns 409 with the gate's own refusal text.** Verified by
+  *attempting* it, at two different unmet requirements.
+- **Approving takes 3.3s** from click to a legible verdict, measured in a real browser. M6's hard
+  requirement is "about a minute".
+- **Reopen cascades**, requires a reason, and writes a `false_completion` attached to the requirement
+  type that was falsely passed.
+- **`npm --prefix sandbox run verify` — 18/18**, on a fixture it creates and removes. Every other
+  milestone has a proof suite; this is M6's.
+
+**Four real defects, every one found by running it rather than reading it:**
+
+1. **The gate let a reopened row be re-approved on the very review that wrongly passed it.** Reopen
+   wrote the record and moved the state correctly, then reported **zero** unmet requirements. M6's own
+   spec text requires "the review based on the old state is invalidated" and the procedure did not do
+   it. **Migration 007** adds `review.invalidated_at`; **008** backfills already-reopened rows.
+2. **I reverted migration 005 while writing 007.** `CREATE OR ALTER FUNCTION` replaces the whole
+   object, and 007 restated the body by copying it from **003** — the version before 005 amended it.
+   005's rule is that evidence must be able to FAIL on its own terms; without it **a passing
+   screenshot satisfies the gate**. That hole was live between 007 and 009. Caught by
+   `verify-runner.mjs`, the suite that exists for exactly this — **nothing else would have noticed**,
+   because every M6 check still passed on `measurement` evidence. **Migration 009** restores it and
+   states its lineage. **Lesson for any future migration: derive a `CREATE OR ALTER` body from the
+   LIVE object, never from the migration you happen to remember. The diff cannot show what is
+   missing — 007's looked like a clean one-clause addition.**
+3. **The widget showed the previous row's evidence while the next one loaded** — gate verdict,
+   evidence and Approve state under the new row's heading, every control live. In a tool for deciding
+   whether something is proven, that is the worst failure available. It clears first now, and ignores
+   responses that arrive after the operator moved on.
+4. **The M6 suite passed 18/18 while failing to clean up.** `mssql.connect()` returns a
+   process-global pool, so closing the RUNNER connection closed ADMIN's too and left the fixture in
+   the real database. It reconnects for cleanup now.
+
+**`verify-import`'s "every row sits at `legacy_unverified`" check was retired for a stronger one.** It
+was right for M4 and became wrong the moment a row legitimately reached `resolved` — a check that goes
+red the first time the system is used as designed protects nothing. It now asserts every row is in a
+real lifecycle state, and that **no row is `resolved` without the human approval only the gate can
+write**.
+
+**Real corpus data was touched, deliberately and traceably.** F-2 was approved and then reopened
+during M6's acceptance run, before the permanent fixture-based suite existed. Both records stand —
+the `false_completion` reason says exactly what it was — because deleting an approval or a
+false-completion is precisely the history-erasure this system forbids. **Four review verdicts were
+also submitted** for F-2/F-3 (pass) and F-7/L-34 (fail), recording what the four adversarial
+reviewers actually found. F-3 is currently the one row with an open gate.
+
 **M5 step 4 — the hand-written divergence data is gone; the corpus is authoritative.** The app renders
 all 154 rows from Fabric alone, verified **9/9 against a real production build** with the array removed.
 
@@ -341,19 +396,19 @@ any of those rows can leave `legacy_unverified`.
 
 ### What's next
 
-**Milestone 5 is complete** (`SANDBOX-SPEC.md` §6): all four steps done and verified. **M6 is next —
-the evidence widget and the approval gate.** Read §6's M6 section before starting; the notes below are
-what this session learned that its "done when" list does not say.
+**Milestones 5 and 6 are complete** (`SANDBOX-SPEC.md` §6). **M7 is next — system changes and
+invalidation.** Read §6's M7 section first; the notes below are what this session learned that its
+"done when" list does not say.
 
-**Two things M6 needs before its own work makes sense:**
+**What M7 already has waiting for it.** `evidence.is_stale` exists and the gate already honours it —
+M7's bulk-invalidation sweep has a column to write to and a gate that will react. `review.invalidated_at`
+(migration 007) is the same idea for reviews and may be the right mechanism when a system change
+invalidates a judgement rather than a measurement. `db/snapshots/rail-sidebar.json` is the frozen
+snapshot M7's "mark the snapshot stale" step refers to.
 
-1. **Submit the four outstanding review verdicts.** F-2/F-3/F-7/L-34 have passing evidence; the gate
-   lists only `review.present` as unmet. The reviewer must not be the builder — the database enforces
-   that, it is not a convention. **A weakness worth knowing:** `sandbox_submit_review` takes
-   `author_agent_id` AND `builder_agent_id` as caller-supplied strings. The database enforces they
-   *differ*, not that they are genuinely different actors. Independence is structural on the values,
-   self-declared on the reality. That belongs in the flaws log, and possibly in M9's enforcement list.
-2. **Extend the M2 runner, before anchoring at scale.** Anchoring category F end-to-end found that the
+**Two things worth doing regardless of milestone order:**
+
+1. **Extend the M2 runner, before anchoring at scale.** Anchoring category F end-to-end found that the
    runner cannot express two whole classes of check — and layout-sizing is the category *most*
    friendly to mechanical measurement, yet it reaches only about two thirds of it:
    - **Relational geometry.** F-4 (rail-to-panel gap), F-9 (rail item pitch) and F-11 (footer
@@ -365,6 +420,12 @@ what this session learned that its "done when" list does not say.
 
    Anchoring the remaining ~147 rows first would mean discovering mid-way that a large share has
    nowhere to land.
+
+2. **The independence check is weaker than it looks — a candidate for M9's enforcement list.**
+   `sandbox_submit_review` takes `author_agent_id` AND `builder_agent_id` as **caller-supplied
+   strings**. The database enforces they *differ*, not that they correspond to genuinely different
+   actors. Independence is structural on the values, self-declared on the reality. Worth a
+   flaws-log entry.
 
 **Review has a termination rule — apply it, don't re-review by default.** One round per batch of work;
 fix what it finds; **re-review only if a fix touched code shared by other rows.** A round that finds
