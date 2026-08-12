@@ -1,7 +1,7 @@
 /**
- * Generic Limbo factory-line phase model — reusable for every component that
- * passes through Limbo, not just Rail Sidebar. A "phase" maps 1:1 to a gate
- * in LIMBO-PROTOCOL-LOG.md's agent roster; sub-phases are the granular
+ * Generic Sandbox phase model — reusable for every component that
+ * passes through the Sandbox, not just Rail Sidebar. A "phase" maps 1:1 to a gate
+ * in SANDBOX-PROTOCOL-LOG.md's agent roster; sub-phases are the granular
  * checklist items within a phase (e.g. individual blocking decisions).
  */
 
@@ -18,14 +18,14 @@ export interface Phase {
   id: string
   title: string
   status: PhaseStatus
-  /** Which protocol agent role owns this phase (see LIMBO-PROTOCOL-LOG.md). */
+  /** Which protocol agent role owns this phase (see SANDBOX-PROTOCOL-LOG.md). */
   owner: string
   description: string
   subPhases?: SubPhase[]
 }
 
 /**
- * The 8 standing phases every Limbo component moves through, in order.
+ * The 8 standing phases every Sandbox component moves through, in order.
  * Only `subPhases` content differs per-component (set on a copy of this array
  * or by a data file like rail-sidebar.ts) — the phase list itself is the
  * reusable shell.
@@ -78,13 +78,13 @@ export const STANDARD_PHASES: readonly Omit<Phase, "subPhases" | "status">[] = [
     title: "Promotion into bidezine system",
     owner: "—",
     description:
-      "Move the approved component from Limbo into src/ui/, register it in nav-manifest.ts and the real showcase, like any other component.",
+      "Move the approved component from the Sandbox into src/ui/, register it in nav-manifest.ts and the real showcase, like any other component.",
   },
   {
     id: "close-out",
     title: "Close out protocol log",
     owner: "—",
     description:
-      "Fold durable lessons from the run into CLAUDE.md, then delete the temporary LIMBO-PROTOCOL-LOG.md.",
+      "Fold durable lessons from the run into CLAUDE.md, then delete the temporary SANDBOX-PROTOCOL-LOG.md.",
   },
 ]

@@ -1,5 +1,5 @@
 /**
- * Shared status-color vocabulary for the Limbo Factory Line tool itself (not a bidezine design
+ * Shared status-color vocabulary for the Sandbox tool itself (not a bidezine design
  * token — this is internal tooling chrome for the transformation-tracking shell, same category as
  * the existing ad-hoc `bg-primary`/`bg-foreground` badge overrides already used throughout
  * DivergenceView/ColorTokenLab).

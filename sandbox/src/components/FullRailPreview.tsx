@@ -20,7 +20,7 @@ import { FunctionalRailSidebar } from "@/components/FunctionalRailSidebar"
  * components" rule. That whole export chain had already been fully superseded by
  * `RailNavStatusPreview` -> `FunctionalRailSidebar` (confirmed: `FullRailPreview` was never imported
  * anywhere in the app) and has been removed entirely rather than left as dead, rule-violating code
- * that could be silently re-wired back in later. See LIMBO-PROTOCOL-LOG.md's flaws log.
+ * that could be silently re-wired back in later. See SANDBOX-PROTOCOL-LOG.md's flaws log.
  */
 
 // Literal origin hex values, sourced verbatim from divergence categories B (dark rail) and C (light

@@ -449,7 +449,7 @@ function MotionCompare({ v }: { v: MotionVisual }) {
               className="h-full bg-foreground/40"
               style={{
                 width: "40%",
-                animation: `limbo-slide ${v.beforeDurationMs}ms ${v.beforeEasing} both`,
+                animation: `sandbox-slide ${v.beforeDurationMs}ms ${v.beforeEasing} both`,
               }}
             />
           </div>
@@ -463,7 +463,7 @@ function MotionCompare({ v }: { v: MotionVisual }) {
                 className="h-full bg-primary/60"
                 style={{
                   width: "40%",
-                  animation: `limbo-slide ${v.afterDurationMs}ms ${v.afterEasing ?? "ease"} both`,
+                  animation: `sandbox-slide ${v.afterDurationMs}ms ${v.afterEasing ?? "ease"} both`,
                 }}
               />
             </div>
@@ -483,7 +483,7 @@ function MotionCompare({ v }: { v: MotionVisual }) {
       {v.recommendation ? (
         <p className="max-w-md text-xs text-muted-foreground italic">{v.recommendation}</p>
       ) : null}
-      <style>{"@keyframes limbo-slide { from { transform: translateX(-100%); } to { transform: translateX(150%); } }"}</style>
+      <style>{"@keyframes sandbox-slide { from { transform: translateX(-100%); } to { transform: translateX(150%); } }"}</style>
     </div>
   )
 }

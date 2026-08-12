@@ -24,13 +24,13 @@ import {
 const BIDEZINE_LOGO_DEFAULT_LABEL = "(bidezine mark — built in, renders as inline SVG)"
 
 /**
- * Limbo Factory Line — the reusable transformation-tracking shell.
+ * Sandbox — the reusable transformation-tracking shell.
  *
- * Left panel: every phase + sub-phase a Limbo component moves through (see
- * LIMBO-PROTOCOL-LOG.md). Right panel: the active phase's content. Today this
+ * Left panel: every phase + sub-phase a Sandbox component moves through (see
+ * SANDBOX-PROTOCOL-LOG.md). Right panel: the active phase's content. Today this
  * only has real content wired up for Rail Sidebar's "Human Decisions" phase
- * (limbo/rail-sidebar/INTAKE-REPORT.md) — the shell itself (App + PhaseRail)
- * is what's meant to be reused for the next Limbo occupant.
+ * (origin/rail-sidebar/INTAKE-REPORT.md) — the shell itself (App + PhaseRail)
+ * is what's meant to be reused for the next Sandbox occupant.
  */
 export function App() {
   const [activePhaseId, setActivePhaseId] = useState("human-decisions")
@@ -295,7 +295,7 @@ function PlaceholderPhase() {
       </p>
       <Separator />
       <p className="text-xs text-muted-foreground">
-        See limbo/rail-sidebar/INTAKE-REPORT.md and LIMBO-PROTOCOL-LOG.md for the full protocol this
+        See origin/rail-sidebar/INTAKE-REPORT.md and SANDBOX-PROTOCOL-LOG.md for the full protocol this
         factory line implements.
       </p>
     </div>

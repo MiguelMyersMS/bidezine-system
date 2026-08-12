@@ -1,7 +1,7 @@
-# Limbo Factory Line - Current Layout Contract
+# Sandbox - Current Layout Contract
 
 > **Status: current working contract, not frozen.** This document is the source of truth for the
-> reusable Limbo Factory Line UI in `sandbox/` (dev server: `localhost:4199`). The content and
+> reusable Sandbox UI in `sandbox/` (dev server: `localhost:4199`). The content and
 > examples will change per occupant, but the main shell, phase structure, spacing model, and process
 > affordances should stay consistent unless they are deliberately changed here and in code together.
 >

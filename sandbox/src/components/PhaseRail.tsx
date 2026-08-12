@@ -25,9 +25,9 @@ function StatusBadge({ status }: { status: PhaseStatus }) {
 
 /**
  * Reusable factory-line left panel: a flat, single-level list of every phase
- * a Limbo component moves through — no nested sub-phase checklist. Generic
+ * a Sandbox component moves through — no nested sub-phase checklist. Generic
  * over any Phase[] — this same component is meant to be reused for the next
- * Limbo occupant after Rail Sidebar, just fed different phase data.
+ * Sandbox occupant after Rail Sidebar, just fed different phase data.
  */
 export function PhaseRail({
   phases,
