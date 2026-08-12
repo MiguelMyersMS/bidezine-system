@@ -278,11 +278,50 @@ start renaming Limbo → Sandbox, and do not touch `limbo-factory/src/data/rail-
 _Nothing queued. M-6/M-7/M-8/M-20/M-21/M-22 are fully resolved and merged to `main`. M-8's own
 follow-through action (revamping the existing `Sidebar` primitive to borrow Rail Sidebar's patterns) is
 explicitly deferred until AFTER Rail Sidebar itself finishes promotion out of Limbo — not queued yet.
-`L-6` (Badge default-usage policy) resolved this session — see "What's done" above. Remaining open Rail
-Sidebar divergence-list categories (unrelated to this session): H (motion), I (elevation), J (z-index),
-plus the still-`"decision"` H-2–H-6/`L-7`/L-11 rows — none touched this baseline; awaiting a future
-session's focus. Recommend dispatching an independent code-review audit agent on the `L-6`/Badge
-default-policy change above before treating it as fully closed._
+`L-6` (Badge default-usage policy) and `L-7` (Collapse motion component, see "What's done" below) both
+resolved this session. Every row in `limbo-factory/src/data/rail-sidebar.ts` now carries `status: "resolved"`
+or `"note"` — zero rows remain `status: "decision"`. Remaining open Rail Sidebar divergence-list categories
+(unrelated to this session): H (motion — H-2–H-6 deferred/greenlit pending a future system-wide motion-token
+upgrade), I (elevation), J (z-index) — none touched this baseline; awaiting a future session's focus.
+Recommend dispatching an independent code-review audit agent on the `L-6`/Badge default-policy change and
+the `L-7`/Collapse animation change above before treating either as fully closed._
+
+- **`L-7` (Collapse motion component) resolved** — the Rail Sidebar's `PanelTree` group-node
+  `CollapsibleContent` (`limbo-factory/src/components/FunctionalRailSidebar.tsx`) now animates open/close
+  using `data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up
+  overflow-hidden`, reusing the same `tw-animate-css` keyframe technique already adopted by bidezine's real
+  `Accordion` primitive (`src/ui/accordion.tsx`) — Collapsible's own dedicated keyframe pair, driven by
+  Radix's `--radix-collapsible-content-height` (not Accordion's `--radix-accordion-content-height`). No
+  fixed pixel height anywhere — height is measured live by Radix from the actual rendered content on every
+  open, matching the user's own expectation that this stays dynamic rather than a hardcoded value.
+  - Deliberately does NOT reimplement origin's bespoke `<Collapse>` (hand-rolled
+    `grid-template-rows: 0fr↔1fr` + a `setTimeout`-based JS timer for deterministic unmount, driven by its
+    own `MOTION.slow`/`MOTION.ease` tokens — see `limbo-factory/src/reference/origin-design-system/motion.tsx`).
+    Radix's own `CollapsibleContent` already unmounts (renders `null`) once fully closed — a different,
+    equally valid native mechanism for the same "no lingering DOM/focusable elements" goal, without a
+    bespoke timer.
+  - Decouples `L-7` from `H-2`–`H-6`'s still-deferred motion-DURATION/EASING token upgrade: this needed zero
+    new tokens, only reuse of `tw-animate-css`, already a root `package.json` dependency.
+  - **Real implementation gap caught and fixed along the way**: `limbo-factory` runs its own independent
+    Tailwind build (`@tailwindcss/vite` over its own `src/index.css`) that never imported `tw-animate-css` —
+    the root package's `src/styles/system.css` does import it, but that's pre-compiled into the static
+    `dist/system.css` this app consumes as a built dependency, so `animate-collapsible-down`/`-up` would
+    have been dead, no-op class names in this app specifically (present in the DOM, matching no real CSS
+    rule). Fixed by adding `tw-animate-css` as an explicit `devDependency` in `limbo-factory/package.json`
+    and importing it in `limbo-factory/src/index.css`; verified by curling the live dev server's actual
+    compiled CSS (`http://127.0.0.1:4199/src/index.css`) and confirming
+    `animate-collapsible-down`/`animate-collapsible-up`/`--radix-collapsible-content-height` are present as
+    real, matched rules — not just checking that the class name string appeared in source.
+  - Scoped to `FunctionalRailSidebar.tsx`'s call site only — bidezine's shared `src/ui/collapsible.tsx`
+    primitive itself was NOT changed, so this is not a new system-wide default for every `Collapsible`
+    usage, only this rail's own `PanelTree` groups (kept intentionally revertible per the user's own
+    "if i don't like it i can revert it" framing before approval).
+  - User approved live in the `limbo-factory` preview ("i see then a[pp]rove you can make it green now")
+    before this row was marked `status: "resolved"` in `rail-sidebar.ts` — not marked resolved until that
+    explicit sign-off, per the user's own stated constraint.
+  - Verified: `npx tsc --noEmit` clean in `limbo-factory/` both before and after the `tw-animate-css`
+    dependency fix. Not yet independently audited by a background agent, nor committed as of this writing.
+
 
 ### Open questions / blockers
 

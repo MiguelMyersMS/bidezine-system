@@ -1029,7 +1029,17 @@ function PanelTree({
                 </svg>
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent>
+            {/* RESOLVED (see divergence row L-7): real expand/collapse animation using
+                tw-animate-css's collapsible-down/-up keyframes, which read Radix's own
+                --radix-collapsible-content-height (the same recipe bidezine's real Accordion already
+                uses for its own auto-height animation via --radix-accordion-content-height, just the
+                Collapsible-specific variable instead). Height is measured live by Radix from the
+                actual rendered content on every open — no fixed pixel height anywhere.
+                Overflow-hidden is required so content doesn't render past the 0-height
+                starting/ending frame. Scoped to this call site only, not bidezine's shared
+                src/ui/collapsible.tsx primitive. User approved live before this row was marked
+                resolved in rail-sidebar.ts. */}
+            <CollapsibleContent className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
               {/* PROPOSAL, not yet confirmed (see divergence row L-11): a vertical guide line
                   indicating hierarchy, matching the real technique bidezine's own Sidebar uses for
                   SidebarMenuSub (a plain `border-l` on the nested group's wrapper — border color

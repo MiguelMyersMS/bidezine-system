@@ -752,6 +752,50 @@ decides each one. This is the same spirit as the Fluent iconography protocol's "
 exists, stop and ask" rule, just generalized to every visual/behavioral aspect of a ported component, not
 only icons.
 
+**Update 24 — L-7 (Collapse motion component) resolved; zero divergence rows remain `status: "decision"`.**
+The user asked for L-7's recommendation ("whats your recommendation knowing that we want to be true to our
+design system?"), then explicitly authorized an experimental, revertible implementation ("lets try
+implementing it if i dont like it i can revert it, so dont mark it as completed/green as i give you my
+green light"). Investigated origin's real `<Collapse>` (`limbo-factory/src/reference/origin-design-system/motion.tsx`)
+— a hand-rolled `grid-template-rows: 0fr↔1fr` component with a `setTimeout`-based JS timer to guarantee
+deterministic unmount, driven by its own `MOTION.slow`/`MOTION.ease` tokens — versus bidezine's real
+`Collapsible` (`src/ui/collapsible.tsx`, a thin unstyled Radix wrapper) and its real `Accordion`
+(`src/ui/accordion.tsx`), which already solves this exact class of problem via
+`data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down`, powered by the
+`tw-animate-css` package (already a root `package.json` dependency) reading Radix's own
+`--radix-accordion-content-height`. **Recommendation, approved and implemented:** reuse the same technique
+for `Collapsible` rather than reimplement origin's bespoke JS-timer/grid technique — `tw-animate-css` turned
+out to already ship a dedicated `collapsible-down`/`collapsible-up` keyframe pair reading
+`--radix-collapsible-content-height` specifically (not Accordion's variable), so no new keyframes needed
+authoring. Added `data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up
+overflow-hidden` to `PanelTree`'s group-node `CollapsibleContent` in `FunctionalRailSidebar.tsx` only —
+bidezine's shared `src/ui/collapsible.tsx` primitive itself was not touched, keeping this scoped to the rail
+sandbox and easily revertible per the user's own framing. No fixed pixel height anywhere: Radix measures the
+real content height live on every open (the user directly asked "what height did you use" suspecting a
+hardcoded `26px` from an earlier, unrelated decision — confirmed none was set; the animation is driven
+entirely by the live-measured CSS custom property). **Real implementation gap caught and fixed before
+declaring this done:** `limbo-factory` runs its own separate Tailwind build (`@tailwindcss/vite` over its
+own `src/index.css`), which never imported `tw-animate-css` — the root package's `src/styles/system.css`
+does import it, but that CSS is pre-compiled into the static `dist/system.css` this app consumes as a built
+dependency, so the animation utility classes would have been dead, no-op CSS in this app specifically
+(present in the DOM, matching no real rule — exactly the class of invisible failure this project's own
+"verify by render, not by number" principle warns against). Fixed by adding `tw-animate-css` as an explicit
+`devDependency` in `limbo-factory/package.json` and importing it in `limbo-factory/src/index.css`; verified
+by curling the live dev server's own compiled CSS (`http://127.0.0.1:4199/src/index.css`) before and after
+the fix, confirming `animate-collapsible-down`/`animate-collapsible-up`/`--radix-collapsible-content-height`
+went from absent to present as real, matched rules. `npx tsc --noEmit` clean throughout. User approved live
+in the `limbo-factory` preview ("i see then a[pp]rove you can make it green now") before `L-7`'s row in
+`rail-sidebar.ts` was updated from `status: "decision"` to `status: "resolved"` — not marked resolved a
+moment earlier, per the user's own explicit constraint. The Q1/Q2 category summary note (`id: "remaining"`)
+was updated from "1 remaining divergence row" to "0 divergence rows awaiting a decision — all resolved,"
+since `L-7` was the last row anywhere in the tracker still carrying `status: "decision"`. **Lesson:** an
+animation implementation is not verified merely because the class names are syntactically valid Tailwind
+utilities and typecheck passes — when a sandbox app has its OWN separate build pipeline from the design
+system it consumes, a utility class sourced from a dependency of the *design system's* build can still be
+completely absent from the *sandbox's own* compiled output; the only real proof is inspecting the actual
+served/compiled CSS for the specific selector, not just confirming the source file references the right
+class name.
+
 ## Factory-line interface requirements — live, in `limbo-factory/` (port 4199)
 
 - A dedicated local dev environment, on its own port, distinct from the main showcase (`4188`) and the
