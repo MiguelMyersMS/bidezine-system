@@ -10,7 +10,8 @@
     "bootstrap": "node run.mjs bootstrap",
     "verify": "node verify-invariant.mjs",
     "import-rail-sidebar": "node import-rail-sidebar.mjs",
-    "verify-import": "node verify-import.mjs"
+    "verify-import": "node verify-import.mjs",
+    "verify-system-change": "node verify-system-change.mjs"
   },
   "dependencies": {
     "esbuild": "^0.27.7",

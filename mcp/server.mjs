@@ -488,4 +488,151 @@ server.registerTool(
   ),
 )
 
+// ═══════════════════════════════════════════════════════════════════════════════════
+// Milestone 7 — system changes.
+//
+// The whole point of the entity (spec §5.1) is that a system-level decision must NOT be
+// filed as a divergence row: "filing the move to Fluent icons under Rail Sidebar would
+// bury a system-level decision where nothing else can find it." These tools are how an
+// agent files it in the right place instead.
+//
+// An agent may propose and assess — both are analysis. It may not approve, land or
+// reject; those are decisions, and the database refuses them to this credential no matter
+// what any tool here offers.
+// ═══════════════════════════════════════════════════════════════════════════════════
+
+server.registerTool(
+  "sandbox_propose_system_change",
+  {
+    title: "File a change whose blast radius exceeds one component",
+    description:
+      "Use this the moment a fix you are making would touch tokens/ or src/ui/ — or anything else every " +
+      "component depends on. Do NOT file it as a divergence row: a system-level decision buried under one " +
+      "component is exactly how the font change and the Fluent icon migration silently invalidated " +
+      "everything already verified. Run scripts/detect-scope.mjs --json first and pass its affectedPaths " +
+      "verbatim; the staleness sweep has nothing to match on without them. This creates a PROPOSAL — you " +
+      "cannot approve it, and the database will refuse you if you try.",
+    inputSchema: {
+      title: z.string(),
+      detail: z.string().optional(),
+      affected_paths: z.array(z.string()).optional(),
+      discovered_in_component: z.string().optional(),
+    },
+  },
+  guard(async (a) => {
+    const p = await db()
+    const r = await p
+      .request()
+      .input("title", mssql.NVarChar(400), a.title)
+      .input("detail", mssql.NVarChar(mssql.MAX), a.detail ?? null)
+      .input("paths", mssql.NVarChar(mssql.MAX), a.affected_paths ? JSON.stringify(a.affected_paths) : null)
+      .input("slug", mssql.NVarChar(100), a.discovered_in_component ?? null)
+      .query(
+        "DECLARE @cid INT = (SELECT component_id FROM sandbox.component WHERE slug = @slug);" +
+          " EXEC sandbox.usp_propose_system_change @title, @detail, @paths, @cid, NULL;",
+      )
+    const row = r.recordset?.[0]
+    return text(
+      [
+        `Proposed ${row?.ref_code ?? "(unknown)"} at state '${row?.state ?? "proposed"}'.`,
+        "",
+        "Next: record an impact assessment with sandbox_assess_system_change. Approval is refused until",
+        "there is one AND affected_paths are declared — a system change never gets the fast lane.",
+      ].join("\n"),
+    )
+  }),
+)
+
+server.registerTool(
+  "sandbox_assess_system_change",
+  {
+    title: "Record what a system change would actually reach",
+    description:
+      "Assessing is analysis, so you may do it. State what breaks, what needs re-verifying, and roughly how " +
+      "much — a human decides whether that is acceptable, and cannot decide it from a title alone. An empty " +
+      "assessment is refused. Passing affected_paths here updates them if you learned more since proposing.",
+    inputSchema: {
+      ref_code: z.string(),
+      impact_assessment: z.string(),
+      affected_paths: z.array(z.string()).optional(),
+    },
+  },
+  guard(async (a) => {
+    const p = await db()
+    await p
+      .request()
+      .input("ref", mssql.NVarChar(20), a.ref_code)
+      .input("assessment", mssql.NVarChar(mssql.MAX), a.impact_assessment)
+      .input("paths", mssql.NVarChar(mssql.MAX), a.affected_paths ? JSON.stringify(a.affected_paths) : null)
+      .query(
+        "DECLARE @id INT = (SELECT system_change_id FROM sandbox.system_change WHERE ref_code = @ref);" +
+          " IF @id IS NULL THROW 52010, 'No such system change.', 1;" +
+          " EXEC sandbox.usp_assess_system_change @id, @assessment, @paths;",
+      )
+    return text(`Assessment recorded for ${a.ref_code}; it is now at 'assessing'. A human approves from here.`)
+  }),
+)
+
+server.registerTool(
+  "sandbox_system_changes",
+  {
+    title: "What system changes exist, and what each still needs",
+    description:
+      "Check this BEFORE proposing — the change you are about to file may already exist — and before starting " +
+      "component work, because anything blocked on an open system change will not pass its gate. Each row " +
+      "carries what is still unmet before it could be approved.",
+    inputSchema: {},
+  },
+  guard(async () => {
+    const p = await db()
+    const r = await p.request().query(
+      "SELECT sc.ref_code, sc.title, sc.state, sc.affected_paths, sc.landed_commit," +
+        " (SELECT COUNT(*) FROM sandbox.divergence d WHERE d.blocked_by = sc.system_change_id) AS blocking," +
+        " (SELECT STRING_AGG(u.requirement, ', ') FROM sandbox.fn_system_change_unmet(sc.system_change_id) u) AS unmet" +
+        " FROM sandbox.system_change sc ORDER BY sc.system_change_id DESC",
+    )
+    if (!r.recordset.length) return text("No system changes recorded.")
+    return json(r.recordset)
+  }),
+)
+
+server.registerTool(
+  "sandbox_block_divergence",
+  {
+    title: "Park a divergence on an open system change",
+    description:
+      "Use this instead of working around a system change that has not landed. Resolving underneath one bakes " +
+      "in an answer it is about to invalidate. The divergence moves to 'blocked' and its gate says which " +
+      "change is responsible, so the thread stays visible rather than being lost. Omit system_change_ref to " +
+      "UNBLOCK — the divergence returns to the state it was blocked from.",
+    inputSchema: {
+      component: z.string(),
+      ref_code: z.string(),
+      system_change_ref: z.string().optional(),
+    },
+  },
+  guard(async (a) => {
+    const p = await db()
+    await p
+      .request()
+      .input("slug", mssql.NVarChar(100), a.component)
+      .input("ref", mssql.NVarChar(20), a.ref_code)
+      .input("scref", mssql.NVarChar(20), a.system_change_ref ?? null)
+      .query(
+        "DECLARE @did INT = (SELECT d.divergence_id FROM sandbox.divergence d" +
+          " JOIN sandbox.component c ON c.component_id = d.component_id" +
+          " WHERE c.slug = @slug AND d.ref_code = @ref);" +
+          " IF @did IS NULL THROW 52011, 'No such divergence.', 1;" +
+          " DECLARE @scid INT = (SELECT system_change_id FROM sandbox.system_change WHERE ref_code = @scref);" +
+          " IF @scref IS NOT NULL AND @scid IS NULL THROW 52012, 'No such system change.', 1;" +
+          " EXEC sandbox.usp_block_divergence @did, @scid;",
+      )
+    return text(
+      a.system_change_ref
+        ? `${a.component}/${a.ref_code} is now blocked on ${a.system_change_ref}.`
+        : `${a.component}/${a.ref_code} is unblocked and back at its previous state.`,
+    )
+  }),
+)
+
 await server.connect(new StdioServerTransport())
