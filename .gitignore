@@ -66,3 +66,9 @@ verifier/artifacts/
 # Committing it would put a compiled copy of origin material back inside the Sandbox app's own
 # tree, which is the state the quarantine exists to prevent.
 sandbox/public/
+
+# Sandbox corpus snapshot — the last-good read from Fabric, written by
+# sandbox/server/corpus-api.mjs so the app degrades to read-only instead of breaking
+# when the database is unreachable. Regenerated on every successful read; it is a cache,
+# not source, and committing it would put a stale copy of live state under version control.
+sandbox/.corpus-cache.json

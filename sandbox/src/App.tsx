@@ -1,18 +1,33 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react"
-import { Badge, ScrollArea, Separator, Tabs, TabsContent, TabsList, TabsTrigger, cn, useScrollAreaOverflow } from "@bidezine/system"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import {
+  Badge,
+  ScrollArea,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Separator,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  cn,
+  useScrollAreaOverflow,
+} from "@bidezine/system"
 import { PhaseRail } from "@/components/PhaseRail"
 import { BlockingQuestionCard, DivergenceCategoriesAccordion, RisksList } from "@/components/DivergenceView"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { ColorTokenLab } from "@/components/ColorTokenLab"
 import { TypographyLab } from "@/components/TypographyLab"
-import { RailNavStatusPreview } from "@/components/FullRailPreview"
 import { LogoImportSlot } from "@/components/LogoImportSlot"
 import { DivergenceHighlight, useAnchoredRefs } from "@/components/DivergenceHighlight"
+import { NoPreviewRegistered, PREVIEW_REGISTRY, hasPreview } from "@/components/PreviewRegistry"
+import { toCategories, useCorpus, type CorpusComponent, type CorpusDivergence } from "@/data/corpus"
 import { NEGATIVE_BADGE, POSITIVE_BADGE } from "@/lib/status-colors"
 import {
   railSidebarPhases,
   blockingQuestions,
-  divergenceCategories,
   notableRisks,
   proposedDarkRailTokens,
   BIDEZINE_LOGO_PATH,
@@ -37,6 +52,18 @@ export function App() {
   const [activePhaseId, setActivePhaseId] = useState("human-decisions")
   const activePhase = railSidebarPhases.find((p) => p.id === activePhaseId) ?? railSidebarPhases[0]
 
+  // M5 step 2: the occupant is no longer hard-coded. Components, their divergences and
+  // their categories all come from the corpus; only the preview pane is per-occupant code
+  // (see PreviewRegistry).
+  const corpus = useCorpus()
+  const [activeSlug, setActiveSlug] = useState<string | null>(null)
+
+  const components = corpus.status === "ready" ? corpus.corpus.components : []
+  // Default to the first component the corpus actually reports, rather than to a name
+  // written into this file — that default is the last thing tying the shell to one occupant.
+  const slug = activeSlug ?? components[0]?.slug ?? null
+  const active = components.find((c) => c.slug === slug) ?? null
+
   return (
     <div className="flex h-screen w-screen overflow-hidden">
       <aside className="w-[320px] shrink-0 border-r bg-card">
@@ -48,20 +75,34 @@ export function App() {
       </aside>
 
       <main className="flex min-w-0 flex-1 flex-col">
+        {corpus.status === "ready" && corpus.corpus.stale ? (
+          <StaleCorpusBanner fetchedAt={corpus.corpus.fetchedAt} reason={corpus.corpus.staleReason} />
+        ) : null}
+
         <header className="flex items-start justify-between gap-4 border-b px-6 py-4">
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-              Rail Sidebar
+              {active?.title ?? (corpus.status === "loading" ? "Loading corpus…" : "No component")}
             </p>
             <h1 className="text-lg font-semibold">{activePhase.title}</h1>
             <p className="text-sm text-muted-foreground">{activePhase.description}</p>
           </div>
+          <ComponentPicker components={components} activeSlug={slug} onSelect={setActiveSlug} />
         </header>
 
         <div className="min-h-0 flex-1 overflow-hidden">
-          {activePhaseId === "human-decisions" ? (
+          {corpus.status === "error" ? (
+            <CorpusError message={corpus.message} />
+          ) : corpus.status === "loading" ? (
+            <div className="flex h-full items-center justify-center">
+              <p className="text-sm text-muted-foreground">Reading the corpus…</p>
+            </div>
+          ) : activePhaseId === "human-decisions" && slug ? (
             <div className="h-full p-[10px]">
-              <HumanDecisionsPhase />
+              <HumanDecisionsPhase
+                slug={slug}
+                rows={corpus.corpus.divergences[slug] ?? []}
+              />
             </div>
           ) : (
             <ScrollArea className="h-full">
@@ -72,6 +113,76 @@ export function App() {
           )}
         </div>
       </main>
+    </div>
+  )
+}
+
+/** Switches the Sandbox between occupants. Lists exactly what the corpus reports —
+ * including anything without a registered preview — so the app and the store can never
+ * disagree about which components exist. */
+function ComponentPicker({
+  components,
+  activeSlug,
+  onSelect,
+}: {
+  components: CorpusComponent[]
+  activeSlug: string | null
+  onSelect: (slug: string) => void
+}) {
+  if (components.length === 0) return null
+  return (
+    <div className="flex shrink-0 items-center gap-2">
+      <span className="text-xs text-muted-foreground">Component</span>
+      <Select value={activeSlug ?? undefined} onValueChange={onSelect}>
+        <SelectTrigger size="sm" className="w-[240px]">
+          <SelectValue placeholder="Select a component" />
+        </SelectTrigger>
+        <SelectContent>
+          {components.map((c) => (
+            <SelectItem key={c.slug} value={c.slug}>
+              {c.title} — {c.divergences} divergence{c.divergences === 1 ? "" : "s"}
+              {hasPreview(c.slug) ? "" : " (no preview)"}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+}
+
+/**
+ * Shown whenever the corpus came from the on-disk snapshot instead of Fabric.
+ *
+ * The banner is the part that matters, not the fallback. Serving cached rows keeps the
+ * tool usable through an outage; serving them *silently* would let a stale read be
+ * mistaken for a live one, which is the same false-green this whole system exists to
+ * refuse. It states the age of the data and the reason the live read failed.
+ */
+function StaleCorpusBanner({ fetchedAt, reason }: { fetchedAt: string; reason?: string }) {
+  return (
+    <div className="flex items-start gap-2 border-b bg-destructive/10 px-6 py-2">
+      <Badge className={NEGATIVE_BADGE}>Stale</Badge>
+      <p className="text-xs text-muted-foreground">
+        Fabric was unreachable, so this is the last cached snapshot, taken{" "}
+        <strong>{new Date(fetchedAt).toLocaleString()}</strong>. Read-only — anything you see may
+        have changed since.
+        {reason ? <span className="ml-1 opacity-70">({reason})</span> : null}
+      </p>
+    </div>
+  )
+}
+
+function CorpusError({ message }: { message: string }) {
+  return (
+    <div className="flex h-full items-center justify-center p-6">
+      <div className="max-w-lg text-center">
+        <p className="text-sm font-medium">The corpus could not be read</p>
+        <p className="mt-1 text-xs text-muted-foreground">{message}</p>
+        <p className="mt-3 text-xs text-muted-foreground">
+          There is no cached snapshot to fall back to either. An empty list is deliberately not
+          shown — it would be indistinguishable from a corpus that genuinely has no rows.
+        </p>
+      </div>
     </div>
   )
 }
@@ -205,11 +316,23 @@ function RailSourceToggle({
   )
 }
 
-function HumanDecisionsPhase() {
+function HumanDecisionsPhase({ slug, rows }: { slug: string; rows: CorpusDivergence[] }) {
   const [railSource, setRailSource] = useState<"origin" | "bidezine">("bidezine")
-  const renderRailNav = (height: number) => (
-    <RailNavStatusPreview source={railSource} tokens={proposedDarkRailTokens} height={height} />
-  )
+
+  // Divergences now come from the corpus. The categories are rebuilt from each row's
+  // verbatim source record, so this renders exactly what the hand-written data file
+  // rendered — which is also what `scripts/check-corpus-equivalence.mjs` proves, and what
+  // step 4 needs before that file can be deleted.
+  const categories = useMemo(() => toCategories(rows), [rows])
+
+  // The preview is the one genuinely per-occupant piece; everything above is data.
+  const preview = PREVIEW_REGISTRY[slug]
+  const renderRailNav = (height: number) =>
+    preview ? (
+      preview({ source: railSource, tokens: proposedDarkRailTokens, height })
+    ) : (
+      <NoPreviewRegistered slug={slug} />
+    )
 
   // M5 step 3. Selection lives here rather than inside the list because the list and the preview
   // are siblings in QuadrantLayout — the overlay has to be mounted outside the scrolling left
@@ -296,7 +419,7 @@ function HumanDecisionsPhase() {
       <TabsContent value="categories" className="row-start-2 box-border min-h-0 min-w-0 w-full overflow-hidden p-[6px]">
         <QuadrantLayout right={renderRailNav}>
           <DivergenceCategoriesAccordion
-            categories={divergenceCategories}
+            categories={categories}
             anchoredRefs={anchoredRefs}
             activeRef={activeRef}
             onHighlight={setActiveRef}
