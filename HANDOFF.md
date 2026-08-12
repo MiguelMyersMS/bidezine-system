@@ -21,7 +21,7 @@
 
 ## Laptop A (main)
 
-**Baseline** — branch `main`, last verified commit `6b8cae9`, working tree clean, in sync with
+**Baseline** — branch `main`, last verified commit `14e4316`, working tree clean, in sync with
 `origin/main`. Verify this yourself (`git log --oneline -1`, `git status`) before trusting anything
 below it.
 
@@ -33,8 +33,8 @@ which cannot be fixed from here.
 ### Active task
 
 **Sandbox Milestone 5 — in progress.** M1–M4 are complete and verified. The M5 rename landed
-earlier; **step 1 of the remaining M5 work, the origin quarantine, is now done and verified** (see
-"What's done"). Steps 2–4 have not started. See "What's next".
+earlier. **Steps 1 and 3 are done and verified** — the origin quarantine, and the divergence list's
+click-to-highlight. **Steps 2 and 4 have not started.** See "What's next".
 
 **First thing to do on this machine: reconnect the sandbox MCP server.** Its tools
 (`mcp__sandbox__*`) did not attach to the last session — `ToolSearch` found none of them. The server
@@ -151,27 +151,6 @@ alias, compiled into the app's bundle. The old `OriginRailNavLive.tsx` mounted i
   check is now two-directional (assert a marker only origin can produce AND the absence of one only
   our code could produce).
 
-### What's next
-
-**Sandbox Milestone 5, remaining work** (`SANDBOX-SPEC.md` §6). The rename and the origin quarantine
-are done; the rest of the app is not.
-
-0. **Second review round, against the fixed code.** Round one ran, found two real failures, and both
-   are fixed — but the reviewers examined the pre-fix code, so no verdict has been submitted to the
-   corpus. A fresh review of the current commit is what unblocks `review.present`. The reviewer must
-   not be the builder; the database enforces that, it is not a convention.
-1. ~~Origin quarantine~~ — **done and verified.** See "What's done" above.
-2. **Generalise from one hard-coded occupant to N components read from the database.** Note that the
-   quarantine now sets the shape for this: each occupant gets `origin/<component>/app/`, its own
-   project, embedded by `<iframe src>`. `sandbox/src/components/origin-embed-protocol.ts` and its
-   duplicated counterpart under the occupant are the pattern to follow; `check-quarantine.mjs`
-   already guards any future occupant by path resolution, not by name, so nothing there needs
-   changing when the second one lands.
-3. **Divergence list with click-to-highlight** via `data-divergence`, plus live interaction — hover,
-   press, resize — so a decision can be checked by pointing rather than by reading code.
-4. Delete `sandbox/src/data/rail-sidebar.ts` **only** once the database path returns equivalent
-   content, and re-point `db/import-rail-sidebar.mjs` / `db/verify-import.mjs` or retire them.
-
 **The full loop has now run once: anchor → measure → independent review → fix → re-measure.** Four
 adversarial reviewers ran against the first four measured rows. **Two passed, two failed, and both
 failures were real** — re-verified independently before being accepted, since an agent's report is a
@@ -223,6 +202,34 @@ nowhere to land.
 a passing verdict now would cite evidence from a different commit. A second review round against the
 fixed code is the correct next step — that is the loop working, not a blockage.
 
+**M5 step 3 — click-to-highlight — is done and verified.** Clicking "Highlight in preview" on a
+divergence row draws a ring over that exact region in the live component, labelled with the ref.
+**7/7 live checks**, including the two that are M5's own "done when" criteria: the overlay sits over
+the anchored region with **0.00px delta on all four edges**, and the region is **still the hit-test
+target** while highlighted, so it stays hoverable, clickable and resizable.
+
+- **`sandbox/src/components/DivergenceHighlight.tsx`** — a `position: fixed`, `pointer-events: none`
+  overlay drawn *beside* the anchored element, never on it. Styling the element itself would change
+  the very computed styles and box the verifier measures, so the UI and the evidence would disagree
+  about the same element. It re-measures on `resize`, on `scroll` (with `capture: true` — the
+  scrolling element is a descendant `ScrollArea` viewport, so a plain window listener never fires),
+  via `ResizeObserver` on the target, and via `MutationObserver` for rows that genuinely unmount
+  (a tree row inside a collapsed group). An ambiguous anchor highlights **nothing**, matching how the
+  runner treats it — showing whichever matched first is how a human ends up confidently looking at
+  the wrong element.
+- **`useAnchoredRefs()`** reads which refs exist from the **live DOM**, so the list cannot advertise a
+  region it can't show, and the coverage gap (7 rows offer the control, ~147 don't) is visible in the
+  UI for free rather than needing separate reporting.
+- The divergence row was a raw `<div>` wearing `Card`'s own classes — a hand-rolled approximation of a
+  primitive the same file already imports. Swapped to the real `Card`/`CardHeader`/`CardContent` and a
+  real `Button` while adding the control, rather than layering new behaviour onto a fake one.
+
+**Found by rendering it, which a code read would not have caught:** F-3's row title still says
+`panelW = 300px (default panel width)` while its own detail explains the decision resolved to **256**
+— visibly contradicting itself on screen. Same class as L-34's false "Schedules" claim, on a different
+row. **Not corrected** — flagged for a decision, since correcting an imported record is a policy
+choice, not a typo fix.
+
 **Mechanics of anchoring, needed by anyone adding more — each found by measuring, not by reading:**
 
 - **`FunctionalRailSidebar` is mounted twice** (a `dark:hidden` copy and a `hidden dark:block` copy,
@@ -256,6 +263,29 @@ fixed code is the correct next step — that is the loop working, not a blockage
 **Worth doing early in M5:** the 154 imported rows have no `anchor_id`/`anchor_file`, so the
 verifier has nothing to measure for any of them. Anchors have to be added to the real markup before
 any of those rows can leave `legacy_unverified`.
+
+### What's next
+
+**Sandbox Milestone 5, remaining work** (`SANDBOX-SPEC.md` §6). The rename and the origin quarantine
+are done; the rest of the app is not.
+
+0. **Review has a termination rule now — apply it, don't re-review by default.** One round per batch
+   of work; fix what it finds; **re-review only if a fix touched code shared by other rows.** A round
+   that finds nothing new ends it. Without this the anchor → measure → review → fix cycle has no exit
+   and reads as a loop rather than progress. Applied to round one: the F-7 fix touched only the
+   footer and the L-34 fix touched only records, so **no second round is owed**. Verdicts still need
+   submitting to the corpus to clear `review.present`, by someone other than the builder — the
+   database enforces that, it is not a convention.
+1. ~~Origin quarantine~~ — **done and verified.** See "What's done" above.
+2. **Generalise from one hard-coded occupant to N components read from the database.** Note that the
+   quarantine now sets the shape for this: each occupant gets `origin/<component>/app/`, its own
+   project, embedded by `<iframe src>`. `sandbox/src/components/origin-embed-protocol.ts` and its
+   duplicated counterpart under the occupant are the pattern to follow; `check-quarantine.mjs`
+   already guards any future occupant by path resolution, not by name, so nothing there needs
+   changing when the second one lands.
+3. ~~Divergence list with click-to-highlight~~ — **done and verified.** See "What's done".
+4. Delete `sandbox/src/data/rail-sidebar.ts` **only** once the database path returns equivalent
+   content, and re-point `db/import-rail-sidebar.mjs` / `db/verify-import.mjs` or retire them.
 
 Still genuinely open on Rail Sidebar, unrelated to the Sandbox build: divergence categories I
 (elevation) and J (z-index); and four risk items honestly unfinished — R-3c/R-11c (no dedicated

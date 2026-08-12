@@ -4,6 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
   Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
@@ -73,7 +74,20 @@ export function BlockingQuestionCard({ question }: { question: DecisionQuestion 
   )
 }
 
-export function DivergenceCategoriesAccordion({ categories }: { categories: DivergenceCategory[] }) {
+export function DivergenceCategoriesAccordion({
+  categories,
+  anchoredRefs,
+  activeRef,
+  onHighlight,
+}: {
+  categories: DivergenceCategory[]
+  /** Refs genuinely present in the live DOM right now — see `useAnchoredRefs`. A row offers a
+   * Highlight control if and only if it appears here, so the list can never advertise a region it
+   * cannot actually show. */
+  anchoredRefs: Set<string>
+  activeRef: string | null
+  onHighlight: (ref: string | null) => void
+}) {
   return (
     <Accordion type="multiple" className="w-full">
       {categories.map((cat) => {
@@ -102,24 +116,50 @@ export function DivergenceCategoriesAccordion({ categories }: { categories: Dive
               <div className="flex flex-col gap-2">
                 {cat.rows.map((row) => {
                   const badge = STATUS_BADGE[row.status]
+                  const anchored = anchoredRefs.has(row.id)
+                  const isActive = activeRef === row.id
                   return (
-                    <div
-                      key={row.id}
-                      className="rounded-md border bg-card p-6 shadow-sm"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-medium">
-                          {row.id} — {row.what}
-                        </p>
-                        <Badge className={cn("shrink-0", badge.className)}>{badge.label}</Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground">{row.detail}</p>
-                      {row.visual ? (
-                        <div className="mt-2 rounded-md border bg-muted/30 p-3">
-                          <VisualCompare visual={row.visual} />
+                    // Was a raw <div> wearing Card's own classes (`rounded-md border bg-card
+                    // shadow-sm`) — a hand-rolled approximation of a primitive this file already
+                    // imports and uses elsewhere, which is the violation CLAUDE.md's "no
+                    // hand-rolled components" rule names. Swapped to the real Card while adding the
+                    // highlight control, rather than layering new behaviour onto a fake one.
+                    <Card key={row.id} className={cn("gap-2 py-4", isActive && "ring-2 ring-ring")}>
+                      <CardHeader className="gap-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <CardTitle className="text-sm font-medium">
+                            {row.id} — {row.what}
+                          </CardTitle>
+                          <Badge className={cn("shrink-0", badge.className)}>{badge.label}</Badge>
                         </div>
-                      ) : null}
-                    </div>
+                        {anchored ? (
+                          <div>
+                            {/* Only rendered for rows with a real `data-divergence` anchor on
+                                screen. The absence of this control on the other ~147 rows is not an
+                                oversight — it is an honest readout of how much of the corpus is
+                                actually tied to rendered markup, which is the gap M5's anchoring
+                                work exists to close. */}
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant={isActive ? "secondary" : "outline"}
+                              aria-pressed={isActive}
+                              onClick={() => onHighlight(isActive ? null : row.id)}
+                            >
+                              {isActive ? "Highlighting" : "Highlight in preview"}
+                            </Button>
+                          </div>
+                        ) : null}
+                      </CardHeader>
+                      <CardContent className="flex flex-col gap-2">
+                        <p className="text-xs text-muted-foreground">{row.detail}</p>
+                        {row.visual ? (
+                          <div className="rounded-md border bg-muted/30 p-3">
+                            <VisualCompare visual={row.visual} />
+                          </div>
+                        ) : null}
+                      </CardContent>
+                    </Card>
                   )
                 })}
               </div>

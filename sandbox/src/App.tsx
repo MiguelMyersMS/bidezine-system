@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { Badge, ScrollArea, Separator, Tabs, TabsContent, TabsList, TabsTrigger, cn, useScrollAreaOverflow } from "@bidezine/system"
 import { PhaseRail } from "@/components/PhaseRail"
 import { BlockingQuestionCard, DivergenceCategoriesAccordion, RisksList } from "@/components/DivergenceView"
@@ -7,6 +7,7 @@ import { ColorTokenLab } from "@/components/ColorTokenLab"
 import { TypographyLab } from "@/components/TypographyLab"
 import { RailNavStatusPreview } from "@/components/FullRailPreview"
 import { LogoImportSlot } from "@/components/LogoImportSlot"
+import { DivergenceHighlight, useAnchoredRefs } from "@/components/DivergenceHighlight"
 import { NEGATIVE_BADGE, POSITIVE_BADGE } from "@/lib/status-colors"
 import {
   railSidebarPhases,
@@ -210,7 +211,27 @@ function HumanDecisionsPhase() {
     <RailNavStatusPreview source={railSource} tokens={proposedDarkRailTokens} height={height} />
   )
 
+  // M5 step 3. Selection lives here rather than inside the list because the list and the preview
+  // are siblings in QuadrantLayout — the overlay has to be mounted outside the scrolling left
+  // column to sit above the rail on the right.
+  const [activeRef, setActiveRef] = useState<string | null>(null)
+  const anchoredRefs = useAnchoredRefs()
+
+  // The origin pane is a quarantined iframe in its own document, so nothing here can reach inside
+  // it to measure an anchor — and it carries none by design, being reference material rather than
+  // the translation under review. Clearing on switch avoids leaving a highlight stranded over a
+  // pane it does not describe.
+  useEffect(() => {
+    if (railSource === "origin") setActiveRef(null)
+  }, [railSource])
+
   return (
+    <>
+      {/* Mounted at the phase root, outside QuadrantLayout's scrolling left column, because it is
+          `position: fixed` and must be able to draw over the preview on the right. It is
+          `pointer-events: none`, so the highlighted region stays fully hoverable, clickable and
+          resizable — which is M5's own second "done when" criterion, not an afterthought. */}
+      <DivergenceHighlight activeRef={activeRef} />
     <Tabs
       defaultValue="blocking"
       className="grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden"
@@ -274,7 +295,12 @@ function HumanDecisionsPhase() {
 
       <TabsContent value="categories" className="row-start-2 box-border min-h-0 min-w-0 w-full overflow-hidden p-[6px]">
         <QuadrantLayout right={renderRailNav}>
-          <DivergenceCategoriesAccordion categories={divergenceCategories} />
+          <DivergenceCategoriesAccordion
+            categories={divergenceCategories}
+            anchoredRefs={anchoredRefs}
+            activeRef={activeRef}
+            onHighlight={setActiveRef}
+          />
         </QuadrantLayout>
       </TabsContent>
 
@@ -284,6 +310,7 @@ function HumanDecisionsPhase() {
         </QuadrantLayout>
       </TabsContent>
     </Tabs>
+    </>
   )
 }
 
