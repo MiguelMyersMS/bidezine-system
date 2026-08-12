@@ -1,0 +1,91 @@
+name: Scope detection
+
+# SANDBOX-SPEC §5.7 — "Scope is detected from the diff, not from judgment." M7's own
+# "done when" list asks for this to happen AUTOMATICALLY, which is the whole point: the
+# font-family change and the Fluent icon migration both came out of one component's work
+# and silently invalidated everything already verified. A rule that only runs when someone
+# remembers to run it would have caught neither.
+#
+# This job reports; it does not yet block or open a system_change record. Those need M7
+# steps 3 and 5 (the lifecycle, and the invalidation sweep) to exist first — and a gate
+# that blocked with nowhere to route the escalation would just teach people to bypass it.
+# Making the classification VISIBLE on every change is the part that is useful today.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Scope is a question about a RANGE, so the range has to be fetchable. The
+          # default shallow clone has no merge base to diff against.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Classify the change
+        id: scope
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+          fi
+
+          # A first push to a branch, or an initial commit, has no usable base. Fall back
+          # to the previous commit rather than failing the job: a scope report that errors
+          # is indistinguishable from one that found nothing.
+          if [ -z "$BASE" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            BASE="HEAD~1"
+          fi
+
+          echo "base=$BASE"
+          set +e
+          node scripts/detect-scope.mjs --base "$BASE" | tee scope.txt
+          CODE=$?
+          set -e
+
+          # 10 is the script's deliberate "system-wide" code, distinct from 1 so a real
+          # crash cannot be mistaken for a detection.
+          if [ "$CODE" = "10" ]; then
+            echo "scope=system" >> "$GITHUB_OUTPUT"
+          elif [ "$CODE" = "0" ]; then
+            echo "scope=component" >> "$GITHUB_OUTPUT"
+          else
+            echo "scope detection failed with exit $CODE"
+            exit "$CODE"
+          fi
+
+      - name: Summarise
+        run: |
+          {
+            echo "## Scope: \`${{ steps.scope.outputs.scope }}\`"
+            echo
+            echo '```'
+            cat scope.txt
+            echo '```'
+            if [ "${{ steps.scope.outputs.scope }}" = "system" ]; then
+              echo
+              echo "This change reaches beyond the component being worked on. Per SANDBOX-SPEC §5.7"
+              echo "it needs a \`system_change\` record, and landing it should mark affected evidence"
+              echo "stale (M7 steps 3-5)."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: The rule itself still classifies correctly
+        # Run AFTER the report rather than before: if the rule has regressed, the report
+        # above is what shows you how it now behaves, which is more useful than a bare
+        # failure with no context.
+        run: node scripts/check-scope-detection.mjs
