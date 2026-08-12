@@ -21,8 +21,9 @@
 
 ## Laptop A (main)
 
-**Baseline** — branch `main`, last verified commit `9ea37de` plus this session's commit adding
-`docs/SANDBOX-SPEC.md`, working tree clean once that commit lands, pushed to `origin/main`.
+**Baseline** — branch `main`, last verified commit `277ecf9`, working tree clean, in sync with
+`origin/main`. Verify this yourself (`git log --oneline -1`, `git status`) before trusting anything
+below it.
 
 This machine is the designated **primary** (`.env`: `MACHINE_NAME=Laptop A`). A formal
 primary/satellite rename of all three machines is deliberately deferred to Sandbox Milestone 8 —
