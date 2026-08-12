@@ -37,7 +37,14 @@ const BIDEZINE_ICON_MAP: Record<string, React.ComponentType<{ className?: string
 }
 
 /** Raw inline SVGs for glyphs that aren't (yet) in our manifest — sourced directly from the
- * origin project's icon file or @fluentui/svg-icons, never imported into src/ui. Preview-only. */
+ * origin project's icon file or @fluentui/svg-icons, never imported into src/ui. Preview-only.
+ *
+ * not-an-action-icon: renders a static comparison glyph inside a preview panel, never as a
+ * child of Button/DropdownMenuItem, so `fillActionIcons` never walks it and there is no
+ * hover/press fill to participate in. Setting `isActionIcon = true` here would assert it
+ * takes part in a system it is never handed to — a false marker is worse than none, because
+ * the next person greps for the marker to find the real participants. Flagged by
+ * `scripts/check-rules.mjs` (R3), exempted here rather than silenced there. */
 function RawSvgIcon({ viewBox = "0 0 20 20", d, size = 20 }: { viewBox?: string; d: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox={viewBox} fill="currentColor" aria-hidden="true">
