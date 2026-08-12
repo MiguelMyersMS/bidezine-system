@@ -32,7 +32,7 @@ which cannot be fixed from here.
 ### Active task
 
 **Sandbox Milestone 5 — in progress.** M1–M4 are complete and verified. The M5 rename has landed
-(`limbo-factory/` → `sandbox/`, `limbo/` → `origin/`, `LIMBO-PROTOCOL-LOG.md` →
+(the old `limbo-factory/`, `limbo/` and `LIMBO-PROTOCOL-LOG.md` are now `sandbox/`, `origin/` and
 `SANDBOX-PROTOCOL-LOG.md`); the app work itself has not started. See "What's next".
 
 ### What's done (current state — not a history)
@@ -88,16 +88,17 @@ local, **gitignored** `.env`. Playwright installs here need `PLAYWRIGHT_SKIP_BRO
 corporate filtering blocks the browser CDN, though npm itself is reachable and Chromium is already
 at the repo root.
 
-- **M5 rename landed.** `limbo-factory/` → `sandbox/`, `limbo/` → `origin/`, `LIMBO-PROTOCOL-LOG.md`
-  → `SANDBOX-PROTOCOL-LOG.md`. Every move was 100% similarity — **no file contents were altered**.
-  Paths and forward-looking prose were updated; **historical entries were not**. The protocol log and
-  `sandbox/src/data/rail-sidebar.ts` still say "limbo" deliberately: those are append-only records of
-  what was true when written, and that data file is additionally stored verbatim in
-  `origin_record`, so editing it would break the byte-identical guarantee `verify-import` checks
-  (re-run after the rename: still 8/8). `sandbox/` builds clean.
-- **Blair's own HANDOFF.md section still references `limbo-factory/`.** Left alone deliberately —
-  only Laptop B may edit that section. Blair should update it when convenient; nothing is broken by
-  it, the paths are simply stale.
+- **M5 rename landed.** The old `limbo-factory/`, `limbo/` and `LIMBO-PROTOCOL-LOG.md` are now
+  `sandbox/`, `origin/` and `SANDBOX-PROTOCOL-LOG.md`. Every move was 100% similarity — **no file
+  contents were altered**. Paths and forward-looking prose were updated; **historical entries were
+  not**. The protocol log's own entries and `sandbox/src/data/rail-sidebar.ts` still use the old
+  names deliberately: they record what was true when written, and that data file is additionally
+  stored verbatim in `origin_record`, so editing it would break the byte-identical guarantee
+  `verify-import` checks (re-run after the rename: still 8/8). `sandbox/` builds clean.
+- **Laptop B's and the PC's sections were path-renamed too, at Miguel's explicit instruction**, as an
+  exception to the "only edit your own section" rule. Strictly a mechanical path substitution — no
+  claim either machine made was altered, only strings pointing at directories that no longer exist.
+  Blair: if this conflicts with local edits, keep yours and re-apply the paths.
 - **The dev server command changed**: `npm --prefix sandbox run dev` (port 4199, unchanged).
 
 ### What's next
@@ -152,7 +153,7 @@ _None. Nothing in progress._
   `InputGroup` (the actual visible box); `inputClassName` targets the inner `<input>` only. Verified:
   root+`site/` typecheck/build clean, hover→filled icon swap confirmed live via Playwright against both dev
   server and a real production/minified `vite preview` build, disabled-state propagation confirmed live.
-- **Rail Sidebar Limbo transformation (`limbo-factory/`) — category F ("Layout / Sizing") fully closed.**
+- **Rail Sidebar Sandbox transformation (`sandbox/`) — category F ("Layout / Sizing") fully closed.**
   All 11 rows (F-1 through F-11) are `status: "resolved"`, the first category in the divergence list to
   reach a full, uniform resolved state. Key resolutions: F-3 (`panelW` default 256px/min 240px,
   cross-checked against `min-w-60`), F-4 (`panelGap` 8px, cross-checked against `SidebarInset`'s own
@@ -165,9 +166,9 @@ _None. Nothing in progress._
   min-width, derived item-slot sizing, footer bottom-anchoring — all confirmed live in code, no changes
   needed), F-10 (rail must fill its container's height — a documentation-only deployment note confirming
   the real Build should use `h-full`/CSS sizing rather than the preview-tool-specific measured-height prop
-  `limbo-factory`'s own `App.tsx`/`FillHeight` uses; no code change needed in `limbo-factory` itself). Full
-  rationale for every row: `limbo-factory/src/data/rail-sidebar.ts` (rows F-1–F-11) and
-  `LIMBO-PROTOCOL-LOG.md` (Updates 12–18, append-only). `CLAUDE.md`'s Primitive Fidelity Checklist item 26
+  `sandbox`'s own `App.tsx`/`FillHeight` uses; no code change needed in `sandbox` itself). Full
+  rationale for every row: `sandbox/src/data/rail-sidebar.ts` (rows F-1–F-11) and
+  `SANDBOX-PROTOCOL-LOG.md` (Updates 12–18, append-only). `CLAUDE.md`'s Primitive Fidelity Checklist item 26
   gained a fourth verification axis: an approved divergence-row CONCEPT is not the same as it being wired
   into real code — always re-check the live component source when a row moves to `"resolved"` (this caught
   F-7's implementation gap). Remaining open categories in the Rail Sidebar divergence list: H (motion), I
