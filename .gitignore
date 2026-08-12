@@ -59,3 +59,10 @@ reference/shadcn-ui/**/.turbo/
 # Sandbox verifier — screenshot artifacts. Regenerable, and their sha256 is recorded in
 # sandbox.evidence.artifact_hash, so the database already holds the part that matters.
 verifier/artifacts/
+
+# BUILD OUTPUT of the quarantined origin app (origin/rail-sidebar/app), emitted here so one
+# static path serves it in dev, preview and build alike. It is that project's `dist/` wearing a
+# different name, not source — regenerate with `npm --prefix sandbox run origin:build`.
+# Committing it would put a compiled copy of origin material back inside the Sandbox app's own
+# tree, which is the state the quarantine exists to prevent.
+sandbox/public/

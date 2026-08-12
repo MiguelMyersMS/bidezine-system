@@ -21,9 +21,9 @@
 
 ## Laptop A (main)
 
-**Baseline** — branch `main`, last verified commit `277ecf9`, working tree clean, in sync with
-`origin/main`. Verify this yourself (`git log --oneline -1`, `git status`) before trusting anything
-below it.
+**Baseline** — branch `main`, last verified commit `0ea1ea4` (the commit this file's own update rides
+on top of), working tree clean, in sync with `origin/main`. Verify this yourself
+(`git log --oneline -1`, `git status`) before trusting anything below it.
 
 This machine is the designated **primary** (`.env`: `MACHINE_NAME=Laptop A`). A formal
 primary/satellite rename of all three machines is deliberately deferred to Sandbox Milestone 8 —
@@ -32,9 +32,15 @@ which cannot be fixed from here.
 
 ### Active task
 
-**Sandbox Milestone 5 — in progress.** M1–M4 are complete and verified. The M5 rename has landed
-(the old `limbo-factory/`, `limbo/` and `LIMBO-PROTOCOL-LOG.md` are now `sandbox/`, `origin/` and
-`SANDBOX-PROTOCOL-LOG.md`); the app work itself has not started. See "What's next".
+**Sandbox Milestone 5 — in progress.** M1–M4 are complete and verified. The M5 rename landed
+earlier; **step 1 of the remaining M5 work, the origin quarantine, is now done and verified** (see
+"What's done"). Steps 2–4 have not started. See "What's next".
+
+**First thing to do on this machine: reconnect the sandbox MCP server.** Its tools
+(`mcp__sandbox__*`) did not attach to the last session — `ToolSearch` found none of them. The server
+itself is fine: driven directly over stdio it returns `rail-sidebar` / 154 divergences with the
+`open` column intact (no T-SQL keyword error), and `npm --prefix mcp run verify` passes 14/14. This
+is a client-side attach problem, not a server problem — try `/mcp` in an interactive session.
 
 ### What's done (current state — not a history)
 
@@ -102,22 +108,73 @@ at the repo root.
   Laptop B: if this conflicts with local edits, keep yours and re-apply the paths.
 - **The dev server command changed**: `npm --prefix sandbox run dev` (port 4199, unchanged).
 
+**M5 step 1 — the origin quarantine — is done and verified.** The contamination was real and larger
+than the single import that advertised it: 17 files / ~6,834 lines of origin source were living at
+`sandbox/src/reference/origin-design-system/`, inside the app's own `src/`, behind its `@/reference/*`
+alias, compiled into the app's bundle. The old `OriginRailNavLive.tsx` mounted it into an
+`about:blank` iframe, which separated the **DOM** but never the **code**.
+
+- **Where it lives now:** `origin/rail-sidebar/app/` — its own npm + TypeScript project, own
+  `package.json` / `tsconfig.json` / `vite.config.ts` / bundle. All 16 runtime files moved by
+  `git mv` at 100% similarity; contents unaltered. It builds into `sandbox/public/origin/rail-sidebar/`
+  (gitignored build artifact) and the app embeds it with `<iframe src>` and nothing else. A crossing
+  import no longer resolves at all — the boundary is structural, not just policy.
+- **Enforcement:** `scripts/check-quarantine.mjs`, wired as the first step of `npm --prefix sandbox
+  run build`. Proven against three deliberate violations: a name-matched import, a relative
+  `../../origin/...` climb into a hypothetical *future* occupant that no name rule knows about, and
+  drift between the two duplicated halves of the embed contract. Each failed the real build, exit 1.
+- **Proven absent from the shipped bundle, not assumed:** 25 string literals present only in origin
+  source and surviving origin's own production build were checked against the Sandbox app's own
+  production bundle — zero present. (Three earlier apparent hits were false positives traced to
+  `@bidezine/system`'s own `dist`, a shared Radix ARIA role, and a doc comment.)
+- **Verified live, 8/8, against BOTH the dev server and a real `vite preview` production build**
+  (`node scripts/verify-origin-quarantine.mjs`, with the server running): the framed document is the
+  origin page, it is the real origin rail (`.ds-scroll-region`, its own `#1c2024` surface), **no**
+  Tailwind class exists inside the frame, the frame is a separate window/document/realm with no app
+  marker visible inside it, the app's theme toggle reaches it over `postMessage` (`#1c2024` →
+  `#111113`) **without** re-navigating the frame, and the panel still drag-resizes (300px → origin's
+  own `PANEL_MIN_WIDTH` of 240px).
+- **Two things deliberately removed, each because the boundary made them unnecessary:** the
+  hand-written `mousemove`/`mouseup` relay (RailNav's listeners now attach to the frame's own window
+  and receive those events directly) and the `document.write()` bootstrap (its CSS now lives in the
+  origin page's own `index.html`).
+- **One real behavioural change, and it is an improvement:** RailNav's resize clamp reads
+  `window.innerWidth`, which used to be the OUTER page's width and is now the frame's. At a 372px
+  embed the panel now widens to exactly `396 - 54 - 8 - 32 = 302px` — matching what the user can
+  actually see, and matching real Storybook, where every story renders in an iframe.
+- **Two failure classes found doing this, both logged** in `SANDBOX-PROTOCOL-LOG.md` and folded into
+  `CLAUDE.md` (checklist item 10 gained a document-level extension). The sharper one: a live check
+  reading "an `<aside>` renders inside the origin iframe" **passed while the iframe was serving a
+  nested copy of the Sandbox app** — Vite's dev server applies its SPA fallback to a bare directory
+  URL, so `/origin/rail-sidebar/` returned the app's own `index.html` with HTTP 200 and no error. The
+  app has an `<aside>` too. Hence `ORIGIN_EMBED_PATH` spells out `index.html`, and every identity
+  check is now two-directional (assert a marker only origin can produce AND the absence of one only
+  our code could produce).
+
 ### What's next
 
-**Sandbox Milestone 5, remaining work** (`SANDBOX-SPEC.md` §6). The rename is done; the app is not.
+**Sandbox Milestone 5, remaining work** (`SANDBOX-SPEC.md` §6). The rename and the origin quarantine
+are done; the rest of the app is not.
 
-1. **Origin quarantine — do this first, it is a live contamination path, not a hypothetical.**
-   `sandbox/src/components/FullRailPreview.tsx` currently does
-   `import { OriginRailNavLiveAuto } from "@/reference/origin-design-system/OriginRailNavLive"` —
-   origin source compiled straight into the app's own bundle, one import from everything. It has to
-   move out of `sandbox/src/` into `origin/`, render in an isolated iframe rather than as a React
-   subtree, and be backed by a lint rule that **fails the build** on any import crossing that
-   boundary. Verify by deliberately adding a crossing import and watching the build fail.
-2. **Generalise from one hard-coded occupant to N components read from the database.**
+1. ~~Origin quarantine~~ — **done and verified.** See "What's done" above.
+2. **Generalise from one hard-coded occupant to N components read from the database.** Note that the
+   quarantine now sets the shape for this: each occupant gets `origin/<component>/app/`, its own
+   project, embedded by `<iframe src>`. `sandbox/src/components/origin-embed-protocol.ts` and its
+   duplicated counterpart under the occupant are the pattern to follow; `check-quarantine.mjs`
+   already guards any future occupant by path resolution, not by name, so nothing there needs
+   changing when the second one lands.
 3. **Divergence list with click-to-highlight** via `data-divergence`, plus live interaction — hover,
    press, resize — so a decision can be checked by pointing rather than by reading code.
 4. Delete `sandbox/src/data/rail-sidebar.ts` **only** once the database path returns equivalent
    content, and re-point `db/import-rail-sidebar.mjs` / `db/verify-import.mjs` or retire them.
+
+**Two loose ends noticed while doing step 1, neither touched:**
+
+- The corpus holds a stray `__dbg__` component (state `build`, 1 divergence) alongside `rail-sidebar`.
+  Leftover debug data; left in place rather than deleted unilaterally.
+- `sandbox/src/App.tsx` (the `RailSourceToggle`, ~lines 180–203) renders raw `<button>` elements
+  styled to look like real ones — a "no hand-rolled components" violation, which CLAUDE.md explicitly
+  does **not** waive for sandbox tooling. Out of scope for the quarantine work; worth its own pass.
 
 **Worth doing early in M5:** the 154 imported rows have no `anchor_id`/`anchor_file`, so the
 verifier has nothing to measure for any of them. Anchors have to be added to the real markup before

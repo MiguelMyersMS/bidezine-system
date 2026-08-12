@@ -131,7 +131,8 @@ _(the same five subsections; until the machine is set up, this section reads "No
 | `site/` | Showcase site (separate consumer app) deployed to bs.bidezine.systems. Imports `@bidezine/system` like any real consumer — never reaches into `src/` or `reference/` directly. |
 | `icons/manifest.json` | Icon authoring source — every symbol name mapped to a Fluent slug (or a `custom` derived SVG). **The only place icon mappings are authored.** |
 | `scripts/build-icons.mjs` | Emits `src/icons/generated.tsx` from the manifest. Generated and gitignored. Fails loudly if a manifest entry doesn't resolve. |
-| `origin/` | **Quarantined source material** — the self-contained copy of whatever foreign system a component is being ported from, one folder per occupant. Read for comparison; **never imported, never shipped, never compiled into any app**. Formerly `limbo/`. |
+| `origin/` | **Quarantined source material** — the self-contained copy of whatever foreign system a component is being ported from, one folder per occupant. **Never imported by, and never compiled into, any bidezine app.** Where an occupant needs to actually *run* for comparison, it does so as its own standalone project under `origin/<occupant>/app/` — its own `package.json`, `tsconfig.json` and bundle — which a bidezine app embeds with `<iframe src>` and nothing more. Formerly `limbo/`. |
+| `scripts/check-quarantine.mjs` | Executable enforcement of the boundary above. Fails the build on any import from `src/`, `site/src/`, `sandbox/src/` (or the tooling trees) that reaches into `origin/`, including a relative `../../origin/...` climb that would otherwise resolve fine. Also fails if the two duplicated halves of the origin embed contract drift apart. |
 | `sandbox/` | Local dev environment (port 4199) for components mid-transformation, built entirely from real `@bidezine/system` components. Never merged into `dist/` or shipped. Formerly `limbo-factory/`. Governed by `docs/SANDBOX-SPEC.md`; `SANDBOX-PROTOCOL-LOG.md` is its append-only history. |
 | `HANDOFF.md` | Live, always-current session state snapshot — NOT a log. Overwritten in place on every update; collapses to an empty template when nothing is in progress. See "Handoff protocol" above for the full rules. |
 
@@ -521,6 +522,23 @@ a genuinely new failure category is found — not evidence the list is now compl
     regression shipped underneath a verification step that looked successful. Scope every check to the exact
     element in question (an index, a containing selector, a `data-*` attribute unique to that instance), not
     "the first thing on the page matching this primitive."
+
+    **The same failure recurs one level up, at whole-document scale, and is harder to see there — so a
+    verification must also assert what the thing under test is NOT.** Verifying the origin quarantine
+    (`sandbox/src/components/OriginRailFrame.tsx`), a check reading "an `<aside>` renders inside the origin
+    iframe" passed while that iframe was serving a nested copy of **the Sandbox app itself**: Vite's dev
+    server applies its SPA history fallback to a bare directory URL, so `/origin/rail-sidebar/` was answered
+    with the app's own `index.html` — HTTP 200, no error in the console, no failure anywhere — and the app
+    has an `<aside>` too. Three checks "passed" against the wrong document before the frame's real DOM was
+    read and found to contain Tailwind utility classes (`bg-card`, `h-screen`) that the origin material,
+    being entirely inline-styled, could not possibly have produced. **A positive marker alone is not
+    identity: anything generic enough to be worth asserting is generic enough that a substitute can satisfy
+    it.** Every identity check must be two-directional — assert a marker only the intended thing can produce
+    (`.ds-scroll-region`, its own literal `#1c2024` surface) AND assert the absence of a marker only the
+    substitute could produce (any Tailwind class, in that frame) — and when a URL is involved, prefer the
+    explicit file path over a directory, because a server's fallback behaviour is exactly the sort of thing
+    that differs silently between dev, preview and production. `scripts/verify-origin-quarantine.mjs` is that
+    check, written this way on purpose.
 
 11. **A ported UI pattern's structural arrangement (element order, slot position) must be cross-checked
     against bidezine's OWN other real implementations of the same semantic pattern — never inherited from

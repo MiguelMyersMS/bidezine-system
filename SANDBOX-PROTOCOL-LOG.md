@@ -1388,6 +1388,66 @@ friction, anything.)_
   existing CSS-mechanics or structural/data categories, and it is exactly the kind of gap capable of shipping a
   silent regression to every future consumer of this design system if left uncaught.
 
+- **The origin quarantine was, for this component's entire run, a claim rather than a fact — and the intake
+  record above says so in writing without it being true.** The "Source intake record" entry states of the
+  copied origin material: "Nothing here is wired into `src/ui/`, `site/`, or any build step — it exists purely
+  for the Intake agent to read." That was accurate for `origin/rail-sidebar/reference/` (2 source files plus
+  docs, genuinely read-only). It was **not** accurate for the copy that actually rendered: 17 files / ~6,834
+  lines of origin source lived at `sandbox/src/reference/origin-design-system/`, inside the Sandbox app's own
+  `src/`, behind its own `@/reference/*` alias, compiled into the app's bundle and executing in the app's JS
+  realm. `FullRailPreview.tsx` imported it directly. The material *looked* isolated because
+  `OriginRailNavLive.tsx` mounted it into an `about:blank` iframe via `document.write()` — but that separated
+  the **DOM** only; the code was never separated at all. **The lesson is about what an isolation mechanism
+  actually isolates:** an iframe gives you a separate browsing context, and that is genuinely what RailNav's
+  `100dvh` measurement needed, so the mechanism was doing real work and the visible result was correct. It
+  simply was not doing the job it was also being credited with. When something is described as quarantined,
+  name the specific property claimed (separate DOM? separate CSS cascade? separate JS realm? separate module
+  graph?) and check each one, rather than accepting a mechanism that plainly provides *one* of them as
+  evidence for all of them. Closed at Sandbox Milestone 5, step 1: the material moved to
+  `origin/rail-sidebar/app/`, its own npm + TypeScript project with its own bundle, embedded by
+  `<iframe src>` and nothing else, so a crossing import no longer resolves at all;
+  `scripts/check-quarantine.mjs` fails the build on any that is reintroduced (proven against three deliberate
+  violations: a name-matched import, a relative `../../origin/...` climb into a hypothetical future occupant
+  that no name rule knows about, and drift between the two duplicated halves of the embed contract). Proven
+  absent from the shipped bundle rather than assumed: 25 string literals that exist only in origin source and
+  survive origin's own production build were checked against the Sandbox app's own production bundle — zero
+  present. Three earlier apparent hits were false positives that had to be individually traced before the
+  result meant anything (`"Clear search"` → `@bidezine/system`'s own `dist`, `"menuitemcheckbox"` → an ARIA
+  role string in shared Radix, `"style.transition"` → a doc comment in origin and ordinary property access in
+  Radix), which is itself the point: a leak check is only as good as its exclusion of legitimately-shared
+  dependencies.
+
+- **A verification passed against the wrong document entirely, for three consecutive checks, with HTTP 200 and
+  no error anywhere.** While verifying the above, the live check "an `<aside>` renders inside the origin
+  iframe" passed — while the iframe was serving a nested copy of **the Sandbox app itself**. Vite's dev server
+  applies its SPA history fallback to a bare directory URL, so `/origin/rail-sidebar/` returned the app's own
+  `index.html` instead of the origin page sitting in `public/` at that exact path. The app has an `<aside>`
+  too. It surfaced only on dumping the frame's real DOM and noticing Tailwind classes (`bg-card`, `h-screen`)
+  that origin — entirely inline-styled — could not have produced. Two durable lessons, folded into
+  `CLAUDE.md`'s Primitive Fidelity Checklist item 10 (which already covered the element-level version of this
+  failure, but not the document-level one): **(a)** an identity assertion must be two-directional — assert a
+  marker only the intended thing can produce AND the absence of a marker only the substitute could produce,
+  because any marker generic enough to be worth checking is generic enough for a substitute to satisfy;
+  **(b)** prefer an explicit file path over a directory URL whenever a server sits in between, since fallback
+  behaviour is precisely the kind of thing that differs silently between dev, preview and production. Fixed by
+  spelling out `index.html` in `ORIGIN_EMBED_PATH`, and re-verified 8/8 against **both** the dev server and a
+  real `vite preview` production build — the dev-only verification trap of checklist item 15, avoided
+  deliberately this time rather than discovered again.
+
+- **A behaviour that legitimately changes as a side effect of a structural fix still has to be re-measured,
+  not reasoned about.** Moving origin code inside the frame's own realm made two things different, and only
+  live measurement separated "improvement" from "regression". The hand-written `mousemove`/`mouseup` relay in
+  the old shim became unnecessary — RailNav's `window.addEventListener` now attaches to the frame's own window
+  and receives those events directly — so it was deleted; the panel's drag-resize was then re-tested live and
+  still works. Separately, RailNav's resize clamp reads `window.innerWidth`, which used to be the OUTER page's
+  width and is now the frame's: at a 372px embed the panel widens to exactly `396 - 54 - 8 - 32 = 302px` and
+  shrinks to origin's own `PANEL_MIN_WIDTH` of 240px. A first drag test dragged *outward*, saw 2px of travel,
+  and looked like a broken drag; the arithmetic above is what showed it was origin's own clamp working
+  correctly against its own viewport — which is also what real Storybook does, since every story renders in an
+  iframe. **The old outer-realm behaviour was the unfaithful one.** The lesson: when a fix changes which realm
+  a measurement is taken in, enumerate every measurement that realm feeds (here: `100dvh`, `ResizeObserver`,
+  `window.innerWidth`, and event listener targets) rather than only the one the task was about.
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given

@@ -6,9 +6,14 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "origin:install": "npm --prefix ../origin/rail-sidebar/app install",
+    "origin:build": "npm --prefix ../origin/rail-sidebar/app run build",
+    "predev": "npm run origin:build",
     "dev": "vite --port 4199 --strictPort",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview --port 4199 --strictPort"
+    "build": "node ../scripts/check-quarantine.mjs && npm run origin:build && tsc --noEmit && vite build",
+    "preview": "vite preview --port 4199 --strictPort",
+    "check:quarantine": "node ../scripts/check-quarantine.mjs",
+    "check:origin-pane": "node ../scripts/verify-origin-quarantine.mjs"
   },
   "dependencies": {
     "@bidezine/system": "file:..",

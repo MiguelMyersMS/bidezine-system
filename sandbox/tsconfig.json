@@ -25,6 +25,8 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src"],
-  "exclude": ["src/reference/origin-design-system/gallery/RailNav.stories.tsx"]
+  // No `exclude` for origin material any more: none of it lives under this app. It moved to
+  // `origin/rail-sidebar/app/`, its own TypeScript project, which is why an import reaching for it
+  // from here no longer resolves at all. See docs/SANDBOX-SPEC.md invariant 6.
+  "include": ["src"]
 }

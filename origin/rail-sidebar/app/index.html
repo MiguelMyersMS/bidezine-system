@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Origin RailNav — Default story (quarantined)</title>
+    <style>
+      /*
+        These rules were previously written into an about:blank iframe by the Sandbox app itself,
+        via `document.write()` in the old `OriginRailNavLive.tsx` shim. They now live here, in the
+        quarantined page's own document, because that shim no longer exists: the Sandbox app loads
+        this page with `<iframe src>` and never touches its DOM.
+
+        Every rule below is display-only, scoped to this embedding, and changes no origin markup,
+        token or behaviour. `gallery/` stays byte-faithful to the vendored source.
+      */
+
+      /*
+        `background: transparent`, not `#fff`. With `main` hidden (below) this page's own canvas
+        holds no rail content of its own, so a solid white backdrop reads as a bright rectangle
+        behind the rail once embedded. Transparent lets the Sandbox stage's own background — often
+        dark or muted grey — show through, matching how the bidezine translation sits flush.
+      */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: transparent;
+      }
+
+      #root {
+        height: 100%;
+      }
+
+      /*
+        DefaultShell's placeholder "Content area" — its stand-in for a real app's main content, not
+        part of RailNav itself. Hidden so the embed shows the rail and panel alone.
+      */
+      main {
+        display: none !important;
+      }
+
+      /*
+        DefaultShell's own outer flex wrapper hardcodes an `#f0f0f3` backdrop plus 8px of padding
+        around the rail — its demo "canvas" look, meant to show the rail floating over an app
+        background. With `main` hidden that backdrop fills the whole frame, which reads as a second,
+        separate rounded card inside the embed rather than the rail filling it edge to edge.
+      */
+      #root > div {
+        background: transparent !important;
+        padding: 0 !important;
+      }
+
+      /*
+        The remaining piece — `#root > div > aside { padding: <bleed>px }` — is injected by
+        `src/main.tsx` from the `bleed` search param rather than hardcoded here, so the Sandbox app
+        stays the single source of truth for that number. See main.tsx for why the bleed exists.
+      */
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

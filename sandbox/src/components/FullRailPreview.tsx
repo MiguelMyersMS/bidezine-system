@@ -1,13 +1,18 @@
 import { type ProposedToken } from "@/data/rail-sidebar"
-import { OriginRailNavLiveAuto } from "@/reference/origin-design-system/OriginRailNavLive"
+import { OriginRailFrame } from "@/components/OriginRailFrame"
 import { FunctionalRailSidebar } from "@/components/FunctionalRailSidebar"
 
 /**
  * Color/token resolution for the origin-vs-bidezine Rail Sidebar comparison rendered by
- * RailNavStatusPreview below. The origin column renders the real, vendored `OriginRailNavLiveAuto`
- * directly (no color props needed — it's the actual origin component executing); the bidezine
- * column renders the real `FunctionalRailSidebar`, built from actual `@bidezine/system` primitives,
- * driven by whatever dark-rail tokens are currently approved in the Color Token Lab.
+ * RailNavStatusPreview below. The origin column renders the real, vendored RailNav inside a
+ * quarantined iframe via `OriginRailFrame` (no color props needed — it's the actual origin
+ * component executing, in its own bundle and its own realm); the bidezine column renders the real
+ * `FunctionalRailSidebar`, built from actual `@bidezine/system` primitives, driven by whatever
+ * dark-rail tokens are currently approved in the Color Token Lab.
+ *
+ * This file used to import origin source directly (`@/reference/origin-design-system/OriginRailNavLive`),
+ * which compiled the whole origin tree into this app's own bundle. That import is gone and
+ * `scripts/check-quarantine.mjs` fails the build if it returns — see `OriginRailFrame`.
  *
  * `ORIGIN` below holds the origin's own literal hex/rgba values, sourced verbatim from divergence
  * categories B (dark rail) and C (light panel) in rail-sidebar.ts — kept as a reference data point,
@@ -126,8 +131,9 @@ function colorsFor(source: Source, variant: Variant, tokens: ProposedToken[]) {
  * items already establish. One rail is shown at a time, switched by the Origin/Adjusted control next
  * to the theme toggle:
  *
- * - "origin" — the real, vendored RailNav (`OriginRailNavLiveAuto`), verbatim. This is reference
- *   material only and never changes once fully captured, no matter what gets decided here.
+ * - "origin" — the real, vendored RailNav, verbatim, rendered in quarantine (`OriginRailFrame`).
+ *   This is reference material only and never changes once fully captured, no matter what gets
+ *   decided here.
  * - "bidezine" ("Adjusted") — the composed mock rail, built from whatever tokens/layout values are
  *   currently approved. This view updates as decisions are made on the left (blocking questions,
  *   color tokens, divergence categories, risks) — it's a live reflection of "how far along are we,"
@@ -143,7 +149,7 @@ export function RailNavStatusPreview({
   height?: number
 }) {
   if (source === "origin") {
-    return <OriginRailNavLiveAuto height={height} />
+    return <OriginRailFrame height={height} />
   }
 
   return (
