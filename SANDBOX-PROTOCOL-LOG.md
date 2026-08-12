@@ -1448,6 +1448,49 @@ friction, anything.)_
   a measurement is taken in, enumerate every measurement that realm feeds (here: `100dvh`, `ResizeObserver`,
   `window.innerWidth`, and event listener targets) rather than only the one the task was about.
 
+- **A gate requirement whose JOIN can match nothing is satisfied by having nothing to compare — it passes
+  loudly and enforces nothing.** `fn_divergence_unmet`'s `evidence.current` requirement ("this measurement is
+  not older than the code it describes") reads `FROM sandbox.divergence d JOIN sandbox.source_file sf ON
+  sf.path = d.anchor_file`. `anchor_file` was **NULL on all 155 rows** and `source_file` was empty, so the
+  join matched nothing, no unmet row was ever emitted, and the requirement had been **vacuously satisfied for
+  every divergence since M1** — through every proof suite, every approval, and every review. It was found only
+  incidentally, because M7's invalidation sweep needed the same column and discovered it empty; nothing about
+  the gate's own output would ever have revealed it, since a requirement that emits no row looks exactly like a
+  requirement that is met. **Lesson for the protocol:** a proof suite that only checks "does the gate refuse
+  when it should" is half a suite. For every requirement expressed as `NOT EXISTS` over a join, there must also
+  be a check that the requirement can *fire at all* — construct the failing case deliberately and watch the
+  unmet row appear. Absence of a complaint is not evidence of compliance, and this is the database-layer
+  version of the same trap checklist item 3 records for CSS states ("never conclude a state works because the
+  class exists in the source").
+
+- **A test fixture with realistic data can quietly mutate the very corpus it sits beside, and its own green
+  result is what hides it.** `db/verify-system-change.mjs` reported **17/17** while every run silently marked
+  all 40 real Rail Sidebar evidence rows stale: two of its fixtures carried plausible `affected_paths`
+  (`src/ui/**`, `src/lib/**`) and one of them *lands* mid-suite, which fires the real invalidation sweep
+  against real rows that genuinely depend on those paths. The suite was measuring correct behaviour and
+  causing damage with the same action. Caught only by reading the sweep's own reported counts
+  (`swept_divergences: 8` when the fixture owns exactly one divergence) rather than the pass/fail line. Fixed
+  by pointing both fixtures at `__fixture__/` paths nothing real depends on, and by asserting the corpus is
+  untouched afterwards (40 rows, 0 stale). **Lesson for the protocol:** any suite that exercises a
+  cross-cutting mechanism — a sweep, a cascade, a bulk update — must use inputs that provably match **nothing
+  real**, and must verify the surrounding data is unchanged when it finishes. Realistic fixture values are a
+  liability precisely where the mechanism under test is designed to reach broadly; "it looks like real data" is
+  the property that makes it dangerous, not the property that makes it a good test.
+
+- **Restoring a measurement does not restore the judgement built on it, and a batch re-verification that
+  reports only its own pass count will read as finished when it is not.** After M7's `--stale` batch re-ran
+  every affected Rail Sidebar divergence (13/13 passing, fresh non-stale evidence written), **all seven were
+  still refused by the gate** — six on `review.present`, and F-3 on `review.citations_support`, naming
+  evidence `#129` which is stale. That last one is structural rather than incidental: a review citation points
+  at a specific `evidence_id`, and a fresh measurement is always a *new* row, so no amount of re-running can
+  ever clear it — a human has to re-review. This is correct (a system change invalidated the measurement the
+  judgement rested on) but it is invisible unless the command says so. `run-checks.mjs --stale` therefore
+  re-reads `fn_divergence_unmet` for every row it touched and prints CLEAR/UNMET per divergence, and exits
+  non-zero if any stale row had no check spec to re-run at all. **Lesson for the protocol:** any bulk
+  remediation step must report against the *gate*, not against its own internal success rate, and must name
+  the portion of its own work it could not perform — otherwise "13/13 passed" is an honest sentence that
+  produces a false impression, which is the exact failure mode this whole protocol exists to prevent.
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given

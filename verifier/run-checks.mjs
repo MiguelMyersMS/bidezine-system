@@ -3,6 +3,7 @@
 //
 //   node run-checks.mjs checks/rail-sidebar/L-34.json
 //   node run-checks.mjs --all
+//   node run-checks.mjs --stale [--component=<slug>]     ← M7 step 5
 //
 // Reads check specs from the repository, drives a real browser against a real render,
 // measures, and writes the result to sandbox.evidence under the runner_evidence
@@ -20,6 +21,23 @@
 //   · A check with no expectations FAILS. A measurement that asserts nothing would
 //     otherwise be a passing row proving nothing — the same hole migration 005 closed
 //     for screenshots, and it must not reopen here.
+//
+// ── --stale, M7's "re-verifying the whole affected set is one command" ──────────────
+// Landing a system change marks evidence stale (migration 013). `--stale` is the other
+// half of that: it asks the database which divergences carry stale evidence and re-runs
+// exactly their specs.
+//
+// It reports the gap rather than hiding it. A stale divergence with NO check spec cannot
+// be re-verified by this runner at all — it needs an anchor and a spec written first —
+// and a batch command that silently skipped those would report "0 failures" while leaving
+// the corpus exactly as stale as it found it.
+//
+// It also re-reads the gate afterwards, because clearing staleness is NOT the same as
+// clearing the gate: `review.citations_support` names the evidence row a passing review
+// cited, and a fresh measurement is a NEW row with a new id. The old citation stays
+// pointed at a stale one, so the review has to be redone by a human. That is correct —
+// a system change invalidated the measurement the judgement rested on — and saying so is
+// the difference between a useful batch command and one that looks like it finished.
 // ═══════════════════════════════════════════════════════════════════════════════════
 
 import { execFileSync } from "node:child_process"
@@ -48,20 +66,65 @@ function head() {
 }
 
 // ── spec loading ────────────────────────────────────────────────────────────────────
-async function collectSpecs(args) {
-  if (args.includes("--all")) {
-    const out = []
-    const walk = async (dir) => {
-      for (const entry of await readdir(dir, { withFileTypes: true })) {
-        const p = join(dir, entry.name)
-        if (entry.isDirectory()) await walk(p)
-        else if (entry.name.endsWith(".json")) out.push(p)
-      }
+async function allSpecPaths() {
+  const out = []
+  const walk = async (dir) => {
+    for (const entry of await readdir(dir, { withFileTypes: true })) {
+      const p = join(dir, entry.name)
+      if (entry.isDirectory()) await walk(p)
+      else if (entry.name.endsWith(".json")) out.push(p)
     }
-    await walk(CHECKS_DIR).catch(() => {})
-    return out.sort()
   }
+  await walk(CHECKS_DIR).catch(() => {})
+  return out.sort()
+}
+
+async function collectSpecs(args) {
+  if (args.includes("--all")) return allSpecPaths()
   return args.filter((a) => a.endsWith(".json")).map((a) => (a.startsWith("/") ? a : join(HERE, a)))
+}
+
+/**
+ * The stale set, and — just as importantly — the part of it this runner cannot reach.
+ *
+ * Indexed by `component/ref` from the specs' own declared fields rather than from their
+ * filenames. A spec's location on disk is a convention; `spec.component`/`spec.divergence`
+ * are what actually decide which database row it writes to, so matching on anything else
+ * would drift the moment someone renamed a file.
+ */
+async function collectStale(pool, componentFilter) {
+  const stale = (
+    await pool
+      .request()
+      .input("slug", sql.NVarChar(100), componentFilter ?? null)
+      .query(`
+        SELECT   c.slug, d.ref_code,
+                 stale_rows = COUNT(*),
+                 reason     = MAX(e.stale_reason)
+        FROM     sandbox.evidence e
+        JOIN     sandbox.divergence d ON d.divergence_id = e.divergence_id
+        JOIN     sandbox.component c  ON c.component_id  = d.component_id
+        WHERE    e.is_stale = 1
+          AND    (@slug IS NULL OR c.slug = @slug)
+        GROUP BY c.slug, d.ref_code
+        ORDER BY c.slug, d.ref_code`)
+  ).recordset
+
+  const byKey = new Map()
+  for (const path of await allSpecPaths()) {
+    const spec = JSON.parse(await readFile(path, "utf8"))
+    byKey.set(`${spec.component}/${spec.divergence}`, path)
+  }
+
+  const paths = []
+  const unreachable = []
+  for (const row of stale) {
+    const key = `${row.slug}/${row.ref_code}`
+    const path = byKey.get(key)
+    if (path) paths.push(path)
+    else unreachable.push({ ...row, key })
+  }
+  return { stale, paths, unreachable }
 }
 
 // A spec may name a URL as `file:./relative/path.html`, resolved against the repository
@@ -223,9 +286,14 @@ async function runCheck(page, spec, check, runId, commit) {
 
 // ── main ────────────────────────────────────────────────────────────────────────────
 const args = process.argv.slice(2)
-const specPaths = await collectSpecs(args)
-if (!specPaths.length) {
-  console.error("usage: node run-checks.mjs <spec.json ...> | --all")
+const STALE = args.includes("--stale")
+const COMPONENT = args.find((a) => a.startsWith("--component="))?.split("=")[1] ?? null
+
+// In --stale mode the spec list comes from the database, so it cannot be resolved until
+// after the pool is open. Everything else is decided from the arguments alone.
+let specPaths = STALE ? [] : await collectSpecs(args)
+if (!STALE && !specPaths.length) {
+  console.error("usage: node run-checks.mjs <spec.json ...> | --all | --stale [--component=<slug>]")
   process.exit(1)
 }
 
@@ -237,15 +305,49 @@ if (commit.dirty) {
 }
 
 const runId = randomUUID()
-console.log(`run ${runId}  ·  HEAD ${commit.sha.slice(0, 8)}  ·  ${specPaths.length} spec(s)\n`)
 
-const browser = await chromium.launch()
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+let browser
+let page
 let pool
+let unreachable = []
+// Nothing to re-run is not an error, but it must not skip the finally block either — an
+// early process.exit() drops the pool and can truncate output still buffered on a pipe,
+// which in a batch command is indistinguishable from the run having been cut short.
+let nothingToRun = false
 const rows = []
+const touched = []
 
 try {
   pool = await connect("RUNNER")
+
+  if (STALE) {
+    const found = await collectStale(pool, COMPONENT)
+    specPaths = found.paths
+    unreachable = found.unreachable
+    console.log(
+      `${found.stale.length} divergence(s) carry stale evidence${COMPONENT ? ` in ${COMPONENT}` : ""}` +
+        ` · ${specPaths.length} re-runnable · ${unreachable.length} with no check spec`,
+    )
+    if (found.stale[0]?.reason) console.log(`  why: ${found.stale[0].reason.slice(0, 120)}`)
+    if (!specPaths.length) {
+      // "Nothing to do" and "nothing I CAN do" look identical from the outside, and only
+      // one of them means the corpus is clean. So they are said differently.
+      for (const u of unreachable) console.log(`  UNREACHABLE  ${u.key} — ${u.stale_rows} stale row(s), no check spec`)
+      console.log(unreachable.length ? "\nNothing re-runnable. Every stale divergence needs a spec written first." : "\nNothing is stale.")
+      if (unreachable.length) process.exitCode = 1
+      nothingToRun = true
+    } else {
+      console.log("")
+    }
+  }
+
+  // specPaths is empty when there is nothing to run, so the loop below is already a no-op;
+  // the browser is simply never launched and the summary never printed.
+  if (!nothingToRun) {
+    console.log(`run ${runId}  ·  HEAD ${commit.sha.slice(0, 8)}  ·  ${specPaths.length} spec(s)\n`)
+    browser = await chromium.launch()
+    page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+  }
 
   for (const path of specPaths) {
     const spec = JSON.parse(await readFile(path, "utf8"))
@@ -265,6 +367,7 @@ try {
       continue
     }
     const divergenceId = found.recordset[0].divergence_id
+    touched.push({ id: divergenceId, key: `${spec.component}/${spec.divergence}` })
 
     await page.goto(resolveUrl(spec.url), { waitUntil: "networkidle" })
 
@@ -301,12 +404,43 @@ try {
   }
 
   const failed = rows.filter((r) => !r.passed).length
-  console.log(`${rows.length - failed}/${rows.length} checks passed. ${rows.length} evidence rows written.`)
+  if (!nothingToRun) {
+    console.log(`${rows.length - failed}/${rows.length} checks passed. ${rows.length} evidence rows written.`)
+  }
   if (failed) process.exitCode = 1
+
+  // ── what the re-run actually left behind ──────────────────────────────────────────
+  // Only in --stale mode, because only there is "did this clear anything?" the question
+  // being asked. Reading the gate is a SELECT the runner already has rights to; it writes
+  // nothing, which matters — the identity that produces evidence must never be the one
+  // that decides what the evidence means.
+  if (STALE && !nothingToRun) {
+    console.log("\nwhat the batch cleared, per the gate itself:\n")
+    for (const t of touched) {
+      const unmet = (
+        await pool.request().input("id", sql.Int, t.id).query(`
+          SELECT requirement, detail FROM sandbox.fn_divergence_unmet(@id) ORDER BY requirement`)
+      ).recordset
+      if (!unmet.length) {
+        console.log(`  CLEAR   ${t.key}`)
+        continue
+      }
+      console.log(`  UNMET   ${t.key}`)
+      for (const u of unmet) console.log(`            ${u.requirement} — ${u.detail.slice(0, 110)}`)
+    }
+
+    for (const u of unreachable) {
+      console.log(`  UNREACHABLE  ${u.key} — ${u.stale_rows} stale row(s), no check spec to re-run`)
+    }
+
+    // A batch that re-measured everything it could and left rows it could not reach has
+    // not finished the job, and should not exit 0 as though it had.
+    if (unreachable.length) process.exitCode = 1
+  }
 } catch (err) {
   console.error(`\nERROR: ${err.message}`)
   process.exitCode = 1
 } finally {
-  await browser.close()
+  await browser?.close()
   await pool?.close()
 }

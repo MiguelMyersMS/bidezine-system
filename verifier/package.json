@@ -7,6 +7,7 @@
   "type": "module",
   "scripts": {
     "check": "node run-checks.mjs",
+    "recheck": "node run-checks.mjs --stale",
     "sync-source": "node sync-source-files.mjs",
     "verify": "node verify-runner.mjs"
   },

@@ -32,13 +32,12 @@ which cannot be fixed from here.
 
 ### Active task
 
-**M1–M6 are complete and verified. M7 is IN PROGRESS — steps 1, 2, 3 and 4 of 5 are done.** M6 closed all three of
-its own "done when" criteria: the toggle cannot be enabled until requirements are genuinely met
-(proven by attempting it), approving takes about 3 seconds against a hard one-minute budget, and
-reopening cascades and writes a false-completion record.
+**M1–M7 are complete and verified.** All three of M7's "done when" criteria are closed, the last two
+demonstrated end to end against the REAL corpus (landing a `src/ui/**` change swept 7 divergences /
+40 evidence rows, `--stale` re-ran all 7 and 13/13 passed, and the corpus was restored byte-identical
+afterwards — 40 rows, 0 stale, same max id).
 
-**Next: M7 step 5, one-command batch re-verification.** It is the last step, and the smallest: blocking
-already works and the sweep now produces the stale set it has to clear.
+**Next: M8 — multi-machine ownership and visibility.** Nothing is in progress on this machine.
 
 **First thing to do on this machine: reconnect the sandbox MCP server.** Its tools
 (`mcp__sandbox__*`) did not attach to the last session — `ToolSearch` found none of them. The server
@@ -68,7 +67,7 @@ Read `docs/SANDBOX-SPEC.md` first. It is the single source of truth for this pro
 
 ```
 npm --prefix db run verify                 # 15/15 — the gate and its permissions
-npm --prefix verifier run verify           # 12/12 — the runner is worth trusting
+npm --prefix verifier run verify           # 18/18 — the runner is worth trusting, incl. batch re-verification
 npm --prefix mcp run verify                # 14/14 — the agent surface, over the real protocol
 npm --prefix db run verify-import          #   9/9 — corpus vs the FROZEN snapshot (drift detection)
 npm --prefix db run verify-system-change   # 17/17 — the higher-ceremony lifecycle + the sweep, as real principals
@@ -448,7 +447,9 @@ resolvable ones — without that expansion almost every `@bidezine/system` impor
 Proven end to end: landing a change touching `src/ui/**` swept exactly the 7 divergences that genuinely
 depend on a primitive and marked their 40 evidence rows stale.
 
-**Three things step 4 found that were not what it went looking for:**
+**Three things step 4 found that were not what it went looking for** — all three are now written up
+durably in `SANDBOX-PROTOCOL-LOG.md`'s flaws log, so this summary can be deleted from here whenever
+someone is tidying:
 
 - **`evidence.current` has been vacuously passing since M1.** The gate's requirement reads
   `JOIN sandbox.source_file sf ON sf.path = d.anchor_file` — and `anchor_file` was **NULL on all 155
@@ -470,12 +471,33 @@ depend on a primitive and marked their 40 evidence rows stale.
   **40 evidence rows, 0 stale**. A fixture that mutates production data is worse than no fixture — it
   passes, so nobody looks.
 
+**M7 step 5 — batch re-verification.** `run-checks.mjs --stale [--component=<slug>]`, wired as
+`npm --prefix verifier run recheck`. It asks the database which divergences carry stale evidence and
+re-runs exactly their specs. Two design choices are what make it worth having rather than a loop:
+
+- **It reports the part of its own work it cannot reach, and exits non-zero for it.** A stale
+  divergence with no check spec cannot be re-verified by this runner at all — and with 154 rows against
+  8 specs, that is most of the corpus. A batch that skipped them silently would print "13/13 passed"
+  while leaving the corpus as stale as it found it. `verify-runner.mjs` proves this with a fixture row
+  (`T-NOSPEC`) that deliberately has no spec on disk.
+- **It re-reads the gate afterwards, because clearing staleness is not clearing the gate.** Shown live:
+  after a clean re-run all 7 rail divergences were still UNMET — six on `review.present`, and **F-3 on
+  `review.citations_support`, naming evidence #129 which is stale**. That one is structural and worth
+  knowing: a citation points at a specific `evidence_id`, a fresh measurement is a NEW row, so
+  re-running can never clear it. **A human has to re-review.** Correct — a system change invalidated
+  the measurement the judgement rested on — but it means "one command" restores the measurements, not
+  the verdicts.
+
+**Proven end to end against the real corpus, then rolled back:** landed a `src/ui/**` change → 7
+divergences swept, 40 evidence rows stale → `--stale` re-ran all 7, **13/13 passed**, 13 fresh rows →
+restored to **40 rows, 0 stale, same max evidence id, component state unchanged**.
+
 ### What's next
 
-**M7 is in progress — system changes and invalidation.** Read §6's M7 section first; the notes below
-are what this session learned that its "done when" list does not say.
+**M7 is COMPLETE.** All three "done when" criteria are closed and demonstrated. The notes below record
+what the work learned that §6's list does not say — keep them for M8/M9, they are not a to-do list.
 
-**The five steps, in this order:**
+**The five steps, all done:**
 
 1. ~~**The divergence declaration** — subject, property, state, relation~~ — **done.** See "What's
    done". It went first because the other steps had nowhere precise to land without it.
@@ -509,10 +531,10 @@ are what this session learned that its "done when" list does not say.
    landing marks affected evidence stale AND drops an already-`promoted` component back to `reopened`
    with its `promoted_commit` cleared (`fn_component_unmet` would refuse a *future* promotion, but it
    has no opinion about one that already happened). Details in "What's done".
-5. **One-command batch re-verification** ← **START HERE.** Blocking itself already works —
-   `usp_block_divergence` plus the `sandbox_block_divergence` MCP tool, and the gate reports
-   `divergence.blocked` naming the change. What remains is re-running everything a sweep marked stale,
-   in one command. §5.3 already lists batch mode as something the M2 runner is expected to grow.
+5. ~~**One-command batch re-verification**~~ — **done.** `npm --prefix verifier run recheck`
+   (`run-checks.mjs --stale [--component=<slug>]`), proven in `verify-runner.mjs`, now **18/18**.
+   Blocking was already working — `usp_block_divergence` plus the `sandbox_block_divergence` MCP tool,
+   and the gate reports `divergence.blocked` naming the change. Details in "What's done".
 
 **Step 4's design question, decided and now implemented:** *how does the sweep know which evidence a
 system change affects?* **Derive the dependency from imports, and default to over-invalidating.** For

@@ -23,7 +23,9 @@ import { REPO_ROOT, connect, sql } from "./lib/db.mjs"
 const HERE = join(REPO_ROOT, "verifier")
 const SLUG = "__verifier_test__"
 const ANCHOR_FILE = "verifier/fixtures/fixture.html"
-const REFS = ["T-1", "T-WRONG", "T-ANCHOR", "T-DUPLICATE", "T-EDGE"]
+// T-NOSPEC deliberately has NO check spec on disk. It exists to prove --stale reports the
+// rows it cannot reach rather than quietly counting them as done — see the batch section.
+const REFS = ["T-1", "T-WRONG", "T-ANCHOR", "T-DUPLICATE", "T-EDGE", "T-NOSPEC"]
 
 const results = []
 const check = (ok, label, note = "") => {
@@ -171,6 +173,79 @@ try {
     gate.includes("evidence.present"),
     "the gate still reports evidence.present with only a passing screenshot",
     `unmet: ${gate.join(", ")}`,
+  )
+
+  // ── M7 step 5: re-verifying the affected set is one command ───────────────────────
+  // The sweep (migration 013) marks evidence stale. This is the other half — and the
+  // claim under test is not "it re-ran something", it is that a batch which CANNOT reach
+  // part of its own work says so instead of exiting clean.
+  console.log("\nthe stale set is re-verifiable in one command, and reports what it cannot reach\n")
+
+  const idOf = async (ref) =>
+    (
+      await admin.request().query(`
+        SELECT d.divergence_id FROM sandbox.divergence d
+        JOIN sandbox.component c ON c.component_id=d.component_id
+        WHERE c.slug='${SLUG}' AND d.ref_code='${ref}'`)
+    ).recordset[0].divergence_id
+
+  const t1Id = await idOf("T-1")
+  const noSpecId = await idOf("T-NOSPEC")
+
+  // T-1 has a spec and is reachable. T-NOSPEC has stale evidence and no spec at all,
+  // which is the real shape of the corpus: 154 rows, 8 specs.
+  await admin.request().batch(`
+    UPDATE sandbox.evidence SET is_stale = 1, stale_reason = 'Fixture: pretending a system change landed.'
+      WHERE divergence_id = ${t1Id};
+    INSERT INTO sandbox.evidence (divergence_id, kind, check_spec, raw_output, passed,
+      verified_at_commit, verified_at_commit_at, run_id, is_stale, stale_reason)
+    VALUES (${noSpecId}, 'measurement', '{}', 'measured before the change', 1, REPLICATE('d',40),
+      SYSUTCDATETIME(), NEWID(), 1, 'Fixture: pretending a system change landed.');`)
+
+  const staleBefore = async (id) =>
+    (await admin.request().query(`SELECT COUNT(*) n FROM sandbox.evidence WHERE divergence_id=${id} AND is_stale=1`))
+      .recordset[0].n
+
+  check((await staleBefore(t1Id)) > 0, "the fixture starts with stale evidence to clear", `${await staleBefore(t1Id)} stale row(s) on T-1`)
+
+  await admin.close()
+  const batch = runner("--stale", `--component=${SLUG}`)
+  admin = await connect("ADMIN")
+
+  check(
+    /1 re-runnable/.test(batch.stdout) && /1 with no check spec/.test(batch.stdout),
+    "one command finds the whole stale set and splits it into re-runnable and not",
+    batch.stdout.split("\n").find((l) => /carry stale evidence/.test(l)) ?? batch.stdout.slice(0, 200),
+  )
+
+  const fresh = (
+    await admin.request().query(`
+      SELECT COUNT(*) n FROM sandbox.evidence
+      WHERE divergence_id = ${t1Id} AND is_stale = 0 AND passed = 1
+        AND kind IN ('measurement','computed-style')`)
+  ).recordset[0].n
+  check(fresh > 0, "the re-run wrote fresh, non-stale, asserting evidence for the reachable row", `${fresh} row(s)`)
+
+  check(
+    /UNREACHABLE\s+__verifier_test__\/T-NOSPEC/.test(batch.stdout),
+    "the row it could not re-run is named, not silently counted as done",
+    batch.stdout.split("\n").find((l) => /UNREACHABLE/.test(l))?.trim() ?? "no UNREACHABLE line",
+  )
+
+  // The part that makes it usable in CI. A batch that left work behind must not look like
+  // a batch that finished — that is exactly how a corpus stays stale while a pipeline
+  // stays green.
+  check(batch.status !== 0, "and the command exits non-zero while anything stale remains unreachable", `exit ${batch.status}`)
+
+  // The concrete form of "not stale is not the same as satisfied": T-1's measurement is
+  // now fresh and passing, and the gate still refuses it, because nobody has reviewed it.
+  // A batch command that printed only its own pass count would read as finished here.
+  const gateLines = batch.stdout.split("\n")
+  const t1Line = gateLines.findIndex((l) => /^\s+(CLEAR|UNMET)\s+__verifier_test__\/T-1\s*$/.test(l))
+  check(
+    t1Line !== -1 && /UNMET/.test(gateLines[t1Line]) && /review\.present/.test(gateLines[t1Line + 1] ?? ""),
+    "it re-reads the gate afterwards, so 'not stale' is not mistaken for 'satisfied'",
+    t1Line === -1 ? "no gate line for T-1" : `${gateLines[t1Line].trim()} · ${(gateLines[t1Line + 1] ?? "").trim().slice(0, 70)}`,
   )
 
   // ── and the M1 invariant still holds through all of this ──────────────────────────
