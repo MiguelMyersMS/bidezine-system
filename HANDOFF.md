@@ -93,10 +93,19 @@ npm --prefix sandbox run verify-readonly   # 12/12 — M8 over real HTTP: a fore
 node scripts/check-declarations.mjs        #   5/5 — declarations agree with the evidence
 node scripts/check-scope-detection.mjs     # 17/17 — system vs component classification
 node scripts/check-corpus-equivalence.mjs  # 154/154 — what the APP renders vs that same snapshot
+node scripts/check-rules.mjs               #  M9 — the prose rules, executable. No DB.
+node scripts/check-rules-test.mjs          # 11/11 — every rule can FAIL, and stays quiet on a near-miss
 
-# needs `npm --prefix sandbox run dev` in another terminal; REFUSES to run without it
-npm --prefix sandbox run verify-ui         # 11/11 — the machine switcher, rendered
+# These two need a server, and REFUSE to run without one rather than skipping.
+npm --prefix sandbox run dev   → npm --prefix sandbox run verify-ui        # 14/14 — the machine switcher
+npm run build && npm --prefix site run build && npm --prefix site run preview
+                               → npm --prefix site run verify-sidebar      #  9/9 — SidebarContent's ScrollArea
 ```
+
+**`verify-sidebar` needs the ROOT build first, not just the site's.** `site/` imports the built
+`@bidezine/system`, so editing `src/ui/` and rebuilding only the site measures stale `dist/`. That is
+not hypothetical — the first run of that check reported `overflow: auto` and no viewport, and the
+source change was already correct.
 
 **`verify-readonly` and `verify-ui` exist because M8 was first reported with both checks run from a
 session scratchpad.** That made the milestone's strongest claim — that a foreign machine's approve is

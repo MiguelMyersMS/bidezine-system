@@ -1,0 +1,48 @@
+# M9 step 2 — the rules that used to be prose, enforced.
+#
+# This one BLOCKS, unlike scope-detection.yml which deliberately only reports. The
+# difference is that a scope detection has nowhere to route to yet, whereas every rule here
+# names a specific, already-documented defect with a known fix. A gate that blocks with
+# nowhere to go teaches people to bypass it; a gate that reports something actionable and
+# does not block teaches them to ignore it. These are the second kind.
+#
+# It was deliberately NOT added until the tree was clean. `src/ui/sidebar.tsx` used a raw
+# `overflow-auto` when the checker was written — the only component in `src/ui/` on a native
+# scroll region that CLAUDE.md's scroll protocol does not list as a deliberate exception.
+# Wiring blocking CI over a known violation means a red main on day one, and adding that
+# file to the exception list to go green would have been exactly the stale provisional
+# exemption checklist item 19 warns about. It was migrated to the real ScrollArea instead,
+# and verified by measurement against a production build (site/verify-sidebar-scroll.mjs).
+
+name: rules
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # No install step: both scripts read source files and use only Node built-ins. The
+      # one import they share is REPO_ROOT from verifier/lib/db.mjs, which does not connect
+      # to anything at import time.
+      - name: The rules can still fail
+        # Runs BEFORE the rules themselves, on purpose. A rule that cannot fire is
+        # indistinguishable from a rule that is passing — `evidence.current` was satisfied
+        # for every divergence from M1 to M7 because its JOIN could never match. If this
+        # step breaks, the green tick from the next one means nothing.
+        run: node scripts/check-rules-test.mjs
+
+      - name: Prose rules, executable
+        run: node scripts/check-rules.mjs
+
+      - name: Origin quarantine
+        # R5, owned by its own script rather than reimplemented in check-rules.mjs.
+        run: node scripts/check-quarantine.mjs

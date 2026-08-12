@@ -10,6 +10,7 @@ import { fillActionIcons, useActionIconFill } from "@/lib/action-icons"
 import { cn } from "@/lib/utils"
 import { Button } from "@/ui/button"
 import { Input } from "@/ui/input"
+import { ScrollArea, useScrollAreaOverflow } from "@/ui/scroll-area"
 import { Separator } from "@/ui/separator"
 import {
   Sheet,
@@ -369,17 +370,73 @@ function SidebarSeparator({
   )
 }
 
-function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
+/**
+ * The inner content wrapper, split into its own component so it can call
+ * `useScrollAreaOverflow()` from INSIDE the `ScrollArea` that provides it.
+ *
+ * A `useContext` call in the component that RENDERS the provider reads the value above it,
+ * not its own — so this cannot be inlined into `SidebarContent` without silently always
+ * reading `false`. Same split as `CommandListInner`/`ComboboxListInner`.
+ *
+ * The gutter is conditional on real measured overflow, never a bare `pe-*`: reserved
+ * unconditionally it would leave dead space on the scrollbar's side of every sidebar whose
+ * content happens to fit, and via a `group-data-*` CSS selector it would read the NEAREST
+ * matching ancestor rather than this instance (divergence L-26 — every page's own
+ * `ScrollArea` would leak its state in).
+ */
+function SidebarContentInner({ className, ...props }: React.ComponentProps<"div">) {
+  const { scrollableY } = useScrollAreaOverflow()
+  return <div className={cn("flex min-h-0 flex-1 flex-col gap-2", scrollableY && "pe-2", className)} {...props} />
+}
+
+/**
+ * Migrated from a raw `overflow-auto` to the real `ScrollArea` (M9 step 2 / checklist item
+ * 8: a native scrollbar here is as much a hand-rolled-component violation as a raw
+ * `<button>` standing in for `Button` — it just leaves no wrong-looking markup to spot).
+ *
+ * Found by `scripts/check-rules.mjs`, not by anyone noticing the scrollbar. It was the only
+ * `src/ui` component still on a native scroll region that CLAUDE.md's scroll protocol does
+ * NOT list as a deliberate exception — the four it does list (Select, MessageScroller,
+ * Attachment, Table) each have an architectural reason; this one had none, it simply came
+ * across from shadcn's source unchanged and was never revisited when the others migrated.
+ *
+ * Three things this composition has to preserve, each of which is easy to lose:
+ *
+ *  1. `overflow-auto` was BOTH axes; `ScrollArea` here is vertical-only. That is correct
+ *     rather than a reduction — the Viewport's `[&>div]:!block` (see scroll-area.tsx)
+ *     deliberately defeats horizontal content-width growth system-wide, and sidebar content
+ *     is a vertical stack of groups. A sidebar genuinely needing horizontal scroll must not
+ *     reuse this; see that file's own note.
+ *
+ *  2. `group-data-[collapsible=icon]:overflow-hidden` suppressed scrolling entirely in
+ *     icon-collapsed mode. Radix's Viewport owns the scrolling now, so the suppression moves
+ *     onto the Viewport via the class hook below — left on the Root it would style an
+ *     element that no longer scrolls, and icon mode would gain a scrollbar it never had.
+ *
+ *  3. `className` lands on the OUTER `ScrollArea`, which owns the height and the clipping.
+ *     An earlier version of the Command/Combobox migration put it on the inner scrolling
+ *     element instead, which silently swallowed any consumer override of the max-height —
+ *     caught in review there, avoided here.
+ */
+function SidebarContent({ className, children, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
+    <ScrollArea
       data-slot="sidebar-content"
       data-sidebar="content"
       className={cn(
-        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+        "flex min-h-0 flex-1 flex-col",
+        // Point 2 above: the suppression has to reach the element that actually scrolls,
+        // and it has to WIN there. Radix sets the Viewport's `overflow` as an INLINE style,
+        // which a plain class cannot override — the first attempt here compiled fine, and
+        // measured `overflow-y: scroll` in icon mode exactly as before, i.e. it did
+        // nothing. The `!` (→ `!important`) is what beats an inline style, per the cascade;
+        // `[&>div]:!block` in scroll-area.tsx exists for the identical reason.
+        "group-data-[collapsible=icon]:[&_[data-slot=scroll-area-viewport]]:!overflow-hidden",
         className
       )}
-      {...props}
-    />
+    >
+      <SidebarContentInner {...props}>{children}</SidebarContentInner>
+    </ScrollArea>
   )
 }
 

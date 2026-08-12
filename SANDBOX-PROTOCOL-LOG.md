@@ -1491,6 +1491,41 @@ friction, anything.)_
   the portion of its own work it could not perform — otherwise "13/13 passed" is an honest sentence that
   produces a false impression, which is the exact failure mode this whole protocol exists to prevent.
 
+- **A prose rule that everyone agrees with, that everyone has read, and that nobody enforced, was being
+  violated in the design system itself — and converting it to a grep found it in the first run.**
+  `CLAUDE.md` checklist item 8 has said since the Rail Sidebar work that a raw `overflow-y-auto` is "exactly
+  as much a 'no hand-rolled components' violation as a raw `<button>` standing in for `Button`". Four
+  components were deliberately migrated to the real `ScrollArea`, four more were deliberately exempted with
+  architectural reasons, all eight were written up — and `SidebarContent` sat on a native `overflow-auto` the
+  entire time, in neither list. It came across from shadcn's source unchanged and was never revisited when the
+  others moved. No human noticed the browser scrollbar; no review caught it; the rule was quoted repeatedly in
+  that period while the violation shipped. **Lesson: the gap between a rule being written down and a rule being
+  true is not measurable by reading, and the cost of closing it is one afternoon of grep.** Prefer converting a
+  rule to an executable check over restating it more emphatically — and expect the first run to find something,
+  because the reason a rule needed writing down is that it was already being broken.
+
+- **The check that catches the violation must itself be checked for the opposite failure, and that is where the
+  real defects are.** `scripts/check-rules-test.mjs` plants a violation per rule (does it fire?) AND a
+  deliberate near-miss (does it stay quiet?). The first half found nothing wrong. The second half found three
+  defects in the rules themselves: a shared `/g` regex whose `lastIndex` carried between files and reported
+  three of five exceptions as stale; an opt-out annotation that accepted `/** not-an-action-icon: */` because
+  the `*` closing the comment satisfied `\S` as the "reason" — the exact bare silencer it existed to prevent;
+  and a fixed 500-character search window for that annotation, which its first real use overflowed at 529
+  characters *because the justification was thorough*. A rule that fires on its own documentation, or whose
+  exemption breaks when the reason gets longer, is one people learn to skip — and a skipped red check is worse
+  than no check, because it trains the team to ignore CI. **Lesson: for any new automated rule, write the
+  near-miss case first. "Does it catch the bad thing" is the easy half and the half that finds nothing.**
+
+- **Two false positives in the same rule, from assuming a naming convention was a contract.** The
+  `isActionIcon` check first flagged every component whose name ended in `Icon`. `MarkerIcon` renders a
+  `<span>` — it is a marker container, not an icon — and a preview-only raw-SVG helper never goes near
+  `fillActionIcons`. Narrowed to components that actually render an `<svg>`, plus an explicit opt-out that must
+  state a reason. The rejected alternative is worth recording: setting `isActionIcon = true` on the preview
+  helper would have made the check green while asserting the component participates in a system it is never
+  handed to — and the next person greps for that marker to find the real participants, so a false marker is
+  worse than a missing one. **Lesson: a name is evidence, not a contract; and silencing a check by making a
+  false claim true is not a fix.**
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given
