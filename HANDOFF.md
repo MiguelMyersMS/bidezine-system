@@ -21,7 +21,7 @@
 
 ## Laptop A (main)
 
-**Baseline** — branch `main`, last verified commit `a0c3c41`, working tree clean, in sync with
+**Baseline** — branch `main`, last verified commit `4db6d73`, working tree clean, in sync with
 `origin/main`. Verify this yourself (`git log --oneline -1`, `git status`) before trusting anything
 below it.
 
@@ -32,12 +32,12 @@ which cannot be fixed from here.
 
 ### Active task
 
-**Sandbox Milestones 5 and 6 are COMPLETE.** M1–M6 are built and verified. M6 closed all three of
+**M1–M6 are complete and verified. M7 is IN PROGRESS — step 1 of 5 is done.** M6 closed all three of
 its own "done when" criteria: the toggle cannot be enabled until requirements are genuinely met
 (proven by attempting it), approving takes about 3 seconds against a hard one-minute budget, and
 reopening cascades and writes a false-completion record.
 
-**Nothing is in progress.** M7 is next — see "What's next".
+**Next: M7 step 2, scope detection from the diff.** It needs no decision from you — see "What's next".
 
 **First thing to do on this machine: reconnect the sandbox MCP server.** Its tools
 (`mcp__sandbox__*`) did not attach to the last session — `ToolSearch` found none of them. The server
@@ -62,7 +62,7 @@ Read `docs/SANDBOX-SPEC.md` first. It is the single source of truth for this pro
   resolved; the corpus does not, because none has been through the gate (it did not exist when they
   were written). Reasoning came across so retrieval has substance; nothing arrived pre-blessed.
 
-**Six proof scripts. Re-run ALL of them after any change under `db/`, `verifier/`, `mcp/` or
+**Seven proof scripts. Re-run ALL of them after any change under `db/`, `verifier/`, `mcp/` or
 `sandbox/server/`:**
 
 ```
@@ -71,6 +71,7 @@ npm --prefix verifier run verify           # 12/12 — the runner is worth trust
 npm --prefix mcp run verify                # 14/14 — the agent surface, over the real protocol
 npm --prefix db run verify-import          #   9/9 — corpus vs the FROZEN snapshot (drift detection)
 npm --prefix sandbox run verify            # 18/18 — M6: the gate refuses, approves, and cascades
+node scripts/check-declarations.mjs        #   5/5 — declarations agree with the evidence
 node scripts/check-corpus-equivalence.mjs  # 154/154 — what the APP renders vs that same snapshot
 ```
 
@@ -223,6 +224,47 @@ nowhere to land.
 **Reviews are deliberately NOT submitted to the corpus yet.** The reviewers examined the pre-fix code;
 a passing verdict now would cite evidence from a different commit. A second review round against the
 fixed code is the correct next step — that is the loop working, not a blockage.
+
+**M7 step 1 is done — every divergence can now say what it is actually about.** Migration 010 adds
+`divergence_subject` and `divergence_property` as tables, plus `subject_state` and `relation` on
+`divergence`. **10 divergences declared: 8 subjects, 24 properties.**
+
+Until now a row carried a title, prose, sometimes an image, and — for 7 of 154 — one anchor. It never
+carried a machine-readable statement of *which elements, which properties, in which state*. That one
+absence starved three consumers at once, which is why it came before the rest of M7:
+
+- **The human** — the reason it exists. A row could be *located* but not *explained*: the widget knew
+  which element, never which property, so it could not call the thing out.
+- **The runner** — its two structural gaps are exactly the two fields a single anchor cannot express:
+  `relation` (F-4 gap, F-9 pitch, F-11 containment — each a claim about **two** elements) and a
+  scripted `state` (F-8, a drag clamp).
+- **The M7 sweep** — "mark stale every evidence row whose check touches the affected property" needs
+  an affected property to match against.
+
+**The shape is uniform across every category** — *these subjects, in this state, differ on these
+properties* — and only the **rendering** varies, keyed by property type (`length` → dimension overlay,
+`color` → swatch in situ, `text` → line box drawn, `time` → replay, `keyword` → both literals,
+`layer` → stacking). Five renderers for 154 rows is what stops this becoming 154 bespoke
+visualisations.
+
+Two design points worth not re-litigating:
+
+- **Origin gets a selector; the adjusted side gets an attribute.** §5.5 prefers attributes because
+  selectors rot on refactor. That holds for bidezine. It does **not** hold for origin — vendored
+  material we may not edit, so no attribute can be added, and frozen by that same rule, so a selector
+  cannot rot. The exception is safe for exactly the reason the rule exists.
+- **The state vocabulary is the runner's own, exactly.** A declaration naming states the runner cannot
+  drive would describe checks nobody can perform. `transition` is absent deliberately, not forgotten.
+
+Properties and state are **derived** from the committed check specs — a divergence's properties are by
+definition what its checks assert — and `property_type` comes from `scripts/lib/property-type.mjs`,
+the single source of that mapping. **`node scripts/check-declarations.mjs` (5/5)** is what stops the
+declaration becoming decoration: stored types are re-derived and compared, declared and asserted
+properties must match **in both directions**, no relation may concern exactly one subject, and every
+bidezine subject must name an anchor a real spec measures.
+
+F-4/F-9/F-11 declare their relation with **no subjects yet** — true today, since no anchors exist for
+claims the runner cannot measure, and inventing anchor ids would put a falsehood in the table.
 
 **Milestone 6 is COMPLETE — the evidence widget and an approval gate no actor can open.**
 All three acceptance criteria met, verified against a real production build.
@@ -396,15 +438,48 @@ any of those rows can leave `legacy_unverified`.
 
 ### What's next
 
-**Milestones 5 and 6 are complete** (`SANDBOX-SPEC.md` §6). **M7 is next — system changes and
-invalidation.** Read §6's M7 section first; the notes below are what this session learned that its
-"done when" list does not say.
+**M7 is in progress — system changes and invalidation.** Read §6's M7 section first; the notes below
+are what this session learned that its "done when" list does not say.
+
+**The five steps, in this order:**
+
+1. ~~**The divergence declaration** — subject, property, state, relation~~ — **done.** See "What's
+   done". It went first because the other steps had nowhere precise to land without it.
+2. **Scope detection from the diff** ← **START HERE.** A script reading `git diff --name-only` that
+   classifies a change as system-scoped if it touches `tokens/` or `src/ui/`. This is §5.7's rule and
+   it is deliberately mechanical — *"No agent decides this."* Smallest piece, and it produces the
+   input everything downstream needs. **Needs no decision.**
+3. **`system_change` lifecycle** — propose → assess → approve → land, plus MCP tools so an agent files
+   one instead of burying a system-level decision inside a component row.
+4. **The invalidation sweep.** **The design question here is already settled** — see below.
+5. **Blocking + one-command batch re-verification.**
+
+**Step 4's design question, decided:** *how does the sweep know which evidence a system change
+affects?* **Derive the dependency from imports, and default to over-invalidating.** For each
+divergence, resolve its `anchor_file` through its own import graph down to which `src/ui/*` primitives
+and `tokens/*` it depends on — `FunctionalRailSidebar.tsx` imports `Button`, so F-2 provably depends
+on `src/ui/button.tsx`. Mark stale any evidence whose divergence's dependency set intersects the
+change's `affected_paths`. Reuses the import scanning already in `check-quarantine.mjs`; the one new
+piece is an export-name → source-file lookup derived from `src/index.ts`, because imports cross the
+`@bidezine/system` package boundary rather than pointing at `src/ui/` directly.
+
+**And when the scan is unsure, mark it stale.** A false "stale" costs one batch re-run; a false
+"current" is a false green. The asymmetry is not close. *(Rejected: matching on `anchor_file` alone —
+F-2's anchor lives in `sandbox/`, so a `Button` change would not touch it, missing the exact case M7
+exists for.)*
 
 **What M7 already has waiting for it.** `evidence.is_stale` exists and the gate already honours it —
-M7's bulk-invalidation sweep has a column to write to and a gate that will react. `review.invalidated_at`
-(migration 007) is the same idea for reviews and may be the right mechanism when a system change
-invalidates a judgement rather than a measurement. `db/snapshots/rail-sidebar.json` is the frozen
-snapshot M7's "mark the snapshot stale" step refers to.
+the sweep has a column to write to and a gate that will react. `review.invalidated_at` (migration 007)
+is the same idea for reviews, and is likely right when a system change invalidates a *judgement*
+rather than a *measurement*. `sandbox.system_change` has carried `affected_paths` since migration 001,
+with a comment reading *"JSON array of path globs this change touches. Drives the staleness sweep"* —
+M7 was designed into the schema from the start. `db/snapshots/rail-sidebar.json` is the frozen
+snapshot its "mark the snapshot stale" step refers to. CI exists (`.github/workflows/`), so
+"automatically" has somewhere to live.
+
+**Riding on step 1, whenever wanted, without re-deciding anything:** the widget's renderers (five,
+keyed by property type) and the runner's two missing capabilities (relational geometry, scripted
+interaction). Both now have a declaration to read.
 
 **Two things worth doing regardless of milestone order:**
 
