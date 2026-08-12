@@ -859,7 +859,7 @@ a genuinely new failure category is found — not evidence the list is now compl
     of the live site) for row-height/hit-target conventions. Investigation found neither origin number was
     actually adopted in the shipped code (`PanelTree` uses a uniform `h-9`/36px at every depth already, per
     row L-9) — but the real, useful finding was live-measuring bidezine's OWN shipped `Sidebar` demo
-    (`localhost:5173/components/sidebar`) via `getBoundingClientRect`: `SidebarMenuButton` (parent row) = 32px,
+    (`localhost:4188/components/sidebar`, the showcase port now pinned in `site/package.json`) via `getBoundingClientRect`: `SidebarMenuButton` (parent row) = 32px,
     `SidebarMenuSubButton` (one nested level) = 28px — a real, hard-coded parent→child shrink, confirmed
     identical in the original shadcn source too. But this convention is a fixed TWO-level hierarchy only — no
     recursive/N-level sub-menu component exists in bidezine or shadcn's own source, and `SidebarMenuSubButton`
