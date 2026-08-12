@@ -421,7 +421,17 @@ snapshot M7's "mark the snapshot stale" step refers to.
    Anchoring the remaining ~147 rows first would mean discovering mid-way that a large share has
    nowhere to land.
 
-2. **The independence check is weaker than it looks — a candidate for M9's enforcement list.**
+2. **UNVERIFIED — does the Sandbox app's Tailwind scan `origin/`?** The quarantine is proven for
+   imports, bundles, CSS cascade and JS realm (see "What's done"), but this one question was raised
+   and deliberately not answered. `CLAUDE.md`'s `source(none)` pin protects `reference/shadcn-ui/` for
+   the **main** stylesheet; the Sandbox app has its own Tailwind setup, and `origin/` is **committed**
+   rather than gitignored — so v4's auto-detection would not skip it on that basis. If it IS being
+   scanned, origin's class names are compiling utilities into the Sandbox's stylesheet. That is
+   stylesheet bloat and a drift risk rather than a rendering bug, but it is unmeasured and should not
+   be described as covered until someone checks. Cheap to settle: grep the built
+   `sandbox/dist/assets/*.css` for a utility only origin uses.
+
+3. **The independence check is weaker than it looks — a candidate for M9's enforcement list.**
    `sandbox_submit_review` takes `author_agent_id` AND `builder_agent_id` as **caller-supplied
    strings**. The database enforces they *differ*, not that they correspond to genuinely different
    actors. Independence is structural on the values, self-declared on the reality. Worth a
