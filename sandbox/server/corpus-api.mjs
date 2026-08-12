@@ -210,6 +210,7 @@ export async function getDivergenceBundle(slug, ref) {
         .input("slug", sql.NVarChar(100), slug)
         .input("ref", sql.NVarChar(20), ref)
         .query(`SELECT d.divergence_id, d.state, d.anchor_id, d.anchor_file, d.reopened_count,
+                       d.subject_state, d.relation,
                        d.title, d.detail, d.category, d.origin_category, d.origin_record, d.visual
                 FROM sandbox.divergence d
                 JOIN sandbox.component c ON c.component_id = d.component_id
@@ -250,6 +251,25 @@ export async function getDivergenceBundle(slug, ref) {
       )
     ).recordset
 
+    // ── What this divergence is ABOUT (migration 010) ──────────────────────────────
+    // Subjects and properties are what let the widget stop saying "here is a paragraph"
+    // and start saying "this element, this property, this state". Read alongside the
+    // bundle rather than on demand: the whole point is that they arrive with the thing a
+    // person is trying to decide, not one interaction later.
+    const subjects = (
+      await pool.request().input("id", sql.Int, id).query(
+        `SELECT ordinal, side, anchor_id, selector, label
+         FROM sandbox.divergence_subject WHERE divergence_id = @id ORDER BY ordinal`,
+      )
+    ).recordset
+
+    const properties = (
+      await pool.request().input("id", sql.Int, id).query(
+        `SELECT property, property_type
+         FROM sandbox.divergence_property WHERE divergence_id = @id ORDER BY property`,
+      )
+    ).recordset
+
     // The gate is COMPUTED, never stored and never inferred here. Asking the database what
     // is unmet — rather than reimplementing its rules in JavaScript — is what keeps the UI
     // incapable of disagreeing with the thing that actually enforces the transition.
@@ -273,6 +293,18 @@ export async function getDivergenceBundle(slug, ref) {
         reopenedCount: idRow.reopened_count,
         visual: parseJson(idRow.visual),
         originRecord: parseJson(idRow.origin_record),
+      },
+      declaration: {
+        subjects: subjects.map((s) => ({
+          ordinal: s.ordinal,
+          side: s.side,
+          anchorId: s.anchor_id,
+          selector: s.selector,
+          label: s.label,
+        })),
+        properties: properties.map((p) => ({ property: p.property, type: p.property_type })),
+        state: idRow.subject_state,
+        relation: idRow.relation,
       },
       gate: { ready: unmet.length === 0, unmet },
       evidence: evidence.map((e) => {
