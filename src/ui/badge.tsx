@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
  * shadcn's own upstream source (`reference/shadcn-ui/apps/v4/registry/new-york-v4/ui/badge.tsx`) has no
  * status-badge concept at all, only `destructive`. This addition maps the *concept* of a semantic
  * positive/caution/informational status pill (present in other design systems, e.g.
- * `limbo-factory/src/reference/origin-design-system/gallery/Badge.tsx`'s `positive`/`warning`/`info`
+ * `sandbox/src/reference/origin-design-system/gallery/Badge.tsx`'s `positive`/`warning`/`info`
  * variants) onto bidezine's own token-authoring and styling conventions — it does not copy any literal
  * color value from that reference, and does not adopt its variant names, sizing tiers, or two-span
  * truncation structure. See `tokens/light.tokens.json` / `tokens/dark.tokens.json` for the new
@@ -87,7 +87,7 @@ import { cn } from "@/lib/utils"
  * prominent unread count) rather than the unexamined default for every new badge a task happens to add.
  * The Rail Sidebar's own panel-tree badges (`PanelBadge` in `FunctionalRailSidebar.tsx`) are the reference
  * example of this guidance in practice: `variant="muted" weight="regular"` by default (see L-6 in
- * `limbo-factory/src/data/rail-sidebar.ts`), reserving other variants/weights for when a badge's own
+ * `sandbox/src/data/rail-sidebar.ts`), reserving other variants/weights for when a badge's own
  * content or an explicit instruction specifically warrants it.
  *
  * `tone` (bidezine Adjustment, independent of `variant` and `weight`): a third orthogonal axis, opt-in via

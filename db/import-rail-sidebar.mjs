@@ -3,7 +3,7 @@
 //
 //   node import-rail-sidebar.mjs [--dry-run]
 //
-// Reads limbo-factory/src/data/rail-sidebar.ts. READS it — the spec's sequencing
+// Reads sandbox/src/data/rail-sidebar.ts. READS it — the spec's sequencing
 // constraint freezes that file until M5, and nothing here writes to it.
 //
 // EVERY IMPORTED ROW LANDS AT 'legacy_unverified', including the 152 the source calls
@@ -29,7 +29,7 @@ import { pathToFileURL } from "node:url"
 import esbuild from "esbuild"
 import { REPO_ROOT, connect, sql } from "../verifier/lib/db.mjs"
 
-const SOURCE = join(REPO_ROOT, "limbo-factory", "src", "data", "rail-sidebar.ts")
+const SOURCE = join(REPO_ROOT, "sandbox", "src", "data", "rail-sidebar.ts")
 const SLUG = "rail-sidebar"
 const DRY = process.argv.includes("--dry-run")
 
@@ -122,7 +122,7 @@ try {
     IF NOT EXISTS (SELECT 1 FROM sandbox.component WHERE slug = @slug)
       INSERT INTO sandbox.component (slug, title, state, origin_note)
       VALUES (@slug, 'Rail Sidebar', 'build',
-        'Ported from a foreign design system''s RailNav. Divergence rows imported from limbo-factory/src/data/rail-sidebar.ts at Sandbox Milestone 4.');`)
+        'Ported from a foreign design system''s RailNav. Divergence rows imported from sandbox/src/data/rail-sidebar.ts at Sandbox Milestone 4.');`)
 
   const componentId = (
     await pool.request().input("slug", sql.NVarChar(100), SLUG)

@@ -1,7 +1,7 @@
 {
-  "name": "bidezine-limbo-factory",
+  "name": "bidezine-sandbox-app",
   "version": "0.0.0",
-  "description": "Factory-line transformation tracker for components moving out of Limbo, built from @bidezine/system.",
+  "description": "Factory-line transformation tracker for components moving out of the Sandbox, built from @bidezine/system.",
   "license": "UNLICENSED",
   "private": true,
   "type": "module",

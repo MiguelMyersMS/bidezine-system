@@ -81,7 +81,7 @@ import { BIDEZINE_LOGO_PATH, BIDEZINE_LOGO_VIEWBOX, FULL_PREVIEW_ICONS, type Pro
  * the shipped `filled?` prop). Nothing here is copied from, or references, the origin design
  * system's own component code — only its documented BEHAVIOR is replicated (overflow, footer
  * ordering, panel header actions, search, expand/collapse, browsing/active rail state), each
- * reimplemented from scratch against bidezine's own primitives. See LIMBO-PROTOCOL-LOG.md.
+ * reimplemented from scratch against bidezine's own primitives. See SANDBOX-PROTOCOL-LOG.md.
  *
  * This is what makes the origin/adjusted comparison genuinely apples-to-apples: origin's column is
  * the real vendored component (OriginRailNavLiveAuto); this is bidezine's own equivalent, for real.
@@ -131,7 +131,7 @@ interface RailSection {
 // function declarations), and a fallback that checks whether the component's runtime `.name` ends in
 // "Icon" -- with its own code comment already warning this fallback is unsafe under production
 // minification. This factory previously relied ONLY on that unsafe fallback (the returned function was
-// named `SpecIcon`, nothing else). Built limbo-factory for production and confirmed empirically (not
+// named `SpecIcon`, nothing else). Built sandbox for production and confirmed empirically (not
 // assumed): the minified bundle's SpecIcon closure name does NOT survive (`grep "SpecIcon"` on the
 // built JS returns no match), while `isActionIcon` (a static property access, not a renamed
 // identifier) does. Served the actual built dist/ output and tested hover live: every specTreeIcon-based
@@ -381,7 +381,7 @@ const FOOTER_SECTIONS: RailSection[] = [{ id: "settings", label: "Settings", ico
  * of the group's rendered width ONLY ONCE, at mount, so a stable/known total was required. Re-reading
  * the actually-installed version's own real, current source (`node_modules/react-resizable-panels`,
  * v4.12.2 at time of writing — never trust a prior record over the real source, per CLAUDE.md's
- * Sandbox/Limbo fidelity checklist item on stale docs) shows this assumption was WRONG for this
+ * Sandbox fidelity checklist item on stale docs) shows this assumption was WRONG for this
  * version: its internal `groupSize` is re-measured live (the library tracks the group element's own
  * rendered size continuously, re-deriving each panel's percentage from pixel constraints on every
  * resize, not just at first mount — confirmed by tracing `groupSize` through the library's resize/
@@ -796,7 +796,7 @@ function RailIconButton({
 }
 
 // Default badge treatment for this rail's panel tree: variant="muted" weight="regular" (see divergence
-// row L-6 in limbo-factory/src/data/rail-sidebar.ts, and the "Guidance for an AI composing NEW Badge
+// row L-6 in sandbox/src/data/rail-sidebar.ts, and the "Guidance for an AI composing NEW Badge
 // usage" note in src/ui/badge.tsx's own doc comment). `muted` keeps these dense, frequently-repeated
 // inline counts/labels ("+23", "New", "+05") visually receding rather than competing with row content —
 // `secondary`'s filled-pill look was too visually loud for a badge that appears many times per panel.
@@ -1089,7 +1089,7 @@ interface RailColors {
 /**
  * Mirrors `react-resizable-panels`' own `PanelImperativeHandle` shape (see
  * `node_modules/react-resizable-panels/dist/react-resizable-panels.d.ts`) so the browsing panel's
- * `panelRef` can be typed here without limbo-factory taking a direct dependency on that package
+ * `panelRef` can be typed here without sandbox taking a direct dependency on that package
  * (it's only ever installed transitively, via `@bidezine/system`'s own `src/ui/resizable.tsx`).
  */
 interface RailPanelHandle {
@@ -1151,7 +1151,7 @@ function AdjacentContentPlaceholder({ collapseLeftInset }: { collapseLeftInset: 
 
 /**
  * DEPLOYMENT NOTE (see divergence row F-10): `height` here is a measured pixel NUMBER, not a
- * percentage/`h-full` — that's this limbo-factory preview's own plumbing (App.tsx's `FillHeight`
+ * percentage/`h-full` — that's this sandbox preview's own plumbing (App.tsx's `FillHeight`
  * measures its stage's clientHeight via ResizeObserver and passes the number down), not something
  * to carry over into the real `src/ui/` component. The actual requirement is just "the rail fills
  * whatever vertical space its parent gives it" — at real Build time, prefer ordinary CSS sizing

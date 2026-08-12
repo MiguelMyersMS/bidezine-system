@@ -37,16 +37,16 @@ site (`npm install && npm run build` in `site/`) and deploys `site/dist` to GitH
 - `src/ui/scroll-area.tsx` — real port of shadcn's `ScrollArea`; its scrollbar is an absolutely-positioned overlay, not a layout-reserving sibling. `Command`, `DropdownMenu`, `ContextMenu`, `Combobox` deliberately compose it (a documented divergence from shadcn's own native-`overflow` source) with a conditional content gutter driven by the `useScrollAreaOverflow()` React Context hook — never a `group-data-*` Tailwind selector, which cannot express "nearest ancestor" and breaks when the same primitive nests.
 - `dist/` — build output; the only thing real consumers (`site/`, downstream apps) import. Runtime deps (Radix, etc.) are externalized, not bundled, to avoid shipping duplicate React contexts.
 - `site/` — separate Vite app (own `package.json`) that showcases/verifies components against shadcn's own rendering, deployed to bs.bidezine.systems.
-- `limbo/` and `limbo-factory/` — holding area + dedicated dev environment (port 4199) for components mid-transformation from a foreign source, gated by the "Limbo protocol" documented in `LIMBO-PROTOCOL-LOG.md`. `limbo-factory/` is never merged into `dist/` or shipped.
+- `origin/` and `sandbox/` — holding area + dedicated dev environment (port 4199) for components mid-transformation from a foreign source, gated by the "Sandbox protocol" documented in `SANDBOX-PROTOCOL-LOG.md`. `sandbox/` is never merged into `dist/` or shipped.
 
 ## Key conventions
 
-- **No hand-rolled components.** If a real `@bidezine/system` primitive exists (`Button`, `Badge`, `ScrollArea`, etc.), use it — never approximate its look with raw styled `<div>`/`<span>`/`<button>`, even in sandbox/tooling code (`limbo-factory/` included). This also applies to raw `overflow-y-auto` standing in for `ScrollArea`.
+- **No hand-rolled components.** If a real `@bidezine/system` primitive exists (`Button`, `Badge`, `ScrollArea`, etc.), use it — never approximate its look with raw styled `<div>`/`<span>`/`<button>`, even in sandbox/tooling code (`sandbox/` included). This also applies to raw `overflow-y-auto` standing in for `ScrollArea`.
 - **Icons: Fluent UI System Icons only** (`@fluentui/svg-icons`, regular style, 20px viewBox), authored via `icons/manifest.json`. Never import Lucide/Heroicons/FontAwesome/etc. Icon path data (`d`/`filledD`) must be copied verbatim from the real `.svg` file under `node_modules/@fluentui/svg-icons/icons/` — never reconstructed from memory/reasoning.
 - **Tailwind must never scan `reference/`** — `src/styles/system.css` pins `source(none)` plus one explicit `@source`. Don't remove either.
 - Light/dark parity is enforced at build time: a token defined in only one theme mode fails the tokens build rather than silently inheriting.
 - `HANDOFF.md` (repo root) is a **live snapshot, never a log** — one section per machine (Laptop A, Laptop B, PC), each machine only ever edits its own section, always overwritten in place to describe current state (not appended to). Read it before starting work spanning multiple sessions/machines; update it in the same commit as the work it describes.
-- `LIMBO-PROTOCOL-LOG.md` and other divergence logs are the opposite: **append-only** historical records — never delete or rewrite old entries there.
+- `SANDBOX-PROTOCOL-LOG.md` and other divergence logs are the opposite: **append-only** historical records — never delete or rewrite old entries there.
 - See `CLAUDE.md`'s "Primitive Fidelity Checklist" before calling any change to a real primitive "done" — it documents specific, recurring failure classes (className merge conflicts, clipped focus rings, unverified interactive states, etc.) that passed casual review in the past.
 
 ## The Sandbox — read `docs/SANDBOX-SPEC.md`
@@ -79,8 +79,11 @@ this system collects.
 
 Never run agent work under the `admin` or `runner` service principal to get past a permission error.
 
-`limbo-factory/` and `limbo/` are **frozen** until Milestone 5 of that spec — do not rename them to
-"Sandbox" or edit `limbo-factory/src/data/rail-sidebar.ts` before then.
+`sandbox/` was `limbo-factory/` and `origin/` was `limbo/`; `SANDBOX-PROTOCOL-LOG.md` was
+`LIMBO-PROTOCOL-LOG.md`. Renamed at Milestone 5. Historical entries inside the protocol log and inside
+`sandbox/src/data/rail-sidebar.ts` still say "limbo" and are **left that way on purpose** — they record
+what was true when written, and that file is additionally stored verbatim in the corpus, so editing it
+would break the byte-identical guarantee `npm --prefix db run verify-import` checks.
 
 ## Licensing
 

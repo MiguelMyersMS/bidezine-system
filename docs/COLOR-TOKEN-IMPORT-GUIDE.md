@@ -1,9 +1,9 @@
 # Color Token Import Guide
 
 **Purpose:** a reusable, durable reference for how to map colors when bringing a component in from a
-*different* design system (via the [Limbo protocol](/LIMBO-PROTOCOL-LOG.md)) into `@bidezine/system`'s
+*different* design system (via the [Sandbox protocol](/SANDBOX-PROTOCOL-LOG.md)) into `@bidezine/system`'s
 own tokens. Written after the Rail Sidebar occupant's Color Token Lab work, so the next occupant doesn't
-have to rediscover this from scratch. Unlike `LIMBO-PROTOCOL-LOG.md`, **this file is permanent** — update
+have to rediscover this from scratch. Unlike `SANDBOX-PROTOCOL-LOG.md`, **this file is permanent** — update
 it, don't delete it, as new cases are learned.
 
 ## The two source-of-truth files
@@ -22,7 +22,7 @@ in `oklch()`. This is what every new token candidate should target — not hex, 
 
 (The three alternate named presets in `tokens/themes/` — `daylight`, `emerald`, `midnight` — use `hsl()`
 instead, because those are shadcn's own presets vendored unmodified in that format. They are a separate
-concern; a Limbo occupant's new tokens don't need `hsl` equivalents unless the presets themselves are
+concern; a Sandbox occupant's new tokens don't need `hsl` equivalents unless the presets themselves are
 being extended.)
 
 ## Step 2 — Converting values, in whichever direction you have
@@ -96,7 +96,7 @@ meaningless when chroma is 0 — don't be alarmed by a nonzero-looking `H` on an
 
 bidezine's dark-mode `border` and `input` are **not solid colors** — they're `white` at low alpha
 (`oklch(1 0 0 / 0.1)` and `/ 0.15` respectively), meant to sit over whatever surface is behind them. This
-is shadcn's own convention. If a Limbo occupant needs a "visible border" token and you're tempted to reuse
+is shadcn's own convention. If a Sandbox occupant needs a "visible border" token and you're tempted to reuse
 `--border` directly, check first whether it's strong enough against the occupant's specific surface — it
 may not be (see the flattening technique below).
 
@@ -118,7 +118,7 @@ import('./scripts/lib/color.mjs').then(({ oklchToSrgb, srgbToOklch }) => {
 
 ## Step 4 — Never approve from an isolated swatch alone
 
-A hard lesson from Rail Sidebar (logged in full in `LIMBO-PROTOCOL-LOG.md`): a grid of individual color
+A hard lesson from Rail Sidebar (logged in full in `SANDBOX-PROTOCOL-LOG.md`): a grid of individual color
 swatches **cannot** surface real problems that only appear when colors sit next to each other in the
 actual composed UI — e.g. two states becoming visually indistinguishable, or a border disappearing into an
 adjacent surface. Always build a small, real-DOM, interactive composed preview (not simulated) alongside

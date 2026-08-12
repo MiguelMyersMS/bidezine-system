@@ -1,8 +1,12 @@
 # The Sandbox — specification
 
-> **Status:** draft for review. Nothing in this document is built yet.
-> **Supersedes the name "Limbo":** the holding area, its protocol and its factory-line app are renamed
-> **Sandbox** throughout. The rename lands in Milestone 5, not before (see §8).
+> **Status:** Milestones 1–4 are built and verified against the live database. M5 is in progress.
+>
+> **Supersedes the name "Limbo".** Renamed at M5: `limbo-factory/` → `sandbox/`, `limbo/` → `origin/`,
+> `LIMBO-PROTOCOL-LOG.md` → `SANDBOX-PROTOCOL-LOG.md`. Paths and forward-looking prose were renamed;
+> **historical entries were not** — those record what was true when written, and rewriting them would be
+> the history-rewriting `CLAUDE.md` forbids. `sandbox/src/data/rail-sidebar.ts` was additionally left
+> byte-identical because it is stored verbatim in `sandbox.divergence.origin_record`.
 
 ---
 
@@ -96,7 +100,7 @@ The division has to be explicit or it will drift.
 | Concern | Home | Why |
 |---|---|---|
 | Component source, tokens, primitives | **Git** | It is the product. |
-| Append-only history (`LIMBO-PROTOCOL-LOG.md` and successors) | **Git** | Immutable, versioned, diffable, survives the DB. |
+| Append-only history (`SANDBOX-PROTOCOL-LOG.md` and successors) | **Git** | Immutable, versioned, diffable, survives the DB. |
 | Executable enforcements (lint rules, tests, build gates) | **Git** | They must run in CI and travel with the code. |
 | Protocol documents (`CLAUDE.md`, this spec) | **Git** | Versioned alongside what they govern. |
 | Frozen divergence snapshots, written at promotion | **Git** | Generated from the DB, so the two cannot disagree. |
@@ -120,7 +124,7 @@ never disagree.
 | Analytics | **OneLake mirror → Power BI** | Free with Fabric SQL. Delivers §9's metrics with no extra pipeline. A genuine argument for choosing Fabric over plain Postgres. |
 | Agent access | **MCP server**, TypeScript SDK, `mssql`/`tedious` | The only path agents use. Scoped to the `agent_rw` role — structurally cannot write evidence. |
 | Verification | **Node + Playwright** | Already the tool used for live measurement in this project. Runs as CLI locally and in CI. Holds the only credential that can write evidence. |
-| App | **React 19 + Vite 7 + `@bidezine/system`** | Same stack as `limbo-factory/` today. No hand-rolled components, per the standing rule. |
+| App | **React 19 + Vite 7 + `@bidezine/system`** | Same stack as `sandbox/` today. No hand-rolled components, per the standing rule. |
 | Origin quarantine | **`<iframe srcdoc>` / isolated document** | Origin CSS and JS cannot reach the translation pane. Enforced by a lint rule, not by care. |
 
 ### 4.3 Fabric SQL platform constraints — found by running, not by reading
@@ -266,7 +270,7 @@ deliberate — a UI over a store that can still be lied to is a nicer way to be 
 milestone with something to look at. If seeing progress sooner matters more than strict ordering, M5 can
 move ahead of M4, at the cost of building the preview against a schema not yet proven by real data.
 
-**Sequencing constraint throughout M1–M4:** `limbo-factory/` stays running and authoritative. Nothing
+**Sequencing constraint throughout M1–M4:** `sandbox/` stays running and authoritative. Nothing
 in its current working state is touched until M5 swaps the read path.
 
 ---
@@ -357,7 +361,7 @@ protocol.
 
 **What we build**
 - An import of the existing Rail Sidebar divergence rows from
-  `limbo-factory/src/data/rail-sidebar.ts`, landing at `legacy — provenance unverified`.
+  `sandbox/src/data/rail-sidebar.ts`, landing at `legacy — provenance unverified`.
 - Enrichment of what the current shape lacks: category on the row, owner, tier, scope, anchor id,
   evidence links, commit pins.
 - The category enum, finalised against real data.
@@ -384,7 +388,7 @@ whose state is honest rather than flattering.
 **Problem solved:** verification currently requires reading code.
 
 **What we build**
-- `limbo-factory/` → `sandbox/`, and the Limbo → Sandbox rename across `CLAUDE.md`, the protocol log and
+- `sandbox/` → `sandbox/`, and the Limbo → Sandbox rename across `CLAUDE.md`, the protocol log and
   the directory structure, in one commit.
 - Generalisation from one hard-coded occupant to N components read from the DB.
 - **Origin pane** — pasted code, screenshot or embed, rendered in an isolated iframe. Origin assets live
@@ -556,5 +560,5 @@ Recorded so they are decided deliberately rather than by default.
 | **Over-ceremony** — every divergence costing four round trips makes the system unusable and it gets routed around. | Tiering (§5.6), with the fast lane gated on precedent rather than agent opinion. |
 | **Fabric auth / no offline** | Defined token-expiry behaviour (M1); read-only cached degradation (M5); nothing unrecoverable, since history and frozen snapshots also live in git. |
 | **Corpus rot** — records drifting from the code they describe. | Commit pins on evidence, `data-divergence` anchors in markup, orphan detection in CI. |
-| **Breaking the working tool mid-flight** | M1–M4 do not touch `limbo-factory/`; the read path swaps only in M5, after the DB path is proven equivalent. |
+| **Breaking the working tool mid-flight** | M1–M4 do not touch `sandbox/`; the read path swaps only in M5, after the DB path is proven equivalent. |
 | **The reviewer agent fabricating a verdict** | Reviews must cite evidence by id, and the gate validates that the cited rows support the verdict. |

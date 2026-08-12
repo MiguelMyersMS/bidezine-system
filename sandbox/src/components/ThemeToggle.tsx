@@ -3,7 +3,7 @@ import { Button, MoonIcon, SunIcon } from "@bidezine/system"
 
 type Mode = "light" | "dark"
 
-const MODE_KEY = "limbo-factory-mode"
+const MODE_KEY = "sandbox-mode"
 
 function readMode(): Mode {
   if (typeof window === "undefined") return "light"

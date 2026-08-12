@@ -31,7 +31,9 @@ which cannot be fixed from here.
 
 ### Active task
 
-_None. Sandbox Milestones 1–4 are complete and verified against the real database._
+**Sandbox Milestone 5 — in progress.** M1–M4 are complete and verified. The M5 rename has landed
+(`limbo-factory/` → `sandbox/`, `limbo/` → `origin/`, `LIMBO-PROTOCOL-LOG.md` →
+`SANDBOX-PROTOCOL-LOG.md`); the app work itself has not started. See "What's next".
 
 ### What's done (current state — not a history)
 
@@ -86,19 +88,34 @@ local, **gitignored** `.env`. Playwright installs here need `PLAYWRIGHT_SKIP_BRO
 corporate filtering blocks the browser CDN, though npm itself is reachable and Chromium is already
 at the repo root.
 
-- **Rail Sidebar / `limbo-factory/` is still frozen until M5.** M4 only READ that file. Do not
-  modify it, and do not begin the Limbo → Sandbox rename before M5.
+- **M5 rename landed.** `limbo-factory/` → `sandbox/`, `limbo/` → `origin/`, `LIMBO-PROTOCOL-LOG.md`
+  → `SANDBOX-PROTOCOL-LOG.md`. Every move was 100% similarity — **no file contents were altered**.
+  Paths and forward-looking prose were updated; **historical entries were not**. The protocol log and
+  `sandbox/src/data/rail-sidebar.ts` still say "limbo" deliberately: those are append-only records of
+  what was true when written, and that data file is additionally stored verbatim in
+  `origin_record`, so editing it would break the byte-identical guarantee `verify-import` checks
+  (re-run after the rename: still 8/8). `sandbox/` builds clean.
+- **Blair's own HANDOFF.md section still references `limbo-factory/`.** Left alone deliberately —
+  only Laptop B may edit that section. Blair should update it when convenient; nothing is broken by
+  it, the paths are simply stale.
+- **The dev server command changed**: `npm --prefix sandbox run dev` (port 4199, unchanged).
 
 ### What's next
 
-**Sandbox Milestone 5 — the Sandbox app** (`SANDBOX-SPEC.md` §6). `limbo-factory/` → `sandbox/`,
-generalised from one hard-coded occupant to N components read from the database. Origin pane in a
-quarantined iframe with a lint rule failing the build on any import crossing that boundary;
-translation pane alongside it; divergence list with click-to-highlight via `data-divergence`, and
-live interaction — hover, press, resize — so a decision can be checked by pointing rather than by
-reading code. Done when clicking a divergence highlights the exact region in the live component, and
-origin material provably cannot reach the translation pane. Delete `rail-sidebar.ts` only after the
-database path returns equivalent content.
+**Sandbox Milestone 5, remaining work** (`SANDBOX-SPEC.md` §6). The rename is done; the app is not.
+
+1. **Origin quarantine — do this first, it is a live contamination path, not a hypothetical.**
+   `sandbox/src/components/FullRailPreview.tsx` currently does
+   `import { OriginRailNavLiveAuto } from "@/reference/origin-design-system/OriginRailNavLive"` —
+   origin source compiled straight into the app's own bundle, one import from everything. It has to
+   move out of `sandbox/src/` into `origin/`, render in an isolated iframe rather than as a React
+   subtree, and be backed by a lint rule that **fails the build** on any import crossing that
+   boundary. Verify by deliberately adding a crossing import and watching the build fail.
+2. **Generalise from one hard-coded occupant to N components read from the database.**
+3. **Divergence list with click-to-highlight** via `data-divergence`, plus live interaction — hover,
+   press, resize — so a decision can be checked by pointing rather than by reading code.
+4. Delete `sandbox/src/data/rail-sidebar.ts` **only** once the database path returns equivalent
+   content, and re-point `db/import-rail-sidebar.mjs` / `db/verify-import.mjs` or retire them.
 
 **Worth doing early in M5:** the 154 imported rows have no `anchor_id`/`anchor_file`, so the
 verifier has nothing to measure for any of them. Anchors have to be added to the real markup before

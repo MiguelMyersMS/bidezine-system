@@ -24,7 +24,7 @@ import { pathToFileURL } from "node:url"
 import esbuild from "esbuild"
 import { REPO_ROOT, connect, sql } from "../verifier/lib/db.mjs"
 
-const SOURCE = join(REPO_ROOT, "limbo-factory", "src", "data", "rail-sidebar.ts")
+const SOURCE = join(REPO_ROOT, "sandbox", "src", "data", "rail-sidebar.ts")
 const SLUG = "rail-sidebar"
 
 const results = []

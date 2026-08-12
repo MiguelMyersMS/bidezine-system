@@ -31,7 +31,7 @@ session reading a stale or partial transcript has previously caused already-fixe
 reverted or re-derived incorrectly. `HANDOFF.md` replaces "paste the old chat" with "read one small,
 always-current file, then verify it against the real repo."
 
-**The one rule: `HANDOFF.md` is a snapshot of current truth, never a log.** Unlike `LIMBO-PROTOCOL-LOG.md`
+**The one rule: `HANDOFF.md` is a snapshot of current truth, never a log.** Unlike `SANDBOX-PROTOCOL-LOG.md`
 or the divergence logs in `rail-sidebar.ts` (which are deliberately append-only historical records —
 never delete or rewrite an old entry there), `HANDOFF.md` holds no history at all. Every session that
 touches it must **overwrite** the relevant section in place, not add a new dated entry underneath the old
@@ -59,7 +59,7 @@ merges them automatically instead of raising a conflict. Keep them.
 3. **When a task is fully finished and there is nothing in progress** — collapse your machine's subsections
    back to their empty/minimal state (see the template below) except its "Baseline," which should point at the final
    commit/tag. Do not leave completed-task detail sitting in "What's done" indefinitely — once it's
-   durably recorded in the real logs (`LIMBO-PROTOCOL-LOG.md`, a divergence log, commit messages), it no
+   durably recorded in the real logs (`SANDBOX-PROTOCOL-LOG.md`, a divergence log, commit messages), it no
    longer needs to live in `HANDOFF.md` too. `HANDOFF.md` empty and clean is the correct end state, not a
    failure to document — it means "there is nothing to hand off."
 
@@ -131,8 +131,8 @@ _(the same five subsections; until the machine is set up, this section reads "No
 | `site/` | Showcase site (separate consumer app) deployed to bs.bidezine.systems. Imports `@bidezine/system` like any real consumer — never reaches into `src/` or `reference/` directly. |
 | `icons/manifest.json` | Icon authoring source — every symbol name mapped to a Fluent slug (or a `custom` derived SVG). **The only place icon mappings are authored.** |
 | `scripts/build-icons.mjs` | Emits `src/icons/generated.tsx` from the manifest. Generated and gitignored. Fails loudly if a manifest entry doesn't resolve. |
-| `limbo/` | Holding area for components being ported from a foreign design system. Each occupant lives here until it passes the full Limbo protocol and is promoted into `src/ui/`. See `LIMBO-PROTOCOL-LOG.md` for the gate sequence. |
-| `limbo-factory/` | Dedicated local dev environment (port 4199) for the active Limbo transformation. Built entirely from real `@bidezine/system` components. Never merged into `dist/` or shipped to consumers. |
+| `origin/` | **Quarantined source material** — the self-contained copy of whatever foreign system a component is being ported from, one folder per occupant. Read for comparison; **never imported, never shipped, never compiled into any app**. Formerly `limbo/`. |
+| `sandbox/` | Local dev environment (port 4199) for components mid-transformation, built entirely from real `@bidezine/system` components. Never merged into `dist/` or shipped. Formerly `limbo-factory/`. Governed by `docs/SANDBOX-SPEC.md`; `SANDBOX-PROTOCOL-LOG.md` is its append-only history. |
 | `HANDOFF.md` | Live, always-current session state snapshot — NOT a log. Overwritten in place on every update; collapses to an empty template when nothing is in progress. See "Handoff protocol" above for the full rules. |
 
 ## Rules that matter
@@ -143,7 +143,7 @@ look with a raw `<span>`/`<div>`/`<button>` styled with matching Tailwind classe
 approximation *will* drift from the real component's actual recipe (missing flex/centering rules, missing
 focus/aria states, missing disabled handling) in ways that are invisible in code review and only become
 obvious once a human looks at the rendered result. This applies everywhere in this repo, including
-tooling/dev apps like `limbo-factory/` — not just `site/` and `src/ui/` consumers. This is the direct,
+tooling/dev apps like `sandbox/` — not just `site/` and `src/ui/` consumers. This is the direct,
 load-bearing extension of the one design-source rule above: if the one true source is `reference/shadcn-ui/`,
 then every rendered instance of that source must be the real ported component, never a hand re-derivation
 of its styling.
@@ -220,8 +220,8 @@ manifest and run `npm run icons`.
 `ScrollBar` is an **absolutely-positioned overlay** (`position: absolute`, anchored to `Root`'s own edge),
 not a flex sibling that reserves layout space the way a native `overflow-y-auto` scrollbar automatically
 does. Left unaccounted for, this overlay can end up flush against — or overlapping — whatever content or
-container edge sits at that same side. This was discovered and fixed the hard way in the Rail Sidebar Limbo
-transformation (`limbo-factory/`, divergence rows K-3/L-18/L-21/L-22): a scrollbar that "works" (scrolls
+container edge sits at that same side. This was discovered and fixed the hard way in the Rail Sidebar
+transformation (`sandbox/`, divergence rows K-3/L-18/L-21/L-22): a scrollbar that "works" (scrolls
 correctly) is not the same as one that doesn't collide with anything next to it.
 
 **Whenever `ScrollArea` is composed inside a padded container, use two layers, not one:**
@@ -270,7 +270,7 @@ correctly) is not the same as one that doesn't collide with anything next to it.
    directly wrap the element needing the hook), split out a small child component so `useScrollAreaOverflow()`
    is called from something that actually renders inside `ScrollArea`'s own children — see `CommandListInner`/
    `ComboboxListInner` in `src/ui/command.tsx`/`combobox.tsx`, or `PanelTreeScrollGutter`/`QuadrantScrollGutter`
-   in `limbo-factory/` for worked examples of this split.
+   in `sandbox/` for worked examples of this split.
 
 **Both relationships need their own explicit measurement** (`getBoundingClientRect` on the real, rendered
 DOM, scrollbar actually visible via a genuine scroll interaction — not assumed from a screenshot): the gap
@@ -298,7 +298,7 @@ the viewport's real `clientWidth`, and the excess is invisibly clipped by the vi
 `overflowX: hidden` — with no ellipsis and no horizontal scrollbar — which can additionally land a trailing
 element's edge directly under/behind the vertical scrollbar's track. This was found and confirmed via live
 `getBoundingClientRect`/`scrollWidth`/`clientWidth` measurement (not assumed), reproducing a real reported
-bug (Rail Sidebar panel-tree rows, `L-50` in `limbo-factory/src/data/rail-sidebar.ts`) pixel-for-pixel.
+bug (Rail Sidebar panel-tree rows, `L-50` in `sandbox/src/data/rail-sidebar.ts`) pixel-for-pixel.
 **Fixed permanently at the primitive level**: `ScrollAreaPrimitive.Viewport`'s className in
 `src/ui/scroll-area.tsx` carries `[&>div]:!block`, forcing that Radix-generated wrapper div to `display:
 block !important` (Tailwind's `!` prefix compiles to `!important`, which — per the CSS cascade — DOES
@@ -376,9 +376,9 @@ fixed-height `ScrollArea` demo (`h-72`) to confirm no regression there.
 A value can compute correctly and still not appear. Check the rendered result, not just the property.
 This has caught more real defects here than any amount of reading.
 
-## Sandbox/Limbo fidelity — preventing contamination before promotion
+## Sandbox fidelity — preventing contamination before promotion
 
-A component built in a sandbox (`limbo-factory/`, or any future Limbo occupant) can look completely correct
+A component built in a sandbox (`sandbox/`, or any future Sandbox occupant) can look completely correct
 through an entire review pass and still silently diverge from the real primitives, tokens, and behavior it
 claims to use — the Rail Sidebar transformation hit the same handful of failure classes repeatedly, each one
 invisible to a normal code read or a quick visual glance. Treat every check below as mandatory for **any**
@@ -433,14 +433,14 @@ sandbox component before it's considered ready to promote — not a one-off list
   computed style/screenshots before signing off on any text-bearing element's overflow behavior.
 
 Whenever a new failure class like these is found, add it here directly (not only to a component's own
-temporary working log) so it protects every future Limbo occupant, not just the one that exposed it.
+temporary working log) so it protects every future Sandbox occupant, not just the one that exposed it.
 
 ## Primitive Fidelity Checklist — mandatory, run proactively, not on request
 
 Every failure class documented above was caught the same way: a human looked at the rendered result and
 noticed something was off, then an AI investigation traced it back afterward. Not one was caught by the AI
 running its own systematic check *before* presenting work as finished — including the formal "Independent
-Audit" gate the Limbo protocol itself defines, which sat un-run for the component's entire Build phase while
+Audit" gate the Sandbox protocol itself defines, which sat un-run for the component's entire Build phase while
 over a dozen of these bugs accumulated underneath it. Reactive verification (checking only what a human
 happens to ask about) cannot reach zero; only an exhaustive, repeatable procedure run on every primitive
 usage can. This checklist exists to make that procedure concrete instead of aspirational.

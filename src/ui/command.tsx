@@ -66,7 +66,7 @@ function CommandDialog({
 /**
  * Deliberate divergence from shadcn's own real source (which renders `SearchIcon` +
  * `CommandPrimitive.Input` only) — a clear (X) button is added, per the approved A-6/L-5 plan
- * (validated first in `limbo-factory`'s `SearchClearButtonLab`). cmdk's own internal `search` store
+ * (validated first in `sandbox`'s `SearchClearButtonLab`). cmdk's own internal `search` store
  * value is kept in sync in BOTH controlled and uncontrolled modes (cmdk's `Input` implementation
  * pushes a controlled `value` prop into its internal store via an effect), so reading it via
  * `useCommandState` correctly reflects the input's real current text either way — this avoids

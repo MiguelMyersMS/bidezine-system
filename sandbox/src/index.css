@@ -12,7 +12,7 @@
  * ships the collapsible-down/-up keyframes used by FunctionalRailSidebar.tsx's group-node
  * expand/collapse animation. The root package already imports this in src/styles/system.css,
  * but that CSS is pre-compiled into the static dist/system.css bundle above, so its Tailwind
- * @theme keys never reach THIS app's own separate Tailwind build (limbo-factory runs its own
+ * @theme keys never reach THIS app's own separate Tailwind build (sandbox runs its own
  * @tailwindcss/vite pass over its own source). Without this import, animate-collapsible-down/
  * -up would be dead class names here — present in the DOM, matching no real CSS rule.
  */

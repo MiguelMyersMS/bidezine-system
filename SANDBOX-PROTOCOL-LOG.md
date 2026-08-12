@@ -1,4 +1,11 @@
-# Limbo Transformation Protocol — Working Log
+# Sandbox Transformation Protocol — Working Log
+
+> **RENAMED, NOT REWRITTEN.** This file was `LIMBO-PROTOCOL-LOG.md`; `limbo-factory/` is now `sandbox/`
+> and `limbo/` is now `origin/` (Sandbox Milestone 5, see `docs/SANDBOX-SPEC.md`). Only this title and
+> this note changed. **Every entry below still says "limbo" and still names the old paths, deliberately.**
+> They are append-only records of what was true when each was written, and a find-and-replace through
+> them would be exactly the history-rewriting `CLAUDE.md` forbids. Read an old path as its renamed
+> equivalent; do not correct it.
 
 > **TEMPORARY FILE.** Created for the first Limbo transformation (Rail Sidebar) to design and stress-test
 > the protocol below in real conditions. Once Rail Sidebar successfully ships into the bidezine system and
