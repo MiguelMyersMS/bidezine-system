@@ -21,7 +21,7 @@
 
 ## Laptop A (main)
 
-**Baseline** — branch `main`, last verified commit `7c97df6`, working tree clean, in sync with
+**Baseline** — branch `main`, last verified commit `6b8cae9`, working tree clean, in sync with
 `origin/main`. Verify this yourself (`git log --oneline -1`, `git status`) before trusting anything
 below it.
 
@@ -156,10 +156,10 @@ alias, compiled into the app's bundle. The old `OriginRailNavLive.tsx` mounted i
 **Sandbox Milestone 5, remaining work** (`SANDBOX-SPEC.md` §6). The rename and the origin quarantine
 are done; the rest of the app is not.
 
-0. **Get an independent review on F-2/F-3/F-7/L-34.** They are measured and have passing evidence;
-   the gate lists only `review.present` as unmet. The reviewer must not be whoever built them — the
-   database enforces this, it is not a convention. This is the first time any row has been in a
-   position to complete the full cycle.
+0. **Second review round, against the fixed code.** Round one ran, found two real failures, and both
+   are fixed — but the reviewers examined the pre-fix code, so no verdict has been submitted to the
+   corpus. A fresh review of the current commit is what unblocks `review.present`. The reviewer must
+   not be the builder; the database enforces that, it is not a convention.
 1. ~~Origin quarantine~~ — **done and verified.** See "What's done" above.
 2. **Generalise from one hard-coded occupant to N components read from the database.** Note that the
    quarantine now sets the shape for this: each occupant gets `origin/<component>/app/`, its own
@@ -172,42 +172,78 @@ are done; the rest of the app is not.
 4. Delete `sandbox/src/data/rail-sidebar.ts` **only** once the database path returns equivalent
    content, and re-point `db/import-rail-sidebar.mjs` / `db/verify-import.mjs` or retire them.
 
-**First real divergences anchored and measured — the machinery has now been used, not just proven.**
-Before this, nothing connected the corpus to the code: zero `data-divergence` attributes anywhere in
-`src/`, `site/src/` or `sandbox/src/`; `verifier/checks/` held only `__verifier_test__`; and the gate
-for any real row returned `evidence: []`, `reviews: []`. Four rows are now anchored and measured,
-each expectation taken from the recorded decision rather than from measuring the component and
-writing down whatever it said:
+**The full loop has now run once: anchor → measure → independent review → fix → re-measure.** Four
+adversarial reviewers ran against the first four measured rows. **Two passed, two failed, and both
+failures were real** — re-verified independently before being accepted, since an agent's report is a
+lead to re-check, not a verdict.
 
-| Row | Decision | Check |
-|---|---|---|
-| F-2 | `railButton` = 38×38 | `box`, rest + hover |
-| F-3 | `PANEL_DEFAULT_WIDTH` = 256 | `box` |
-| F-7 | `FOOTER_MAX_HEIGHT` = 122px + `overflow: hidden` | `computed-style` |
-| L-34 | active-path label `line-height` 20px on 14px font, truncation intact | `computed-style` + screenshot |
+- **F-7 — FAIL, confirmed, now fixed.** The fix that closed F-7's own documented-but-never-implemented
+  gap had itself introduced two defects, and the check certified them as fine because it asserted
+  property values at one viewport. (1) The shipped 2-item footer **silently collapsed**: `overflow:
+  hidden` flips a flex item's automatic minimum size to 0 and the column had no `shrink-0` — measured
+  80px at viewport heights 900/560, 46.83px at 380, **0px at 300, both buttons gone, no error**.
+  (2) It **clipped both footer buttons' focus rings** — zero slack left/right on both, against
+  `Button`'s own real `ring-[3px]`. L-31 / checklist item 21 reintroduced verbatim. Fixed per item 21's
+  own prescription (remove the redundant tighter wrapper rather than pad it); re-verified 80px at every
+  height tested and the ring now paints. The spec's `overflow: hidden` justification was mine and was
+  empirically false — replaced, plus a `box` check, since a computed-style check alone **passes on a
+  `display:none` element**.
+- **L-34 — FAIL on the record, not the code.** The row cited a before/after screenshot of *"the 'g' in
+  'Schedules'"*. **"Schedules" contains no descender at all**, so that observation cannot have been
+  made. Checklist item 18's failure class one level up from icon paths: plausible prose that passes
+  typecheck, build and every automated check because nothing verifies prose. It had propagated into
+  three files **including the check spec, which was written by copying the record instead of checking
+  it**. Corrected in all three by appending a `CORRECTION` rather than erasing (rail-sidebar.ts is
+  append-only history); corpus re-imported, `verify-import` back to 8/8 byte-identical.
+- **F-2 — pass**, but its "20px icon" half was unguarded; now covered by a second spec.
+- **F-3 — pass**, viewport-conditional: below ~1180px the card measures 244.98. The runner hard-codes
+  1440×900; the spec now records the dependency it silently relied on.
 
-**6/6 pass, 6 evidence rows written**, pinned to commit `7c97df6`. The gate for these rows now lists
-**only** `review.present` as unmet — `evidence.present` is satisfied. That last requirement cannot be
-met by whoever built them: `ck_review_independent` refuses a review whose author is the builder, at
-the database. **An independent reviewer is the next action on these four rows.**
+**Category F is now 7 of 11 anchored** (F-1, F-2 + F-2-icon, F-3, F-5, F-6, F-7) plus L-34 — **8 anchors,
+14/14 checks passing, 14 evidence rows.** F-5/F-6 are deliberately a *pair*: one row proves a height,
+but only its own child row proves the absence of a shrink-with-depth.
 
-Two structural findings, both from measuring the live DOM rather than reading code — worth knowing
-before anchoring anything else:
+**A real limit of the M2 runner, found by trying to finish the category.** Four rows cannot be anchored
+at all today, and the reason is structural rather than incidental:
+
+- **F-4, F-9, F-11** each assert a **relationship between two elements** (rail-to-panel gap, rail item
+  pitch, footer bottom-anchoring). A check addresses exactly one anchor and `box` returns that one
+  element's rect. There is no way to express "these two are 8px apart" — yet checklist item 4 already
+  requires alignment claims be measured on **both** elements.
+- **F-8** is a drag clamp, only observable by resizing. The state vocabulary is
+  `rest`/`hover`/`active`/`focus`/`focus-visible`/`disabled` — nothing scripts an interaction.
+- **F-10** is a deployment note about the future `src/ui/` component; nothing exists to anchor.
+
+Layout-sizing is the category **most** friendly to mechanical measurement, and the runner reaches
+roughly two thirds of it. **Recommendation: extend M2 with a relational check kind and a scripted
+interaction state before anchoring at scale**, or a large share of the remaining ~150 rows will have
+nowhere to land.
+
+**Reviews are deliberately NOT submitted to the corpus yet.** The reviewers examined the pre-fix code;
+a passing verdict now would cite evidence from a different commit. A second review round against the
+fixed code is the correct next step — that is the loop working, not a blockage.
+
+**Mechanics of anchoring, needed by anyone adding more — each found by measuring, not by reading:**
 
 - **`FunctionalRailSidebar` is mounted twice** (a `dark:hidden` copy and a `hidden dark:block` copy,
   both always in the DOM, one merely `display:none`). A `data-divergence` written straight into the
   markup matches two elements, and the runner fails an ambiguous anchor by design. Anchors are
   therefore opt-in per instance (`anchors` prop → `lib/divergence-anchors.tsx`), enabled on the light
   copy only.
-- **A `useContext` call in the component that RENDERS the provider reads the value above it**, not
-  its own. `FunctionalRailSidebar` renders `DivergenceAnchorProvider` in its own JSX, so the hook
-  there would have read the default `false` and emitted no attributes at all, silently and with no
-  error. It passes its own prop to `anchorAttrs` instead; only descendants use the hook. Both share
-  one implementation so they cannot drift.
-- **Known limit of §5.5, stated rather than implied:** an anchor must resolve to exactly one element,
-  so F-2's evidence proves the first rail button measured 38×38 — not that all 27 did.
-- Note: four evidence rows pinned to `8bd2142` are from an earlier run against a dirty tree; the
-  runner warned correctly, and the `7c97df6` rows supersede them.
+- **A `useContext` call in the component that RENDERS the provider reads the value above it**, not its
+  own — it would silently emit no attributes, with no error. `FunctionalRailSidebar` passes its own
+  prop to `anchorAttrs`; only descendants use the hook. Both share one implementation so they cannot
+  drift.
+- **`spec.anchor` and `spec.divergence` are SEPARATE fields.** Only `divergence` is looked up in the
+  database; the anchor is just a DOM string. So several specs can measure different elements and write
+  evidence to the same row (that is how `F-2-icon` works) — a divergence asserting several things is
+  fully checkable, contrary to what the one-anchor-per-spec shape first suggests.
+- **An anchor must resolve to exactly one element**, so evidence proves that instance, not the class:
+  F-2 proves the first rail button is 38×38, not that all 27 are.
+- **`getComputedStyle().width` reports the BORDER box under `box-sizing: border-box`** (Tailwind sets it
+  globally), not the content box. An F-1 expectation written the other way round produced a failing
+  evidence row — the runner catching a genuinely wrong expectation, which is the property M2 exists to
+  have.
 
 **Two loose ends noticed while doing step 1, neither touched:**
 
