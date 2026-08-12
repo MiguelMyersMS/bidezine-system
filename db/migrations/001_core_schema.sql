@@ -228,6 +228,28 @@ CREATE INDEX ix_divergence_category  ON sandbox.divergence (category, state);
 GO
 
 -- ───────────────────────────────────────────────────────────────────────────────────
+-- source_file — git's answer to "when was this file last touched", inside the database.
+--
+-- The gate has to answer: "is this evidence older than the code it describes?" That is
+-- a git question, and the database cannot see git. Two ways to resolve it: let the
+-- caller compute staleness and pass the answer in, or bring the fact into the database.
+--
+-- The first option means the gate trusts its caller, and a gate that trusts its caller
+-- is not a gate. So CI maintains this table — one row per tracked source file, carrying
+-- the last commit that touched it and when. The gate then compares timestamps itself and
+-- reaches its own verdict.
+--
+-- Written by the migration/admin principal only (CI), never by agents.
+-- ───────────────────────────────────────────────────────────────────────────────────
+CREATE TABLE sandbox.source_file (
+    path                NVARCHAR(400)       NOT NULL CONSTRAINT pk_source_file PRIMARY KEY,
+    last_commit         CHAR(40)            NOT NULL,
+    last_commit_at      DATETIME2(3)        NOT NULL,
+    updated_at          DATETIME2(3)        NOT NULL CONSTRAINT df_source_file_updated DEFAULT SYSUTCDATETIME()
+);
+GO
+
+-- ───────────────────────────────────────────────────────────────────────────────────
 -- evidence — machine-produced, runner-written. THE core table of the whole system.
 --
 -- Spec §3.1/3.2: agents propose and implement but never attest. The `runner_evidence`
@@ -249,9 +271,12 @@ CREATE TABLE sandbox.evidence (
     raw_output          NVARCHAR(MAX)       NOT NULL,
     passed              BIT                 NOT NULL,
 
-    -- Provenance. verified_at_commit is compared against the last commit touching
-    -- anchor_file: evidence older than the code it describes does not satisfy the gate.
+    -- Provenance. verified_at_commit_at is compared against source_file.last_commit_at
+    -- for the divergence's anchor_file: evidence older than the code it describes does
+    -- not satisfy the gate. The timestamp is stored alongside the SHA because SHAs carry
+    -- no ordering — you cannot tell from two hashes which came first.
     verified_at_commit  CHAR(40)            NOT NULL,
+    verified_at_commit_at DATETIME2(3)      NOT NULL,
     run_id              UNIQUEIDENTIFIER    NOT NULL,
     -- sha256 of a screenshot or other artifact, so an agent cannot substitute an image.
     artifact_hash       CHAR(64)            NULL,
