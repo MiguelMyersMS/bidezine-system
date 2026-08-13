@@ -202,69 +202,124 @@ try {
     // was live for a component this machine no longer owned.
     await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")))
 
-    await page.getByRole("tab", { name: "Review queue" }).click()
+    await page.getByRole("tab", { name: "Review", exact: true }).click()
 
-    // The one row whose gate is genuinely open. Every other row would leave the control
-    // disabled by the GATE, which is a different mechanism producing an identical-looking
-    // result — the trap the old version of this check documented and then had to work
-    // around. Picking the ready row means a refusal here can only be about ownership.
+    // Wait for the queue itself, not for a particular row's status — which rows exist in
+    // which state is exactly what changes as work gets done, and a check that only runs
+    // while a specific row happens to be `ready` stops running the moment someone approves
+    // it. That is what happened: F-3 was the only ready row, it got approved, and this
+    // check began failing on a timeout that said nothing about why.
+    await page.locator("[data-review-card]").first().waitFor({ state: "visible", timeout: 45_000 })
+
+    // Then wait for the REFETCH to land, before reading anything about ownership.
+    //
+    // Bound to the page rather than to one row, and placed HERE rather than below the
+    // assertions — both were wrong once. First it waited on the `ready` row's badge, and
+    // once F-3 was approved there was no ready row, so it waited on a locator matching
+    // nothing, timed out into a .catch, and the assertions ran against pre-transfer state.
+    // Then it sat AFTER the very checks it was meant to gate, which is the same bug wearing
+    // a different hat. The ownership badge only renders when a card believes it may not
+    // write, so its appearance is the signal that the new ownership reached the component.
+    await page
+      .getByText(/owned by Laptop/)
+      .first()
+      .waitFor({ state: "visible", timeout: 60_000 })
+      .catch(() => {})
+
     const ready = page.locator('[data-review-card][data-status="ready"]').first()
-    await ready.waitFor({ state: "visible", timeout: 45_000 })
-    const readyRef = await ready.getAttribute("data-review-card")
+    const resolved = page.locator('[data-review-card][data-status="resolved"]').first()
+    const hasReady = (await ready.count()) > 0
+    const hasResolved = (await resolved.count()) > 0
 
-    const approve = ready.locator("[data-approve-switch]")
-    await approve.waitFor({ state: "visible", timeout: 20_000 })
+    // ── the ownership refusal ─────────────────────────────────────────────────────────
+    // Needs a row whose gate is OPEN. On any other row the gate disables the control by
+    // itself, which is a different mechanism producing an identical-looking result — the
+    // trap the previous version of this check documented and then had to work around.
+    if (hasReady) {
+      const readyRef = await ready.getAttribute("data-review-card")
+      const approve = ready.locator("[data-approve-switch]")
+      await approve.waitFor({ state: "visible", timeout: 20_000 })
+      check(
+        (await approve.getAttribute("data-slot")) === "switch",
+        "the approve control is the real Switch primitive, not a lookalike",
+        `data-slot=${await approve.getAttribute("data-slot")}`,
+      )
+      check(
+        await approve.isDisabled(),
+        `Approve is disabled on ${readyRef} while another machine owns the component`,
+        "this row's gate is OPEN, so ownership is the only thing that can be disabling it",
+      )
+      check(
+        /owns this component/.test((await approve.getAttribute("title")) ?? ""),
+        "and the reason it gives is OWNERSHIP, not the evidence gate",
+        (await approve.getAttribute("title"))?.slice(0, 110),
+      )
+    } else {
+      // No ready row today, and skipping outright would drop the only check guarding
+      // `mayWrite`'s deliberate fail-open — precisely when the corpus is healthy enough to
+      // have approved everything ready. So fall back to an OPEN row and assert the part
+      // that still discriminates: `disabled` is necessary but not sufficient (the gate
+      // disables it too), while the TITLE names which mechanism refused. ReviewCard checks
+      // ownership BEFORE the gate when composing that string, so a foreign-owned row says
+      // so whatever its gate is doing — and a payload drift that silently restored
+      // `mayWrite: true` would flip this string back to the gate's wording.
+      const open = page.locator('[data-review-card][data-status="open"]').first()
+      const openRef = await open.getAttribute("data-review-card")
+      const sw = open.locator("[data-approve-switch]")
+      await sw.waitFor({ state: "visible", timeout: 20_000 })
+      check(
+        await sw.isDisabled(),
+        `Approve is disabled on ${openRef} while another machine owns the component`,
+        "necessary but not sufficient — the gate disables it too; the reason below is the real assertion",
+      )
+      check(
+        /owns this component/.test((await sw.getAttribute("title")) ?? ""),
+        "and the reason it gives is OWNERSHIP, not the evidence gate",
+        (await sw.getAttribute("title"))?.slice(0, 110),
+      )
+      console.log(
+        "   note  asserted against an OPEN row: no row currently has a clean gate.\n" +
+          "        A ready row would make `disabled` sufficient on its own; here only the title is.",
+      )
+    }
+
+    const approve = hasReady ? ready.locator("[data-approve-switch]") : resolved.locator("[data-approve-switch]")
 
     // Wait for the refetch to actually LAND, on a real condition rather than a duration —
     // the corpus read is several Fabric round trips, and asserting the instant
     // visibilitychange fired measured the pre-transfer render every time. The ownership
     // badge only exists when the card believes it may not write, so its appearance is the
     // signal that the new ownership reached the component. A timeout here leaves the
-    // checks below to fail and say why, which is the correct outcome if the refetch is
-    // broken — that is the thing under test.
-    await ready
-      .getByText(/owned by/)
-      .waitFor({ state: "visible", timeout: 45_000 })
-      .catch(() => {})
-
     check(
       (await approve.getAttribute("data-slot")) === "switch",
       "the approve control is the real Switch primitive, not a lookalike",
       `data-slot=${await approve.getAttribute("data-slot")}`,
     )
-    check(
-      await approve.isDisabled(),
-      `Approve is disabled on ${readyRef} while another machine owns the component`,
-      "this row's gate is OPEN, so ownership is the only thing that can be disabling it",
-    )
-    check(
-      /owns this component/.test((await approve.getAttribute("title")) ?? ""),
-      "and the reason it gives is OWNERSHIP, not the evidence gate",
-      (await approve.getAttribute("title"))?.slice(0, 110),
-    )
 
-    // Reopen must stay live for the same observer. It is now the OFF direction of the same
-    // switch rather than a separate button, which makes it far easier to lose by accident:
-    // disabling the control wholesale for a foreign component removes approval AND the one
-    // action migration 016 deliberately leaves ungated. That regression was shipped and
-    // caught by re-pointing this very check, so the assertion is kept pointed at a RESOLVED
-    // row, where the off direction is the only thing the switch can do.
-    const resolvedRow = page.locator('[data-review-card][data-status="resolved"]').first()
-    if ((await resolvedRow.count()) > 0) {
+    // ── the observer's voice ──────────────────────────────────────────────────────────
+    // Reopen is now the OFF direction of the same switch rather than a separate button,
+    // which makes it far easier to lose by accident: disabling the control wholesale for a
+    // foreign component removes approval AND the one action migration 016 deliberately
+    // leaves ungated. That regression WAS shipped, and was caught by re-pointing this very
+    // check. It needs a resolved row, because on any other row the off direction is not
+    // what the switch does.
+    if (hasResolved) {
+      const resolvedRef = await resolved.getAttribute("data-review-card")
+      const sw = resolved.locator("[data-approve-switch]")
       check(
-        await resolvedRow.locator("[data-approve-switch]").isEnabled(),
-        "while a RESOLVED row's switch stays ENABLED — an observer can still reopen",
+        await sw.isEnabled(),
+        `a RESOLVED row (${resolvedRef}) stays ENABLED for an observer — reopen is not gated`,
+        "migration 016 gates resolve and promote, never reopen: the machine most likely to spot a defect must not be the only one forbidden from saying so",
+      )
+      check(
+        /reopen/i.test((await sw.getAttribute("title")) ?? ""),
+        "and its tooltip says what turning it off actually does",
+        (await sw.getAttribute("title"))?.slice(0, 110),
       )
     } else {
-      // NOT a check. The corpus currently holds zero resolved divergences, so there is
-      // nothing to assert against — and `check(true, …)` here would add a green line to the
-      // count for an assertion that never ran, which is the shape this file's own header
-      // condemns and which had to be removed from it once already. Printed loudly instead,
-      // so the gap is visible in the output rather than hidden inside a passing total.
       console.log(
         "  SKIP  observer-can-still-reopen: no resolved row exists to test against.\n" +
-          "        The rule lives in ReviewCard's switchDisabled and REVIEW-CARD-SPEC.md §3.7.\n" +
-          "        Re-point this the moment the corpus has its first resolved divergence.",
+          "        The rule lives in ReviewCard's switchDisabled and REVIEW-CARD-SPEC.md §3.7.",
       )
     }
   } finally {

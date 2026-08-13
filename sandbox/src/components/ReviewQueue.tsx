@@ -99,6 +99,9 @@ export function ReviewQueue({
   onSelect,
   onReveal,
   onChanged,
+  decisionSurface,
+  questions,
+  risks,
 }: {
   slug: string
   rows: CorpusDivergence[]
@@ -109,6 +112,25 @@ export function ReviewQueue({
   onSelect: (ref: string) => void
   onReveal: (ref: string) => void
   onChanged: () => void
+  decisionSurface?: (row: CorpusDivergence) => React.ReactNode
+  /**
+   * Open questions and the risk register, which used to be tabs of their own.
+   *
+   * They are rendered here, in the one view, but in their OWN sections rather than in the
+   * buckets — and that separation is honest rather than cosmetic. Bucketing is computed
+   * from the gate, and neither of these is in the corpus, so neither has a gate, a
+   * checklist, or an approval that means anything. Dropping them into "Waiting on you"
+   * would make four things that look identical to a gated row but are not.
+   *
+   * Why they are not simply imported as divergences: they do not fit. A question carries
+   * enumerated `options` with one chosen; a risk carries `actionItems` with done flags and
+   * cross-references to divergence ids. `divergence` has neither shape, so an import would
+   * flatten both into prose — losing exactly what makes them useful, and violating M4's
+   * own rule that an import is lossless or it is not done. Giving them a real home is a
+   * schema question for the milestone owner, not something to force here.
+   */
+  questions?: React.ReactNode
+  risks?: React.ReactNode
 }) {
   const [category, setCategory] = useState<string>("all")
 
@@ -154,6 +176,21 @@ export function ReviewQueue({
         </Select>
       </div>
 
+      {/* First, because a blocking question blocks work: it is the thing most likely to be
+          genuinely waiting on you, even though it has no gate to say so. */}
+      {questions && (
+        <section className="flex flex-col gap-2" data-section="questions">
+          <Separator />
+          <h3 className="text-sm font-medium">Open questions</h3>
+          <p className="text-xs text-muted-foreground">
+            Decisions that block work. Not in the corpus — so no checklist, no gate, and no approval
+            record. They carry enumerated options with one chosen, which <code>divergence</code> has no
+            shape for; giving them a real home is a schema decision, not a UI one.
+          </p>
+          {questions}
+        </section>
+      )}
+
       {buckets.map((bucket) => (
         <section key={bucket.id} className="flex flex-col gap-2" data-bucket={bucket.id}>
           <Separator />
@@ -190,11 +227,28 @@ export function ReviewQueue({
                 onSelect={() => onSelect(row.ref)}
                 onReveal={() => onReveal(row.ref)}
                 onChanged={onChanged}
+                decisionSurface={decisionSurface}
               />
             ))
           )}
         </section>
       ))}
+
+      {/* Last, because a risk is a standing concern rather than a queued decision. Same
+          caveat as the questions: no gate, and `actionItems` with cross-references is not a
+          shape `divergence` has either. */}
+      {risks && (
+        <section className="flex flex-col gap-2" data-section="risks">
+          <Separator />
+          <h3 className="text-sm font-medium">Risk register</h3>
+          <p className="text-xs text-muted-foreground">
+            Standing concerns and their action items. Not in the corpus, so nothing here is gated —
+            and not every one is a divergence: some are process gaps about the component's own audit
+            state rather than something that differs.
+          </p>
+          {risks}
+        </section>
+      )}
     </div>
   )
 }

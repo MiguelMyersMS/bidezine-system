@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Badge,
   Button,
@@ -171,6 +171,7 @@ export function ReviewCard({
   onSelect,
   onReveal,
   onChanged,
+  decisionSurface,
 }: {
   slug: string
   row: CorpusDivergence
@@ -181,14 +182,39 @@ export function ReviewCard({
   onSelect: () => void
   onReveal: () => void
   onChanged: () => void
+  /**
+   * The tool you decide THIS row with, chosen by its category — the colour lab for a
+   * `color` row, the type lab for a `typography` one.
+   *
+   * Injected rather than imported, because the labs operate on per-occupant data
+   * (`proposedDarkRailTokens` is Rail Sidebar's, not every component's) and this card has
+   * to stay generic — it is the shell's own piece, not the occupant's. Same reason
+   * `PREVIEW_REGISTRY` is injected rather than imported here.
+   *
+   * These were separate tabs. A tab meant deciding a colour on one screen and recording
+   * the decision on another, correlating the two by hand — the same defect as the old
+   * evidence panel replacing the preview, one level up.
+   */
+  decisionSurface?: (row: CorpusDivergence) => React.ReactNode
 }) {
   const [open, setOpen] = useState(false)
+  const [surfaceOpen, setSurfaceOpen] = useState(false)
+  const [sourceOpen, setSourceOpen] = useState(false)
   const [expandedPrompt, setExpandedPrompt] = useState(false)
   const [reopening, setReopening] = useState(false)
   const [reason, setReason] = useState("")
   const [requirement, setRequirement] = useState(REQUIREMENT_CHOICES[0].slug)
   const [busy, setBusy] = useState(false)
+  const [pendingState, setPendingState] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+
+  // Clears once the refetched row reports the state the write was aiming at, which is what
+  // re-enables the control. Also clears if the row arrives in some OTHER state — another
+  // machine got there first, and continuing to block would be waiting for something that
+  // is never coming.
+  useEffect(() => {
+    if (pendingState && row.state === pendingState) setPendingState(null)
+  }, [row.state, pendingState])
 
   const checklist = buildChecklist(row)
   const cut = firstIncomplete(checklist)
@@ -212,6 +238,7 @@ export function ReviewCard({
   // hits its own 400-character cap, so it is clamped rather than trusted to be short.
   const label = row.reviewLabel ?? row.title
   const prompt = row.reviewPrompt ?? row.detail ?? ""
+  const surface = decisionSurface?.(row)
 
   // Two independent reasons approval cannot happen, and they are not the same refusal:
   // a closed gate says "come back when the evidence is there"; foreign ownership says
@@ -231,11 +258,25 @@ export function ReviewCard({
    * to keep. Found while re-pointing verify-machines-ui.mjs, whose "Reopen stays ENABLED"
    * assertion existed for precisely this and had nothing left to bind to.
    */
-  const switchDisabled = busy || (!resolved && (!ready || blockedByOwnership))
+  const switchDisabled = busy || pendingState !== null || (!resolved && (!ready || blockedByOwnership))
   const ownershipReason = !thisMachine
     ? "This Sandbox has no MACHINE_NAME set, so the database refuses any write that would have to name a machine."
     : `${owner} owns this component. Approving it is refused by the database, not by this control.`
 
+  /**
+   * Stays true from a successful write until the row actually comes back changed.
+   *
+   * `busy` alone is not enough, and F-3 proved it: it carries TWO approval rows four
+   * seconds apart, both against the same commit. `busy` clears when the POST returns, but
+   * the corpus refetch that POST triggers takes several more seconds — so the switch
+   * re-enabled while still rendering `checked={resolved}` from the PRE-write corpus, and a
+   * second deliberate click approved an already-resolved divergence. `usp_resolve_divergence`
+   * accepted it, because nothing refuses re-approving a resolved row.
+   *
+   * Binding `checked` to server truth (§3.7) prevented a LIE about the state; it did not
+   * prevent acting on a state that had not caught up. Those are different problems and the
+   * second one needed its own answer.
+   */
   async function post(verb: "approve" | "reopen", body: object) {
     setBusy(true)
     setMessage(null)
@@ -250,6 +291,9 @@ export function ReviewCard({
       if (!out.error) {
         setReopening(false)
         setReason("")
+        // The state this write is expected to produce. The control stays disabled until the
+        // refetched row actually says so — not until the request came back.
+        setPendingState(verb === "approve" ? "resolved" : "reopened")
       }
       // Always refetch, even on refusal: the refusal may itself be the news (the gate
       // closed underneath this card while it was on screen).
@@ -413,6 +457,58 @@ export function ReviewCard({
             </ul>
           </CollapsibleContent>
         </Collapsible>
+
+        {/* The decision surface for this row's category, and the record it was imported
+            from. Both collapsed by default: they are what you open when you are actually
+            deciding, not what you scan. */}
+        {surface && (
+          <Collapsible open={surfaceOpen} onOpenChange={setSurfaceOpen}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-full justify-between px-2 text-xs font-normal"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span className="flex items-center gap-1">
+                  <ChevronDownIcon className={cn("size-3.5 transition-transform", surfaceOpen && "rotate-180")} />
+                  Decide this {row.category}
+                </span>
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="pt-2" onClick={(e) => e.stopPropagation()}>
+                {surface}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
+        {row.originRecord && (
+          <Collapsible open={sourceOpen} onOpenChange={setSourceOpen}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-full justify-between px-2 text-xs font-normal"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span className="flex items-center gap-1">
+                  <ChevronDownIcon className={cn("size-3.5 transition-transform", sourceOpen && "rotate-180")} />
+                  Imported record
+                </span>
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              {/* Verbatim, exactly as M4 stored it. This was its own tab, which meant
+                  reading a row here and finding its source there. It is reference material
+                  for one row, so it belongs on that row. */}
+              <pre className="mt-2 max-h-60 overflow-auto rounded-sm bg-muted/40 p-2 text-[10px] whitespace-pre-wrap">
+                {JSON.stringify(row.originRecord, null, 1)}
+              </pre>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
 
         {message && <p className="rounded-md bg-destructive/10 p-2 text-[11px]">{message}</p>}
 

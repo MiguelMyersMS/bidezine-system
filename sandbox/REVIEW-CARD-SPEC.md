@@ -244,6 +244,48 @@ All ceremony is on OFF, where the action is rare and permanent. ON is one delibe
 
 ---
 
+## 3.8 Two tabs, not seven
+
+The app had seven tabs. **Four of them read hardcoded per-occupant arrays** out of
+`sandbox/src/data/rail-sidebar.ts` while three read the corpus — so the bar was two systems side by
+side pretending to be one, and component #2 would have arrived to four tabs that were empty or wrong.
+Worse, deciding a colour happened on one screen and recording that decision on another, correlated by
+hand: the same defect as the evidence panel replacing the preview, one level up.
+
+**Review** is everything about this component that needs a human. **Machines** is the workspace — the
+only view that genuinely is not about a component, and a different altitude.
+
+Where the four went:
+
+| Was | Now |
+|---|---|
+| Source records | A per-card **Imported record** disclosure, rendering `origin_record` verbatim. Safe to move: `check-corpus-equivalence.mjs` imports `getCorpus` directly and never reads the DOM — **verified before deleting**, because if it had read the rendered view this would have silently removed half of a 154/154 check. |
+| Color token lab | A per-card decision surface, shown on `color` rows. |
+| Typography lab | The same, on `typography` rows. |
+| Blocking questions · Notable risks | Their own sections inside Review, above and below the buckets. |
+
+**The labs are keyed by `category` exactly as the reveal renderers are keyed by `property_type`** —
+the same architecture, already proven. The colour lab still shows the component's *whole* candidate
+set rather than the row's own, because **no divergence-to-token relation exists**: `divergence_property`
+records which CSS properties a row concerns and nothing records which proposed tokens it concerns. It
+is labelled as component-wide rather than quietly implying otherwise. Adding that relation is the
+obvious next migration.
+
+**Questions and risks are NOT in the buckets, and that separation is honest rather than cosmetic.**
+Bucketing is computed from the gate; neither of these is in the corpus, so neither has a gate, a
+checklist, or an approval that means anything. Putting them in "Waiting on you" would create things
+that look identical to a gated row and are not.
+
+**Why they were not simply imported as divergences — a correction to an earlier plan.** They do not
+fit. A question carries enumerated `options` with one chosen; a risk carries `actionItems` with done
+flags and cross-references to divergence ids. `divergence` has neither shape, so an import would
+flatten both into prose — losing exactly what makes them useful, and breaking M4's own rule that an
+import is lossless or it is not done. Some risks are not divergences at all: `R-5b` (a token-collision
+check deferred to promotion) is one, but `R-3c`/`R-11c` ("no dedicated Independent Audit agent has run
+against the whole component") is a **process gap about the component's own state machine**, and forcing
+it into a `divergence` row would pollute the corpus that M9's ranking depends on. Giving them a real
+home is a schema question for the milestone owner.
+
 ## 4. The list — three buckets, not thirteen categories
 
 Category accordions answer *"what kind of thing is this?"*. With 147 of 154 rows not started, the

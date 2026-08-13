@@ -103,11 +103,34 @@ correct in source:
 `verify-import` 9/9, `check-corpus-equivalence` 154/154, `check-declarations` 5/5, `check-rules` 0
 violations, clean production build.
 
-**Known, deliberate gaps:** `verify-machines-ui.mjs` prints `SKIP` for the observer-reopen assertion
-because the corpus holds zero resolved divergences — re-point it the moment the first one lands, and do
-not replace it with a `check(true, …)`. `color`, `time` and `layer` renderers are unbuilt because those
-property types have zero declared rows. `review_label`/`review_prompt` are empty on all 154 rows; the
-card falls back to `title`/`detail`, and backfill remains scoped to the live rows only.
+**Seven tabs became two — `Review` and `Machines`.** Four of the seven read hardcoded per-occupant
+arrays from `sandbox/src/data/rail-sidebar.ts` while three read the corpus, so component #2 would have
+arrived to four tabs that were empty or wrong. Source records is now a per-card **Imported record**
+disclosure; the colour and typography labs are per-card decision surfaces keyed by `category`, the same
+way the reveal renderers are keyed by `property_type`; blocking questions and risks are sections inside
+Review, deliberately OUTSIDE the buckets because neither is in the corpus and neither has a gate.
+
+**Do not "finish the job" by importing questions and risks as divergences.** An earlier plan said to,
+and it was wrong: a question carries enumerated `options` with one chosen, a risk carries `actionItems`
+with done flags and cross-references, and `divergence` has neither shape — an import would flatten both
+into prose and break M4's own lossless rule. Some risks are not divergences at all (`R-3c`/`R-11c` are
+process gaps about the component's audit state). Giving them a real home is a schema question, not a UI
+one. Full reasoning in `REVIEW-CARD-SPEC.md` §3.8.
+
+**F-3 is resolved, and it carries TWO approval rows four seconds apart.** Both at commit `58d1c8a`,
+both `human:Laptop A`. Cause: `busy` cleared when the POST returned, but the corpus refetch it triggers
+takes seconds longer — so the switch re-enabled while still rendering the pre-write state, and a second
+click approved an already-resolved row. `usp_resolve_divergence` accepted it; **nothing in the database
+refuses re-approving a resolved divergence**, which is worth a decision of its own. The UI side is
+fixed (the control now stays disabled until the refetched row reports the state the write was aiming
+at). The duplicate approval row is still there.
+
+**Known, deliberate gaps:** `color`, `time` and `layer` renderers are unbuilt because those property
+types have zero declared rows. `review_label`/`review_prompt` are empty on all 154 rows; the card falls
+back to `title`/`detail`, and backfill remains scoped to the live rows only. No divergence-to-token
+relation exists, so the colour lab shows the component's whole candidate set and says so. When no row
+has a clean gate, `verify-machines-ui` asserts ownership against an OPEN row and prints a `note` saying
+`disabled` alone is not sufficient there — the title is the real assertion.
 
 **Three agents are working this machine concurrently — stay in your lane:**
 

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import {
   Badge,
   ScrollArea,
@@ -18,16 +18,16 @@ import {
   useScrollAreaOverflow,
 } from "@bidezine/system"
 import { PhaseRail } from "@/components/PhaseRail"
-import { BlockingQuestionCard, DivergenceCategoriesAccordion, RisksList } from "@/components/DivergenceView"
+import { BlockingQuestionCard, RisksList } from "@/components/DivergenceView"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { ColorTokenLab } from "@/components/ColorTokenLab"
 import { TypographyLab } from "@/components/TypographyLab"
 import { LogoImportSlot } from "@/components/LogoImportSlot"
-import { DivergenceHighlight, useAnchoredRefs } from "@/components/DivergenceHighlight"
+import { DivergenceHighlight } from "@/components/DivergenceHighlight"
 import { NoPreviewRegistered, PREVIEW_REGISTRY, hasPreview } from "@/components/PreviewRegistry"
 import { MachineSwitcher } from "@/components/MachineSwitcher"
 import { ReviewQueue } from "@/components/ReviewQueue"
-import { toCategories, useCorpus, type CorpusComponent, type CorpusDivergence } from "@/data/corpus"
+import { useCorpus, type CorpusComponent, type CorpusDivergence } from "@/data/corpus"
 import { NEGATIVE_BADGE, POSITIVE_BADGE } from "@/lib/status-colors"
 import {
   railSidebarPhases,
@@ -350,11 +350,12 @@ function HumanDecisionsPhase({
 }) {
   const [railSource, setRailSource] = useState<"origin" | "bidezine">("bidezine")
 
-  // Divergences now come from the corpus. The categories are rebuilt from each row's
-  // verbatim source record, so this renders exactly what the hand-written data file
-  // rendered — which is also what `scripts/check-corpus-equivalence.mjs` proves, and what
-  // step 4 needs before that file can be deleted.
-  const categories = useMemo(() => toCategories(rows), [rows])
+  // `toCategories` is no longer called here. It still exists and is still exercised — by
+  // `scripts/check-corpus-equivalence.mjs`, which imports `getCorpus` directly and diffs
+  // the result against the frozen snapshot. That check reads the API, never the DOM, so
+  // removing the accordion that used to render it costs the check nothing. Verified before
+  // deleting, because if it HAD read the rendered view, this would have silently removed
+  // half of a 154/154 check.
 
   /**
    * The preview is the one genuinely per-occupant piece; everything above is data.
@@ -379,7 +380,40 @@ function HumanDecisionsPhase({
   // are siblings in QuadrantLayout — the overlay has to be mounted outside the scrolling left
   // column to sit above the rail on the right.
   const [activeRef, setActiveRef] = useState<string | null>(null)
-  const anchoredRefs = useAnchoredRefs()
+  /**
+   * The tool you decide a row with, chosen by its category.
+   *
+   * The colour and typography labs were each a tab of their own, which meant deciding a
+   * value on one screen and recording the decision on another, correlating the two by
+   * hand. They are the same thing as the reveal renderers one level up — a surface keyed
+   * by what the row is about — so they are keyed the same way.
+   *
+   * The colour lab still shows the component's WHOLE candidate set rather than this row's
+   * own, because no divergence-to-token relation exists: `divergence_property` says which
+   * CSS properties a row concerns, and nothing says which proposed tokens it concerns.
+   * Labelled as component-wide rather than quietly implying otherwise. Adding that
+   * relation is the obvious next migration and is noted in REVIEW-CARD-SPEC.md.
+   */
+  const decisionSurface = (row: CorpusDivergence) => {
+    if (row.category === "color") {
+      const approved = proposedDarkRailTokens.filter((t) => t.approved !== false).length
+      const pending = proposedDarkRailTokens.length - approved
+      return (
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge className={POSITIVE_BADGE}>{approved} approved</Badge>
+            {pending > 0 ? <Badge className={NEGATIVE_BADGE}>{pending} needs decision</Badge> : null}
+            <span className="text-xs text-muted-foreground">
+              Candidates for the whole component, not just this row — see the note in the source.
+            </span>
+          </div>
+          <ColorTokenLab tokens={proposedDarkRailTokens} />
+        </div>
+      )
+    }
+    if (row.category === "typography") return <TypographyLab />
+    return null
+  }
 
   // The origin pane is a quarantined iframe in its own document, so nothing here can reach inside
   // it to measure an anchor — and it carries none by design, being reference material rather than
@@ -404,13 +438,17 @@ function HumanDecisionsPhase({
       className="grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden"
     >
       <div className="-mx-[10px] -mt-[10px] mb-[10px] flex items-center justify-between gap-4 border-b px-6 py-4">
+        {/* Two tabs, not seven. The old bar mixed two altitudes and two data sources: four
+            tabs read hardcoded per-occupant arrays while three read the corpus, so
+            component #2 would have arrived to four tabs that were empty or wrong. Worse,
+            deciding a colour happened on one screen and recording the decision on another,
+            correlated by hand.
+
+            Review is everything about THIS component that needs a human. Machines is the
+            workspace — a different altitude, and the only thing that genuinely is not about
+            a component. */}
         <TabsList>
-          <TabsTrigger value="blocking">Blocking questions</TabsTrigger>
-          <TabsTrigger value="colorlab">Color token lab</TabsTrigger>
-          <TabsTrigger value="typelab">Typography lab</TabsTrigger>
-          <TabsTrigger value="categories">Review queue</TabsTrigger>
-          <TabsTrigger value="source">Source records</TabsTrigger>
-          <TabsTrigger value="risks">Notable risks</TabsTrigger>
+          <TabsTrigger value="categories">Review</TabsTrigger>
           <TabsTrigger value="machines">Machines</TabsTrigger>
         </TabsList>
         <div className="flex items-center gap-2">
@@ -418,49 +456,6 @@ function HumanDecisionsPhase({
           <ThemeToggle />
         </div>
       </div>
-
-      <TabsContent value="blocking" className="row-start-2 box-border min-h-0 min-w-0 w-full overflow-hidden p-[6px]">
-        <QuadrantLayout right={renderRailNav}>
-          {blockingQuestions.map((q) => (
-            <BlockingQuestionCard key={q.id} question={q} />
-          ))}
-          <div className="rounded-md border p-4">
-            <p className="mb-2 text-sm font-medium">Logo import (Q3's standing rule)</p>
-            <LogoImportSlot
-              defaultUrl={BIDEZINE_LOGO_DEFAULT_LABEL}
-              defaultSvgPath={BIDEZINE_LOGO_PATH}
-              defaultViewBox={BIDEZINE_LOGO_VIEWBOX}
-            />
-          </div>
-        </QuadrantLayout>
-      </TabsContent>
-
-      <TabsContent value="colorlab" className="row-start-2 box-border min-h-0 min-w-0 w-full overflow-hidden p-[6px]">
-        <QuadrantLayout right={renderRailNav}>
-          {(() => {
-            const approvedCount = proposedDarkRailTokens.filter((t) => t.approved !== false).length
-            const pendingCount = proposedDarkRailTokens.length - approvedCount
-            return (
-              <div className="flex items-center gap-2 rounded-md border bg-card p-6 shadow-sm">
-                <Badge className={POSITIVE_BADGE}>{approvedCount} approved</Badge>
-                {pendingCount > 0 ? <Badge className={NEGATIVE_BADGE}>{pendingCount} needs decision</Badge> : null}
-                <p className="text-xs text-muted-foreground">
-                  {pendingCount > 0
-                    ? `${approvedCount} candidates have final sign-off, composed and reviewed together in the full rail shape below. ${pendingCount} candidate(s) still await your decision.`
-                    : `All ${approvedCount} candidates have final sign-off, composed and reviewed together in the full rail shape below — including select-hover (--sidebar-rail-active-hover), approved last, extending the same hover→pressed→active ramp one further step. Ready to be authored into tokens/base.tokens.json at Build time.`}
-                </p>
-              </div>
-            )
-          })()}
-          <ColorTokenLab tokens={proposedDarkRailTokens} />
-        </QuadrantLayout>
-      </TabsContent>
-
-      <TabsContent value="typelab" className="row-start-2 box-border min-h-0 min-w-0 w-full overflow-hidden p-[6px]">
-        <QuadrantLayout right={renderRailNav}>
-          <TypographyLab />
-        </QuadrantLayout>
-      </TabsContent>
 
       {/* The review queue. Selecting a card highlights its region in the live component to
           the right; the component is never replaced, so the two stay synchronised for the
@@ -477,27 +472,24 @@ function HumanDecisionsPhase({
             onSelect={setActiveRef}
             onReveal={setActiveRef}
             onChanged={onChanged}
+            decisionSurface={decisionSurface}
+            questions={
+              <>
+                {blockingQuestions.map((q) => (
+                  <BlockingQuestionCard key={q.id} question={q} />
+                ))}
+                <div className="rounded-md border p-4">
+                  <p className="mb-2 text-sm font-medium">Logo import (Q3's standing rule)</p>
+                  <LogoImportSlot
+                    defaultUrl={BIDEZINE_LOGO_DEFAULT_LABEL}
+                    defaultSvgPath={BIDEZINE_LOGO_PATH}
+                    defaultViewBox={BIDEZINE_LOGO_VIEWBOX}
+                  />
+                </div>
+              </>
+            }
+            risks={<RisksList risks={notableRisks} />}
           />
-        </QuadrantLayout>
-      </TabsContent>
-
-      {/* The original category accordion, kept as a secondary view. It renders each row's
-          verbatim source record, which is what `check-corpus-equivalence.mjs` diffs against
-          the frozen snapshot — deleting it would remove the app-side half of that check. */}
-      <TabsContent value="source" className="row-start-2 box-border min-h-0 min-w-0 w-full overflow-hidden p-[6px]">
-        <QuadrantLayout right={renderRailNav}>
-          <DivergenceCategoriesAccordion
-            categories={categories}
-            anchoredRefs={anchoredRefs}
-            activeRef={activeRef}
-            onHighlight={setActiveRef}
-          />
-        </QuadrantLayout>
-      </TabsContent>
-
-      <TabsContent value="risks" className="row-start-2 box-border min-h-0 min-w-0 w-full overflow-hidden p-[6px]">
-        <QuadrantLayout right={renderRailNav}>
-          <RisksList risks={notableRisks} />
         </QuadrantLayout>
       </TabsContent>
 
