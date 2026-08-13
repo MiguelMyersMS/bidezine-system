@@ -107,8 +107,9 @@ because a dev server mid-reload answers HTTP 200 before the document is interact
 *click*, while line 87's `waitFor` runs before it, unguarded. It will red CI at random until that wait
 is inside the same retry. Not fixed from here: `sandbox/` is the UI agent's.
 
-**Suites after the rebuild:** `verify-ui` 16/16, `verify-readonly` 12/12, `sandbox verify` 18/18,
-`verify-import` 9/9, `check-corpus-equivalence` 154/154, `check-declarations` 5/5, `check-rules` 0
+**Suites, current** (three counts moved when 020 landed — the rebuild's own numbers were 9/9, 154/154
+and 5/5): `verify-ui` 16/16, `verify-readonly` 12/12, `sandbox verify` 18/18, `verify-import`
+**10/10**, `check-corpus-equivalence` **169/169**, `check-declarations` **7/7**, `check-rules` 0
 violations, clean production build.
 
 **Seven tabs became two — `Review` and `Machines`.** Four of the seven read hardcoded per-occupant
