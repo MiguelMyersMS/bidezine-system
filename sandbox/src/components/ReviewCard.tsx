@@ -221,10 +221,22 @@ export function ReviewCard({
   // the handful of live rows rather than all 154. `title` averages 120 characters and
   // hits its own 400-character cap, so it is clamped rather than trusted to be short.
   const label = row.reviewLabel ?? row.title
-  // The lead is review_prompt when authored; otherwise detail carries the whole weight and
-  // there is no separate body to reveal.
-  const prompt = row.reviewPrompt ?? row.detail ?? ""
-  const body = row.reviewPrompt ? row.detail : null
+  /**
+   * The description is the ASK, not the record.
+   *
+   * `detail` is the imported resolution history — what was decided and why, written after
+   * the fact. It answers a question a human is not being asked here, and reading it as the
+   * description means every card opens with an account of something already settled.
+   * `review_prompt` is the AI-to-human sentence: what needs reviewing, and why it cannot
+   * be decided mechanically.
+   *
+   * When none is authored the card SAYS so rather than falling back to the history. A
+   * substitute that reads plausibly is worse than a stated gap — it was the fallback that
+   * made 169 cards look described when none of them were.
+   *
+   * The history is still in the corpus and still queryable; it is just not on the card.
+   */
+  const prompt = row.reviewPrompt ?? null
 
   // Two independent reasons approval cannot happen, and they are not the same refusal:
   // a closed gate says "come back when the evidence is there"; foreign ownership says
@@ -297,7 +309,6 @@ export function ReviewCard({
       pill={row.category}
       label={label}
       prompt={prompt}
-      detail={body}
       selected={selected}
       onSelect={onSelect}
     >

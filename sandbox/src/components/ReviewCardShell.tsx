@@ -119,7 +119,7 @@ export function ReviewCardShell({
 
         <p className="line-clamp-2 text-sm font-medium">{label}</p>
 
-        {text && (
+        {text ? (
           <div>
             <p className={cn("text-xs text-muted-foreground", !expanded && "line-clamp-3")}>{text}</p>
             {expanded && body && (
@@ -141,6 +141,13 @@ export function ReviewCardShell({
               </Button>
             )}
           </div>
+        ) : (
+          // Stated, not substituted. The old fallback rendered the imported resolution
+          // history here, which made 169 cards look described while none of them were —
+          // and put an account of a settled decision where the ask belongs.
+          <p className="text-xs text-muted-foreground italic">
+            No review description written yet — nobody has said what needs deciding here or why.
+          </p>
         )}
       </CardHeader>
 
