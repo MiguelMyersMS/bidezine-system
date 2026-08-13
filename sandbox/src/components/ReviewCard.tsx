@@ -221,7 +221,10 @@ export function ReviewCard({
   // the handful of live rows rather than all 154. `title` averages 120 characters and
   // hits its own 400-character cap, so it is clamped rather than trusted to be short.
   const label = row.reviewLabel ?? row.title
+  // The lead is review_prompt when authored; otherwise detail carries the whole weight and
+  // there is no separate body to reveal.
   const prompt = row.reviewPrompt ?? row.detail ?? ""
+  const body = row.reviewPrompt ? row.detail : null
 
   // Two independent reasons approval cannot happen, and they are not the same refusal:
   // a closed gate says "come back when the evidence is there"; foreign ownership says
@@ -294,6 +297,7 @@ export function ReviewCard({
       pill={row.category}
       label={label}
       prompt={prompt}
+      detail={body}
       selected={selected}
       onSelect={onSelect}
     >

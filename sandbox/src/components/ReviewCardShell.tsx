@@ -54,6 +54,7 @@ export function ReviewCardShell({
   pill,
   label,
   prompt,
+  detail,
   selected,
   onSelect,
   attrs,
@@ -64,7 +65,12 @@ export function ReviewCardShell({
   badges: ShellBadge[]
   pill: string
   label: string
+  /** The lead — what this row is about, in one or two sentences. */
   prompt?: string | null
+  /** The long rationale, shown only once the description is expanded. One slot, two
+   * depths: the lead answers "what am I being asked", the body answers "why". Keeping
+   * them in one slot is what stops this becoming a ninth section. */
+  detail?: string | null
   selected?: boolean
   onSelect?: () => void
   /** Extra data-* attributes so checks can scope to a card without a class-name guess. */
@@ -74,6 +80,10 @@ export function ReviewCardShell({
 }) {
   const [expanded, setExpanded] = useState(false)
   const text = prompt ?? ""
+  // Only worth an expand control if there is genuinely more to read — either the lead is
+  // long enough to be clamped, or a body exists behind it.
+  const body = detail && detail !== text ? detail : ""
+  const expandable = body.length > 0 || text.length > 200
 
   return (
     <Card
@@ -112,9 +122,12 @@ export function ReviewCardShell({
         {text && (
           <div>
             <p className={cn("text-xs text-muted-foreground", !expanded && "line-clamp-3")}>{text}</p>
+            {expanded && body && (
+              <p className="mt-2 text-xs whitespace-pre-line text-muted-foreground">{body}</p>
+            )}
             {/* Real rationale on a real row reaches 5,773 characters. An excerpt with an
                 expand is the only honest way to show that without burying the decision. */}
-            {text.length > 200 && (
+            {expandable && (
               <Button
                 size="sm"
                 variant="ghost"
