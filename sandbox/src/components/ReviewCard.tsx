@@ -66,6 +66,25 @@ type ChecklistRow = {
  * one answer: it has not been independently checked. Which of the three failed is
  * detail-on-demand, carried in `reason`.
  */
+/**
+ * Whether this row resolves to a real anchor in the markup — its own, or one its subject
+ * names.
+ *
+ * ONE definition, used by both the "Located in the component" checklist row and the
+ * presence of the Reveal control, because those two must never disagree. The spec's rule is
+ * that Reveal appears if and only if that checklist row is checked, so a missing control
+ * always has its reason visible one line below — two separate conditions is how that
+ * guarantee quietly breaks. (`CLAUDE.md` checklist item 20: one boolean, one mechanism.)
+ *
+ * The subject's anchor matters because `data-divergence` holds one value per element while
+ * several rows can concern the same element — B-2 and B-7 are the same button in the same
+ * state, one claiming its background and the other its foreground. Neither owns the
+ * attribute; both point at F-2's.
+ */
+export function anchorOf(row: CorpusDivergence): string | null {
+  return row.anchorId ?? row.subjects?.find((s) => s.side === "bidezine" && s.anchorId)?.anchorId ?? null
+}
+
 function buildChecklist(row: CorpusDivergence): ChecklistRow[] {
   const unmet = new Set(row.unmet.map((u) => u.requirement))
   const detailFor = (req: string) => row.unmet.find((u) => u.requirement === req)?.detail ?? ""
@@ -76,7 +95,7 @@ function buildChecklist(row: CorpusDivergence): ChecklistRow[] {
   return [
     {
       label: "Located in the component",
-      done: !!row.anchorId,
+      done: !!anchorOf(row),
       reason: "No part of the component is marked as the thing this is about, so nothing can be measured or shown.",
     },
     {
@@ -316,7 +335,7 @@ export function ReviewCard({
             One rule, no exceptions. The reason for an absent control is always visible
             one line below it, as the checklist's own first row — so a missing button is
             never a silent mystery. */}
-        {row.anchorId ? (
+        {anchorOf(row) ? (
           <div>
             <Button
               size="sm"
