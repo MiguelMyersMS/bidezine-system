@@ -184,7 +184,14 @@ service principal; there is no password-based fallback for local development.
 - **machine** — id, name, owner, `is_primary`. Replaces `HANDOFF.md`'s section-per-machine convention.
 - **component** — a Sandbox occupant. Owned by exactly one machine at a time. Has a pipeline state.
 - **divergence** — one thing that differs between origin and the bidezine translation. Carries
-  `category`, `scope` (`component` | `system`), `tier`, `anchor_id`, `owner_machine`, `state`.
+  `category`, `scope` (`component` | `system`), `tier`, `anchor_id`, `owner_machine`, `state`, and —
+  for the human doing the reviewing — `review_label` and `review_prompt` (migration 018). The first is
+  a headline, the second a statement of *why a human is needed at all*; both are nullable and the UI
+  falls back to `title`/`detail`. Their lengths (80 and 280) are load-bearing rather than cosmetic:
+  the audit that motivated them found `title` hitting its own 400-char cap (AVG 120, P95 400) and
+  `detail` averaging 1,358 characters with 104 of 154 rows over 280. A column that physically cannot
+  hold a paragraph enforces concision in a way a style guide cannot be talked out of — the same
+  argument §5.5 makes for an attribute over a stored selector.
 - **system_change** — a change whose blast radius exceeds the component that discovered it. First-class,
   never a divergence row. Component divergences declare a blocking dependency on it.
 - **evidence** — typed, machine-produced, written *only* by the runner. Carries the check spec, raw tool

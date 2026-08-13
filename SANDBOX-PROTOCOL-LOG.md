@@ -1526,6 +1526,42 @@ friction, anything.)_
   worse than a missing one. **Lesson: a name is evidence, not a contract; and silencing a check by making a
   false claim true is not a fix.**
 
+- **The first divergence ever approved through the UI was approved twice, and the database was right to
+  be blamed for it rather than the UI.** `F-3` carries two rows in `sandbox.approval`, four seconds apart
+  (04:41:14.300 and 04:41:18.677), both `human:Laptop A`, both at commit `58d1c8a`. A UI race let a second
+  click through and has been fixed. But the second call reached `usp_resolve_divergence` and the procedure
+  **accepted it** — because a resolved row still has its passing evidence and its passing review, so
+  `fn_divergence_unmet` returned nothing and the gate said yes a second time. Every guard in that procedure
+  was working; none of them was the guard that was missing. Fixed in migration **019**: `resolved ->
+  resolved` is not a transition, and is now refused with its own error number (51007) before ownership and
+  before the gate, so a caller re-approving something already done is told *that* rather than handed an
+  evidence to-do list for a decision nobody needs to make again.
+  **The tempting wrong fix, recorded because it looks obviously right:** `UNIQUE (divergence_id)` on
+  `sandbox.approval`. It would have prevented this and broken the system — reopen → fix → re-resolve
+  produces a second approval *legitimately*, and that loop is precisely the one M9's false-completion
+  ranking is built on. The defect was never "two approvals"; it was "two approvals with no intervening
+  reopen", and only a state check says that. **Lesson: when a duplicate appears, check whether the
+  legitimate version of that duplicate exists before reaching for a uniqueness constraint.**
+  **The duplicate row was NOT deleted.** It is a true record of something that genuinely happened, in an
+  audit table; removing it would destroy the only evidence of the defect and establish that audit rows get
+  tidied when they are embarrassing. `app_rw` holds `INSERT` and nothing else there, so deleting it would
+  have required `ADMIN` — the permission model was itself the argument. It stays, explained here.
+
+- **Two protections were real but undeclared, which is a different thing from being safe.** `app_rw` could
+  not write `sandbox.evidence` or `sandbox.review` — not because anything forbade it, but because no
+  `GRANT` was ever issued. `agent_rw` carries an explicit `DENY INSERT, UPDATE, DELETE` on `evidence`
+  (002:90); `app_rw` carried nothing. Functionally identical, and materially different in durability: this
+  project's stated reason for trusting Fabric is that its item RBAC "cannot override a SQL DENY", and that
+  guarantee protects a DENY, not an absence — which any later grant or role membership silently undoes.
+  Migration 019 makes it explicit for `app_rw` too. **The risk in doing so was checked rather than
+  reasoned about:** `usp_reopen_divergence` runs as `app_rw` and does `UPDATE sandbox.review SET
+  invalidated_at`, so if the DENY were evaluated there, reopen — the one act a read-only observer keeps —
+  would break. Ownership chaining skips permission checks on referenced objects, DENY included, so it does
+  not; but that was confirmed by running `db/verify` (15/15) and `sandbox/verify` (18/18), both of which
+  drive a real reopen, rather than by citing the documentation that says so. **Lesson: "it works because
+  nobody granted it" and "it works because something forbids it" look identical from the outside and age
+  completely differently.**
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given

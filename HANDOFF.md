@@ -99,7 +99,15 @@ correct in source:
 4. Ownership was read once at page load and remembered, so a hand-over left the control live.
    `useCorpus` refetches on `visibilitychange`.
 
-**Suites after the rebuild:** `verify-ui` 14/14, `verify-readonly` 12/12, `sandbox verify` 18/18,
+**`verify-ui` has an intermittent first-run failure, and it is the harness, not the app.** Measured
+here: one run died at `verify-machines-ui.mjs:87` with `locator.waitFor: Timeout 30000ms` before any
+check printed (`0/1`); a direct probe seconds later found the Machines tab present and the app serving
+the rebuilt two-tab shell; the immediate re-run was **16/16**. Line 88's reload-and-retry — added
+because a dev server mid-reload answers HTTP 200 before the document is interactive — wraps the
+*click*, while line 87's `waitFor` runs before it, unguarded. It will red CI at random until that wait
+is inside the same retry. Not fixed from here: `sandbox/` is the UI agent's.
+
+**Suites after the rebuild:** `verify-ui` 16/16, `verify-readonly` 12/12, `sandbox verify` 18/18,
 `verify-import` 9/9, `check-corpus-equivalence` 154/154, `check-declarations` 5/5, `check-rules` 0
 violations, clean production build.
 
@@ -145,6 +153,31 @@ has a clean gate, `verify-machines-ui` asserts ownership against an OPEN row and
 - **Milestone owner** owns `docs/SANDBOX-SPEC.md` and this file, and picks up §5.1's entity bullet
   once `018` lands.
 
+**The Sandbox app is being rebuilt by a second agent** (`sandbox/REVIEW-CARD-SPEC.md`, commits
+`7b1b0a3` → `cb71f26`). `sandbox/src/` and `sandbox/server/corpus-api.mjs` are **claimed by that
+agent** — do not edit them from here. Seven tabs became two; the evidence widget became a
+per-divergence review card driven by `fn_divergence_unmet` rather than by re-deriving the gate's rules.
+
+**Migrations since M9, and who wrote them:** `018_review_prompt.sql` (the UI agent) adds
+`review_label` NVARCHAR(80) / `review_prompt` NVARCHAR(280), nullable and NULL on all 154 rows; the
+card falls back to `title`/`detail`. `019_resolve_once_and_explicit_denies.sql` (this machine) is
+described under "What's done". **Next free migration number: 020.**
+
+**Three decisions taken on this machine, so they are not re-litigated:**
+1. **Questions and risks do NOT become divergence rows**, and do not get their own entity yet. They
+   carry shapes `divergence` has not (`options` with one chosen; `actionItems` with done flags and
+   cross-references), so importing them would flatten them and break M4's lossless rule — and
+   `R-3c`/`R-11c` is a process gap about the component's own audit state, which would pollute the
+   corpus M9's ranking reads. **Trigger for revisiting: the second occupant's intake.** If component #2
+   produces questions and risks of the same shape, the schema is derived from two rather than one and
+   is worth building. If it produces none, we learn they were an artifact of one intake.
+2. **No divergence→token relation.** It would have pointed at nothing: proposed tokens are not corpus
+   data at all — `proposedDarkRailTokens` is a hardcoded array in `sandbox/src/data/rail-sidebar.ts`
+   and no token table exists in any migration. The real prerequisite is making tokens an entity, which
+   has the same one-occupant problem as (1). The colour lab showing the component's whole candidate set
+   **and saying so on screen** is correct today, not a placeholder.
+3. **The F-3 duplicate approval row stays.** See "What's done".
+
 **First thing to do on this machine: reconnect the sandbox MCP server.** Its tools (`mcp__sandbox__*`)
 did not attach to the last session — `ToolSearch` found none of them. The server itself is fine: driven
 directly over stdio it returns `rail-sidebar` / 154 divergences with the `open` column intact (no T-SQL
@@ -154,6 +187,25 @@ not a server problem — try `/mcp` in an interactive session.
 ### What's done (current state — not a history)
 
 Read `docs/SANDBOX-SPEC.md` first. It is the single source of truth for this project.
+
+**Migration 019 — two protections that existed only by absence.** Both were real; neither was
+declared, and a rule nothing states is one the next change can remove unnoticed.
+
+- **`usp_resolve_divergence` now refuses a `resolved` row** (error 51007), checked before ownership and
+  before the gate. `F-3` was approved twice, four seconds apart, because the UI raced AND the procedure
+  accepted the second call — a resolved row still has its passing evidence and review, so the gate said
+  yes again. **Not a `UNIQUE` constraint on `approval`:** reopen → fix → re-resolve produces a second
+  approval legitimately, and that loop is what M9's ranking is built on. The defect was "two approvals
+  with no intervening reopen", which only a state check expresses.
+- **The duplicate approval row was NOT deleted.** It is a true record in an audit table; deleting it
+  would destroy the evidence of the defect and needs `ADMIN`, since `app_rw` holds `INSERT` only — the
+  permission model is the argument. Explained in the flaws log instead.
+- **`app_rw` now carries explicit `DENY` on `evidence`, `review` and `review_citation`.** It could not
+  write them before either, but only because no `GRANT` existed — and Fabric's RBAC guarantee this
+  project relies on protects a DENY, not an absence. **The risk was checked, not assumed:**
+  `usp_reopen_divergence` runs as `app_rw` and updates `review.invalidated_at`; ownership chaining skips
+  DENY on referenced objects, confirmed by `db/verify` (15/15) and `sandbox/verify` (18/18) both driving
+  a real reopen afterwards.
 
 **Milestones 1–8 are done.** The narrative of how each was built used to live here and has been
 removed on purpose — it is durably recorded in the commit messages and in
@@ -179,7 +231,7 @@ node scripts/check-rules.mjs               #  M9 — the prose rules, executable
 node scripts/check-rules-test.mjs          # 11/11 — every rule can FAIL, and stays quiet on a near-miss
 
 # These two need a server, and REFUSE to run without one rather than skipping.
-npm --prefix sandbox run dev   → npm --prefix sandbox run verify-ui        # 14/14 — the machine switcher
+npm --prefix sandbox run dev   → npm --prefix sandbox run verify-ui        # 16/16 — the machine switcher + review card
 npm run build && npm --prefix site run build && npm --prefix site run preview
                                → npm --prefix site run verify-sidebar      #  9/9 — SidebarContent's ScrollArea
 ```
