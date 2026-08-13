@@ -116,6 +116,31 @@ export function useCorpus(): CorpusState {
     }
   }, [nonce])
 
+  /**
+   * Refetch when the tab becomes visible again.
+   *
+   * Ownership is a COMPONENT fact read once with the corpus, which makes it stale the
+   * moment another machine claims the component — and a stale `mayWrite: true` leaves this
+   * app's approve control live for something it can no longer write. The database still
+   * refuses (migration 016), so this is a courtesy layer either way; but a control that
+   * looks available and then fails is worse than one that was never offered, and the whole
+   * point of the machine switcher is that ownership moves while you are looking at it.
+   *
+   * Caught by `verify-machines-ui.mjs`, which hands the component to another machine and
+   * asserts the control goes dead — it stayed live, because nothing had told the page.
+   *
+   * Visibility rather than polling: the realistic case is coming back to a tab after
+   * someone else took the component, and a timer would hammer Fabric for a fact that
+   * changes a few times a month.
+   */
+  useEffect(() => {
+    const onVisible = () => {
+      if (!document.hidden) setNonce((n) => n + 1)
+    }
+    document.addEventListener("visibilitychange", onVisible)
+    return () => document.removeEventListener("visibilitychange", onVisible)
+  }, [])
+
   return { ...state, reload: () => setNonce((n) => n + 1) } as CorpusState
 }
 

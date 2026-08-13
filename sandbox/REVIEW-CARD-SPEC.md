@@ -225,6 +225,21 @@ be approved again."*
 completes, not to local state. A switch that announces a state change to a screen reader before
 the write lands is announcing something that may not be true.
 
+**Ownership and the gate disable the ON direction ONLY.** A resolved row's switch stays live for
+anyone, including an observer on a machine that does not own the component. Migration 016 gates
+`usp_resolve_divergence` and `usp_promote_component` and pointedly does *not* gate reopen: reporting a
+false completion is exactly the job of someone who did not do the work. Collapsing approve and reopen
+into one control makes this easy to lose — the first implementation disabled the switch wholesale for
+a foreign component and silently removed the one action an observer is supposed to keep. It was caught
+only because `verify-machines-ui.mjs`'s "Reopen stays ENABLED" assertion had nothing left to bind to.
+
+**Ownership must be re-read, not remembered.** It is a component fact fetched once with the corpus, so
+it goes stale the moment another machine claims the component — and a stale `mayWrite: true` leaves the
+approve control live for something this app can no longer write. `useCorpus` refetches on
+`visibilitychange`, which covers the realistic case (returning to a tab after someone else took the
+component) without polling Fabric for a fact that changes a few times a month. The database refuses
+either way; the point is not offering a control that is going to fail.
+
 All ceremony is on OFF, where the action is rare and permanent. ON is one deliberate click.
 
 ---

@@ -190,35 +190,83 @@ try {
 
   await transferTo(me, other, "verify-machines-ui.mjs: proving Approve is disabled for an observer. Handed straight back.")
   try {
-    await page.getByRole("tab", { name: "Full divergence list" }).click()
-    // The list is an Accordion and every category starts collapsed, so no row — and no
-    // "Evidence & approval" button — exists until one is expanded. Waiting for the button
-    // without this simply times out against a page that is working correctly.
-    await page.locator("[data-slot=accordion-trigger]").first().click()
+    // Re-pointed at the review card (sandbox/REVIEW-CARD-SPEC.md). The old path — expand an
+    // accordion, click "Evidence & approval", find a Button named Approve — describes a
+    // screen that no longer exists. What it ASSERTED is unchanged and must stay that way:
+    // the control refuses, it says OWNERSHIP is why, and reopen survives for an observer.
+    // The transfer above happened out of band — through the API, the way another machine's
+    // claim would arrive. The corpus (and the ownership in it) was read at page load, so
+    // nothing on screen knows yet. Firing visibilitychange is how a real tab finds out:
+    // `useCorpus` refetches when it becomes visible again. Asserting without this measured
+    // the page's memory of ownership rather than ownership, and passed while the control
+    // was live for a component this machine no longer owned.
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")))
 
-    const evidenceButton = page.getByRole("button", { name: "Evidence & approval" }).first()
-    await evidenceButton.waitFor({ state: "visible", timeout: 20_000 })
-    await evidenceButton.click()
+    await page.getByRole("tab", { name: "Review queue" }).click()
 
-    const approve = page.getByRole("button", { name: /^(Approve|Resolved)$/ })
-    await approve.waitFor({ state: "visible", timeout: 45_000 })
+    // The one row whose gate is genuinely open. Every other row would leave the control
+    // disabled by the GATE, which is a different mechanism producing an identical-looking
+    // result — the trap the old version of this check documented and then had to work
+    // around. Picking the ready row means a refusal here can only be about ownership.
+    const ready = page.locator('[data-review-card][data-status="ready"]').first()
+    await ready.waitFor({ state: "visible", timeout: 45_000 })
+    const readyRef = await ready.getAttribute("data-review-card")
 
-    // Necessary but NOT sufficient, and worth saying so: every row in this corpus has an
-    // unmet gate, so `!gate.ready` already disables Approve on its own. Verified by
-    // injecting the exact drift this section exists to catch (`mayWrite: true` hard-coded
-    // in the API) and re-running — this check still PASSED; only the reason below caught
-    // it. A disabled control does not tell you WHY it is disabled, and here two different
-    // mechanisms would both produce one.
-    check(await approve.isDisabled(), "Approve is disabled while another machine owns the component", "necessary but not sufficient — the gate disables it too; the reason below is the real assertion")
+    const approve = ready.locator("[data-approve-switch]")
+    await approve.waitFor({ state: "visible", timeout: 20_000 })
+
+    // Wait for the refetch to actually LAND, on a real condition rather than a duration —
+    // the corpus read is several Fabric round trips, and asserting the instant
+    // visibilitychange fired measured the pre-transfer render every time. The ownership
+    // badge only exists when the card believes it may not write, so its appearance is the
+    // signal that the new ownership reached the component. A timeout here leaves the
+    // checks below to fail and say why, which is the correct outcome if the refetch is
+    // broken — that is the thing under test.
+    await ready
+      .getByText(/owned by/)
+      .waitFor({ state: "visible", timeout: 45_000 })
+      .catch(() => {})
+
+    check(
+      (await approve.getAttribute("data-slot")) === "switch",
+      "the approve control is the real Switch primitive, not a lookalike",
+      `data-slot=${await approve.getAttribute("data-slot")}`,
+    )
+    check(
+      await approve.isDisabled(),
+      `Approve is disabled on ${readyRef} while another machine owns the component`,
+      "this row's gate is OPEN, so ownership is the only thing that can be disabling it",
+    )
     check(
       /owns this component/.test((await approve.getAttribute("title")) ?? ""),
       "and the reason it gives is OWNERSHIP, not the evidence gate",
       (await approve.getAttribute("title"))?.slice(0, 110),
     )
-    // Reopen must stay live for the same observer — the distinction the whole design rests
-    // on, and invisible in a screenshot of a disabled Approve.
-    const reopen = page.getByRole("button", { name: "Reopen…" })
-    check(await reopen.isEnabled(), "while Reopen stays ENABLED — an observer can still raise a concern")
+
+    // Reopen must stay live for the same observer. It is now the OFF direction of the same
+    // switch rather than a separate button, which makes it far easier to lose by accident:
+    // disabling the control wholesale for a foreign component removes approval AND the one
+    // action migration 016 deliberately leaves ungated. That regression was shipped and
+    // caught by re-pointing this very check, so the assertion is kept pointed at a RESOLVED
+    // row, where the off direction is the only thing the switch can do.
+    const resolvedRow = page.locator('[data-review-card][data-status="resolved"]').first()
+    if ((await resolvedRow.count()) > 0) {
+      check(
+        await resolvedRow.locator("[data-approve-switch]").isEnabled(),
+        "while a RESOLVED row's switch stays ENABLED — an observer can still reopen",
+      )
+    } else {
+      // NOT a check. The corpus currently holds zero resolved divergences, so there is
+      // nothing to assert against — and `check(true, …)` here would add a green line to the
+      // count for an assertion that never ran, which is the shape this file's own header
+      // condemns and which had to be removed from it once already. Printed loudly instead,
+      // so the gap is visible in the output rather than hidden inside a passing total.
+      console.log(
+        "  SKIP  observer-can-still-reopen: no resolved row exists to test against.\n" +
+          "        The rule lives in ReviewCard's switchDisabled and REVIEW-CARD-SPEC.md §3.7.\n" +
+          "        Re-point this the moment the corpus has its first resolved divergence.",
+      )
+    }
   } finally {
     await transferTo(other, me, "verify-machines-ui.mjs: restoring after the disabled-Approve check.")
   }

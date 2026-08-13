@@ -218,7 +218,20 @@ export function ReviewCard({
   // "this is not yours, and no amount of evidence changes that". Both are enforced by the
   // database (migrations 002 and 016) — this is a courtesy layer over them.
   const blockedByOwnership = !mayWrite
-  const switchDisabled = busy || blockedByOwnership || (!ready && !resolved)
+  /**
+   * Ownership and the gate disable the ON direction ONLY. A resolved row's switch stays
+   * live for anyone, including an observer on a machine that does not own the component.
+   *
+   * That asymmetry is deliberate and load-bearing. Migration 016 gates `usp_resolve_divergence`
+   * and `usp_promote_component` and pointedly does NOT gate reopen: reporting a false
+   * completion is exactly the job of someone who did not do the work, and a read-only
+   * observer who cannot raise a concern is a silent bystander. Collapsing approve and
+   * reopen into one control makes that easy to lose — disabling the switch wholesale for a
+   * foreign component silently removes the one action an observer is specifically supposed
+   * to keep. Found while re-pointing verify-machines-ui.mjs, whose "Reopen stays ENABLED"
+   * assertion existed for precisely this and had nothing left to bind to.
+   */
+  const switchDisabled = busy || (!resolved && (!ready || blockedByOwnership))
   const ownershipReason = !thisMachine
     ? "This Sandbox has no MACHINE_NAME set, so the database refuses any write that would have to name a machine."
     : `${owner} owns this component. Approving it is refused by the database, not by this control.`
@@ -463,10 +476,13 @@ export function ReviewCard({
                 else setReopening(true)
               }}
               title={
-                blockedByOwnership
-                  ? ownershipReason
-                  : resolved
-                    ? "Turn off to reopen. That records a false completion and cannot be undone by turning it back on."
+                // Order matters: `resolved` is checked FIRST, so a resolved row owned by
+                // another machine describes the reopen it can still do rather than an
+                // approval refusal that no longer applies to it.
+                resolved
+                  ? "Turn off to reopen. That records a false completion and cannot be undone by turning it back on."
+                  : blockedByOwnership
+                    ? ownershipReason
                     : ready
                       ? "Approve — records the approval and moves this to resolved"
                       : "The gate is closed. This cannot succeed; the database refuses the transition."
