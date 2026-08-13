@@ -31,6 +31,17 @@
 // Checklist item 12 is the reason this is field-by-field rather than a count: six group
 // nodes once silently lost an `icon` field, invisible because nothing errors when a
 // field is simply absent.
+//
+// The round-trip check used to derive a fixed {what, status, detail, visual} shape from
+// `originRecord` and compare only those keys. That was a leftover from when the
+// left-hand side was the hand-written TypeScript file (`what`/`status` were ITS
+// vocabulary) — since M5 step 4 both sides are the same kind of thing, a stored origin
+// record, so it is now a direct, recursive deep-equal of the whole object. This is
+// strictly stronger, not just shape-agnostic: it catches drift in ANY field (`options`,
+// `actionItems`, `resolution`, anything else a source object carries), where the old
+// derivation would silently miss it — and would even misreport a row as broken for
+// legitimately not using the `what`/`status` vocabulary at all, which is exactly what
+// happened importing blockingQuestions/notableRisks rows that use `title` instead.
 // ═══════════════════════════════════════════════════════════════════════════════════
 
 import { readFile } from "node:fs/promises"
@@ -57,19 +68,37 @@ try {
 
 // Rebuilt into the same {row, cat} shape the checks below already expect, so the
 // comparisons themselves are unchanged — only where the expected values come from.
+//
+// `row` no longer derives a fixed {what, status, detail, visual} shape from
+// `originRecord`. That derivation was a leftover from when the left-hand side was the
+// hand-written TypeScript file with its own fixed shape; since M5 step 4 both sides are
+// the same kind of thing (a stored origin record), so deriving a subset of keys and
+// comparing only those is both unnecessary and actively wrong for any row whose source
+// object doesn't happen to use that vocabulary (`title` instead of `what`, no `status`
+// at all, etc.) — exactly the shape blockingQuestions/notableRisks rows use. Keeping the
+// raw `originRecord` instead and deep-comparing it whole is shape-agnostic and strictly
+// stronger: it catches drift in ANY field, including `options`, `actionItems` and
+// `resolution`, not just the five keys this used to derive.
 const source = new Map()
 for (const r of snapshot.rows) {
   const record = r.originRecord ?? {}
   source.set(record.id ?? r.ref, {
-    row: {
-      id: record.id ?? r.ref,
-      what: record.what ?? r.title,
-      status: record.status,
-      detail: record.detail ?? r.detail,
-      visual: record.visual ?? r.visual ?? undefined,
-    },
+    originRecord: record,
+    hasVisual: Boolean(record.visual ?? r.visual),
     cat: { id: (r.originCategory ?? r.category).split("—")[0].trim() },
   })
+}
+
+// Recursively sorts object keys (arrays keep their order — it can be meaningful, e.g.
+// `actionItems`) so two JSON values that differ only in key order compare equal.
+function canon(value) {
+  if (Array.isArray(value)) return value.map(canon)
+  if (value && typeof value === "object") {
+    return Object.keys(value)
+      .sort()
+      .reduce((acc, k) => ((acc[k] = canon(value[k])), acc), {})
+  }
+  return value
 }
 
 let pool
@@ -94,10 +123,10 @@ try {
   const extra = [...db.keys()].filter((id) => !source.has(id))
   check(extra.length === 0, "the corpus invented nothing the source lacks", extra.join(", "))
 
-  // The real test: every field of every source object, byte-identical after the round
-  // trip through JSON and the database.
+  // The real test: the WHOLE source object, byte-identical after the round trip through
+  // JSON and the database — not just the handful of keys a fixed shape happens to name.
   const drifted = []
-  for (const [id, { row }] of source) {
+  for (const [id, { originRecord }] of source) {
     const rec = db.get(id)
     if (!rec) continue
     let parsed
@@ -107,13 +136,9 @@ try {
       drifted.push(`${id}: origin_record is not valid JSON`)
       continue
     }
-    for (const [key, value] of Object.entries(row)) {
-      const a = JSON.stringify(value)
-      const b = JSON.stringify(parsed[key])
-      if (a !== b) drifted.push(`${id}.${key}: source ${a?.slice(0, 60)} vs stored ${b?.slice(0, 60)}`)
-    }
-    const extraKeys = Object.keys(parsed).filter((k) => !(k in row))
-    if (extraKeys.length) drifted.push(`${id}: stored extra keys ${extraKeys.join(",")}`)
+    const a = JSON.stringify(canon(originRecord))
+    const b = JSON.stringify(canon(parsed))
+    if (a !== b) drifted.push(`${id}: source ${a?.slice(0, 80)} vs stored ${b?.slice(0, 80)}`)
   }
   check(
     drifted.length === 0,
@@ -123,7 +148,7 @@ try {
 
   // `visual` was the field with no home before migration 006. Confirm the rows that
   // carry one actually kept it, rather than it merely surviving inside origin_record.
-  const srcVisual = [...source.values()].filter(({ row }) => row.visual).length
+  const srcVisual = [...source.values()].filter(({ hasVisual }) => hasVisual).length
   const dbVisual = recordset.filter((r) => r.visual).length
   check(srcVisual === dbVisual, "every row with a `visual` payload kept it in its own column", `${srcVisual} source / ${dbVisual} stored`)
 
