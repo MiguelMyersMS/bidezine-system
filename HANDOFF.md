@@ -61,10 +61,31 @@ three machines present.
 
 ### Active task
 
-**M1–M9 are complete.** Nothing is in progress on this machine. M9's two data-driven deliverables (the
-false-completion ranking and the tier criteria) are built but cannot yet produce a queue or a fast lane —
-the corpus has zero resolutions and one false completion, and both scripts say so rather than inventing
-thresholds. See "What's next".
+**M1–M9 are complete.** M9's two data-driven deliverables (the false-completion ranking and the tier
+criteria) are built but cannot yet produce a queue or a fast lane — the corpus has zero resolutions and
+one false completion, and both scripts say so rather than inventing thresholds. See "What's next".
+
+**IN PROGRESS — the divergence review card rebuild.** `sandbox/REVIEW-CARD-SPEC.md` is the contract;
+read it before touching any file it names. Driven by a read-only corpus audit: 147 of 154 rail-sidebar
+rows have no anchor, no declaration, no evidence and no review, and exactly **one** row's gate is open —
+so the current evidence widget renders empty scaffolding for almost every row, and states the gate's
+requirements twice in two vocabularies. The rebuild replaces that with a per-divergence card: a
+four-row human-language checklist, four badge states, and a gate-computed `Switch` whose off direction
+is a reopen form. §8 of the spec is written for the milestone owner; §8.1 records who owns the two
+committed checks the rebuild will break.
+
+**Three agents are working this machine concurrently — stay in your lane:**
+
+- **UI/UX agent** owns `sandbox/src/**` and `sandbox/server/corpus-api.mjs`, plus
+  `sandbox/verify-readonly.mjs` and `sandbox/verify-machines-ui.mjs` for as long as the rebuild
+  breaks them. This includes `App.tsx`'s `RailSourceToggle` raw-`<button>` violation, which is fixed
+  as part of the rebuild rather than as a drive-by.
+- **Data-model agent** owns `db/**`. Migration `018_review_prompt.sql` (two nullable columns on
+  `sandbox.divergence`: `review_label NVARCHAR(80)`, `review_prompt NVARCHAR(280)`) is in flight.
+  Both stay empty by design — the card falls back to `title`/`detail`, and backfill is a later,
+  human-reviewed step for the 7 live rows only, never all 154.
+- **Milestone owner** owns `docs/SANDBOX-SPEC.md` and this file, and picks up §5.1's entity bullet
+  once `018` lands.
 
 **First thing to do on this machine: reconnect the sandbox MCP server.** Its tools (`mcp__sandbox__*`)
 did not attach to the last session — `ToolSearch` found none of them. The server itself is fine: driven
