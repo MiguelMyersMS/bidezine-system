@@ -19,9 +19,6 @@ import {
 } from "@bidezine/system"
 import { PhaseRail } from "@/components/PhaseRail"
 import { ThemeToggle } from "@/components/ThemeToggle"
-import { ColorTokenLab } from "@/components/ColorTokenLab"
-import { TypographyLab } from "@/components/TypographyLab"
-import { LogoImportSlot } from "@/components/LogoImportSlot"
 import { DivergenceHighlight } from "@/components/DivergenceHighlight"
 import { NoPreviewRegistered, PREVIEW_REGISTRY, hasPreview } from "@/components/PreviewRegistry"
 import { MachineSwitcher } from "@/components/MachineSwitcher"
@@ -31,14 +28,7 @@ import { NEGATIVE_BADGE, POSITIVE_BADGE } from "@/lib/status-colors"
 import {
   railSidebarPhases,
   proposedDarkRailTokens,
-  BIDEZINE_LOGO_PATH,
-  BIDEZINE_LOGO_VIEWBOX,
 } from "@/data/rail-sidebar"
-
-// Label shown in the URL field for the pre-filled default — not a real URL, just a recognizable
-// stand-in so LogoImportSlot knows to render the inline SVG (currentColor, theme-responsive)
-// instead of falling back to <img> for a genuine user-supplied link.
-const BIDEZINE_LOGO_DEFAULT_LABEL = "(bidezine mark — built in, renders as inline SVG)"
 
 /**
  * Sandbox — the reusable transformation-tracking shell.
@@ -378,62 +368,6 @@ function HumanDecisionsPhase({
   // column to sit above the rail on the right.
   const [activeRef, setActiveRef] = useState<string | null>(null)
 
-  /**
-   * The tool you decide a row with, chosen by its category.
-   *
-   * The colour and typography labs were each a tab of their own, which meant deciding a
-   * value on one screen and recording the decision on another, correlating the two by
-   * hand. They are the same thing as the reveal renderers one level up — a surface keyed
-   * by what the row is about — so they are keyed the same way.
-   *
-   * The colour lab still shows the component's WHOLE candidate set rather than this row's
-   * own, because no divergence-to-token relation exists: `divergence_property` says which
-   * CSS properties a row concerns, and nothing says which proposed tokens it concerns.
-   * Labelled as component-wide rather than quietly implying otherwise. Adding that
-   * relation is the obvious next migration and is noted in REVIEW-CARD-SPEC.md.
-   */
-  const decisionSurface = (row: CorpusDivergence) => {
-    // Keyed by REF, not category, and only where a tool belongs to one specific decision.
-    // Q3 is "which default logo icon", and the import slot is the thing you decide it
-    // with — but there are nine `icons` rows and the slot is meaningless on the other
-    // eight, so category is the wrong key here. It was previously stranded in a tab.
-    if (row.ref === "Q3") {
-      return (
-        <LogoImportSlot
-          defaultUrl={BIDEZINE_LOGO_DEFAULT_LABEL}
-          defaultSvgPath={BIDEZINE_LOGO_PATH}
-          defaultViewBox={BIDEZINE_LOGO_VIEWBOX}
-        />
-      )
-    }
-    if (row.category === "color") {
-      const approved = proposedDarkRailTokens.filter((t) => t.approved !== false).length
-      const pending = proposedDarkRailTokens.length - approved
-      return (
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge className={POSITIVE_BADGE}>{approved} approved</Badge>
-            {pending > 0 ? <Badge className={NEGATIVE_BADGE}>{pending} needs decision</Badge> : null}
-            <span className="text-xs text-muted-foreground">
-              Candidates for the whole component, not just this row — see the note in the source.
-            </span>
-          </div>
-          <ColorTokenLab tokens={proposedDarkRailTokens} />
-        </div>
-      )
-    }
-    if (row.category === "typography") return <TypographyLab />
-    return null
-  }
-
-  // The origin pane is a quarantined iframe in its own document, so nothing here can reach inside
-  // it to measure an anchor — and it carries none by design, being reference material rather than
-  // the translation under review. Clearing on switch avoids leaving a highlight stranded over a
-  // pane it does not describe.
-  useEffect(() => {
-    if (railSource === "origin") setActiveRef(null)
-  }, [railSource])
-
   return (
     <>
       {/* Mounted at the phase root, outside QuadrantLayout's scrolling left column, because it is
@@ -483,7 +417,6 @@ function HumanDecisionsPhase({
             onSelect={setActiveRef}
             onReveal={setActiveRef}
             onChanged={onChanged}
-            decisionSurface={decisionSurface}
           />
         </QuadrantLayout>
       </TabsContent>

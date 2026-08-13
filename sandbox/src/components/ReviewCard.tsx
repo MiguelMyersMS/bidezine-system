@@ -160,7 +160,6 @@ export function ReviewCard({
   onSelect,
   onReveal,
   onChanged,
-  decisionSurface,
 }: {
   slug: string
   row: CorpusDivergence
@@ -184,10 +183,8 @@ export function ReviewCard({
    * the decision on another, correlating the two by hand — the same defect as the old
    * evidence panel replacing the preview, one level up.
    */
-  decisionSurface?: (row: CorpusDivergence) => React.ReactNode
 }) {
   const [open, setOpen] = useState(false)
-  const [surfaceOpen, setSurfaceOpen] = useState(false)
   const [reopening, setReopening] = useState(false)
   const [reason, setReason] = useState("")
   const [requirement, setRequirement] = useState(REQUIREMENT_CHOICES[0].slug)
@@ -225,7 +222,6 @@ export function ReviewCard({
   // hits its own 400-character cap, so it is clamped rather than trusted to be short.
   const label = row.reviewLabel ?? row.title
   const prompt = row.reviewPrompt ?? row.detail ?? ""
-  const surface = decisionSurface?.(row)
 
   // Two independent reasons approval cannot happen, and they are not the same refusal:
   // a closed gate says "come back when the evidence is there"; foreign ownership says
@@ -405,33 +401,6 @@ export function ReviewCard({
             </ul>
           </CollapsibleContent>
         </Collapsible>
-
-        {/* The decision surface for this row's category, and the record it was imported
-            from. Both collapsed by default: they are what you open when you are actually
-            deciding, not what you scan. */}
-        {surface && (
-          <Collapsible open={surfaceOpen} onOpenChange={setSurfaceOpen}>
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-full justify-between px-2 text-xs font-normal"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <span className="flex items-center gap-1">
-                  <ChevronDownIcon className={cn("size-3.5 transition-transform", surfaceOpen && "rotate-180")} />
-                  Decide this {row.category}
-                </span>
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="pt-2" onClick={(e) => e.stopPropagation()}>
-                {surface}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        )}
-
 
         {message && <p className="rounded-md bg-destructive/10 p-2 text-[11px]">{message}</p>}
 

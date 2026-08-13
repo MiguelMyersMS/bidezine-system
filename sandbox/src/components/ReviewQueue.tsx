@@ -99,7 +99,6 @@ export function ReviewQueue({
   onSelect,
   onReveal,
   onChanged,
-  decisionSurface,
 }: {
   slug: string
   rows: CorpusDivergence[]
@@ -110,7 +109,6 @@ export function ReviewQueue({
   onSelect: (ref: string) => void
   onReveal: (ref: string) => void
   onChanged: () => void
-  decisionSurface?: (row: CorpusDivergence) => React.ReactNode
 }) {
   const [category, setCategory] = useState<string>("all")
 
@@ -192,7 +190,6 @@ export function ReviewQueue({
                 onSelect={() => onSelect(row.ref)}
                 onReveal={() => onReveal(row.ref)}
                 onChanged={onChanged}
-                decisionSurface={decisionSurface}
               />
             ))
           )}
