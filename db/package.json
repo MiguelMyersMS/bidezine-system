@@ -11,6 +11,7 @@
     "verify": "node verify-invariant.mjs",
     "import-rail-sidebar": "node import-rail-sidebar.mjs",
     "verify-import": "node verify-import.mjs",
+    "verify-review-prompt-fidelity": "node verify-review-prompt-fidelity.mjs",
     "verify-system-change": "node verify-system-change.mjs",
     "verify-ownership": "node verify-ownership.mjs"
   },
