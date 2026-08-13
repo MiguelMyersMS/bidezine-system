@@ -42,6 +42,17 @@
 // derivation would silently miss it — and would even misreport a row as broken for
 // legitimately not using the `what`/`status` vocabulary at all, which is exactly what
 // happened importing blockingQuestions/notableRisks rows that use `title` instead.
+//
+// This file was originally written against a hand-written TypeScript array that no
+// longer exists (deleted at M5 step 4). Three separate assumptions carried over from
+// that era have now surfaced, one at a time, each only visible once a row shaped
+// differently from A-M actually round-tripped through it: the derived {what, status,
+// detail, visual} comparison above, the extraKeys check that went with it, and the
+// source↔database join key (originally `record.id ?? r.ref`, the source object's own
+// self-declared id — correct only by coincidence for rows that happen to name
+// themselves the same as their ref_code). If a fourth one turns up, it is very likely
+// the same shape of bug: something this file assumes because the old TypeScript source
+// happened to make it true, not because it is actually guaranteed.
 // ═══════════════════════════════════════════════════════════════════════════════════
 
 import { readFile } from "node:fs/promises"
@@ -79,10 +90,20 @@ try {
 // raw `originRecord` instead and deep-comparing it whole is shape-agnostic and strictly
 // stronger: it catches drift in ANY field, including `options`, `actionItems` and
 // `resolution`, not just the five keys this used to derive.
+// The join key used to be `record.id ?? r.ref` — the source object's OWN self-declared
+// id, falling back to ref_code only if that was absent. That was another leftover from
+// the hand-written TypeScript array (which had an `id` and no `ref` at all). It worked
+// for A-M only because those rows happen to name their own `id` the same as their
+// ref_code; it silently breaks the instant a source object's id doesn't coincide with
+// its ref, which is exactly Q1-Q4 ("q1".."q4" inside origin_record vs ref_code "Q1".."Q4"
+// — case even aside, the two are not guaranteed to be the same string at all). ref_code
+// is the actual identity here: unique per component, the human-facing key, and already
+// what both the snapshot's own `r.ref` and the database's `ref_code` column carry by
+// construction, not by coincidence. Join on that alone.
 const source = new Map()
 for (const r of snapshot.rows) {
   const record = r.originRecord ?? {}
-  source.set(record.id ?? r.ref, {
+  source.set(r.ref, {
     originRecord: record,
     hasVisual: Boolean(record.visual ?? r.visual),
     cat: { id: (r.originCategory ?? r.category).split("—")[0].trim() },
