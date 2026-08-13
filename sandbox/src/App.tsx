@@ -238,7 +238,13 @@ function QuadrantLayout({
         </ScrollArea>
       </div>
       <div className="box-border h-full min-h-0 min-w-0 w-full px-[8px]">
-        <div className="box-border flex h-full min-h-0 w-full items-center justify-start overflow-hidden rounded-lg p-6">
+        {/* `data-preview-stage` bounds the dimming scrim DivergenceHighlight draws. Clipping
+            it here rather than to the viewport keeps the divergence list on the left at full
+            contrast — it is what you are reading while looking at what it points to. */}
+        <div
+          data-preview-stage
+          className="box-border flex h-full min-h-0 w-full items-center justify-start overflow-hidden rounded-lg p-6"
+        >
           <FillHeight render={right} />
         </div>
       </div>
@@ -389,7 +395,10 @@ function HumanDecisionsPhase({
           `position: fixed` and must be able to draw over the preview on the right. It is
           `pointer-events: none`, so the highlighted region stays fully hoverable, clickable and
           resizable — which is M5's own second "done when" criterion, not an afterthought. */}
-      <DivergenceHighlight activeRef={activeRef} />
+      <DivergenceHighlight
+        activeRef={activeRef}
+        declaration={rows.find((r) => r.ref === activeRef) ?? null}
+      />
     <Tabs
       defaultValue="blocking"
       className="grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden"

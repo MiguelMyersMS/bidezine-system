@@ -86,7 +86,7 @@ const DIVERGENCES_SQL = `
          d.visual, d.origin_record, d.anchor_id, d.anchor_file,
          -- Migration 018. Both NULL on every row today; the card falls back to
          -- title/detail, which is the normal path rather than a transitional one.
-         d.review_label, d.review_prompt,
+         d.review_label, d.review_prompt, d.relation, d.subject_state,
          blocked_ref = sc.ref_code,
          evidence_total = (SELECT COUNT(*) FROM sandbox.evidence e
                            WHERE e.divergence_id = d.divergence_id),
@@ -119,6 +119,30 @@ const UNMET_SQL = `
   OUTER  APPLY sandbox.fn_divergence_unmet(d.divergence_id) u
   WHERE  c.slug = @slug
   ORDER  BY d.divergence_id`
+
+/**
+ * The declaration — migration 010's "which elements, which properties, in which state".
+ *
+ * Read for the whole component at once because the highlight needs it at SELECTION time,
+ * and fetching a bundle per card to learn what a row is about would put a Fabric round
+ * trip between clicking a card and seeing anything happen. Seven of rail-sidebar's 154
+ * rows have one, so this is a small result set that mostly returns nothing.
+ */
+const SUBJECTS_SQL = `
+  SELECT d.ref_code, s.ordinal, s.side, s.anchor_id, s.selector, s.label
+  FROM   sandbox.divergence d
+  JOIN   sandbox.component c ON c.component_id = d.component_id
+  JOIN   sandbox.divergence_subject s ON s.divergence_id = d.divergence_id
+  WHERE  c.slug = @slug
+  ORDER  BY d.divergence_id, s.ordinal`
+
+const PROPERTIES_SQL = `
+  SELECT d.ref_code, p.property, p.property_type
+  FROM   sandbox.divergence d
+  JOIN   sandbox.component c ON c.component_id = d.component_id
+  JOIN   sandbox.divergence_property p ON p.divergence_id = d.divergence_id
+  WHERE  c.slug = @slug
+  ORDER  BY d.divergence_id, p.property`
 
 /**
  * Which refs of a component have a check spec on disk.
@@ -190,6 +214,23 @@ async function readCorpus() {
         unmetByRef.get(u.ref_code).push({ requirement: u.requirement, detail: u.detail })
       }
 
+      const groupByRef = (recordset, shape) => {
+        const map = new Map()
+        for (const r of recordset) {
+          if (!map.has(r.ref_code)) map.set(r.ref_code, [])
+          map.get(r.ref_code).push(shape(r))
+        }
+        return map
+      }
+      const subjectsByRef = groupByRef(
+        (await pool.request().input("slug", sql.NVarChar(100), c.slug).query(SUBJECTS_SQL)).recordset,
+        (r) => ({ ordinal: r.ordinal, side: r.side, anchorId: r.anchor_id, selector: r.selector, label: r.label }),
+      )
+      const propertiesByRef = groupByRef(
+        (await pool.request().input("slug", sql.NVarChar(100), c.slug).query(PROPERTIES_SQL)).recordset,
+        (r) => ({ property: r.property, type: r.property_type }),
+      )
+
       const specs = await checkSpecRefs(c.slug)
 
       byComponent[c.slug] = rows.map((r) => ({
@@ -213,6 +254,13 @@ async function readCorpus() {
         evidenceStale: r.evidence_stale,
         hasCheckSpec: hasSpec(specs, r.ref_code),
         unmet: unmetByRef.get(r.ref_code) ?? [],
+        // Migration 010's declaration. `relation` and `subject_state` complete the
+        // sentence the subjects and properties start: these elements, in this state,
+        // differ on these properties.
+        subjects: subjectsByRef.get(r.ref_code) ?? [],
+        properties: propertiesByRef.get(r.ref_code) ?? [],
+        relation: r.relation,
+        subjectState: r.subject_state,
       }))
     }
     return { components, divergences: byComponent, thisMachine: here, fetchedAt: new Date().toISOString() }

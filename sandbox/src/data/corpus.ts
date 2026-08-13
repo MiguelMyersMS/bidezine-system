@@ -63,7 +63,24 @@ export type CorpusDivergence = {
   /** The gate's own unmet list, from `fn_divergence_unmet` — not re-derived here. Empty
    * means the gate is open. */
   unmet: { requirement: string; detail: string }[]
+
+  // ── migration 010's declaration: which elements, which properties, in which state ──
+  /** One entry per element the claim concerns. Two entries means a RELATIONAL claim (a gap
+   * between things), which needs a different drawing than a box around one thing. */
+  subjects: { ordinal: number; side: string; anchorId: string | null; selector: string | null; label: string }[]
+  properties: { property: string; type: PropertyType }[]
+  /** `gap`, `pitch`, `containment` … — how two subjects relate, when there are two. */
+  relation: string | null
+  /** The interaction state the claim holds in. `rest` on 9 rows, NULL on 145 — nothing has
+   * ever been declared in hover, active or focus, which is why the highlight does not try
+   * to drive one. */
+  subjectState: string | null
 }
+
+/** Migration 010's own enum. Only `length`, `text` and `keyword` have any rows in the
+ * corpus today; `color`, `time` and `layer` are declared here because the database
+ * declares them, and get renderers when their first row does. */
+export type PropertyType = "length" | "color" | "text" | "time" | "keyword" | "layer"
 
 export type Corpus = {
   components: CorpusComponent[]

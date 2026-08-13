@@ -32,7 +32,123 @@ function rectOf(ref: string): Rect | null {
   return { top: r.top, left: r.left, width: r.width, height: r.height }
 }
 
-export function DivergenceHighlight({ activeRef }: { activeRef: string | null }) {
+/**
+ * Dims everything except the subject, using four rects around it rather than an overlay
+ * with a hole.
+ *
+ * `pointer-events: none` on every piece, for the same reason the ring is: M5's own "done
+ * when" requires the highlighted region to stay hoverable, clickable and resizable. A mask
+ * that swallowed a pointer would satisfy "show me which one" by breaking "let me poke it".
+ *
+ * A `box-shadow: 0 0 0 100vmax` spread would be one element instead of four, but it paints
+ * over the WHOLE viewport including the divergence list on the left — the thing you are
+ * reading while you look. Four rects clip to the preview's own box.
+ */
+function Scrim({ rect, within }: { rect: Rect; within: Rect }) {
+  const parts: Rect[] = [
+    { top: within.top, left: within.left, width: within.width, height: Math.max(0, rect.top - within.top) },
+    {
+      top: rect.top + rect.height,
+      left: within.left,
+      width: within.width,
+      height: Math.max(0, within.top + within.height - (rect.top + rect.height)),
+    },
+    { top: rect.top, left: within.left, width: Math.max(0, rect.left - within.left), height: rect.height },
+    {
+      top: rect.top,
+      left: rect.left + rect.width,
+      width: Math.max(0, within.left + within.width - (rect.left + rect.width)),
+      height: rect.height,
+    },
+  ]
+  return (
+    <>
+      {parts.map((p, i) => (
+        <div
+          key={i}
+          aria-hidden
+          className="pointer-events-none fixed z-40 bg-background/70"
+          style={{ top: p.top, left: p.left, width: p.width, height: p.height }}
+        />
+      ))}
+    </>
+  )
+}
+
+/**
+ * What the claim is about, keyed by property type — migration 010's own design constraint:
+ * "only the RENDERING varies, keyed by property type. That is what keeps 154 rows from
+ * becoming 154 bespoke visualisations."
+ *
+ * Three types are rendered because three types have rows: `length` (15), `text` (6),
+ * `keyword` (3). `color`, `time` and `layer` have ZERO declared rows in the corpus despite
+ * 23 colour and 8 motion divergences existing as prose, so a renderer for them would be
+ * written against nothing and verified against nothing. They fall through to the generic
+ * label — visibly, so the gap shows rather than being papered over.
+ */
+function Callout({ declaration }: { declaration: Declaration }) {
+  const { properties, relation, subjectState, subjects } = declaration
+  const names = properties.map((p) => p.property).join(" · ")
+
+  // The DOMINANT type, not `properties[0]`. Properties arrive sorted by name, so taking the
+  // first one picked whichever type happened to sort earliest — F-1 read "computed value"
+  // because `box-sizing` precedes three length properties it is mostly about. Measured, not
+  // reasoned: the live payload is what showed it.
+  const counts = new Map<string, number>()
+  for (const p of properties) counts.set(p.type, (counts.get(p.type) ?? 0) + 1)
+  const [type] = [...counts.entries()].sort((a, z) => z[1] - a[1])[0] ?? []
+  const mixed = counts.size > 1
+
+  // `relation` is what makes a claim relational — NOT having two subjects. Two subjects
+  // usually means the SAME element on both sides (`side` is bidezine|origin), which is a
+  // comparison, not a gap between two things. F-2 has two subjects and no relation; F-4,
+  // F-9 and F-11 have a relation and zero subjects, because the runner cannot express them
+  // yet (scripts/check-declarations.mjs reports exactly those three).
+  const named = subjects.filter((s) => s.side === "bidezine").map((s) => s.label)
+  const lead = relation
+    ? `${relation}${named.length > 1 ? ` between ${named.join(" and ")}` : ""}`
+    : type === "length"
+      ? "measured on this element"
+      : type === "text"
+        ? "text rendering on this element"
+        : type === "keyword"
+          ? "computed value on this element"
+          : "declared on this element"
+
+  return (
+    <div className="pointer-events-none absolute top-full left-0 mt-1 max-w-[22rem] rounded-md border bg-popover px-2 py-1.5 text-popover-foreground shadow-md">
+      <p className="text-[10px] text-muted-foreground">
+        {lead}
+        {/* Said out loud rather than picking a winner silently. A row asserting both a
+            length and a keyword is genuinely two kinds of claim, and flattening it to one
+            noun is how a reviewer decides the wrong question. */}
+        {mixed && <span> · {[...counts.keys()].join(" + ")}</span>}
+      </p>
+      <p className="font-mono text-[11px] leading-tight">{names}</p>
+      {/* Stated only when it is not the default. `subject_state` is `rest` on 9 rows and
+          NULL on 145 — printing "rest" on everything would be noise pretending to be
+          information. */}
+      {subjectState && subjectState !== "rest" && (
+        <p className="text-[10px] text-muted-foreground">in the {subjectState} state</p>
+      )}
+    </div>
+  )
+}
+
+export type Declaration = {
+  subjects: { ordinal: number; side: string; anchorId: string | null; selector: string | null; label: string }[]
+  properties: { property: string; type: string }[]
+  relation: string | null
+  subjectState: string | null
+}
+
+export function DivergenceHighlight({
+  activeRef,
+  declaration,
+}: {
+  activeRef: string | null
+  declaration?: Declaration | null
+}) {
   const [rect, setRect] = useState<Rect | null>(null)
 
   useEffect(() => {
@@ -76,7 +192,19 @@ export function DivergenceHighlight({ activeRef }: { activeRef: string | null })
 
   if (!activeRef || !rect) return null
 
+  // The scrim is clipped to the preview stage rather than the viewport, so the list you are
+  // reading on the left never dims. A missing stage means no scrim at all rather than a
+  // full-screen one — degrading to the plain ring is correct; dimming the whole app because
+  // one selector did not match is not.
+  const stageEl = document.querySelector("[data-preview-stage]")
+  const stage = stageEl?.getBoundingClientRect()
+  const within: Rect | null = stage
+    ? { top: stage.top, left: stage.left, width: stage.width, height: stage.height }
+    : null
+
   return (
+    <>
+      {within && <Scrim rect={rect} within={within} />}
     <div
       aria-hidden
       className="pointer-events-none fixed z-50"
@@ -95,7 +223,11 @@ export function DivergenceHighlight({ activeRef }: { activeRef: string | null })
       >
         {activeRef}
       </span>
+      {/* Only when the row actually declares something. 7 of 154 do, and inventing a
+          callout for the rest would describe a claim nobody has made. */}
+      {declaration && declaration.properties.length > 0 && <Callout declaration={declaration} />}
     </div>
+    </>
   )
 }
 
