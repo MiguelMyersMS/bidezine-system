@@ -44,6 +44,42 @@ import {
 const BIDEZINE_LOGO_DEFAULT_LABEL = "(bidezine mark — built in, renders as inline SVG)"
 
 /**
+ * Per-occupant sections, keyed by slug — the same shape as `PREVIEW_REGISTRY`, and for the
+ * same reason.
+ *
+ * Blocking questions and the risk register are NOT corpus data. They live in this
+ * occupant's own source file, so they must be scoped to this occupant explicitly. The
+ * first version of the two-tab rebuild passed them unconditionally, which meant selecting
+ * any other component rendered **Rail Sidebar's** questions and risks under that
+ * component's name — quietly, with nothing on screen suggesting they belonged to something
+ * else. That is the same defect that condemned the four hardcoded tabs, just smaller and
+ * better hidden, and it was caught in review rather than by this file.
+ *
+ * A missing entry now yields an explained absence rather than another occupant's content
+ * (see `ReviewQueue`). Adding a component without an entry is therefore visible, not silent.
+ */
+const OCCUPANT_SECTIONS: Record<string, { questions: React.ReactNode; risks: React.ReactNode }> = {
+  "rail-sidebar": {
+    questions: (
+      <>
+        {blockingQuestions.map((q) => (
+          <BlockingQuestionCard key={q.id} question={q} />
+        ))}
+        <div className="rounded-md border p-4">
+          <p className="mb-2 text-sm font-medium">Logo import (Q3's standing rule)</p>
+          <LogoImportSlot
+            defaultUrl={BIDEZINE_LOGO_DEFAULT_LABEL}
+            defaultSvgPath={BIDEZINE_LOGO_PATH}
+            defaultViewBox={BIDEZINE_LOGO_VIEWBOX}
+          />
+        </div>
+      </>
+    ),
+    risks: <RisksList risks={notableRisks} />,
+  },
+}
+
+/**
  * Sandbox — the reusable transformation-tracking shell.
  *
  * Left panel: every phase + sub-phase a Sandbox component moves through (see
@@ -473,22 +509,8 @@ function HumanDecisionsPhase({
             onReveal={setActiveRef}
             onChanged={onChanged}
             decisionSurface={decisionSurface}
-            questions={
-              <>
-                {blockingQuestions.map((q) => (
-                  <BlockingQuestionCard key={q.id} question={q} />
-                ))}
-                <div className="rounded-md border p-4">
-                  <p className="mb-2 text-sm font-medium">Logo import (Q3's standing rule)</p>
-                  <LogoImportSlot
-                    defaultUrl={BIDEZINE_LOGO_DEFAULT_LABEL}
-                    defaultSvgPath={BIDEZINE_LOGO_PATH}
-                    defaultViewBox={BIDEZINE_LOGO_VIEWBOX}
-                  />
-                </div>
-              </>
-            }
-            risks={<RisksList risks={notableRisks} />}
+            questions={OCCUPANT_SECTIONS[slug]?.questions}
+            risks={OCCUPANT_SECTIONS[slug]?.risks}
           />
         </QuadrantLayout>
       </TabsContent>
