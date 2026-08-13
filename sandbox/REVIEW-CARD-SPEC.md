@@ -303,20 +303,26 @@ records which CSS properties a row concerns and nothing records which proposed t
 is labelled as component-wide rather than quietly implying otherwise. Adding that relation is the
 obvious next migration.
 
-**Questions and risks are NOT in the buckets, and that separation is honest rather than cosmetic.**
-Bucketing is computed from the gate; neither of these is in the corpus, so neither has a gate, a
-checklist, or an approval that means anything. Putting them in "Waiting on you" would create things
-that look identical to a gated row and are not.
+**Questions and risks ARE in the corpus, and they are gated.** `Q1`–`Q4` and `R-1`–`R-11` are ordinary
+`sandbox.divergence` rows, imported at `292b994`, each carrying its own unmet requirements. They appear
+in the buckets like everything else and get the real checklist and the real switch.
 
-**Why they were not simply imported as divergences — a correction to an earlier plan.** They do not
-fit. A question carries enumerated `options` with one chosen; a risk carries `actionItems` with done
-flags and cross-references to divergence ids. `divergence` has neither shape, so an import would
-flatten both into prose — losing exactly what makes them useful, and breaking M4's own rule that an
-import is lossless or it is not done. Some risks are not divergences at all: `R-5b` (a token-collision
-check deferred to promotion) is one, but `R-3c`/`R-11c` ("no dedicated Independent Audit agent has run
-against the whole component") is a **process gap about the component's own state machine**, and forcing
-it into a `divergence` row would pollute the corpus that M9's ranking depends on. Giving them a real
-home is a schema question for the milestone owner.
+> **This paragraph previously said the opposite** — that neither was in the corpus, so neither had a
+> gate — and `HANDOFF.md` repeated it. That was true when written and became false the moment the
+> import landed, and nobody corrected it. Caught by the milestone owner reading the corpus rather than
+> the document. Recorded rather than quietly overwritten, because a spec asserting the reverse of the
+> live system for several commits is worth knowing about: it was the premise a separate rendering path
+> had been built on.
+
+**The earlier objection — that `options` and `actionItems` have no column — was wrong**, and
+`origin_record` is why: it stores each source object verbatim, which is how M4 imported 154 rows
+losslessly. Nothing was flattened.
+
+**One row per subject is still not guaranteed.** A single subject can produce a question, a divergence
+and a risk — icon fill is `Q1`, `A-9` and `R-1`. They are not duplicates and must not be merged (see
+§3.10, "Related rows name their relation"), but until a divergence-to-divergence relation exists they
+list as three peers, and every count M9 reads is inflated by that fan-out. Migration `020` is reserved
+for it.
 
 ## 3.11 The comparison blocks
 
