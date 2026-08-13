@@ -722,6 +722,7 @@ function RailIconButton({
   colors,
   onClick,
   anchorRef,
+  forcedState,
 }: {
   section: RailSection
   state: "default" | "browsing" | "active"
@@ -733,6 +734,23 @@ function RailIconButton({
    * resulting evidence proves that button, not all 27 of them. See lib/divergence-anchors.tsx.
    */
   anchorRef?: string
+  /**
+   * Hold this button in an interaction state so a divergence about that state can actually
+   * be looked at — see `sandbox/REVIEW-CARD-SPEC.md` §5.3.
+   *
+   * A prop rather than a simulated event, because simulating does not work and that was
+   * measured rather than assumed. This component drives hover and press from React state
+   * (below), not from CSS `:hover`, so dispatching a `mouseover` LOOKS like it should
+   * reach it — React synthesises `onMouseEnter` from delegated `mouseover`, and it ignores
+   * a synthetic dispatch. Verified three ways against the live rail: a real Playwright
+   * `hover()` moved the background to `oklch(0.301 0 0)` (B-2's own proposed
+   * `--sidebar-rail-hover`), while dispatched `mouseover`, `mouseover` with a
+   * `relatedTarget`, and `pointerover` + `mouseover` all left it untouched.
+   *
+   * It ORs with the real state rather than replacing it, so a forced hover does not freeze
+   * the button against a genuine pointer — you can still interact with what you are shown.
+   */
+  forcedState?: string | null
 }) {
   const anchor = useDivergenceAnchor()
   const Icon = section.icon
@@ -750,8 +768,13 @@ function RailIconButton({
   const [isHovered, setIsHovered] = useState(false)
   const [isPressed, setIsPressed] = useState(false)
 
-  const background = isPressed ? colors.pressed : isActive ? colors.active : isHovered ? colors.hover : "transparent"
-  const color = isActive || isPressed ? colors.fg : isBrowsing || isHovered ? colors.fgHover : colors.fgSubtle
+  // The forced state ORs in; it never replaces. `browsing` maps onto hover because that is
+  // what the resolver below already does with it — one boolean, not a fourth branch.
+  const hovered = isHovered || forcedState === "hover" || forcedState === "browsing"
+  const pressed = isPressed || forcedState === "pressed"
+
+  const background = pressed ? colors.pressed : isActive ? colors.active : hovered ? colors.hover : "transparent"
+  const color = isActive || pressed ? colors.fg : isBrowsing || hovered ? colors.fgHover : colors.fgSubtle
 
   const button = (
     <Button
@@ -1208,6 +1231,7 @@ export function FunctionalRailSidebar({
   logoIcon,
   logoPlaceholder = false,
   anchors = false,
+  forcedState = null,
 }: {
   colors: RailColors
   height?: number
@@ -1269,6 +1293,20 @@ export function FunctionalRailSidebar({
    * `hidden dark:block` copy, both always present in the DOM). See `lib/divergence-anchors.tsx`.
    */
   anchors?: boolean
+  /**
+   * Hold one anchored element in an interaction state, so a divergence whose claim is about
+   * that state can be seen rather than described.
+   *
+   * `{ ref, state }` rather than a bare state: the ref decides WHICH element is held, which
+   * is the same question `data-divergence` answers, so the two stay in step. A ref this
+   * component does not recognise holds nothing — an unknown ref must show a resting rail,
+   * not a guess about which element was meant.
+   *
+   * Today only F-2's button responds. That is not a limitation of the mechanism but of the
+   * corpus: `subject_state` is `rest` or NULL on every row, so nothing yet declares a state
+   * to hold. When the colour rows are anchored and declare one, they key in here.
+   */
+  forcedState?: { ref: string; state: string } | null
 }) {
   const [openPanel, setOpenPanel] = useState<string | null>("slides")
   const [activeSectionId, setActiveSectionId] = useState("slides")
@@ -1502,6 +1540,10 @@ export function FunctionalRailSidebar({
                 // anchor must resolve to exactly one element, so this proves the representative
                 // instance rather than the whole set — see lib/divergence-anchors.tsx.
                 anchorRef={index === 0 ? "F-2" : undefined}
+                // Only the anchored button can be forced. A colour claim is about ONE
+                // rendered subject — lighting all 27 rail buttons would show the colour
+                // while destroying the "which element is this about" the anchor exists for.
+                forcedState={index === 0 && forcedState?.ref === "F-2" ? forcedState.state : undefined}
               />
             ))}
 

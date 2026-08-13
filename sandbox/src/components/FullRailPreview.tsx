@@ -143,10 +143,15 @@ export function RailNavStatusPreview({
   source,
   tokens,
   height = 550,
+  forcedState = null,
 }: {
   source: Source
   tokens: ProposedToken[]
   height?: number
+  /** Passed straight through to the rail — see `PreviewProps` in PreviewRegistry. Origin is
+   * unaffected: it renders in its own quarantined frame and nothing here can reach into it,
+   * which is why a claim about origin's own hover colour is not showable this way. */
+  forcedState?: { ref: string; state: string } | null
 }) {
   if (source === "origin") {
     return <OriginRailFrame height={height} />
@@ -166,7 +171,7 @@ export function RailNavStatusPreview({
           verifier drives, since it renders with no `dark` class on the document.
           See `sandbox/src/lib/divergence-anchors.tsx`. */}
       <div className="w-full dark:hidden">
-        <FunctionalRailSidebar colors={colorsFor("bidezine", "light", tokens)} fontFamily="var(--font-sans, ui-sans-serif)" height={height} anchors />
+        <FunctionalRailSidebar colors={colorsFor("bidezine", "light", tokens)} fontFamily="var(--font-sans, ui-sans-serif)" height={height} anchors forcedState={forcedState} />
       </div>
       <div className="hidden w-full dark:block">
         <FunctionalRailSidebar colors={colorsFor("bidezine", "dark", tokens)} fontFamily="var(--font-sans, ui-sans-serif)" height={height} />

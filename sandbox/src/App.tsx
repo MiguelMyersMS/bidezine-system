@@ -355,10 +355,14 @@ function HumanDecisionsPhase({
    * whole reason to have a live component next to the list is to look at it WHILE
    * deciding, which the old arrangement made impossible at exactly the moment it mattered.
    */
+  // The declaration of whichever row is selected — its subject_state is what the preview
+  // is asked to hold. Null when nothing is selected or the row declares no state, which is
+  // every row today.
+
   const preview = PREVIEW_REGISTRY[slug]
   const renderRailNav = (height: number) =>
     preview ? (
-      preview({ source: railSource, tokens: proposedDarkRailTokens, height })
+      preview({ source: railSource, tokens: proposedDarkRailTokens, height, forcedState: activeDeclaration?.subjectState && activeRef ? { ref: activeRef, state: activeDeclaration.subjectState } : null })
     ) : (
       <NoPreviewRegistered slug={slug} />
     )
@@ -367,6 +371,18 @@ function HumanDecisionsPhase({
   // are siblings in QuadrantLayout — the overlay has to be mounted outside the scrolling left
   // column to sit above the rail on the right.
   const [activeRef, setActiveRef] = useState<string | null>(null)
+
+  // The declaration of whichever row is selected — its `subject_state` is what the preview
+  // is asked to hold. Null when nothing is selected, or when the row declares no state,
+  // which is every row today.
+  //
+  // Declared HERE, below `activeRef`, and that placement is load-bearing rather than
+  // stylistic: an earlier version sat above the `useState` and read `activeRef` during
+  // render, which is a temporal dead zone and threw "Cannot access 'activeRef' before
+  // initialization" — a completely blank app, no tabs, no error visible except in the
+  // console. `renderRailNav` gets away with referencing it either way because it is a
+  // closure called later; this is not.
+  const activeDeclaration = rows.find((r) => r.ref === activeRef) ?? null
 
   return (
     <>
@@ -379,7 +395,11 @@ function HumanDecisionsPhase({
         declaration={rows.find((r) => r.ref === activeRef) ?? null}
       />
     <Tabs
-      defaultValue="blocking"
+      // Must name a tab that still exists. This read "blocking" for three commits after the
+      // seven-tab consolidation removed that tab — so the app opened with nothing selected
+      // and a blank content area until you clicked something. Radix does not warn, and
+      // verify-ui never saw it because every check clicks a tab by name first.
+      defaultValue="categories"
       className="grid h-full min-h-0 w-full grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden"
     >
       <div className="-mx-[10px] -mt-[10px] mb-[10px] flex items-center justify-between gap-4 border-b px-6 py-4">

@@ -21,6 +21,22 @@ export type PreviewProps = {
   source: "origin" | "bidezine"
   tokens: ProposedToken[]
   height: number
+  /**
+   * Hold one anchored element of the preview in an interaction state, so a divergence whose
+   * claim is about that state can be looked at rather than described.
+   *
+   * Part of the PREVIEW contract rather than one occupant's, because "put yourself into this
+   * state" is a question every occupant has to answer for its own colour and
+   * interaction-state rows. An occupant that cannot honour it should ignore it — a card can
+   * then say so, which is better than a resting element presented as a hover.
+   *
+   * A prop rather than a simulated event, and that was measured rather than assumed:
+   * dispatching `mouseover` at a rail button changes nothing, because React synthesises
+   * `onMouseEnter` from delegated events and ignores a synthetic dispatch. A real
+   * Playwright `hover()` on the same element moves it to `oklch(0.301 0 0)`. See
+   * `FunctionalRailSidebar`'s `forcedState` for the full note.
+   */
+  forcedState?: { ref: string; state: string } | null
 }
 
 export const PREVIEW_REGISTRY: Record<string, (props: PreviewProps) => React.ReactNode> = {
