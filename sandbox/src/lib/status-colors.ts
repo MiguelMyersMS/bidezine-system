@@ -6,8 +6,10 @@
  *
  * Rule of thumb used across the app: a hard "needs a human decision" reads as NEGATIVE — this
  * reuses bidezine's own real `--destructive`/`--destructive-foreground` tokens (see
- * tokens/*.tokens.json), the same ones RisksList already used for "Open" risks, rather than
- * inventing a new color. A softer "worth noting" (non-blocking, but read before moving on) reads
+ * tokens/*.tokens.json) rather than inventing a new color. (This sentence used to cite
+ * `RisksList` as the precedent; that component was deleted when every reviewable thing moved to
+ * one card format, and an open risk's badge is now `WARNING` rather than `NEGATIVE` — the
+ * precedent is named here instead of pointing at a file that no longer exists.) A softer "worth noting" (non-blocking, but read before moving on) reads
  * as WARNING (amber) — bidezine has no warning token yet, so this uses Tailwind's stock amber
  * palette. Anything already approved/resolved/decided reads as POSITIVE (emerald) — likewise no
  * bidezine success token yet. Neutral/informational states (e.g. "clean equivalent") are
