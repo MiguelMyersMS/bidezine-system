@@ -399,19 +399,71 @@ defect this protocol exists to prevent; it made 169 cards look described when no
 **It is not evidence.** An agent writes it, so it asserts nothing about correctness and satisfies no gate
 requirement. It shapes what a human looks at; it never stands in for what a machine measured.
 
-### The structure — three sentences, in this order, always
+### The four things it must answer
 
-1. **What is being decided**, named in the component's own terms: the element and its state.
-   *"What a rail row looks like on hover."*
-2. **Why it needs a human** — the specific reason, not a generic one. Skip this sentence only if there is
-   genuinely no such reason, which is itself worth noticing.
-   *"Origin overlays white at 10%; bidezine has no equivalent, so this has to be a fixed colour rather
-   than an overlay."*
-3. **The proposal, last, always prefixed `Proposed`** — the exact token, value or candidate.
-   *"Proposed `--sidebar-rail-hover`: oklch(0.301 0 0) light, oklch(0.191 0 0) dark."*
+**Richer means clearer, not longer.** A reviewer opening a card should be able to decide without
+opening anything else, and without knowing the codebase. Four questions, in this order:
 
-Sentence 3 is last so the same information sits in the same place on every card in every component. A
-reader learns where to look once.
+1. **WHERE** — which part of the component, in plain words. Not a selector, not a token name.
+   *"The ellipsis that opens the rail's overflow menu, and the same glyph in the panel header."*
+2. **WHEN** — which interaction state, **only if the claim is state-specific**. Omit it entirely
+   otherwise; "at rest" on a row that has no other state is noise wearing the shape of information.
+   *"…on hover."*
+3. **WHAT WE PROPOSE**, in human terms — *a Fluent icon*, *a lighter surface*, *a tighter row*. The
+   plain-language change, not the mechanism.
+   *"We propose Fluent's MoreHorizontal in place of origin's own glyph."*
+4. **WHAT TO WEIGH** — the specific characteristic that makes this a judgement rather than a lookup.
+   This is the sentence that earns the human's time, and the one most often skipped.
+   *"Judge whether it reads as the same affordance at 20px — the dot spacing differs slightly."*
+
+**The exact value, if there is one, goes last**, prefixed `Proposed`, so the same information sits in
+the same place on every card of every occupant. A reader learns where to look once. Omit it when
+nobody has proposed a value — see the hard rules.
+
+### The description absorbs what the title crams into parentheses
+
+Titles are imported and often carry their real meaning in a bracket:
+`IconEllipsis ("More" trigger + panel-header ellipsis)`. That parenthetical is the WHERE, and it
+belongs in sentence 1 where it can be a phrase rather than an abbreviation. **Do not repeat it in the
+description while it is still in the title** — say it once, properly, in the description.
+
+### Length is a constraint on wording, not on content
+
+280 characters. If four answers do not fit, the sentences are carrying explanation that belongs in the
+canvas or nowhere — not evidence that the cap is wrong. Every draft this protocol has produced fits in
+180–270 with all four present.
+
+### Two registers: decide, and confirm
+
+Not every row is asking for a decision. Some were settled before the gate existed and are waiting to
+be *confirmed* through it — their imported `detail` says so outright ("user explicitly concurred and
+marked it decided"), while their corpus state is still `legacy_unverified`.
+
+**Say which one it is.** A settled row asks *"check that this still holds"*, not *"choose"*. That is
+useful information on its own: it tells a reviewer whether they are exercising judgement or
+ratifying someone else's. Writing both registers as though they were the same wastes attention on the
+easy ones and hides which are hard.
+
+### Related rows name their relation
+
+A subject can produce several rows: the **question** that had to be answered, the **divergence** that
+answers it, and the **risk** that must not go wrong afterwards. Rail Sidebar's icon-fill mechanism is
+all three — `Q1`, `A-9`, `R-1` — and they arrive as flat peers because the import folded three source
+arrays into one table.
+
+**Each states its relation in its first sentence**: *"The decision behind the filled-icon mechanism
+(A-9)"*, *"The follow-through on the filled-icon mechanism (A-9)"*. A reviewer meeting any one of them
+learns the others exist and why, instead of finding three unrelated cards about the same thing.
+
+Do **not** merge them. They ask different questions — which option, does it differ, is it being
+applied correctly — and a risk can carry an open item its divergence does not cover. Merging destroys
+that; naming the relation costs a clause.
+
+**This is a stopgap.** The real fix is a divergence-to-divergence relation in the schema, so the queue
+can nest a subject and its satellites rather than listing three peers. No such column exists
+(`blocked_by` points at a system change; `relation` is subject geometry). Worth building because
+**every** occupant produces questions and risks about specific divergences — it is structural to
+intake, not particular to this component.
 
 ### Hard rules
 
