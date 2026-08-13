@@ -4,7 +4,7 @@
   "_generatedFrom": {
     "slug": "rail-sidebar",
     "componentState": "build",
-    "rowCount": 154
+    "rowCount": 168
   },
   "rows": [
     {
@@ -1503,7 +1503,7 @@
       "originCategory": "F — Layout / Sizing",
       "title": "railButton = 38px / railIcon = 20px",
       "detail": "Approved now: match the origin Rail Sidebar rail button container at 38px and main rail glyph size at 20px in the adjusted example.",
-      "state": "legacy_unverified",
+      "state": "reopened",
       "visual": {
         "kind": "shape",
         "beforeLabel": "Origin railButton 38px",
@@ -1547,7 +1547,7 @@
       "originCategory": "F — Layout / Sizing",
       "title": "panelW = 300px (default panel width)",
       "detail": "RESOLVED (see divergence row L-41): previously kept origin's own LAYOUT.panelW = 300 verbatim, purely because “that's what origin used” — with no bidezine token backing that specific number, the exact same “diverge to match origin instead of reusing what bidezine already has” mistake as the color-token fixes at rows C-6–C-9 (CLAUDE.md Primitive Fidelity Checklist item 26). Fixed: PANEL_DEFAULT_WIDTH now reuses bidezine's own Sidebar primitive's native default width, 16rem/256px, instead of origin's 300px. PANEL_MIN_WIDTH stays at 240 — that one is NOT borrowed from origin; it independently matches bidezine's own min-w-60 token (row F-8).",
-      "state": "legacy_unverified",
+      "state": "resolved",
       "visual": {
         "kind": "shape",
         "beforeLabel": "origin panelW 300px (no bidezine token)",
@@ -3388,6 +3388,529 @@
         "what": "logoLabel default = “BiDezine”",
         "status": "resolved",
         "detail": "Expanded well beyond the original one-line finding into a full LOGO CONTRACT, per explicit user request. Mandatory process: before wiring any specific logo into a real consumer's Rail Sidebar, the AI/implementer MUST explicitly ask the requester for their logo, in SVG format, sized to this slot's real rendered box (38×38px rail-button hit area; the mark itself renders at 24×24px / `size-6`, matching this component's own default `BIDEZINE_LOGO_VIEWBOX` 26.064×24 aspect as a sizing reference) — never invent, guess, or auto-generate a logo (this generalizes the standing Q3 rule, previously scoped to the Intake/factory-line “Logo-import slot” UI element, to this component's own real, shipped prop surface). If the requester has no logo ready, exactly two explicit interim states are acceptable, never silently substituted for each other: (1) leave `logoIcon` unset — renders this design system's own default BiDezine mark as a clearly-temporary stand-in (the pre-existing default behavior), or (2) set the new `logoPlaceholder` prop to `true` — renders an empty, dashed-border box with no mark at all, for consumers who don't want BiDezine's own branding shown even temporarily. `FunctionalRailSidebar` (limbo-factory/src/components/FunctionalRailSidebar.tsx) gained three new props to support this: `logoLabel?: string` (already existed conceptually as a hardcoded “BiDezine” string in the tooltip; now a real, documented prop, still defaulting to “BiDezine”), `logoIcon?: React.ReactNode` (a real inline `<svg>` a consumer supplies once their real logo is ready — never an `<img>`, per CLAUDE.md's inline-SVG rule), and `logoPlaceholder?: boolean` (the empty-box interim state). Additionally, per explicit user request: `logoHref?: string` — when provided, the logo slot itself becomes a real hyperlink (`<a href={logoHref} target=\"_blank\" rel=\"noreferrer\">`) that navigates on click; when omitted, the slot stays a plain non-interactive `<div>` (the pre-existing behavior, unchanged for consumers that don't want a clickable logo). The hover tooltip (Radix `Tooltip`, always shown regardless of rail state, per M-5/L-1) now reads from `logoLabel` instead of a hardcoded string, so a consumer supplying their own `logoIcon`/`logoHref` also gets their own brand name surfaced in the tooltip, never a leftover “BiDezine” string. Verified: limbo-factory npx tsc --noEmit clean."
+      }
+    },
+    {
+      "ref": "Q1",
+      "category": "icons",
+      "originCategory": "Q — Blocking questions",
+      "title": "Icon `filled` prop system",
+      "detail": "RailNav toggles every interactive icon between a “regular” and “filled” SVG variant on hover, active, and browsing states. Our Fluent icon pipeline (icons/manifest.json → build-icons.mjs) only emits static regular-style icons — there is no filled prop and no filled SVGs generated for any current manifest entry.",
+      "state": "legacy_unverified",
+      "visual": {
+        "kind": "icon",
+        "beforeLabel": "Origin: regular → filled swap on hover/active",
+        "beforeSvgPath": "M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm0 1.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Z",
+        "afterIconName": "MoreHorizontalIcon",
+        "afterLabel": "bidezine: regular -> filled for actionable states",
+        "afterNote": "Generated icons support filled?: boolean; non-interactive icons remain regular."
+      },
+      "originRecord": {
+        "id": "q1",
+        "priority": 1,
+        "title": "Icon `filled` prop system",
+        "blocks": "All interactive icon states (hover / active / browsing) across the whole component",
+        "context": "RailNav toggles every interactive icon between a “regular” and “filled” SVG variant on hover, active, and browsing states. Our Fluent icon pipeline (icons/manifest.json → build-icons.mjs) only emits static regular-style icons — there is no filled prop and no filled SVGs generated for any current manifest entry.",
+        "options": [
+          {
+            "label": "(a) Add filled-variant manifest entries only for the icons RailNav needs",
+            "detail": "e.g. MoreHorizontalFilledIcon → more_horizontal_20_filled. Smallest footprint; filled variants added case-by-case as needed."
+          },
+          {
+            "label": "(b) Drop the filled toggle entirely",
+            "detail": "Signal hover / active / browsing with color or opacity changes only — no fill change."
+          },
+          {
+            "label": "(c) Extend the icon pipeline to support `filled` natively — CHOSEN",
+            "detail": "Generated Fluent icons accept `filled?: boolean`. Actionable icons use filled variants for hover and selected states; non-interactive icon uses stay regular."
+          }
+        ],
+        "resolution": {
+          "chosenLabel": "(c) Filled variants for actionable hover/selected states",
+          "note": "New system-wide rule: actionable Fluent icons render regular at rest and filled on hover/selected/active states. Non-interactive icon usage remains regular. The icon generator now exposes `filled?: boolean`; components opt in only for actionable states."
+        },
+        "visual": {
+          "kind": "icon",
+          "beforeLabel": "Origin: regular → filled swap on hover/active",
+          "beforeSvgPath": "M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm0 1.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Z",
+          "afterIconName": "MoreHorizontalIcon",
+          "afterLabel": "bidezine: regular -> filled for actionable states",
+          "afterNote": "Generated icons support filled?: boolean; non-interactive icons remain regular."
+        }
+      }
+    },
+    {
+      "ref": "Q2",
+      "category": "color",
+      "originCategory": "Q — Blocking questions",
+      "title": "Dark rail surface token family",
+      "detail": "The rail needs a coherent family of ~8 dark-surface-specific tokens (darkSurface, darkHoverBg, darkActiveBg, darkPressedBg, darkBorderStrong, onDark, onDarkHover, onDarkSubtle) with no bidezine equivalent. CLAUDE.md's core rule is that tokens are authored only in tokens/*.tokens.json — never hand-written inline.",
+      "state": "legacy_unverified",
+      "visual": null,
+      "originRecord": {
+        "id": "q2",
+        "priority": 2,
+        "title": "Dark rail surface token family",
+        "blocks": "The entire rail color system — background, hover/active/pressed states, borders, on-dark text/icon colors",
+        "context": "The rail needs a coherent family of ~8 dark-surface-specific tokens (darkSurface, darkHoverBg, darkActiveBg, darkPressedBg, darkBorderStrong, onDark, onDarkHover, onDarkSubtle) with no bidezine equivalent. CLAUDE.md's core rule is that tokens are authored only in tokens/*.tokens.json — never hand-written inline.",
+        "options": [
+          {
+            "label": "(a) Author a new dark-surface token group in tokens/base.tokens.json — CHOSEN",
+            "detail": "Adds a dedicated token family, with light/dark values since they DO differ by the app's own theme (confirmed against the origin's tokens.ts — see the Color token lab tab)."
+          },
+          {
+            "label": "(b) Reuse existing sidebar / sidebar-foreground tokens where close enough",
+            "detail": "Add only the tokens that truly have no equivalent (e.g. the interactive overlay states)."
+          },
+          {
+            "label": "(c) Treat the rail as always-dark regardless of app theme",
+            "detail": "Ruled out — the origin's own tokens.ts proves the rail's exact values DO change between the app's light and dark theme (see Color token lab)."
+          }
+        ],
+        "resolution": {
+          "chosenLabel": "(a) Author a new dark-surface token group",
+          "note": "All 11 candidate tokens now have FINAL sign-off — see the “Color token lab” tab and the composed rail preview. This includes two later corrections found only once the tokens were actually built and exercised, not just approved as isolated swatches: darkSurface's dark-app-mode value was revised (it had been identical to bidezine's own --background, making the rail invisible against the page) and darkBorderStrong's value was revised (it had almost no contrast against the rail surface, making the browsing-state ring invisible) — plus a genuinely new 11th token, darkDividerSubtle, split out from darkBorderStrong once raising the border's brightness started also brightening the rail's own divider lines. All 11 are ready to be authored into tokens/base.tokens.json at Build time."
+        }
+      }
+    },
+    {
+      "ref": "Q3",
+      "category": "icons",
+      "originCategory": "Q — Blocking questions",
+      "title": "Default logo icon (IconLogo)",
+      "detail": "RailNav defaults to a custom IconLogo (the brand mark) when no logo prop is passed. It isn't in icons/manifest.json.",
+      "state": "legacy_unverified",
+      "visual": {
+        "kind": "icon",
+        "beforeLabel": "Origin IconLogo (bidezine mark)",
+        "beforeViewBox": "0 0 26.064 24",
+        "afterLabel": "Same mark, added as a custom manifest entry",
+        "afterNote": "Not yet added to icons/manifest.json — happens at Build time, once the rest of Human Decisions is resolved."
+      },
+      "originRecord": {
+        "id": "q3",
+        "priority": 3,
+        "title": "Default logo icon (IconLogo)",
+        "blocks": "The rail's default logo slot when no `logo` prop is supplied",
+        "context": "RailNav defaults to a custom IconLogo (the brand mark) when no logo prop is passed. It isn't in icons/manifest.json.",
+        "options": [
+          {
+            "label": "(a) Add as a `custom` manifest entry — CHOSEN, with a standing rule",
+            "detail": "AI must never pick or invent a logo/brand icon. The rule going forward: always ask the user for an image link to import; if none is supplied, the logo slot renders empty (not a placeholder icon)."
+          },
+          {
+            "label": "(b) Remove the default entirely",
+            "detail": "Superseded by (a) with the standing rule — an explicit empty state covers this case too."
+          },
+          {
+            "label": "(c) Use an existing Fluent icon as a placeholder default",
+            "detail": "Rejected — a generic icon in a brand-mark slot is misleading, worse than an honest empty state."
+          }
+        ],
+        "resolution": {
+          "chosenLabel": "(a) Custom manifest entry, sourced from the origin project",
+          "note": "For Rail Sidebar specifically: use the exact bidezine mark from the origin project (design-system/src/icons/fluent.tsx → IconLogo) — that mark already IS the bidezine logo. Standing rule for every future logo/brand slot: AI asks for an image link; empty if none given; never auto-selects or invents one."
+        },
+        "visual": {
+          "kind": "icon",
+          "beforeLabel": "Origin IconLogo (bidezine mark)",
+          "beforeViewBox": "0 0 26.064 24",
+          "afterLabel": "Same mark, added as a custom manifest entry",
+          "afterNote": "Not yet added to icons/manifest.json — happens at Build time, once the rest of Human Decisions is resolved."
+        }
+      }
+    },
+    {
+      "ref": "Q4",
+      "category": "icons",
+      "originCategory": "Q — Blocking questions",
+      "title": "Panel collapse icon — corrected: panel_left_contract, not double-chevron",
+      "detail": "CORRECTED after your feedback: the real, currently-shipping source (design-system/src/gallery/ExpandButton.tsx) imports IconPanelLeftContract, not IconChevronDoubleLeft — the earlier investigation trusted a stale QA doc instead of the actual component file. Verified against node_modules/@fluentui/svg-icons: panel_left_contract_20_regular and panel_left_expand_20_regular both exist natively, and the SVG path matches your screenshots exactly (two-panel rectangle + left-pointing arrow).",
+      "state": "legacy_unverified",
+      "visual": {
+        "kind": "icon",
+        "beforeLabel": "IconPanelLeftContract (real source: ExpandButton.tsx)",
+        "afterIconName": "PanelLeftIcon",
+        "afterLabel": "Closest current manifest icon (no arrow) — panel_left_contract to be added",
+        "afterNote": "panel_left_contract_20_regular verified to exist in @fluentui/svg-icons — exact match, just not in our manifest yet."
+      },
+      "originRecord": {
+        "id": "q4",
+        "priority": 4,
+        "title": "Panel collapse icon — corrected: panel_left_contract, not double-chevron",
+        "blocks": "The panel's collapse/expand button",
+        "context": "CORRECTED after your feedback: the real, currently-shipping source (design-system/src/gallery/ExpandButton.tsx) imports IconPanelLeftContract, not IconChevronDoubleLeft — the earlier investigation trusted a stale QA doc instead of the actual component file. Verified against node_modules/@fluentui/svg-icons: panel_left_contract_20_regular and panel_left_expand_20_regular both exist natively, and the SVG path matches your screenshots exactly (two-panel rectangle + left-pointing arrow).",
+        "options": [
+          {
+            "label": "(a) Add panel_left_contract_20_regular / panel_left_expand_20_regular to the manifest — CHOSEN",
+            "detail": "Exact 1:1 Fluent match, both regular and filled variants exist if Q1 is revisited later. No compromise needed."
+          },
+          {
+            "label": "(b) Use the existing PanelLeftIcon (panel_left_20_regular, no arrow)",
+            "detail": "Already in our manifest, but visually different — no collapse/expand direction shown."
+          },
+          {
+            "label": "(c) A different Fluent icon",
+            "detail": "Not needed — the exact source icon exists natively."
+          }
+        ],
+        "resolution": {
+          "chosenLabel": "(a) panel_left_contract_20_regular (+ panel_left_expand_20_regular for the open state)",
+          "note": "This is not really a divergence anymore — it's a clean 1:1 match, once traced to the real source file instead of a stale doc. Manifest addition happens at Build time."
+        },
+        "visual": {
+          "kind": "icon",
+          "beforeLabel": "IconPanelLeftContract (real source: ExpandButton.tsx)",
+          "afterIconName": "PanelLeftIcon",
+          "afterLabel": "Closest current manifest icon (no arrow) — panel_left_contract to be added",
+          "afterNote": "panel_left_contract_20_regular verified to exist in @fluentui/svg-icons — exact match, just not in our manifest yet."
+        }
+      }
+    },
+    {
+      "ref": "R-1",
+      "category": "icons",
+      "originCategory": "R — Notable risks",
+      "title": "Icon `filled` prop support must be used deliberately",
+      "detail": "Q1 is resolved: the icon pipeline now supports `filled?: boolean`. Build must apply it only to actionable hover/selected/active states; static/non-interactive icon display remains regular.",
+      "state": "legacy_unverified",
+      "visual": null,
+      "originRecord": {
+        "id": "R-1",
+        "title": "Icon `filled` prop support must be used deliberately",
+        "detail": "Q1 is resolved: the icon pipeline now supports `filled?: boolean`. Build must apply it only to actionable hover/selected/active states; static/non-interactive icon display remains regular.",
+        "actionItems": [
+          {
+            "id": "R-1a",
+            "text": "Q1 answered — generated icons now expose filled?: boolean for actionable states",
+            "done": true,
+            "refs": [
+              "Q1",
+              "A-9"
+            ]
+          },
+          {
+            "id": "R-1b",
+            "text": "During Build, audit actionable icon usages so filled is opt-in by state and non-interactive icons remain regular — done: L-20/L-27 ran a full, exhaustive hover/press/select sweep across every actionable icon in the component (5 pinned rail buttons, footer, Collapse sidebar, all 11 overflow-menu items, all 23 leaf/group tree items across both panel trees) with zero failures on the final pass",
+            "done": true,
+            "refs": [
+              "A-1",
+              "A-8",
+              "A-9",
+              "L-20",
+              "L-27"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "ref": "R-10",
+      "category": "structure",
+      "originCategory": "R — Notable risks",
+      "title": "Sandbox fidelity gate — className-override-vs-primitive-shorthand bugs found twice in one session (M-18, M-19)",
+      "detail": "Two separate rendering bugs (search icon overlapping text, rail buttons rendering 2px undersized) traced to the identical root cause: a className meant to override a bidezine primitive's own built-in shorthand utility class (Input's px-3, Button's size-9) silently lost the compiled Tailwind stylesheet's cascade tie, even though the override looked correct in source and appeared later in the className string. Because the same failure class repeated on two different primitives in one session, the lesson was generalized directly into CLAUDE.md's new “Sandbox/Limbo fidelity” section (covering className-override verification, suppressed-state replacement wiring, hand-rolled markup, isolated-swatch re-verification, doc-vs-code drift, faithfully-reproduced origin bugs, and short-demo-content overflow testing) rather than left as a one-off fix, so future Limbo occupants inherit the check automatically. See LIMBO-PROTOCOL-LOG.md's flaws log for the full rationale.",
+      "state": "legacy_unverified",
+      "visual": null,
+      "originRecord": {
+        "id": "R-10",
+        "title": "Sandbox fidelity gate — className-override-vs-primitive-shorthand bugs found twice in one session (M-18, M-19)",
+        "detail": "Two separate rendering bugs (search icon overlapping text, rail buttons rendering 2px undersized) traced to the identical root cause: a className meant to override a bidezine primitive's own built-in shorthand utility class (Input's px-3, Button's size-9) silently lost the compiled Tailwind stylesheet's cascade tie, even though the override looked correct in source and appeared later in the className string. Because the same failure class repeated on two different primitives in one session, the lesson was generalized directly into CLAUDE.md's new “Sandbox/Limbo fidelity” section (covering className-override verification, suppressed-state replacement wiring, hand-rolled markup, isolated-swatch re-verification, doc-vs-code drift, faithfully-reproduced origin bugs, and short-demo-content overflow testing) rather than left as a one-off fix, so future Limbo occupants inherit the check automatically. See LIMBO-PROTOCOL-LOG.md's flaws log for the full rationale.",
+        "actionItems": [
+          {
+            "id": "R-10a",
+            "text": "Full sweep of FunctionalRailSidebar.tsx for any other className overriding a primitive's own shorthand utility class (size-*, px-*/py-*, etc.) — the 3 known instances (RailIconButton, overflow trigger, Profile button) are fixed; no others found on this pass",
+            "done": true,
+            "refs": [
+              "M-18",
+              "M-19"
+            ]
+          },
+          {
+            "id": "R-10b",
+            "text": "Independent Audit agent explicitly re-checks the component against CLAUDE.md's new “Sandbox/Limbo fidelity” checklist before promotion, not just the original Intake divergence list",
+            "done": false
+          }
+        ]
+      }
+    },
+    {
+      "ref": "R-2",
+      "category": "color",
+      "originCategory": "R — Notable risks",
+      "title": "Dark surface token family has zero bidezine equivalents",
+      "detail": "The whole rail color system is missing. Authoring ad-hoc inline values would violate the tokens-only rule in CLAUDE.md.",
+      "state": "legacy_unverified",
+      "visual": null,
+      "originRecord": {
+        "id": "R-2",
+        "title": "Dark surface token family has zero bidezine equivalents",
+        "detail": "The whole rail color system is missing. Authoring ad-hoc inline values would violate the tokens-only rule in CLAUDE.md.",
+        "actionItems": [
+          {
+            "id": "R-2a",
+            "text": "Q2 answered — author new tokens (option a)",
+            "done": true,
+            "refs": [
+              "Q2"
+            ]
+          },
+          {
+            "id": "R-2b",
+            "text": "Color Token Lab built so proposed values can be visually approved before authoring",
+            "done": true,
+            "refs": [
+              "proposedDarkRailTokens"
+            ]
+          },
+          {
+            "id": "R-2c",
+            "text": "User approves each of the 11 proposed dark-rail tokens in the lab — all 11 approved (incl. 2 corrections found only once built/exercised, plus 1 new divider token)",
+            "done": true,
+            "refs": [
+              "proposedDarkRailTokens",
+              "M-13",
+              "M-14",
+              "M-15"
+            ]
+          },
+          {
+            "id": "R-2d",
+            "text": "Approved tokens written to tokens/*.tokens.json (Build phase only)",
+            "done": false
+          }
+        ]
+      }
+    },
+    {
+      "ref": "R-3",
+      "category": "structure",
+      "originCategory": "R — Notable risks",
+      "title": "Inline CSS-in-JS is incompatible with our Tailwind v4 paradigm",
+      "detail": "A large, trap-prone mechanical translation task — some values have no Tailwind utility without arbitrary-value syntax.",
+      "state": "legacy_unverified",
+      "visual": null,
+      "originRecord": {
+        "id": "R-3",
+        "title": "Inline CSS-in-JS is incompatible with our Tailwind v4 paradigm",
+        "detail": "A large, trap-prone mechanical translation task — some values have no Tailwind utility without arbitrary-value syntax.",
+        "actionItems": [
+          {
+            "id": "R-3a",
+            "text": "Category H (Motion) items individually decided (duration/easing per transition) — H-1 (rail hover/press, 150ms) done; H-2 through H-6 (panel reveal + Collapse) closed via explicit user deferral (“no need to resolve it at this instance”), pending a planned system-wide animation-token upgrade — not a per-item timing/easing resolution, but a real, closed decision for this phase",
+            "done": true,
+            "refs": [
+              "H-1",
+              "H-2",
+              "H-3",
+              "H-4",
+              "H-5",
+              "H-6"
+            ]
+          },
+          {
+            "id": "R-3b",
+            "text": "Category K (focus ring / scrollbar CSS injection) individually decided",
+            "done": true,
+            "refs": [
+              "K-1",
+              "K-2",
+              "K-3",
+              "K-4"
+            ]
+          },
+          {
+            "id": "R-3c",
+            "text": "Independent Audit agent confirms no runtime <style> injection survived into Build output",
+            "done": false
+          }
+        ]
+      }
+    },
+    {
+      "ref": "R-4",
+      "category": "structure",
+      "originCategory": "R — Notable risks",
+      "title": "History of design instability in the origin",
+      "detail": "At least 7 visual decisions changed mid-development (button size, radius, panel typography, active-row background, etc.). Confirm which version is “final” before Build starts.",
+      "state": "legacy_unverified",
+      "visual": null,
+      "originRecord": {
+        "id": "R-4",
+        "title": "History of design instability in the origin",
+        "detail": "At least 7 visual decisions changed mid-development (button size, radius, panel typography, active-row background, etc.). Confirm which version is “final” before Build starts.",
+        "actionItems": [
+          {
+            "id": "R-4a",
+            "text": "Confirm current live ExpandButton.tsx source (not stale QA docs) is the reference for Q4",
+            "done": true,
+            "refs": [
+              "Q4"
+            ]
+          },
+          {
+            "id": "R-4b",
+            "text": "Spot-check remaining categories (F, G) against origin source, not just docs, before Build — done: F-3 re-derived against bidezine's own Sidebar default (not origin's bare 300px literal), F-7 re-derived from bidezine's own RailIconButton/footer constants (not origin's bare 122px literal), G-1 confirmed against FunctionalRailSidebar.tsx's live raw 12px value and visually approved",
+            "done": true,
+            "refs": [
+              "F-3",
+              "F-7",
+              "G-1"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "ref": "R-5",
+      "category": "naming-api",
+      "originCategory": "R — Notable risks",
+      "title": "Our own Sidebar primitive defines conflicting concepts",
+      "detail": "Both could be called “sidebar” but are architecturally incompatible organisms — risk of consumer confusion and token collisions.",
+      "state": "legacy_unverified",
+      "visual": null,
+      "originRecord": {
+        "id": "R-5",
+        "title": "Our own Sidebar primitive defines conflicting concepts",
+        "detail": "Both could be called “sidebar” but are architecturally incompatible organisms — risk of consumer confusion and token collisions.",
+        "actionItems": [
+          {
+            "id": "R-5a",
+            "text": "Decide final naming (“Rail Sidebar” vs existing “Sidebar”) to avoid nav-manifest / export collisions — decided (see M-8): no rename, no merged API; the two stay architecturally distinct organisms for this phase, with existing Sidebar deliberately revisited at Promote time to borrow proven Rail Sidebar patterns rather than the two being unified now",
+            "done": true,
+            "refs": [
+              "M-8"
+            ]
+          },
+          {
+            "id": "R-5b",
+            "text": "Confirm neither component's token names or CSS classes collide at Promote time",
+            "done": false,
+            "refs": [
+              "M-8"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "ref": "R-6",
+      "category": "motion",
+      "originCategory": "R — Notable risks",
+      "title": "The `Collapse` animation component isn't in the reference copy",
+      "detail": "Its behavior is documented but exact timing/easing values live only in the origin project's MOTION constants, not captured here — a documentation gap.",
+      "state": "legacy_unverified",
+      "visual": null,
+      "originRecord": {
+        "id": "R-6",
+        "title": "The `Collapse` animation component isn't in the reference copy",
+        "detail": "Its behavior is documented but exact timing/easing values live only in the origin project's MOTION constants, not captured here — a documentation gap.",
+        "actionItems": [
+          {
+            "id": "R-6a",
+            "text": "MOTION constants (fast/medium/reveal, easing curves) sourced directly from origin tokens.ts",
+            "done": true,
+            "refs": [
+              "H-1",
+              "H-2",
+              "H-3",
+              "H-4"
+            ]
+          },
+          {
+            "id": "R-6b",
+            "text": "Collapse.tsx (grid-template-rows, deterministic unmount) copied into the self-contained reference before Build — superseded: L-7 explicitly decided NOT to reimplement origin's bespoke Collapse.tsx, reusing bidezine's own Radix Collapsible + tw-animate-css pattern instead (same technique Accordion already uses), so the exact timing/easing values this row worried about are no longer needed at all — the gap this risk described was closed by a different, deliberately chosen path, not by copying the file",
+            "done": true,
+            "refs": [
+              "H-6",
+              "L-7"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "ref": "R-7",
+      "category": "structure",
+      "originCategory": "R — Notable risks",
+      "title": "Runtime <style> tag injection conflicts with our build-time CSS approach",
+      "detail": "Hostile to Tailwind v4's source(none)/@source pattern in CLAUDE.md if carried over as-is.",
+      "state": "legacy_unverified",
+      "visual": null,
+      "originRecord": {
+        "id": "R-7",
+        "title": "Runtime <style> tag injection conflicts with our build-time CSS approach",
+        "detail": "Hostile to Tailwind v4's source(none)/@source pattern in CLAUDE.md if carried over as-is.",
+        "actionItems": [
+          {
+            "id": "R-7a",
+            "text": "K-1/K-2 (focus ring CSS) translated to Tailwind focus-visible: classes, not injected <style>",
+            "done": true,
+            "refs": [
+              "K-1",
+              "K-2"
+            ]
+          },
+          {
+            "id": "R-7b",
+            "text": "K-3 (scrollbar styling) resolved to one of: ScrollArea component, browser default, or a static stylesheet rule — decided: real ScrollArea component",
+            "done": true,
+            "refs": [
+              "K-3"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "ref": "R-8",
+      "category": "naming-api",
+      "originCategory": "R — Notable risks",
+      "title": "RailButtonDark is exported from the origin package",
+      "detail": "Consumers compose their own utility items with it — our export chain (src/index.ts) must be ready at graduation time.",
+      "state": "legacy_unverified",
+      "visual": null,
+      "originRecord": {
+        "id": "R-8",
+        "title": "RailButtonDark is exported from the origin package",
+        "detail": "Consumers compose their own utility items with it — our export chain (src/index.ts) must be ready at graduation time.",
+        "actionItems": [
+          {
+            "id": "R-8a",
+            "text": "Decide bidezine-equivalent export name and confirm it's added to src/index.ts at Promote time",
+            "done": false
+          }
+        ]
+      }
+    },
+    {
+      "ref": "R-9",
+      "category": "motion",
+      "originCategory": "R — Notable risks",
+      "title": "Collapse's deterministic unmount isn't covered by Radix's CollapsibleContent by default",
+      "detail": "If Build uses Radix Collapsible, unmount timing must be verified against the behavior contract or it will be flagged as a regression by the Escalation agent.",
+      "state": "legacy_unverified",
+      "visual": null,
+      "originRecord": {
+        "id": "R-9",
+        "title": "Collapse's deterministic unmount isn't covered by Radix's CollapsibleContent by default",
+        "detail": "If Build uses Radix Collapsible, unmount timing must be verified against the behavior contract or it will be flagged as a regression by the Escalation agent.",
+        "actionItems": [
+          {
+            "id": "R-9a",
+            "text": "Explicitly decided: reuse Radix Collapsible (with tw-animate-css's collapsible-down/-up keyframes) rather than reimplement origin's custom JS-timer unmount — see L-7",
+            "done": true,
+            "refs": [
+              "H-6",
+              "L-7"
+            ]
+          },
+          {
+            "id": "R-9b",
+            "text": "Escalation agent independently verifies chosen approach preserves deterministic unmount before Audit",
+            "done": false
+          }
+        ]
       }
     }
   ]
