@@ -475,11 +475,60 @@ All three dim the rest of the preview and isolate the subject. Only the callout 
 - **`keyword`** — outline the subject and state the computed keyword plainly
   (`overflow: hidden`). There is nothing spatial to draw; the value *is* the finding.
 
-### 5.3 Interaction state — not yet
+### 5.3 Holding a subject in its state
 
-`divergence.subject_state` is `rest` on 9 rows and `NULL` on 145. **Nothing has ever been declared
-in hover, active or focus.** Driving the preview into a state is expressible in the schema and has
-no data behind it. Do not build it until a row declares one.
+A colour claim about hover is unshowable unless the subject can be *held* hovered while you
+decide. That is `forcedState`, threaded `App → PreviewRegistry → RailNavStatusPreview →
+FunctionalRailSidebar → RailIconButton`, keyed by the anchor the row's SUBJECT names.
+
+**It is a prop, not a simulated event, and that was measured rather than reasoned.** The rail drives
+hover from React state (`onMouseEnter={() => setIsHovered(true)}`) rather than CSS `:hover`, which made
+dispatching `mouseover` look like it should work. It does not — React synthesises `onMouseEnter` from
+delegated events and ignores a synthetic dispatch. Plain `mouseover`, `mouseover` with a
+`relatedTarget`, and `pointerover` + `mouseover` all left the background untouched; a real
+`hover()` moved it. **CSS `:hover` cannot be forced from JavaScript at all**, so an occupant that styles
+interaction through the pseudo-class alone cannot be driven this way and its card must say so rather
+than show a resting element labelled as hovered.
+
+**Every occupant's preview should accept `forcedState` and ignore what it cannot honour.** An
+unrecognised ref holds nothing — showing a guess about which element was meant is worse than showing
+the component at rest.
+
+#### The state vocabulary is CSS-shaped, and two real states fall outside it
+
+Migration 010's `ck_divergence_state_vocab` permits `rest · hover · active · focus · focus-visible ·
+disabled` — the runner's own `applyState` vocabulary, deliberately, so a declaration cannot name a state
+nobody can drive.
+
+**`active` means CSS `:active` — a transient press — not "currently selected."** That collision is worth
+stating loudly because it is silent: a row declared `active` in the hope of showing the selected look
+inserts cleanly and then renders nothing. `FunctionalRailSidebar` calls the same concept `pressed`, and
+maps the vocabulary's `active` onto it. **The database's vocabulary wins; a component's local naming
+bends.**
+
+**Two Rail Sidebar states have no vocabulary term at all**, and this is a modelling gap rather than an
+oversight:
+
+| state | what it is | why it does not fit |
+|---|---|---|
+| current / selected | the section whose panel is open | a persistent component state, not an interaction |
+| browsing | the button whose menu is open | same — driven by a separate `state` prop the forced path cannot reach |
+
+Both are *persistent application state*, and the vocabulary is *transient interaction state*. Naming
+them would need a migration plus runner support, which is a decision about the runner's scope rather
+than about one component. Until then those rows stay undeclared, and their cards correctly say no
+description or state is recorded — which is true.
+
+### 5.4 What is declared today
+
+`B-1`, `B-2`, `B-6`–`B-9` carry a subject and a state. `B-2` and `B-7` are the first proof that this
+works end to end: selecting `B-2` holds that rail button at `oklch(0.301 0 0)` background and
+`oklch(0.922 0 0)` foreground — its own proposed `--sidebar-rail-hover` and `B-7`'s
+`--sidebar-rail-foreground-hover` — with the rest of the preview dimmed.
+
+Everything else is `rest` or `NULL`, so most cards hold nothing, which is honest rather than broken.
+`B-3` and `B-5` are undeclared on purpose — see the modelling gap above. `B-4` is declarable as
+`active` and is the next one to land.
 
 ---
 

@@ -771,7 +771,20 @@ function RailIconButton({
   // The forced state ORs in; it never replaces. `browsing` maps onto hover because that is
   // what the resolver below already does with it — one boolean, not a fourth branch.
   const hovered = isHovered || forcedState === "hover" || forcedState === "browsing"
-  const pressed = isPressed || forcedState === "pressed"
+
+  /**
+   * `active` here means CSS `:active` — a transient press — and NOT this component's own
+   * `isActive`, which is the persistent "this is the current section" look driven by the
+   * `state` prop. Same word, two unrelated things, and the collision is load-bearing:
+   * declaring a row `subject_state = 'active'` expecting the selected look would insert
+   * cleanly against migration 010's vocabulary check and then render nothing, because
+   * nothing in this resolver reads it that way. Caught in review before any row was
+   * written that way.
+   *
+   * The database's vocabulary wins. It is shared across every occupant and matches the
+   * runner's own `applyState`; this component's local naming is what bends.
+   */
+  const pressed = isPressed || forcedState === "pressed" || forcedState === "active"
 
   const background = pressed ? colors.pressed : isActive ? colors.active : hovered ? colors.hover : "transparent"
   const color = isActive || pressed ? colors.fg : isBrowsing || hovered ? colors.fgHover : colors.fgSubtle
