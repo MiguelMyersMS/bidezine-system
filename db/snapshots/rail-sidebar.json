@@ -3704,7 +3704,7 @@
       "originCategory": "Q — Blocking questions",
       "title": "Icon `filled` prop system",
       "detail": "RailNav toggles every interactive icon between a “regular” and “filled” SVG variant on hover, active, and browsing states. Our Fluent icon pipeline (icons/manifest.json → build-icons.mjs) only emits static regular-style icons — there is no filled prop and no filled SVGs generated for any current manifest entry.",
-      "reviewPrompt": "The decision behind the filled-icon mechanism (A-9). Origin swaps every interactive icon between regular and filled; the choice made was to extend our own generator rather than drop the swap. Confirm it still holds now that it is built.",
+      "reviewPrompt": "Origin swaps every interactive icon between regular and filled. We chose to extend our own generator rather than drop the swap — confirm that still holds now it is built, and that nothing relies on a swap we never generated.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -3791,7 +3791,7 @@
       "originCategory": "Q — Blocking questions",
       "title": "Default logo icon (IconLogo)",
       "detail": "RailNav defaults to a custom IconLogo (the brand mark) when no logo prop is passed. It isn't in icons/manifest.json.",
-      "reviewPrompt": "The decision behind the rail’s default logo (A-3). The rule chosen is that a logo is always supplied rather than picked for you, with the bidezine mark as this component’s own default. Confirm it holds for a consumer who supplies none.",
+      "reviewPrompt": "The rule chosen is that a logo is always supplied rather than picked for you, with the bidezine mark as this component's own default. Confirm it holds for a consumer who supplies none.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -3842,7 +3842,7 @@
       "originCategory": "Q — Blocking questions",
       "title": "Panel collapse icon — corrected: panel_left_contract, not double-chevron",
       "detail": "CORRECTED after your feedback: the real, currently-shipping source (design-system/src/gallery/ExpandButton.tsx) imports IconPanelLeftContract, not IconChevronDoubleLeft — the earlier investigation trusted a stale QA doc instead of the actual component file. Verified against node_modules/@fluentui/svg-icons: panel_left_contract_20_regular and panel_left_expand_20_regular both exist natively, and the SVG path matches your screenshots exactly (two-panel rectangle + left-pointing arrow).",
-      "reviewPrompt": "The decision behind the panel collapse icon (A-7). panel_left_contract is the glyph origin’s own ExpandButton imports, verified against Fluent. Confirm the match before it enters the manifest, which is harder to change afterwards.",
+      "reviewPrompt": "panel_left_contract is the glyph origin's own ExpandButton imports, verified against Fluent. Confirm the match before it enters the manifest, which is much harder to change afterwards.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -3893,7 +3893,7 @@
       "originCategory": "R — Notable risks",
       "title": "Icon `filled` prop support must be used deliberately",
       "detail": "Q1 is resolved: the icon pipeline now supports `filled?: boolean`. Build must apply it only to actionable hover/selected/active states; static/non-interactive icon display remains regular.",
-      "reviewPrompt": "The follow-through on the filled-icon mechanism (A-9). Filled must reach only actionable hover, selected and active states — a decorative icon inheriting it reads as interactive. Confirm the sweep that checked every actionable icon.",
+      "reviewPrompt": "Filled must reach only actionable hover, selected and active states — a decorative icon inheriting it reads as interactive. Confirm the sweep that checked every actionable icon, and that no new icon has landed since.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": null,

@@ -210,7 +210,7 @@ server.registerTool(
     const d = base.recordset[0]
     const id = d.divergence_id
 
-    const [evidence, reviews, unmet] = await Promise.all([
+    const [evidence, reviews, unmet, relations] = await Promise.all([
       p.request().query(`
         SELECT evidence_id, kind, passed, is_stale, verified_at_commit, created_by, created_at,
                LEFT(raw_output, 1200) AS raw_output

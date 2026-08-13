@@ -138,6 +138,49 @@ try {
     orphans.map((o) => `${o.ref_code} -> ${o.anchor_id}`).join(", "),
   )
 
+  // ── migration 020: divergence-to-divergence relations ────────────────────────────
+  // The table already refuses a self-relation, an unknown kind and an empty note. These
+  // are the two things a constraint cannot see, and both would break the queue's nesting
+  // rather than merely being untidy.
+  const rel = (
+    await pool.request().query(`
+      SELECT  f.ref_code AS from_ref, t.ref_code AS to_ref, r.kind,
+              same_component = CASE WHEN fc.component_id = tc.component_id THEN 1 ELSE 0 END
+      FROM    sandbox.divergence_relation r
+      JOIN    sandbox.divergence f  ON f.divergence_id = r.from_divergence_id
+      JOIN    sandbox.divergence t  ON t.divergence_id = r.to_divergence_id
+      JOIN    sandbox.component  fc ON fc.component_id = f.component_id
+      JOIN    sandbox.component  tc ON tc.component_id = t.component_id`)
+  ).recordset
+
+  const crossComponent = rel.filter((r) => !r.same_component)
+  check(
+    crossComponent.length === 0,
+    "every relation joins two divergences of the SAME component",
+    // A link across components is not a divergence relation — that is what system_change
+    // is for — and nesting one component's row under another's would make the queue lie
+    // about whose work it is.
+    crossComponent.map((r) => `${r.from_ref} -> ${r.to_ref}`).join(", "),
+  )
+
+  // A cycle makes "nest the satellites under their subject" undefined: each row would be
+  // the other's parent. Cheap to check, impossible to see in a constraint, and silently
+  // breaks rendering rather than erroring.
+  const edges = new Map()
+  for (const r of rel) edges.set(r.from_ref, [...(edges.get(r.from_ref) ?? []), r.to_ref])
+  const cycles = []
+  for (const start of edges.keys()) {
+    const seen = new Set()
+    const walk = (node) => {
+      if (node === start && seen.size) return true
+      if (seen.has(node)) return false
+      seen.add(node)
+      return (edges.get(node) ?? []).some(walk)
+    }
+    if ((edges.get(start) ?? []).some(walk)) cycles.push(start)
+  }
+  check(cycles.length === 0, "no relation cycle — every satellite chain terminates", cycles.join(", "))
+
   const relationRows = [...declared.entries()].filter(([, d]) => d.relation)
   if (relationRows.length) {
     console.log(

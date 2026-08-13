@@ -188,6 +188,31 @@ not a server problem — try `/mcp` in an interactive session.
 
 Read `docs/SANDBOX-SPEC.md` first. It is the single source of truth for this project.
 
+**Migration 020 — a divergence can be about another divergence.** `sandbox.divergence_relation`, typed
+(`answers` | `risks`) and directional, plus `fn_divergence_relations(@id)` returning both directions with
+the other row's ref resolved. Populated by `node scripts/declare-relations.mjs`.
+
+- **Why this was not the n=1 case that question/risk entity schemas were refused for:** those would have
+  invented an entity SHAPE from one occupant. These rows already share one table, already carry a gate
+  (`Q1`, `A-9` and `R-1` each reported two unmet requirements), and are already treated identically
+  downstream. The edge describes the TABLE's semantics, not this occupant's content.
+- **The cost it removes:** one decision counted as three pieces of work — three rows, six unmet
+  requirements, three cards. Every count M9's ranking reads was inflated by that fan-out.
+- **Four edges recorded, not forty.** Only Q1, Q3, Q4 and R-1 carry a `review_prompt` naming their
+  related row — a sentence a human wrote and reviewed. The other risk rows have candidate refs sitting
+  in `origin_record` (R-3 cites ten, R-6 six) and are deliberately NOT imported: "R-3 mentions H-1" and
+  "R-3 is a risk against H-1" are different claims. **The next step is not a bulk import** — it is that
+  as each row's `review_prompt` gets written, its relation gets declared in the same pass.
+- **Those four prompts were rewritten** so the first sentence no longer spends itself naming a row the
+  schema now carries. `mcp/server.mjs`'s `sandbox_divergence` gained a `relations` block in the same
+  change, so the agent surface never lost the pointer. **The card has NOT been wired to
+  `fn_divergence_relations` yet** — until `sandbox/` does that, the relation is in the schema and the
+  MCP surface but not on screen.
+- Relations sit OUTSIDE the frozen snapshot, matching `divergence_subject`/`divergence_property`:
+  script-populated declaration tables are covered by `check-declarations.mjs`, which gained two checks
+  the table's constraints cannot express — same-component, and no cycles (a cycle makes "nest satellites
+  under their subject" undefined and breaks rendering silently rather than erroring).
+
 **Migration 019 — two protections that existed only by absence.** Both were real; neither was
 declared, and a rule nothing states is one the next change can remove unnoticed.
 

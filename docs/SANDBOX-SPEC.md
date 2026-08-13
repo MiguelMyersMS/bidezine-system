@@ -192,6 +192,15 @@ service principal; there is no password-based fallback for local development.
   `detail` averaging 1,358 characters with 104 of 154 rows over 280. A column that physically cannot
   hold a paragraph enforces concision in a way a style guide cannot be talked out of — the same
   argument §5.5 makes for an attribute over a stored selector.
+- **divergence_relation** *(migration 020)* — one divergence is ABOUT another: a question that `answers`
+  it, or a risk that `risks` it. Typed and directional; an untyped "related to" cannot answer "nest this
+  row under that one", which is the whole point. **Hand-authored, never inferred** — `origin_record`
+  carries these links, but its contract is verbatim fidelity, so reading structure out of it would take
+  meaning from a field promising only preservation, and the next occupant's source may carry none. Each
+  edge's `note` states what establishes it. It does **not** merge rows: a risk can carry an open action
+  item the divergence it concerns does not cover, and nothing here lets one row's resolution close
+  another. Without it, one decision counts as three pieces of work — three rows, six unmet requirements —
+  which inflates every count M9's ranking reads.
 - **system_change** — a change whose blast radius exceeds the component that discovered it. First-class,
   never a divergence row. Component divergences declare a blocking dependency on it.
 - **evidence** — typed, machine-produced, written *only* by the runner. Carries the check spec, raw tool

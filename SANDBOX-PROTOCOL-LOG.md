@@ -1562,6 +1562,32 @@ friction, anything.)_
   nobody granted it" and "it works because something forbids it" look identical from the outside and age
   completely differently.**
 
+- **Checking the inputs to a rendering and then asserting what the screen shows is not verification — it
+  is inference wearing verification's clothes, and it is easy to do while feeling rigorous.** Asked to
+  rule on a schema question, an agent audited the corpus rather than the spec (correctly — the spec's
+  §3.8 asserted the reverse of the live system and had done for several commits) and reported three
+  findings. Two were right. The third — "the same questions and risks render twice, once as review cards
+  and once in their own sections" — was **wrong**, and the way it was reached is the lesson. What was
+  actually verified: the local arrays existed in `rail-sidebar.ts` (4 and 11 entries), and `ReviewQueue`
+  filtered only by category and bucket, excluding nothing. Both true. The conclusion drawn — that Q1
+  therefore appeared twice on screen — was never tested, and was false: the sections had already been
+  deleted, so the arrays were dead code. **Playwright was available and had been used against that exact
+  app forty minutes earlier.** The stale spec explains why the agent expected duplication; it does not
+  explain why it was asserted. **Lesson: "these are the inputs to X" plus "nothing filters them out"
+  does not establish "X renders". This project's own rule is `verify by render, not by number` — the
+  failure mode it names is trusting a computed value, and this is the same mistake one level up:
+  trusting a computed CONCLUSION about a rendering. If a claim is about what a human would see, look at
+  it; the tool takes thirty seconds.**
+
+- **A frozen snapshot catching a change you made on purpose is the check working, and regenerating it is
+  only legitimate when you can say which rows moved and why.** Rewriting four `review_prompt` values
+  turned `verify-import` red on exactly one of its ten checks. The snapshot was regenerated — and the
+  diff confirmed **8 changed lines, all four `reviewPrompt` fields and nothing else**, before it was
+  committed. That confirmation is the whole difference between regenerating a snapshot and defeating
+  one: `CLAUDE.md` warns that if you find yourself regenerating it to make a check pass, the question is
+  why the corpus changed. Here the answer was known in advance and the diff proved no *other* row had
+  drifted along with the intended ones.
+
 ## Exit condition
 
 Once Rail Sidebar is promoted into `src/ui/` and registered in the real showcase, and the human has given
