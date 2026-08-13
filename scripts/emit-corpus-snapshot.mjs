@@ -69,6 +69,8 @@ const snapshot = {
       originCategory: r.originCategory,
       title: r.title,
       detail: r.detail,
+      reviewPrompt: r.reviewPrompt,
+      reviewLabel: r.reviewLabel,
       state: r.state,
       visual: r.visual,
       originRecord: r.originRecord,

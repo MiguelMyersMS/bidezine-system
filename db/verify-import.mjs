@@ -107,6 +107,8 @@ for (const r of snapshot.rows) {
     originRecord: record,
     hasVisual: Boolean(record.visual ?? r.visual),
     cat: { id: (r.originCategory ?? r.category).split("—")[0].trim() },
+    reviewPrompt: r.reviewPrompt ?? null,
+    reviewLabel: r.reviewLabel ?? null,
   })
 }
 
@@ -127,7 +129,7 @@ try {
   pool = await connect("ADMIN")
   const { recordset } = await pool.request().query(`
     SELECT d.ref_code, d.category, d.title, d.detail, d.state,
-           d.origin_record, d.origin_category, d.visual
+           d.origin_record, d.origin_category, d.visual, d.review_prompt, d.review_label
     FROM   sandbox.divergence d
     JOIN   sandbox.component c ON c.component_id = d.component_id
     WHERE  c.slug = '${SLUG}'`)
@@ -172,6 +174,20 @@ try {
   const srcVisual = [...source.values()].filter(({ hasVisual }) => hasVisual).length
   const dbVisual = recordset.filter((r) => r.visual).length
   check(srcVisual === dbVisual, "every row with a `visual` payload kept it in its own column", `${srcVisual} source / ${dbVisual} stored`)
+
+  // `review_prompt`/`review_label` are outside origin_record entirely — a snapshot row
+  // (ref, category, originCategory, title, detail, state, visual, originRecord) that
+  // omitted them would let either drift, get blanked, or go stale against the token
+  // value it quotes, with every other check here staying green. Same argument `visual`
+  // already won: surviving inside origin_record wasn't enough on its own.
+  const promptDrift = []
+  for (const [id, { reviewPrompt, reviewLabel }] of source) {
+    const rec = db.get(id)
+    if (!rec) continue
+    if ((rec.review_prompt ?? null) !== reviewPrompt) promptDrift.push(`${id}: review_prompt`)
+    if ((rec.review_label ?? null) !== reviewLabel) promptDrift.push(`${id}: review_label`)
+  }
+  check(promptDrift.length === 0, "review_prompt and review_label match the frozen snapshot", promptDrift.slice(0, 5).join(", "))
 
   const noOrigin = recordset.filter((r) => !r.origin_category).length
   check(noOrigin === 0, "every row records the source category it came from")
