@@ -25,7 +25,7 @@
 // false-green failure the whole project exists to prevent.
 // ═══════════════════════════════════════════════════════════════════════════════════
 
-import { readFile, writeFile } from "node:fs/promises"
+import { readdir, readFile, writeFile } from "node:fs/promises"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -54,12 +54,14 @@ async function db() {
  * differently. `[open]` stays bracketed — it is a T-SQL keyword. */
 const COMPONENTS_SQL = `
   SELECT c.slug, c.title, c.state,
+         owner = m.name,
          COUNT(d.divergence_id)                                        AS divergences,
          SUM(CASE WHEN d.state = 'resolved' THEN 1 ELSE 0 END)         AS resolved,
          SUM(CASE WHEN d.state <> 'resolved' THEN 1 ELSE 0 END)        AS [open]
   FROM sandbox.component c
+  LEFT JOIN sandbox.machine m ON m.machine_id = c.owner_machine_id
   LEFT JOIN sandbox.divergence d ON d.component_id = c.component_id
-  GROUP BY c.slug, c.title, c.state
+  GROUP BY c.slug, c.title, c.state, m.name
   -- Real occupants first, internal fixtures last. A leading double underscore is already
   -- this codebase's convention for a test fixture (the mcp and verifier suites each create
   -- one, plus the leftover dbg row), and without this ordering the app defaults to
@@ -81,24 +83,115 @@ const COMPONENTS_SQL = `
  */
 const DIVERGENCES_SQL = `
   SELECT d.ref_code, d.category, d.origin_category, d.title, d.detail, d.state,
-         d.visual, d.origin_record, d.anchor_id, d.anchor_file
+         d.visual, d.origin_record, d.anchor_id, d.anchor_file,
+         -- Migration 018. Both NULL on every row today; the card falls back to
+         -- title/detail, which is the normal path rather than a transitional one.
+         d.review_label, d.review_prompt,
+         blocked_ref = sc.ref_code,
+         evidence_total = (SELECT COUNT(*) FROM sandbox.evidence e
+                           WHERE e.divergence_id = d.divergence_id),
+         evidence_stale = (SELECT COUNT(*) FROM sandbox.evidence e
+                           WHERE e.divergence_id = d.divergence_id AND e.is_stale = 1)
   FROM sandbox.divergence d
   JOIN sandbox.component c ON c.component_id = d.component_id
+  LEFT JOIN sandbox.system_change sc ON sc.system_change_id = d.blocked_by
   WHERE c.slug = @slug
   ORDER BY d.divergence_id`
+
+/**
+ * Every unmet gate requirement, for every divergence of one component, in one round trip.
+ *
+ * `OUTER APPLY` over the gate's OWN `fn_divergence_unmet` rather than re-deriving the
+ * conditions in this file. That choice is the whole point: the card's checklist and the
+ * database's refusal have to be the same reading of the same state, and two independent
+ * implementations of one rule is the exact defect migration 015's own header cites
+ * (`fn_component_owner` exists for the same reason). If the gate changes, this changes
+ * with it and nobody has to remember.
+ *
+ * OUTER, not CROSS: a divergence with nothing unmet must still come back — its absence
+ * from the result is what "the gate is open" looks like, and an inner join would silently
+ * drop exactly the rows a human is looking for.
+ */
+const UNMET_SQL = `
+  SELECT d.ref_code, u.requirement, u.detail
+  FROM   sandbox.divergence d
+  JOIN   sandbox.component c ON c.component_id = d.component_id
+  OUTER  APPLY sandbox.fn_divergence_unmet(d.divergence_id) u
+  WHERE  c.slug = @slug
+  ORDER  BY d.divergence_id`
+
+/**
+ * Which refs of a component have a check spec on disk.
+ *
+ * This is a FILESYSTEM fact, not a database one — the specs live in `verifier/checks/`
+ * and are committed to git precisely so a weak one shows up in a diff. It is read here
+ * because it is the single most common reason a row cannot move: 147 of rail-sidebar's
+ * 154 divergences have no spec, so "nobody wrote a check" and "nobody ran it" are
+ * different states with different owners, and a checklist that could not tell them apart
+ * would send a human to the wrong place 95% of the time.
+ *
+ * A ref owns `<ref>.json` and any `<ref>-*.json` variant (`F-2.json`, `F-2-icon.json`).
+ * The trailing hyphen in the prefix test is load-bearing: without it `F-2` would claim
+ * `F-21.json`.
+ *
+ * A missing directory is a normal answer (a component nobody has written checks for),
+ * not an error — hence the empty set rather than a throw.
+ */
+async function checkSpecRefs(slug) {
+  try {
+    const files = await readdir(join(HERE, "..", "..", "verifier", "checks", slug))
+    return new Set(
+      files.filter((f) => f.endsWith(".json")).map((f) => f.slice(0, -".json".length)),
+    )
+  } catch {
+    return new Set()
+  }
+}
+
+const hasSpec = (specs, ref) => specs.has(ref) || [...specs].some((s) => s.startsWith(`${ref}-`))
 
 async function readCorpus() {
   const { connect, sql } = await db()
   let pool
   try {
     pool = await connect("APP")
-    const components = (await pool.request().query(COMPONENTS_SQL)).recordset
+    const componentRows = (await pool.request().query(COMPONENTS_SQL)).recordset
+
+    // Ownership rides along with the corpus because it is a COMPONENT fact, not a
+    // per-divergence one, and every card on screen needs it to decide whether its own
+    // approve control can do anything. Fetching a bundle per card to learn one boolean
+    // about their shared parent would be 154 round trips for one answer.
+    //
+    // `mayWrite` mirrors migration 016's fn_component_write_refusal: a nameless caller may
+    // not write, an unowned component is writable by anyone, otherwise it must be yours.
+    // A courtesy copy — the database refuses independently, and verify-readonly drives
+    // that path rather than this one.
+    const here = await machineName()
+    const components = componentRows.map((c) => ({
+      ...c,
+      mayWrite: !!here && (!c.owner || c.owner === here),
+    }))
 
     const byComponent = {}
     for (const c of components) {
       const rows = (
         await pool.request().input("slug", sql.NVarChar(100), c.slug).query(DIVERGENCES_SQL)
       ).recordset
+
+      // The gate's own verdict for every row, grouped by ref. A row with no entry here has
+      // nothing unmet — see UNMET_SQL on why that must come back as absence, not a gap.
+      const unmetRows = (
+        await pool.request().input("slug", sql.NVarChar(100), c.slug).query(UNMET_SQL)
+      ).recordset
+      const unmetByRef = new Map()
+      for (const u of unmetRows) {
+        if (!u.requirement) continue
+        if (!unmetByRef.has(u.ref_code)) unmetByRef.set(u.ref_code, [])
+        unmetByRef.get(u.ref_code).push({ requirement: u.requirement, detail: u.detail })
+      }
+
+      const specs = await checkSpecRefs(c.slug)
+
       byComponent[c.slug] = rows.map((r) => ({
         ref: r.ref_code,
         category: r.category,
@@ -111,9 +204,18 @@ async function readCorpus() {
         // Stored as JSON text; parsed here so the client never has to know that.
         visual: parseJson(r.visual),
         originRecord: parseJson(r.origin_record),
+
+        // ── everything below drives the review card (sandbox/REVIEW-CARD-SPEC.md) ──
+        reviewLabel: r.review_label,
+        reviewPrompt: r.review_prompt,
+        blockedRef: r.blocked_ref,
+        evidenceTotal: r.evidence_total,
+        evidenceStale: r.evidence_stale,
+        hasCheckSpec: hasSpec(specs, r.ref_code),
+        unmet: unmetByRef.get(r.ref_code) ?? [],
       }))
     }
-    return { components, divergences: byComponent, fetchedAt: new Date().toISOString() }
+    return { components, divergences: byComponent, thisMachine: here, fetchedAt: new Date().toISOString() }
   } finally {
     await pool?.close()
   }

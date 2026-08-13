@@ -12,6 +12,8 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
+  ToggleGroup,
+  ToggleGroupItem,
   cn,
   useScrollAreaOverflow,
 } from "@bidezine/system"
@@ -23,8 +25,8 @@ import { TypographyLab } from "@/components/TypographyLab"
 import { LogoImportSlot } from "@/components/LogoImportSlot"
 import { DivergenceHighlight, useAnchoredRefs } from "@/components/DivergenceHighlight"
 import { NoPreviewRegistered, PREVIEW_REGISTRY, hasPreview } from "@/components/PreviewRegistry"
-import { EvidenceWidget } from "@/components/EvidenceWidget"
 import { MachineSwitcher } from "@/components/MachineSwitcher"
+import { ReviewQueue } from "@/components/ReviewQueue"
 import { toCategories, useCorpus, type CorpusComponent, type CorpusDivergence } from "@/data/corpus"
 import { NEGATIVE_BADGE, POSITIVE_BADGE } from "@/lib/status-colors"
 import {
@@ -104,6 +106,9 @@ export function App() {
               <HumanDecisionsPhase
                 slug={slug}
                 rows={corpus.corpus.divergences[slug] ?? []}
+                component={active}
+                thisMachine={corpus.corpus.thisMachine}
+                onChanged={corpus.reload}
               />
             </div>
           ) : (
@@ -283,6 +288,19 @@ function FillHeight({ render }: { render: (height: number) => React.ReactNode })
   )
 }
 
+/**
+ * Origin vs. adjusted, on the real `ToggleGroup` primitive.
+ *
+ * This was two raw `<button>` elements styled to look like a segmented control — a
+ * standing "no hand-rolled components" violation that `CLAUDE.md` explicitly does not
+ * waive for sandbox tooling, recorded in `HANDOFF.md` and left alone by two sessions
+ * because it sat in the middle of files nobody owned. A hand-rolled approximation drifts
+ * from the real recipe in ways invisible to code review — here it had no focus-visible
+ * ring and no disabled handling at all.
+ *
+ * `type="single"` with a guard on empty: `ToggleGroup` deselects on a second click of the
+ * active item, which for a two-way source switch would leave the preview showing neither.
+ */
 function RailSourceToggle({
   value,
   onChange,
@@ -291,34 +309,39 @@ function RailSourceToggle({
   onChange: (value: "origin" | "bidezine") => void
 }) {
   return (
-    <div className="flex items-center gap-0.5 rounded-md border p-0.5 text-xs">
-      <button
-        type="button"
-        aria-pressed={value === "origin"}
-        onClick={() => onChange("origin")}
-        className={cn(
-          "rounded-sm px-2 py-1 font-medium transition-colors",
-          value === "origin" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground",
-        )}
-      >
+    <ToggleGroup
+      type="single"
+      size="sm"
+      variant="outline"
+      value={value}
+      onValueChange={(next) => {
+        if (next === "origin" || next === "bidezine") onChange(next)
+      }}
+      aria-label="Preview source"
+    >
+      <ToggleGroupItem value="origin" className="px-3 text-xs">
         Origin
-      </button>
-      <button
-        type="button"
-        aria-pressed={value === "bidezine"}
-        onClick={() => onChange("bidezine")}
-        className={cn(
-          "rounded-sm px-2 py-1 font-medium transition-colors",
-          value === "bidezine" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground",
-        )}
-      >
+      </ToggleGroupItem>
+      <ToggleGroupItem value="bidezine" className="px-3 text-xs">
         Adjusted
-      </button>
-    </div>
+      </ToggleGroupItem>
+    </ToggleGroup>
   )
 }
 
-function HumanDecisionsPhase({ slug, rows }: { slug: string; rows: CorpusDivergence[] }) {
+function HumanDecisionsPhase({
+  slug,
+  rows,
+  component,
+  thisMachine,
+  onChanged,
+}: {
+  slug: string
+  rows: CorpusDivergence[]
+  component: CorpusComponent | null
+  thisMachine: string | null
+  onChanged: () => void
+}) {
   const [railSource, setRailSource] = useState<"origin" | "bidezine">("bidezine")
 
   // Divergences now come from the corpus. The categories are rebuilt from each row's
@@ -327,14 +350,20 @@ function HumanDecisionsPhase({ slug, rows }: { slug: string; rows: CorpusDiverge
   // step 4 needs before that file can be deleted.
   const categories = useMemo(() => toCategories(rows), [rows])
 
-  // The preview is the one genuinely per-occupant piece; everything above is data.
+  /**
+   * The preview is the one genuinely per-occupant piece; everything above is data.
+   *
+   * ── It is no longer swapped out for an evidence panel, and that is the point ───────
+   * M6 mounted the evidence bundle HERE, replacing the preview — so opening a row's
+   * evidence hid the very component the evidence was about. Under the review-card spec
+   * the evidence lives on the card in the left column instead, and the component stays on
+   * screen permanently. That is the single largest usability change in the rebuild: the
+   * whole reason to have a live component next to the list is to look at it WHILE
+   * deciding, which the old arrangement made impossible at exactly the moment it mattered.
+   */
   const preview = PREVIEW_REGISTRY[slug]
   const renderRailNav = (height: number) =>
-    reviewingRef ? (
-      <div className="h-full w-full" style={{ height }}>
-        <EvidenceWidget slug={slug} refCode={reviewingRef} />
-      </div>
-    ) : preview ? (
+    preview ? (
       preview({ source: railSource, tokens: proposedDarkRailTokens, height })
     ) : (
       <NoPreviewRegistered slug={slug} />
@@ -345,12 +374,6 @@ function HumanDecisionsPhase({ slug, rows }: { slug: string; rows: CorpusDiverge
   // column to sit above the rail on the right.
   const [activeRef, setActiveRef] = useState<string | null>(null)
   const anchoredRefs = useAnchoredRefs()
-
-  // M6. Opening a row's evidence bundle replaces the preview pane rather than opening a
-  // dialog over it: the bundle is what the minute of review is spent on, and a modal would
-  // put it on top of the very component the evidence is about. Highlighting the same row in
-  // the preview stays available by switching back.
-  const [reviewingRef, setReviewingRef] = useState<string | null>(null)
 
   // The origin pane is a quarantined iframe in its own document, so nothing here can reach inside
   // it to measure an anchor — and it carries none by design, being reference material rather than
@@ -376,7 +399,8 @@ function HumanDecisionsPhase({ slug, rows }: { slug: string; rows: CorpusDiverge
           <TabsTrigger value="blocking">Blocking questions</TabsTrigger>
           <TabsTrigger value="colorlab">Color token lab</TabsTrigger>
           <TabsTrigger value="typelab">Typography lab</TabsTrigger>
-          <TabsTrigger value="categories">Full divergence list</TabsTrigger>
+          <TabsTrigger value="categories">Review queue</TabsTrigger>
+          <TabsTrigger value="source">Source records</TabsTrigger>
           <TabsTrigger value="risks">Notable risks</TabsTrigger>
           <TabsTrigger value="machines">Machines</TabsTrigger>
         </TabsList>
@@ -429,15 +453,35 @@ function HumanDecisionsPhase({ slug, rows }: { slug: string; rows: CorpusDiverge
         </QuadrantLayout>
       </TabsContent>
 
+      {/* The review queue. Selecting a card highlights its region in the live component to
+          the right; the component is never replaced, so the two stay synchronised for the
+          whole decision rather than only until the evidence is opened. */}
       <TabsContent value="categories" className="row-start-2 box-border min-h-0 min-w-0 w-full overflow-hidden p-[6px]">
+        <QuadrantLayout right={renderRailNav}>
+          <ReviewQueue
+            slug={slug}
+            rows={rows}
+            mayWrite={component?.mayWrite ?? false}
+            owner={component?.owner ?? null}
+            thisMachine={thisMachine}
+            selectedRef={activeRef}
+            onSelect={setActiveRef}
+            onReveal={setActiveRef}
+            onChanged={onChanged}
+          />
+        </QuadrantLayout>
+      </TabsContent>
+
+      {/* The original category accordion, kept as a secondary view. It renders each row's
+          verbatim source record, which is what `check-corpus-equivalence.mjs` diffs against
+          the frozen snapshot — deleting it would remove the app-side half of that check. */}
+      <TabsContent value="source" className="row-start-2 box-border min-h-0 min-w-0 w-full overflow-hidden p-[6px]">
         <QuadrantLayout right={renderRailNav}>
           <DivergenceCategoriesAccordion
             categories={categories}
             anchoredRefs={anchoredRefs}
             activeRef={activeRef}
             onHighlight={setActiveRef}
-            onReview={setReviewingRef}
-            reviewingRef={reviewingRef}
           />
         </QuadrantLayout>
       </TabsContent>

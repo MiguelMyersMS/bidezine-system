@@ -17,6 +17,13 @@ export type CorpusComponent = {
   divergences: number
   resolved: number
   open: number
+  /** Which machine owns this component, or null if unclaimed. */
+  owner: string | null
+  /** Computed SERVER-side against `.env`, mirroring migration 016's write guard. The
+   * browser cannot know which machine it is running on, and a value the browser is told
+   * is a value the browser can be wrong about — which, for "may I write here", is the
+   * whole question. Courtesy only: the database refuses independently. */
+  mayWrite: boolean
 }
 
 export type CorpusDivergence = {
@@ -36,11 +43,33 @@ export type CorpusDivergence = {
    * thought to map into a column — and what makes the two diffable in
    * `scripts/check-corpus-equivalence.mjs`. */
   originRecord: Record<string, unknown> | null
+
+  // ── the review card's own inputs (sandbox/REVIEW-CARD-SPEC.md) ──────────────────
+  /** Migration 018. NULL on every row today — the card falls back to `title`/`detail`,
+   * which is the normal path rather than a transitional one, since backfill is scoped to
+   * the few live rows rather than all 154. */
+  reviewLabel: string | null
+  reviewPrompt: string | null
+  /** The `ref_code` of the system change blocking this row, if any. Drives the `Blocked`
+   * badge — deliberately a badge and not a checklist item, since no amount of checking
+   * clears it. */
+  blockedRef: string | null
+  evidenceTotal: number
+  evidenceStale: number
+  /** Whether `verifier/checks/<slug>/<ref>.json` exists. A FILESYSTEM fact, not a database
+   * one — and the distinction between "no check written" and "check not run" is the
+   * difference between two different owners. */
+  hasCheckSpec: boolean
+  /** The gate's own unmet list, from `fn_divergence_unmet` — not re-derived here. Empty
+   * means the gate is open. */
+  unmet: { requirement: string; detail: string }[]
 }
 
 export type Corpus = {
   components: CorpusComponent[]
   divergences: Record<string, CorpusDivergence[]>
+  /** This machine's name from `.env`, or null when unset. Read server-side. */
+  thisMachine: string | null
   fetchedAt: string
   /** True when Fabric was unreachable and this came from the on-disk snapshot instead.
    * The app must show this — a stale read presented as live is the same false-green the
@@ -49,13 +78,26 @@ export type Corpus = {
   staleReason?: string
 }
 
-export type CorpusState =
+/** The fetch result on its own. Kept separate from `CorpusState` because `Omit` over a
+ * union collapses it to the keys every member shares — which silently erases `corpus` and
+ * `message`, and the error only surfaces at the `setState` call sites. */
+type CorpusData =
   | { status: "loading" }
   | { status: "error"; message: string }
   | { status: "ready"; corpus: Corpus }
 
+export type CorpusState = CorpusData & {
+  /** Refetch after a write. Approving or reopening changes the gate for that row, and
+   * often for nothing else — but the answer has to come from the database rather than be
+   * patched into local state, because the write may have been refused for a reason this
+   * layer cannot see (migration 016's ownership guard, or the gate closing underneath a
+   * card that was already on screen). */
+  reload: () => void
+}
+
 export function useCorpus(): CorpusState {
-  const [state, setState] = useState<CorpusState>({ status: "loading" })
+  const [state, setState] = useState<CorpusData>({ status: "loading" })
+  const [nonce, setNonce] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -72,9 +114,9 @@ export function useCorpus(): CorpusState {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [nonce])
 
-  return state
+  return { ...state, reload: () => setNonce((n) => n + 1) } as CorpusState
 }
 
 /**
