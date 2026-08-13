@@ -2,7 +2,7 @@
  * Shared status-color vocabulary for the Sandbox tool itself (not a bidezine design
  * token — this is internal tooling chrome for the transformation-tracking shell, same category as
  * the existing ad-hoc `bg-primary`/`bg-foreground` badge overrides already used throughout
- * DivergenceView/ColorTokenLab).
+ * ReviewCardShell/ColorTokenLab).
  *
  * Rule of thumb used across the app: a hard "needs a human decision" reads as NEGATIVE — this
  * reuses bidezine's own real `--destructive`/`--destructive-foreground` tokens (see

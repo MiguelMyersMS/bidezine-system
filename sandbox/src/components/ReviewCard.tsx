@@ -2,9 +2,6 @@ import { useEffect, useState } from "react"
 import {
   Badge,
   Button,
-  Card,
-  CardContent,
-  CardHeader,
   ChevronDownIcon,
   CircleCheckIcon,
   CircleIcon,
@@ -21,7 +18,7 @@ import {
   Textarea,
   cn,
 } from "@bidezine/system"
-import { NEGATIVE_BADGE, POSITIVE_BADGE, WARNING_BADGE } from "@/lib/status-colors"
+import { ReviewCardShell, type ShellBadge } from "@/components/ReviewCardShell"
 import type { CorpusDivergence } from "@/data/corpus"
 
 /**
@@ -136,29 +133,21 @@ export function cardStatus(row: CorpusDivergence): CardStatus {
   return "open"
 }
 
-const STATUS_BADGE: Record<CardStatus, { label: string; className?: string; variant?: "secondary" }> = {
-  // Solid/black: an end state. Matches the divergence being genuinely finished.
+const STATUS_BADGE: Record<CardStatus, ShellBadge> = {
+  // Muted/solid: an end state. Matches the divergence being genuinely finished.
   resolved: { label: "Resolved" },
-  blocked: { label: "Blocked", className: NEGATIVE_BADGE },
-  ready: { label: "Ready", className: POSITIVE_BADGE },
-  open: { label: "Open", variant: "secondary" },
+  blocked: { label: "Blocked", tone: "negative" },
+  ready: { label: "Ready", tone: "positive" },
+  open: { label: "Open" },
 }
 
-function StatusBadges({ row }: { row: CorpusDivergence }) {
-  const status = cardStatus(row)
-  const badge = STATUS_BADGE[status]
-  return (
-    <div className="flex shrink-0 items-center gap-1">
-      {/* Resolved-but-stale is a real state: a system change can invalidate the evidence
-          under an approved row and drop it back out with nobody touching this card (M7).
-          "Approved" is not "locked forever", so the marker sits ALONGSIDE the status
-          rather than replacing it. */}
-      {row.evidenceStale > 0 && <Badge className={WARNING_BADGE}>Stale</Badge>}
-      <Badge className={badge.className} variant={badge.variant}>
-        {badge.label}
-      </Badge>
-    </div>
-  )
+function statusBadges(row: CorpusDivergence): ShellBadge[] {
+  // Resolved-but-stale is a real state: a system change can invalidate the evidence under
+  // an approved row and drop it back out with nobody touching this card (M7). "Approved"
+  // is not "locked forever", so the marker sits ALONGSIDE the status rather than
+  // replacing it.
+  const stale: ShellBadge[] = row.evidenceStale > 0 ? [{ label: "Stale", tone: "warning" }] : []
+  return [...stale, STATUS_BADGE[cardStatus(row)]]
 }
 
 export function ReviewCard({
@@ -200,7 +189,6 @@ export function ReviewCard({
   const [open, setOpen] = useState(false)
   const [surfaceOpen, setSurfaceOpen] = useState(false)
   const [sourceOpen, setSourceOpen] = useState(false)
-  const [expandedPrompt, setExpandedPrompt] = useState(false)
   const [reopening, setReopening] = useState(false)
   const [reason, setReason] = useState("")
   const [requirement, setRequirement] = useState(REQUIREMENT_CHOICES[0].slug)
@@ -304,55 +292,16 @@ export function ReviewCard({
   }
 
   return (
-    <Card
-      data-review-card={row.ref}
-      data-status={status}
-      onClick={onSelect}
-      className={cn(
-        "cursor-pointer gap-3 py-4 transition-colors",
-        selected && "border-foreground ring-1 ring-foreground",
-      )}
+    <ReviewCardShell
+      attrs={{ "data-review-card": row.ref, "data-card-kind": "divergence", "data-status": status }}
+      refCode={row.ref}
+      badges={statusBadges(row)}
+      pill={row.category}
+      label={label}
+      prompt={prompt}
+      selected={selected}
+      onSelect={onSelect}
     >
-      <CardHeader className="gap-2 px-4">
-        <div className="flex items-start justify-between gap-3">
-          <code className="text-xs text-muted-foreground">{row.ref}</code>
-          <StatusBadges row={row} />
-        </div>
-
-        {/* The coarse scan handle. Deliberately the corpus enum verbatim — it is the
-            retrieval key (SANDBOX-SPEC §5.3) and changing it is a migration. Finer
-            precision belongs in the review prompt, not in a bigger enum. */}
-        <div>
-          <Badge variant="outline" className="font-normal">
-            {row.category}
-          </Badge>
-        </div>
-
-        <p className="line-clamp-2 text-sm font-medium">{label}</p>
-
-        {prompt && (
-          <div>
-            <p className={cn("text-xs text-muted-foreground", !expandedPrompt && "line-clamp-3")}>{prompt}</p>
-            {/* `detail` averages 1,358 characters and reaches 5,773 — an excerpt with an
-                expand is the only honest way to show it without burying the decision. */}
-            {prompt.length > 200 && (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="mt-1 h-6 px-2 text-[11px]"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setExpandedPrompt((v) => !v)
-                }}
-              >
-                {expandedPrompt ? "Show less" : "Read the full rationale"}
-              </Button>
-            )}
-          </div>
-        )}
-      </CardHeader>
-
-      <CardContent className="flex flex-col gap-3 px-4">
         {/* ── Reveal in canvas: present IF AND ONLY IF the row is anchored ──────────
             One rule, no exceptions. The reason for an absent control is always visible
             one line below it, as the checklist's own first row — so a missing button is
@@ -601,7 +550,6 @@ export function ReviewCard({
             )}
           </div>
         )}
-      </CardContent>
-    </Card>
+    </ReviewCardShell>
   )
 }

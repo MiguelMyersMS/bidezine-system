@@ -18,7 +18,7 @@ import {
   useScrollAreaOverflow,
 } from "@bidezine/system"
 import { PhaseRail } from "@/components/PhaseRail"
-import { BlockingQuestionCard, RisksList } from "@/components/DivergenceView"
+import { QuestionCard, RiskCard } from "@/components/ReviewCardShell"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { ColorTokenLab } from "@/components/ColorTokenLab"
 import { TypographyLab } from "@/components/TypographyLab"
@@ -58,12 +58,15 @@ const BIDEZINE_LOGO_DEFAULT_LABEL = "(bidezine mark — built in, renders as inl
  * A missing entry now yields an explained absence rather than another occupant's content
  * (see `ReviewQueue`). Adding a component without an entry is therefore visible, not silent.
  */
-const OCCUPANT_SECTIONS: Record<string, { questions: React.ReactNode; risks: React.ReactNode }> = {
+const OCCUPANT_SECTIONS: Record<
+  string,
+  { questions: (goTo: (ref: string) => void) => React.ReactNode; risks: (goTo: (ref: string) => void) => React.ReactNode }
+> = {
   "rail-sidebar": {
-    questions: (
+    questions: () => (
       <>
         {blockingQuestions.map((q) => (
-          <BlockingQuestionCard key={q.id} question={q} />
+          <QuestionCard key={q.id} question={q} />
         ))}
         <div className="rounded-md border p-4">
           <p className="mb-2 text-sm font-medium">Logo import (Q3's standing rule)</p>
@@ -75,7 +78,7 @@ const OCCUPANT_SECTIONS: Record<string, { questions: React.ReactNode; risks: Rea
         </div>
       </>
     ),
-    risks: <RisksList risks={notableRisks} />,
+    risks: (goTo) => notableRisks.map((r) => <RiskCard key={r.id} risk={r} onGoTo={goTo} />),
   },
 }
 
@@ -416,6 +419,23 @@ function HumanDecisionsPhase({
   // are siblings in QuadrantLayout — the overlay has to be mounted outside the scrolling left
   // column to sit above the rail on the right.
   const [activeRef, setActiveRef] = useState<string | null>(null)
+
+  /**
+   * Follow a citation to the card it names.
+   *
+   * A risk's action items cite the divergences that satisfy them — 25 distinct ids across
+   * the register, every one already a card in this same view. Restating their content
+   * inside the risk would put the same decision on screen twice, with two chances to
+   * drift out of step. So the citation is a link: select the cited row and bring it into
+   * view. One copy, cited from wherever it is relevant.
+   *
+   * Selecting also highlights it in the live component on the right, which is the whole
+   * point of following the reference in the first place.
+   */
+  const goToRef = (ref: string) => {
+    setActiveRef(ref)
+    document.querySelector(`[data-review-card="${ref}"]`)?.scrollIntoView({ block: "center", behavior: "smooth" })
+  }
   /**
    * The tool you decide a row with, chosen by its category.
    *
@@ -509,8 +529,8 @@ function HumanDecisionsPhase({
             onReveal={setActiveRef}
             onChanged={onChanged}
             decisionSurface={decisionSurface}
-            questions={OCCUPANT_SECTIONS[slug]?.questions}
-            risks={OCCUPANT_SECTIONS[slug]?.risks}
+            questions={OCCUPANT_SECTIONS[slug]?.questions(goToRef)}
+            risks={OCCUPANT_SECTIONS[slug]?.risks(goToRef)}
           />
         </QuadrantLayout>
       </TabsContent>

@@ -244,6 +244,38 @@ All ceremony is on OFF, where the action is rare and permanent. ON is one delibe
 
 ---
 
+## 3.9 One format, and one copy of each fact
+
+**Every reviewable thing uses the same card shell** (`ReviewCardShell`). Consolidating seven tabs into
+one view is only half the job — putting three visual languages under one tab is a tab bar with extra
+steps, which is what the first attempt shipped. A divergence, a blocking question and a risk are all
+"a thing with an id, a state, a human-readable ask, and detail you open when deciding", so only the
+body differs:
+
+| slot | divergence | question | risk |
+|---|---|---|---|
+| ref | `F-3` | `Q1` | `R-1` |
+| badge | gate-derived | decided / awaiting you | all items done / not |
+| pill | its corpus category | `question` | `risk` |
+| progress | gate checklist, `n/4` | options, one chosen | action items, `n/m done` |
+| body | evidence, decision surface, imported record | the options | action items, **as links** |
+
+**Questions and risks carry no approve control, and the card says so** rather than leaving it to be
+inferred. They are not corpus rows: there is no gate to compute a control from and no approval record
+to write. A card that looks gated and is not is worse than one that plainly states it is not.
+
+**A citation is a link, never a restatement — this is the de-duplication.** A risk's action items cite
+the divergences that satisfy them: 25 distinct ids across the register (`A-1`, `F-3`, `H-1`…`H-6`,
+`M-13`…`M-19`, and more), every one already a card in the same view. Repeating their content inside the
+risk would put the same decision on screen twice with two chances to drift apart. `RefLink` renders each
+citation as a control that selects the cited card and scrolls it into view — which also highlights it in
+the live component, since that is the reason to follow a reference at all. One copy, cited from wherever
+it is relevant.
+
+`DivergenceView.tsx` (`BlockingQuestionCard`, `RisksList`, `DivergenceCategoriesAccordion`) was deleted
+rather than left unused. Same reasoning the protocol log records for `FullRailPreview`: inert code that
+still renders a superseded format is code someone can silently re-wire back in.
+
 ## 3.8 Two tabs, not seven
 
 The app had seven tabs. **Four of them read hardcoded per-occupant arrays** out of
