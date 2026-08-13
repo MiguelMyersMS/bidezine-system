@@ -100,8 +100,6 @@ export function ReviewQueue({
   onReveal,
   onChanged,
   decisionSurface,
-  questions,
-  risks,
 }: {
   slug: string
   rows: CorpusDivergence[]
@@ -113,24 +111,6 @@ export function ReviewQueue({
   onReveal: (ref: string) => void
   onChanged: () => void
   decisionSurface?: (row: CorpusDivergence) => React.ReactNode
-  /**
-   * Open questions and the risk register, which used to be tabs of their own.
-   *
-   * They are rendered here, in the one view, but in their OWN sections rather than in the
-   * buckets — and that separation is honest rather than cosmetic. Bucketing is computed
-   * from the gate, and neither of these is in the corpus, so neither has a gate, a
-   * checklist, or an approval that means anything. Dropping them into "Waiting on you"
-   * would make four things that look identical to a gated row but are not.
-   *
-   * Why they are not simply imported as divergences: they do not fit. A question carries
-   * enumerated `options` with one chosen; a risk carries `actionItems` with done flags and
-   * cross-references to divergence ids. `divergence` has neither shape, so an import would
-   * flatten both into prose — losing exactly what makes them useful, and violating M4's
-   * own rule that an import is lossless or it is not done. Giving them a real home is a
-   * schema question for the milestone owner, not something to force here.
-   */
-  questions?: React.ReactNode
-  risks?: React.ReactNode
 }) {
   const [category, setCategory] = useState<string>("all")
 
@@ -176,32 +156,6 @@ export function ReviewQueue({
         </Select>
       </div>
 
-      {/* First, because a blocking question blocks work: it is the thing most likely to be
-          genuinely waiting on you, even though it has no gate to say so. */}
-      <section className="flex flex-col gap-2" data-section="questions">
-        <Separator />
-        <h3 className="text-sm font-medium">Open questions</h3>
-        <p className="text-xs text-muted-foreground">
-          Decisions that block work. Not in the corpus — so no checklist, no gate, and no approval
-          record. They carry enumerated options with one chosen, which <code>divergence</code> has no
-          shape for; giving them a real home is a schema decision, not a UI one.
-        </p>
-        {/* Rendered even when empty, and this is the point. These sections come from the
-            occupant's OWN source file, not the corpus, so an occupant with no entry has
-            none WRITTEN — which is a different fact from having none needed, and the
-            difference has to be visible. Hiding the section entirely would make a missing
-            registry entry indistinguishable from a component that genuinely has no
-            questions, which is how the previous version managed to show one component's
-            questions under another's name without anything looking wrong. */}
-        {questions ?? (
-          <p className="text-xs text-muted-foreground">
-            No questions are recorded for <code>{slug}</code>. They live in the occupant's own source
-            file rather than the corpus, so this means none have been written — not that none are
-            needed.
-          </p>
-        )}
-      </section>
-
       {buckets.map((bucket) => (
         <section key={bucket.id} className="flex flex-col gap-2" data-bucket={bucket.id}>
           <Separator />
@@ -244,25 +198,6 @@ export function ReviewQueue({
           )}
         </section>
       ))}
-
-      {/* Last, because a risk is a standing concern rather than a queued decision. Same
-          caveat as the questions: no gate, and `actionItems` with cross-references is not a
-          shape `divergence` has either. */}
-      <section className="flex flex-col gap-2" data-section="risks">
-        <Separator />
-        <h3 className="text-sm font-medium">Risk register</h3>
-        <p className="text-xs text-muted-foreground">
-          Standing concerns and their action items. Not in the corpus, so nothing here is gated —
-          and not every one is a divergence: some are process gaps about the component's own audit
-          state rather than something that differs.
-        </p>
-        {risks ?? (
-          <p className="text-xs text-muted-foreground">
-            No risks are recorded for <code>{slug}</code>. Same caveat as the questions above: absent
-            from the occupant's source file, not absent from reality.
-          </p>
-        )}
-      </section>
     </div>
   )
 }

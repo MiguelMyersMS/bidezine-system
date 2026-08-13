@@ -6,34 +6,38 @@ import {
   CardContent,
   CardHeader,
   ChevronDownIcon,
-  CircleCheckIcon,
-  CircleIcon,
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
   cn,
 } from "@bidezine/system"
 import { NEGATIVE_BADGE, POSITIVE_BADGE, WARNING_BADGE } from "@/lib/status-colors"
-import type { DecisionQuestion, RiskNote } from "@/data/rail-sidebar"
-import { isRiskResolved } from "@/data/rail-sidebar"
 
 /**
- * The one card format every reviewable thing uses — see `sandbox/REVIEW-CARD-SPEC.md` §3.
+ * The one card format — see `sandbox/REVIEW-CARD-SPEC.md` §3.
  *
- * Consolidating seven tabs into one view is only half the job: putting three different
- * visual languages under one tab is a tab bar with extra steps. A divergence, a blocking
- * question and a risk are all "a thing with an id, a state, a human-readable ask, and some
- * detail you open when deciding" — so they get one shell, and only the body differs.
+ * ── There is exactly one kind of card now, and that took two goes ───────────────────
+ * The first attempt gave blocking questions and risks their own card components, sharing
+ * this shell but carrying no gate, no checklist and no approval control — because they
+ * lived in a TypeScript file rather than the corpus. They looked like review cards and
+ * could not be reviewed. Reported directly: everything has to go through the SAME process.
  *
- * What each type puts in the same slots:
+ * The fix was not to give them convincing controls. A control that looks gated and is not
+ * is the exact failure this system exists to refuse, and faking one here would have put it
+ * in the one screen built to prevent it. The fix was to make them real rows — `Q1`–`Q4`
+ * and `R-1`–`R-10` are ordinary divergences in the corpus now, so they get the real
+ * checklist against the real gate and the real switch, by being the same thing rather than
+ * by resembling it.
  *
- * | slot     | divergence            | question                  | risk                     |
- * |----------|-----------------------|---------------------------|--------------------------|
- * | ref      | `F-3`                 | `Q1`                      | `R-1`                    |
- * | badge    | gate-derived          | decided / awaiting you    | all items done / not     |
- * | pill     | its corpus category   | `question`                | `risk`                   |
- * | progress | gate checklist, n/4   | options, one chosen       | action items, n/m done   |
- * | body     | evidence + surfaces   | the options               | action items, as links   |
+ * The earlier objection — that `options` and `actionItems` have no column — was wrong, and
+ * `origin_record` is why: it holds each source object verbatim, which is how M4 imported
+ * 154 rows without flattening anything. Nothing was lost; it renders in the card's own
+ * Imported record disclosure.
+ *
+ * So this shell has one consumer (`ReviewCard`). It stays a separate component anyway,
+ * because the slot ORDER is the contract a human reads — ref, status, category, title,
+ * description, reveal, checklist, control — and a second occupant's card must not be free
+ * to reinvent it.
  */
 
 export type ShellBadge = { label: string; tone?: "positive" | "negative" | "warning" | "muted" }
@@ -169,152 +173,5 @@ export function ShellProgress({
         </div>
       </CollapsibleContent>
     </Collapsible>
-  )
-}
-
-/**
- * A reference to another card, rendered as a link to it rather than as restated text.
- *
- * This is the de-duplication. A risk's action items cite the divergences that satisfy them
- * — 25 distinct ids across the register (`A-1`, `F-3`, `H-1`…`H-6`, `M-13`…`M-19`, and
- * more) — every one of which is already a card in the same view. Repeating their content
- * inside the risk would put the same decision on screen twice with two chances to drift.
- * Citing and linking keeps one copy.
- */
-function RefLink({ refCode, onGoTo }: { refCode: string; onGoTo?: (ref: string) => void }) {
-  const known = /^[A-Z]-\d+/.test(refCode)
-  if (!known || !onGoTo) return <Badge variant="outline" className="font-mono text-[10px]">{refCode}</Badge>
-  return (
-    <Button
-      size="sm"
-      variant="outline"
-      className="h-5 px-1.5 font-mono text-[10px]"
-      onClick={(e) => {
-        e.stopPropagation()
-        onGoTo(refCode)
-      }}
-    >
-      {refCode}
-    </Button>
-  )
-}
-
-/**
- * A blocking question, in the shared format.
- *
- * Not in the corpus, so it has no gate and no approve control — its "progress" is whether
- * one of its options has been chosen. Stated on the card rather than implied, because a
- * card that looks gated and is not is worse than one that plainly says it is not.
- */
-export function QuestionCard({
-  question,
-  selected,
-  onSelect,
-}: {
-  question: DecisionQuestion
-  selected?: boolean
-  onSelect?: () => void
-}) {
-  const decided = !!question.resolution
-  const chosen = question.options.find((o) => /CHOSEN/.test(o.label))
-  return (
-    <ReviewCardShell
-      attrs={{ "data-review-card": question.id.toUpperCase(), "data-card-kind": "question" }}
-      refCode={question.id.toUpperCase()}
-      badges={[decided ? { label: "Decided", tone: "positive" } : { label: "Awaiting you", tone: "negative" }]}
-      pill="question"
-      label={question.title}
-      prompt={question.context}
-      selected={selected}
-      onSelect={onSelect}
-    >
-      <p className="text-xs text-muted-foreground">
-        <span className="font-medium text-foreground">Blocks:</span> {question.blocks}
-      </p>
-      <ShellProgress title="Options" count={decided ? "decided" : "open"}>
-        <ul className="flex flex-col gap-2">
-          {question.options.map((o) => {
-            const isChosen = o === chosen
-            return (
-              <li key={o.label} className={cn("flex items-start gap-2 text-xs", !isChosen && "text-muted-foreground")}>
-                {isChosen ? (
-                  <CircleCheckIcon filled className="mt-0.5 size-3.5 shrink-0" />
-                ) : (
-                  <CircleIcon className="mt-0.5 size-3.5 shrink-0" />
-                )}
-                <span className="flex flex-col gap-0.5">
-                  <span className={cn(isChosen && "font-medium text-foreground")}>{o.label}</span>
-                  {o.detail && <span className="text-muted-foreground">{o.detail}</span>}
-                </span>
-              </li>
-            )
-          })}
-        </ul>
-      </ShellProgress>
-      {/* No approve control, and the absence is stated. These are not corpus rows, so
-          there is no gate to compute one from and no approval record to write. */}
-      <p className="text-[11px] text-muted-foreground">
-        Not a corpus row — no gate, and no approval is recorded when this is decided.
-      </p>
-    </ReviewCardShell>
-  )
-}
-
-/** A risk, in the shared format. Its action items cite other cards rather than restating
- * them — see `RefLink`. */
-export function RiskCard({
-  risk,
-  selected,
-  onSelect,
-  onGoTo,
-}: {
-  risk: RiskNote
-  selected?: boolean
-  onSelect?: () => void
-  onGoTo?: (ref: string) => void
-}) {
-  const done = risk.actionItems.filter((i) => i.done).length
-  const total = risk.actionItems.length
-  const resolved = isRiskResolved(risk)
-  return (
-    <ReviewCardShell
-      attrs={{ "data-review-card": risk.id, "data-card-kind": "risk" }}
-      refCode={risk.id}
-      badges={[resolved ? { label: "Cleared", tone: "positive" } : { label: "Open", tone: "warning" }]}
-      pill="risk"
-      label={risk.title}
-      prompt={risk.detail}
-      selected={selected}
-      onSelect={onSelect}
-    >
-      <ShellProgress title="Action items" count={`${done}/${total} done`}>
-        <ul className="flex flex-col gap-2">
-          {risk.actionItems.map((item) => (
-            <li key={item.id} className={cn("flex items-start gap-2 text-xs", item.done && "text-muted-foreground")}>
-              {item.done ? (
-                <CircleCheckIcon filled className="mt-0.5 size-3.5 shrink-0" />
-              ) : (
-                <CircleIcon className="mt-0.5 size-3.5 shrink-0" />
-              )}
-              <span className="flex flex-col gap-1">
-                <span>{item.text}</span>
-                {item.refs && item.refs.length > 0 && (
-                  <span className="flex flex-wrap items-center gap-1">
-                    <span className="text-[10px] text-muted-foreground">satisfied by</span>
-                    {item.refs.map((r) => (
-                      <RefLink key={r} refCode={r} onGoTo={onGoTo} />
-                    ))}
-                  </span>
-                )}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </ShellProgress>
-      <p className="text-[11px] text-muted-foreground">
-        Not a corpus row — no gate. Its action items cite the divergences that satisfy them rather than
-        repeating them.
-      </p>
-    </ReviewCardShell>
   )
 }

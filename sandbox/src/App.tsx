@@ -18,7 +18,6 @@ import {
   useScrollAreaOverflow,
 } from "@bidezine/system"
 import { PhaseRail } from "@/components/PhaseRail"
-import { QuestionCard, RiskCard } from "@/components/ReviewCardShell"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { ColorTokenLab } from "@/components/ColorTokenLab"
 import { TypographyLab } from "@/components/TypographyLab"
@@ -31,8 +30,6 @@ import { useCorpus, type CorpusComponent, type CorpusDivergence } from "@/data/c
 import { NEGATIVE_BADGE, POSITIVE_BADGE } from "@/lib/status-colors"
 import {
   railSidebarPhases,
-  blockingQuestions,
-  notableRisks,
   proposedDarkRailTokens,
   BIDEZINE_LOGO_PATH,
   BIDEZINE_LOGO_VIEWBOX,
@@ -42,45 +39,6 @@ import {
 // stand-in so LogoImportSlot knows to render the inline SVG (currentColor, theme-responsive)
 // instead of falling back to <img> for a genuine user-supplied link.
 const BIDEZINE_LOGO_DEFAULT_LABEL = "(bidezine mark — built in, renders as inline SVG)"
-
-/**
- * Per-occupant sections, keyed by slug — the same shape as `PREVIEW_REGISTRY`, and for the
- * same reason.
- *
- * Blocking questions and the risk register are NOT corpus data. They live in this
- * occupant's own source file, so they must be scoped to this occupant explicitly. The
- * first version of the two-tab rebuild passed them unconditionally, which meant selecting
- * any other component rendered **Rail Sidebar's** questions and risks under that
- * component's name — quietly, with nothing on screen suggesting they belonged to something
- * else. That is the same defect that condemned the four hardcoded tabs, just smaller and
- * better hidden, and it was caught in review rather than by this file.
- *
- * A missing entry now yields an explained absence rather than another occupant's content
- * (see `ReviewQueue`). Adding a component without an entry is therefore visible, not silent.
- */
-const OCCUPANT_SECTIONS: Record<
-  string,
-  { questions: (goTo: (ref: string) => void) => React.ReactNode; risks: (goTo: (ref: string) => void) => React.ReactNode }
-> = {
-  "rail-sidebar": {
-    questions: () => (
-      <>
-        {blockingQuestions.map((q) => (
-          <QuestionCard key={q.id} question={q} />
-        ))}
-        <div className="rounded-md border p-4">
-          <p className="mb-2 text-sm font-medium">Logo import (Q3's standing rule)</p>
-          <LogoImportSlot
-            defaultUrl={BIDEZINE_LOGO_DEFAULT_LABEL}
-            defaultSvgPath={BIDEZINE_LOGO_PATH}
-            defaultViewBox={BIDEZINE_LOGO_VIEWBOX}
-          />
-        </div>
-      </>
-    ),
-    risks: (goTo) => notableRisks.map((r) => <RiskCard key={r.id} risk={r} onGoTo={goTo} />),
-  },
-}
 
 /**
  * Sandbox — the reusable transformation-tracking shell.
@@ -421,22 +379,6 @@ function HumanDecisionsPhase({
   const [activeRef, setActiveRef] = useState<string | null>(null)
 
   /**
-   * Follow a citation to the card it names.
-   *
-   * A risk's action items cite the divergences that satisfy them — 25 distinct ids across
-   * the register, every one already a card in this same view. Restating their content
-   * inside the risk would put the same decision on screen twice, with two chances to
-   * drift out of step. So the citation is a link: select the cited row and bring it into
-   * view. One copy, cited from wherever it is relevant.
-   *
-   * Selecting also highlights it in the live component on the right, which is the whole
-   * point of following the reference in the first place.
-   */
-  const goToRef = (ref: string) => {
-    setActiveRef(ref)
-    document.querySelector(`[data-review-card="${ref}"]`)?.scrollIntoView({ block: "center", behavior: "smooth" })
-  }
-  /**
    * The tool you decide a row with, chosen by its category.
    *
    * The colour and typography labs were each a tab of their own, which meant deciding a
@@ -451,6 +393,19 @@ function HumanDecisionsPhase({
    * relation is the obvious next migration and is noted in REVIEW-CARD-SPEC.md.
    */
   const decisionSurface = (row: CorpusDivergence) => {
+    // Keyed by REF, not category, and only where a tool belongs to one specific decision.
+    // Q3 is "which default logo icon", and the import slot is the thing you decide it
+    // with — but there are nine `icons` rows and the slot is meaningless on the other
+    // eight, so category is the wrong key here. It was previously stranded in a tab.
+    if (row.ref === "Q3") {
+      return (
+        <LogoImportSlot
+          defaultUrl={BIDEZINE_LOGO_DEFAULT_LABEL}
+          defaultSvgPath={BIDEZINE_LOGO_PATH}
+          defaultViewBox={BIDEZINE_LOGO_VIEWBOX}
+        />
+      )
+    }
     if (row.category === "color") {
       const approved = proposedDarkRailTokens.filter((t) => t.approved !== false).length
       const pending = proposedDarkRailTokens.length - approved
@@ -529,8 +484,6 @@ function HumanDecisionsPhase({
             onReveal={setActiveRef}
             onChanged={onChanged}
             decisionSurface={decisionSurface}
-            questions={OCCUPANT_SECTIONS[slug]?.questions(goToRef)}
-            risks={OCCUPANT_SECTIONS[slug]?.risks(goToRef)}
           />
         </QuadrantLayout>
       </TabsContent>
