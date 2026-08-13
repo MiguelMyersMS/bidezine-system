@@ -188,7 +188,6 @@ export function ReviewCard({
 }) {
   const [open, setOpen] = useState(false)
   const [surfaceOpen, setSurfaceOpen] = useState(false)
-  const [sourceOpen, setSourceOpen] = useState(false)
   const [reopening, setReopening] = useState(false)
   const [reason, setReason] = useState("")
   const [requirement, setRequirement] = useState(REQUIREMENT_CHOICES[0].slug)
@@ -433,31 +432,6 @@ export function ReviewCard({
           </Collapsible>
         )}
 
-        {row.originRecord && (
-          <Collapsible open={sourceOpen} onOpenChange={setSourceOpen}>
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-full justify-between px-2 text-xs font-normal"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <span className="flex items-center gap-1">
-                  <ChevronDownIcon className={cn("size-3.5 transition-transform", sourceOpen && "rotate-180")} />
-                  Imported record
-                </span>
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              {/* Verbatim, exactly as M4 stored it. This was its own tab, which meant
-                  reading a row here and finding its source there. It is reference material
-                  for one row, so it belongs on that row. */}
-              <pre className="mt-2 max-h-60 overflow-auto rounded-sm bg-muted/40 p-2 text-[10px] whitespace-pre-wrap">
-                {JSON.stringify(row.originRecord, null, 1)}
-              </pre>
-            </CollapsibleContent>
-          </Collapsible>
-        )}
 
         {message && <p className="rounded-md bg-destructive/10 p-2 text-[11px]">{message}</p>}
 
