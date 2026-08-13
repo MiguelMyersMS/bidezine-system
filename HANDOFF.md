@@ -48,7 +48,7 @@
 
 ## Laptop A (main)
 
-**Baseline** — branch `main`, last verified commit `e880323`, working tree clean, in sync
+**Baseline** — branch `main`, last verified commit `6a7968b`, working tree clean, in sync
 with `origin/main`. Verify this yourself (`git log --oneline -1`, `git status`) before trusting
 anything below it.
 
