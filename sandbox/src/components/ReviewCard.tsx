@@ -19,6 +19,7 @@ import {
   cn,
 } from "@bidezine/system"
 import { ReviewCardShell, type ShellBadge } from "@/components/ReviewCardShell"
+import { BLOCK_KINDS, ComparisonBlocks } from "@/components/CompareVisuals"
 import type { CorpusDivergence } from "@/data/corpus"
 
 /**
@@ -81,8 +82,54 @@ type ChecklistRow = {
  * state, one claiming its background and the other its foreground. Neither owns the
  * attribute; both point at F-2's.
  */
+/**
+ * Categories whose divergences are code facts rather than anything rendered.
+ *
+ * They get no canvas control and no inline example, and the pill says so, because the
+ * useful thing to tell a reviewer before they open a card is what kind of judgement it
+ * will ask for. `structure` here is "inline CSS-in-JS", "a `useTokens()` hook", "a direct
+ * Radix import" — real decisions with nothing to look at.
+ *
+ * Display only. The stored enum value is untouched: it is the corpus retrieval key M9's
+ * ranking reads, and relabelling it for a human would fragment that.
+ */
+const CODE_CATEGORIES = new Set(["structure", "naming-api"])
+
+/**
+ * The category as a human reads it. `component-gap` → `Component gap`.
+ *
+ * A display transform, never a stored one. Capitalising alone would give `Component-gap`,
+ * so the hyphen goes too — these are slugs chosen to be queryable, not to be read.
+ */
+export function categoryLabel(category: string): string {
+  const words = category.replace(/-/g, " ")
+  const human = words.charAt(0).toUpperCase() + words.slice(1)
+  return CODE_CATEGORIES.has(category) ? `Code · ${human}` : human
+}
+
 export function anchorOf(row: CorpusDivergence): string | null {
   return row.anchorId ?? row.subjects?.find((s) => s.side === "bidezine" && s.anchorId)?.anchorId ?? null
+}
+
+/**
+ * Whether the canvas can show this row at all.
+ *
+ * Two ways to be locatable, and they are not interchangeable:
+ *
+ * - a **bidezine anchor**, for something the translation renders;
+ * - an **origin selector**, for something that exists only in the source system —
+ *   `component-gap` rows name origin components with no bidezine equivalent, so the only
+ *   honest place to point is origin's own pane.
+ *
+ * A code-shaped row is never revealable however it is declared. `structure` and
+ * `naming-api` describe inline CSS-in-JS, a hook, an import — there is nothing rendered to
+ * point at, and showing code on a review card is a standing prohibition. Excluded here
+ * rather than left to produce a control that resolves to nothing.
+ */
+export function revealable(row: CorpusDivergence): boolean {
+  if (CODE_CATEGORIES.has(row.category)) return false
+  const origin = row.subjects?.some((s) => s.side === "origin" && s.selector)
+  return !!anchorOf(row) || !!origin
 }
 
 function buildChecklist(row: CorpusDivergence): ChecklistRow[] {
@@ -325,9 +372,15 @@ export function ReviewCard({
       attrs={{ "data-review-card": row.ref, "data-card-kind": "divergence", "data-status": status }}
       refCode={row.ref}
       badges={statusBadges(row)}
-      pill={row.category}
+      pill={categoryLabel(row.category)}
       label={label}
       prompt={prompt}
+      examples={
+        // Inline comparison for icon / colour / typography only. Everything else belongs in
+        // the canvas, where it can be triggered, or in the description — a motion has no
+        // static "before" to sit beside an "after", and a code fact has nothing to render.
+        row.visual && BLOCK_KINDS.has(row.visual.kind) ? <ComparisonBlocks visual={row.visual} /> : null
+      }
       selected={selected}
       onSelect={onSelect}
     >
@@ -335,7 +388,7 @@ export function ReviewCard({
             One rule, no exceptions. The reason for an absent control is always visible
             one line below it, as the checklist's own first row — so a missing button is
             never a silent mystery. */}
-        {anchorOf(row) ? (
+        {revealable(row) ? (
           <div>
             <Button
               size="sm"

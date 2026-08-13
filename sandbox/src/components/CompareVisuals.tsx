@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Button,
   CheckIcon,
@@ -562,3 +562,150 @@ export function VisualCompare({ visual }: { visual: Visual }) {
       return null
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════════
+// The review card's comparison blocks — see sandbox/REVIEW-CARD-SPEC.md §3.11.
+//
+// One constant frame for every kind: a rendered example, the role it plays (Current or
+// Proposal), and ONE short line that distinguishes it from the other. Only the example
+// varies. That constancy is the point — a reviewer who has read one component's cards must
+// be able to read the next component's without relearning the layout, so the frame is fixed
+// even where a looser one would suit a particular kind slightly better.
+//
+// Stacked rather than side by side, deliberately: the card sits in a narrow column, and two
+// examples across a ~335px card would shrink each below the size at which a colour or a
+// typeface can actually be judged.
+//
+// ── Only three kinds get a block ────────────────────────────────────────────────────
+// `icon`, `color`, `typography`. Everything else — motion, elevation, z-index, shape, and
+// anything code-shaped — belongs in the canvas, where it can be triggered, or in the
+// description. A motion has no static "before" to place beside an "after"; a code fact has
+// nothing to render at all, and showing code on a review card is a standing prohibition.
+// ═══════════════════════════════════════════════════════════════════════════════════
+
+/**
+ * The app's light/dark mode, as a live value.
+ *
+ * Read from `documentElement`'s `dark` class — the same signal `ThemeToggle` writes — and
+ * observed, so switching the theme re-renders every example rather than leaving stale
+ * values on screen. The card must never hold per-theme values of its own: the whole point
+ * of these blocks is that flipping the mode shows what that mode actually looks like.
+ */
+function useThemeMode(): "light" | "dark" {
+  const [mode, setMode] = useState<"light" | "dark">(() =>
+    typeof document !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light",
+  )
+  useEffect(() => {
+    const read = () => setMode(document.documentElement.classList.contains("dark") ? "dark" : "light")
+    read()
+    const mo = new MutationObserver(read)
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] })
+    return () => mo.disconnect()
+  }, [])
+  return mode
+}
+
+/** One block. `example` is whatever the kind renders; `spec` is the single differentiator. */
+function Block({
+  role,
+  spec,
+  children,
+  stacked = false,
+}: {
+  role: "Current" | "Proposal"
+  spec: string
+  children: React.ReactNode
+  stacked?: boolean
+}) {
+  return (
+    <div className="rounded-md border bg-muted/30 p-3">
+      <div className={cn("flex gap-3", stacked ? "flex-col" : "items-center")}>
+        {children}
+        <div className="min-w-0">
+          <p className="text-xs font-medium">{role}</p>
+          {/* Derived from the stored label, never a second authored field — one sentence
+              whose only job is telling this block apart from the other one. */}
+          <p className="truncate text-xs text-muted-foreground">{spec}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const CHIP = "flex size-11 shrink-0 items-center justify-center rounded-md border bg-background"
+
+export function ComparisonBlocks({ visual }: { visual: Visual }) {
+  const mode = useThemeMode()
+
+  if (visual.kind === "icon") {
+    const After = visual.afterIconName ? BIDEZINE_ICON_MAP[visual.afterIconName] : undefined
+    return (
+      <div className="flex flex-col gap-2">
+        <Block role="Current" spec={visual.beforeLabel}>
+          <span className={CHIP}>
+            {/* Inline <svg>, never <img> — an SVG behind an img tag is opaque to
+                `currentColor`, so it would ignore the theme switch these blocks exist to
+                demonstrate. Standing rule, not a preference here. */}
+            <RawSvgIcon d={visual.beforeSvgPath} viewBox={visual.beforeViewBox} />
+          </span>
+        </Block>
+        <Block role="Proposal" spec={visual.afterLabel ?? (After ? "bidezine equivalent" : "no equivalent yet")}>
+          <span className={CHIP}>
+            {After ? <After className="size-5" /> : <span className="text-xs text-muted-foreground">?</span>}
+          </span>
+        </Block>
+      </div>
+    )
+  }
+
+  if (visual.kind === "color") {
+    // Both sides swap with the mode. Origin stores its own light and dark values, so
+    // pinning Current to one would compare this mode's proposal against the other mode's
+    // original — a difference that looks real and is an artefact of the card.
+    const before = (mode === "dark" ? visual.beforeHexDark : visual.beforeHexLight) ?? visual.beforeHexLight
+    const after = (mode === "dark" ? visual.afterHexDark : visual.afterHexLight) ?? visual.afterHexLight
+    return (
+      <div className="flex flex-col gap-2">
+        <Block role="Current" spec={before}>
+          <span className="size-11 shrink-0 rounded-md border" style={{ background: before }} />
+        </Block>
+        <Block role="Proposal" spec={after ?? visual.afterVar ?? "not proposed yet"}>
+          <span
+            className="size-11 shrink-0 rounded-md border"
+            style={{ background: after ?? "transparent" }}
+          />
+        </Block>
+      </div>
+    )
+  }
+
+  if (visual.kind === "type") {
+    // Stacked: a typeface is judged by its own rendering, so the sample leads and the spec
+    // reads underneath — matching the mockup, and the only kind where the example needs the
+    // full width of the card.
+    return (
+      <div className="flex flex-col gap-2">
+        <Block role="Current" spec={`${visual.beforeFamily}, ${visual.beforeWeight}, ${visual.beforeSize}`} stacked>
+          <p
+            className="line-clamp-2 text-lg"
+            style={{ fontFamily: visual.beforeFamily, fontWeight: visual.beforeWeight as React.CSSProperties["fontWeight"] }}
+          >
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+          </p>
+        </Block>
+        <Block role="Proposal" spec={visual.afterLabel} stacked>
+          {/* The real utility class, so the sample is the system's own type rather than a
+              description of it — and it re-renders on theme change like everything else. */}
+          <p className={cn("line-clamp-2", visual.afterClassName)}>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+          </p>
+        </Block>
+      </div>
+    )
+  }
+
+  return null
+}
+
+/** Which kinds the card renders inline. Everything else goes to the canvas. */
+export const BLOCK_KINDS = new Set(["icon", "color", "type"])

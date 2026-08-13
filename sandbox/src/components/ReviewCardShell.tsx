@@ -55,6 +55,7 @@ export function ReviewCardShell({
   label,
   prompt,
   detail,
+  examples,
   selected,
   onSelect,
   attrs,
@@ -71,6 +72,12 @@ export function ReviewCardShell({
    * depths: the lead answers "what am I being asked", the body answers "why". Keeping
    * them in one slot is what stops this becoming a ninth section. */
   detail?: string | null
+  /**
+   * The Current/Proposal comparison, revealed by the same control that unclamps the
+   * description. One disclosure governs both, so the card keeps its eight slots rather than
+   * growing a ninth — and a reviewer opens one thing to see everything about the claim.
+   */
+  examples?: React.ReactNode
   selected?: boolean
   onSelect?: () => void
   /** Extra data-* attributes so checks can scope to a card without a class-name guess. */
@@ -83,7 +90,7 @@ export function ReviewCardShell({
   // Only worth an expand control if there is genuinely more to read — either the lead is
   // long enough to be clamped, or a body exists behind it.
   const body = detail && detail !== text ? detail : ""
-  const expandable = body.length > 0 || text.length > 200
+  const expandable = body.length > 0 || text.length > 200 || !!examples
 
   return (
     <Card
@@ -119,28 +126,18 @@ export function ReviewCardShell({
 
         <p className="line-clamp-2 text-sm font-medium">{label}</p>
 
+        {/* Description and disclosure are SIBLINGS, not nested. An earlier version put the
+            examples inside the `text ?` branch, so a row with a comparison but no written
+            description — which is most rows carrying one — would have shown neither the
+            blocks nor a control to reveal them. The absence of a description must not
+            suppress everything else the card knows. */}
         {text ? (
-          <div>
+          <>
             <p className={cn("text-xs text-muted-foreground", !expanded && "line-clamp-3")}>{text}</p>
-            {expanded && body && (
+            {expanded && body ? (
               <p className="mt-2 text-xs whitespace-pre-line text-muted-foreground">{body}</p>
-            )}
-            {/* Real rationale on a real row reaches 5,773 characters. An excerpt with an
-                expand is the only honest way to show that without burying the decision. */}
-            {expandable && (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="mt-1 h-6 px-2 text-[11px]"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setExpanded((v) => !v)
-                }}
-              >
-                {expanded ? "Show less" : "Read the full rationale"}
-              </Button>
-            )}
-          </div>
+            ) : null}
+          </>
         ) : (
           // Stated, not substituted. The old fallback rendered the imported resolution
           // history here, which made 169 cards look described while none of them were —
@@ -149,6 +146,24 @@ export function ReviewCardShell({
             No review description written yet — nobody has said what needs deciding here or why.
           </p>
         )}
+
+        {expanded && examples ? <div>{examples}</div> : null}
+
+        {expandable ? (
+          <div>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 px-2 text-[11px]"
+              onClick={(e) => {
+                e.stopPropagation()
+                setExpanded((v) => !v)
+              }}
+            >
+              {expanded ? "Hide details" : "Show details"}
+            </Button>
+          </div>
+        ) : null}
       </CardHeader>
 
       <CardContent className="flex flex-col gap-3 px-4">

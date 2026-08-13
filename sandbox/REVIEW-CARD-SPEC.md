@@ -318,6 +318,61 @@ against the whole component") is a **process gap about the component's own state
 it into a `divergence` row would pollute the corpus that M9's ranking depends on. Giving them a real
 home is a schema question for the milestone owner.
 
+## 3.11 The comparison blocks
+
+**One constant frame, whatever the divergence is about:** a rendered example, the role it plays
+(`Current` / `Proposal`), and **one short line** distinguishing it from the other. Only the example
+varies. A reviewer who has read one occupant's cards must read the next occupant's without relearning
+the layout, so the frame holds even where a looser one would suit a particular kind slightly better.
+
+**Stacked, not side by side.** The card is a ~335px column; two examples across it would shrink each
+below the size at which a colour or a typeface can actually be judged.
+
+**Three kinds render a block: `icon`, `color`, `type`.** Everything else — `motion`, `elevation`,
+`zindex`, `shape`, and anything code-shaped — belongs in the canvas where it can be triggered, or in
+the description. A motion has no static "before" to sit beside an "after"; a code fact has nothing to
+render, and showing code on a review card is prohibited outright.
+
+**The differentiator is derived, never authored.** It is the stored label trimmed to whatever tells
+the two apart. No second field, no second thing to keep in step with the first.
+
+**Both sides swap with the theme.** `ColorVisual` stores `beforeHexLight`/`beforeHexDark` and the
+matching `after*`, so a mode change re-renders both. Pinning `Current` to one mode would compare this
+mode's proposal against the other mode's original — a difference that looks real and is an artefact of
+the card. Verified: `#1C2024` in light, `#111113` in dark, on the same swatch.
+
+**The icon's "before" is inline `<svg>`, never `<img>`.** An SVG behind an `img` tag is opaque to
+`currentColor`, so it would ignore the very theme switch these blocks exist to demonstrate.
+
+**Description and disclosure are siblings, not nested.** An early version rendered the blocks inside
+the description's own branch, so a row with a comparison and no written description — which is most
+rows carrying one — showed neither the blocks nor a control to reveal them. A missing description must
+never suppress everything else the card knows.
+
+**`Show details` governs both**, so the card keeps eight slots rather than growing a ninth: one
+disclosure reveals the full description AND the comparison.
+
+### The category pill is a display transform
+
+`component-gap` → `Component gap`. Capitalising alone would give `Component-gap` — these are slugs
+chosen to be queryable, not to be read. **The stored enum is untouched**: it is the corpus retrieval
+key M9's ranking reads, and relabelling it there would fragment that.
+
+Code-shaped categories (`structure`, `naming-api`) read as `Code · …`, because the useful thing to
+tell a reviewer before they open a card is what kind of judgement it will ask for — and these ask for
+one with nothing to look at.
+
+### Reveal appears only when the canvas can actually show the row
+
+Two ways to be locatable, not interchangeable:
+
+- a **bidezine anchor**, for something the translation renders;
+- an **origin selector**, for something existing only in the source system — `component-gap` rows name
+  origin components with no bidezine equivalent, so the only honest place to point is origin's pane.
+
+**A code-shaped row is never revealable, however it is declared.** Excluded explicitly rather than left
+to produce a control that resolves to nothing.
+
 ## 3.10 Writing a review prompt — the protocol
 
 > **This is not about making one component's cards read well.** Every occupant's cards are the same
