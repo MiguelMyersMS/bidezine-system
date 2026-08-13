@@ -77,17 +77,28 @@ try {
   await page.goto(BASE, { waitUntil: "networkidle" })
 
   // ── readiness, not an investigation ───────────────────────────────────────────────
-  // Run immediately after editing any file the dev server watches, the first click times
-  // out: Vite is mid-reload, the HTTP probe above already answers 200, and the document
-  // that arrives is not yet interactive. Reproduced three times, always straight after an
-  // edit, never on a settled server. So the first interaction waits for the tab to be
-  // genuinely actionable rather than assuming a 200 means ready — a race worth absorbing
-  // rather than diagnosing, since nothing about it involves the code under test.
+  // Run immediately after editing any file the dev server watches, the first interaction
+  // times out: Vite is mid-reload, the HTTP probe above already answers 200, and the
+  // document that arrives is not yet interactive. Nothing about it involves the code under
+  // test, so it is absorbed rather than diagnosed.
+  //
+  // The retry used to wrap only the CLICK, while the waitFor above it ran unguarded — so
+  // the far more likely failure (the tab is not in the DOM yet, because the document being
+  // served is the pre-reload one) fell straight through to the catch-all and reported
+  // `0/1  the check completed — locator.waitFor: Timeout 30000ms` with nothing said about
+  // why. That happened four times in one session and was waved off as "the race" each
+  // time; it was the race, and the guard was in the wrong place. Found in review, not here.
+  //
+  // Both halves are inside the retry now, and the reload happens between attempts rather
+  // than after a failed click specifically.
   const machinesTab = page.getByRole("tab", { name: "Machines" })
-  await machinesTab.waitFor({ state: "visible", timeout: 30_000 })
-  await machinesTab.click({ timeout: 30_000 }).catch(async () => {
+  const openMachinesTab = async () => {
+    await machinesTab.waitFor({ state: "visible", timeout: 20_000 })
+    await machinesTab.click({ timeout: 20_000 })
+  }
+  await openMachinesTab().catch(async () => {
     await page.reload({ waitUntil: "networkidle" })
-    await machinesTab.click({ timeout: 30_000 })
+    await openMachinesTab()
   })
   await page.getByText("This machine:", { exact: false }).waitFor({ state: "visible", timeout: 45_000 })
 
