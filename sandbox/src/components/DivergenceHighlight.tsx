@@ -142,6 +142,26 @@ export type Declaration = {
   subjectState: string | null
 }
 
+/**
+ * Which anchor in the markup this row's claim actually points at.
+ *
+ * NOT always the row's own ref, and that distinction is what makes a colour row showable
+ * at all. `data-divergence` holds one value per element, but several divergences can
+ * concern the same element — B-2 is the rail button's hover BACKGROUND and B-7 is its
+ * hover FOREGROUND, one element, one state, two claims. They cannot each own the
+ * attribute.
+ *
+ * Migration 010 already solved this: `divergence_subject.anchor_id` is its own field, so a
+ * subject can name an anchor that belongs to a different row. F-2 does it today — two
+ * subjects pointing at `F-2` (the button) and `F-2-icon` (the icon inside it).
+ *
+ * Falls back to the row's own ref, which is what the seven originally-anchored rows use.
+ */
+function anchorFor(activeRef: string, declaration?: Declaration | null): string {
+  const subject = declaration?.subjects?.find((s) => s.side === "bidezine" && s.anchorId)
+  return subject?.anchorId ?? activeRef
+}
+
 export function DivergenceHighlight({
   activeRef,
   declaration,
@@ -157,10 +177,12 @@ export function DivergenceHighlight({
       return
     }
 
+    const anchorId = anchorFor(activeRef, declaration)
+
     let frame = 0
     const measure = () => {
       cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(() => setRect(rectOf(activeRef)))
+      frame = requestAnimationFrame(() => setRect(rectOf(anchorId)))
     }
     measure()
 
@@ -172,7 +194,7 @@ export function DivergenceHighlight({
     window.addEventListener("resize", measure)
     window.addEventListener("scroll", measure, true)
 
-    const target = document.querySelector(`[data-divergence="${activeRef}"]`)
+    const target = document.querySelector(`[data-divergence="${anchorId}"]`)
     const ro = target ? new ResizeObserver(measure) : null
     if (target && ro) ro.observe(target)
 
@@ -188,7 +210,7 @@ export function DivergenceHighlight({
       ro?.disconnect()
       mo.disconnect()
     }
-  }, [activeRef])
+  }, [activeRef, declaration])
 
   if (!activeRef || !rect) return null
 

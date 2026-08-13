@@ -362,7 +362,7 @@ function HumanDecisionsPhase({
   const preview = PREVIEW_REGISTRY[slug]
   const renderRailNav = (height: number) =>
     preview ? (
-      preview({ source: railSource, tokens: proposedDarkRailTokens, height, forcedState: activeDeclaration?.subjectState && activeRef ? { ref: activeRef, state: activeDeclaration.subjectState } : null })
+      preview({ source: railSource, tokens: proposedDarkRailTokens, height, forcedState: activeDeclaration?.subjectState && activeRef ? { ref: activeDeclaration.subjects.find((sub) => sub.side === "bidezine" && sub.anchorId)?.anchorId ?? activeRef, state: activeDeclaration.subjectState } : null })
     ) : (
       <NoPreviewRegistered slug={slug} />
     )
