@@ -212,14 +212,15 @@ removed on purpose — it is durably recorded in the commit messages and in
 `SANDBOX-PROTOCOL-LOG.md`'s flaws log, and this file is a snapshot of *now*, not an archive. What
 stays below is the operational knowledge a fresh session needs and cannot get from either.
 
-**Eleven proof scripts, plus one that needs the app running. Re-run ALL of them after any change
+**Twelve proof scripts, plus one that needs the app running. Re-run ALL of them after any change
 under `db/`, `verifier/`, `mcp/` or `sandbox/server/`:**
 
 ```
 npm --prefix db run verify                 # 15/15 — the gate and its permissions
 npm --prefix verifier run verify           # 18/18 — the runner is worth trusting, incl. batch re-verification
 npm --prefix mcp run verify                # 14/14 — the agent surface, over the real protocol
-npm --prefix db run verify-import          #   9/9 — corpus vs the FROZEN snapshot (drift detection)
+npm --prefix db run verify-import          #  10/10 — corpus vs the FROZEN snapshot (drift detection), now incl. review_prompt/review_label
+npm --prefix db run verify-review-prompt-fidelity  # 9/9 — each B-1..B-9 prompt's final sentence still matches its live proposedDarkRailTokens value
 npm --prefix db run verify-system-change   # 17/17 — the higher-ceremony lifecycle + the sweep, as real principals
 npm --prefix db run verify-ownership       # 16/16 — M8: a machine cannot finish another machine's work
 npm --prefix sandbox run verify            # 18/18 — M6: the gate refuses, approves, and cascades
