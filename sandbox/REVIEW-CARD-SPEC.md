@@ -318,6 +318,95 @@ against the whole component") is a **process gap about the component's own state
 it into a `divergence` row would pollute the corpus that M9's ranking depends on. Giving them a real
 home is a schema question for the milestone owner.
 
+## 3.10 Writing a review prompt — the protocol
+
+> **This is not about making one component's cards read well.** Every occupant's cards are the same
+> card, so a reviewer who has worked one component must be able to work the next without relearning how
+> to read it. A prompt written in a different register is a second dialect on a screen whose whole
+> purpose is having one. Follow the structure even where a looser sentence would read slightly better in
+> isolation — the consistency IS the feature.
+
+### The field
+
+`divergence.review_prompt`, `NVARCHAR(280)`. The cap is deliberate and is the enforcement: a column that
+cannot hold an essay will never hold one. If a prompt does not fit, the prompt is wrong — not the cap.
+
+### What it is, and what it is not
+
+**It is the ask.** One agent-authored statement addressed to the person deciding: what needs deciding
+here, and why it needs them rather than a rule.
+
+**It is not the record.** `detail` holds the imported rationale and resolution history — what was decided
+and why, written afterwards. That never appears on a card. A human acting on a row does not need an
+account of a settled decision, and can ask for one. Rendering history as the description is exactly the
+defect this protocol exists to prevent; it made 169 cards look described when none were.
+
+**It is not evidence.** An agent writes it, so it asserts nothing about correctness and satisfies no gate
+requirement. It shapes what a human looks at; it never stands in for what a machine measured.
+
+### The structure — three sentences, in this order, always
+
+1. **What is being decided**, named in the component's own terms: the element and its state.
+   *"What a rail row looks like on hover."*
+2. **Why it needs a human** — the specific reason, not a generic one. Skip this sentence only if there is
+   genuinely no such reason, which is itself worth noticing.
+   *"Origin overlays white at 10%; bidezine has no equivalent, so this has to be a fixed colour rather
+   than an overlay."*
+3. **The proposal, last, always prefixed `Proposed`** — the exact token, value or candidate.
+   *"Proposed `--sidebar-rail-hover`: oklch(0.301 0 0) light, oklch(0.191 0 0) dark."*
+
+Sentence 3 is last so the same information sits in the same place on every card in every component. A
+reader learns where to look once.
+
+### Hard rules
+
+- **Never restate the ref, the category or the title.** Each is already its own slot. Repeating them
+  spends the cap on something the reader can already see.
+- **No history verbs.** "was approved", "was revised", "resolved as", "originally". If a sentence needs
+  one, it belongs in `detail`.
+- **Every quoted value is read from the source, never retyped.** Same rule as icon path data
+  (`CLAUDE.md` checklist item 18): a plausible wrong value passes every automated check and is caught
+  only by eye.
+- **No proposal, no sentence 3.** Do not invent a candidate to make a card feel complete. A row whose
+  value nobody has proposed is a row waiting on that work, and the card should show the ask alone.
+- **If sentence 2 cannot be written in one clause, stop.** Either the reason is not understood yet, or
+  the row does not actually need a human — both are findings, not things to pad around.
+- **Absence is stated, never substituted.** A row with no prompt renders "No review description written
+  yet". It must never fall back to `detail`, a title, or a generated placeholder.
+
+### Anti-patterns, each observed rather than imagined
+
+| Anti-pattern | What it looked like |
+|---|---|
+| Template-composed prose | *"Approve the rail's rail background"* — a slot filled with a string that already contained the noun |
+| Boilerplate repeated per row | one shared "so the value is a judgement, not a mapping" clause pushed **8 of 9** drafts over the 280 cap |
+| History as description | `review_prompt ?? detail` — every card opened with an account of a settled decision |
+| Inventing to fill the shape | quoting a value nobody proposed, so the card reads finished and the work is invisible |
+
+### Per-category shape
+
+Sentence 1 names a different thing per category. Keep these consistent across occupants:
+
+| category | sentence 1 names | sentence 3 proposes |
+|---|---|---|
+| `color` | the element and its interaction state | the CSS var and its light/dark values |
+| `typography` | the text role and which property is in question | the type token or the property value |
+| `layout-sizing` · `spacing` | the element and which dimension | the value, with its unit |
+| `icons` | which icon, in which state | the Fluent slug, or `custom` and its base |
+| `motion` | what animates and what triggers it | duration and easing |
+| `elevation` · `z-index` | the surface and what it must sit above | the token or the level |
+
+### Verification, before any prompt is written to the corpus
+
+1. **Length.** Every draft under 280. Check programmatically; do not eyeball it.
+2. **Value fidelity.** Every value quoted in a prompt must equal the value in its source. Diff them with
+   a script — this is the check that catches a retyped digit.
+3. **No history verbs.** Grep the drafts for the words above.
+4. **Staleness is a standing risk worth its own check.** A prompt quoting a value goes silently wrong the
+   moment that value changes, and nothing currently notices. Until a check exists, any change to a
+   proposed value requires regenerating every prompt that cites it — treat that as part of the change,
+   not as follow-up.
+
 ## 4. The list — three buckets, not thirteen categories
 
 Category accordions answer *"what kind of thing is this?"*. With 147 of 154 rows not started, the
