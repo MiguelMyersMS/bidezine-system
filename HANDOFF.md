@@ -65,14 +65,49 @@ three machines present.
 criteria) are built but cannot yet produce a queue or a fast lane — the corpus has zero resolutions and
 one false completion, and both scripts say so rather than inventing thresholds. See "What's next".
 
-**IN PROGRESS — the divergence review card rebuild.** `sandbox/REVIEW-CARD-SPEC.md` is the contract;
-read it before touching any file it names. Driven by a read-only corpus audit: 147 of 154 rail-sidebar
-rows have no anchor, no declaration, no evidence and no review, and exactly **one** row's gate is open —
-so the current evidence widget renders empty scaffolding for almost every row, and states the gate's
-requirements twice in two vocabularies. The rebuild replaces that with a per-divergence card: a
-four-row human-language checklist, four badge states, and a gate-computed `Switch` whose off direction
-is a reopen form. §8 of the spec is written for the milestone owner; §8.1 records who owns the two
-committed checks the rebuild will break.
+**The divergence review card rebuild is BUILT and green** (`1b86c7f`). `sandbox/REVIEW-CARD-SPEC.md` is
+the contract — read it before touching any file it names. Driven by a read-only corpus audit: 147 of 154
+rail-sidebar rows have no anchor, no declaration, no evidence and no review, and exactly **one** row's
+gate is open, so the old evidence widget rendered empty scaffolding for almost every row and stated the
+gate's requirements twice in two vocabularies.
+
+What shipped, in four commits (`70d821a` spec, `7b1b0a3` card + queue, `117693e` two defects, `1b86c7f`
+reveal):
+
+- **`ReviewCard`** — four-row checklist, four badge states plus a stale marker, and a gate-computed
+  `Switch`. The checklist reads the gate's OWN `fn_divergence_unmet` through an `OUTER APPLY` rather
+  than re-deriving its rules in JavaScript.
+- **`ReviewQueue`** — grouped by who owes the next move, not by category. Measured live: 1 waiting on
+  you, 0 blocked, 153 waiting on a machine, 0 done. Category survives as a filter.
+- **The evidence panel no longer replaces the live preview.** The component stays on screen for the
+  whole decision.
+- **Reveal in canvas** dims the rest of the preview and names the property — the rendering half of
+  migration 010, which had been left unbuilt.
+- **`RailSourceToggle`** is a real `ToggleGroup`. That standing violation is closed.
+
+**Four defects were found by measuring, none by reading** — worth knowing because three of them looked
+correct in source:
+
+1. `evidence.current` is vacuously satisfied for the 147 rows whose `anchor_file` is NULL. The chain
+   rule keeps the tick off screen, but the FRACTION still counted it, so a row with nothing done read
+   `1/4`. The number now derives from the chain too.
+2. `text-muted-foreground/60` never reached the compiled stylesheet; locked rows measured
+   `oklch(0 0 0)`, identical to active ones.
+3. Collapsing approve and reopen into one `Switch` silently removed an observer's ability to reopen a
+   foreign-owned component — the exact thing migration 016 leaves ungated on purpose. Ownership now
+   disables the ON direction only.
+4. Ownership was read once at page load and remembered, so a hand-over left the control live.
+   `useCorpus` refetches on `visibilitychange`.
+
+**Suites after the rebuild:** `verify-ui` 14/14, `verify-readonly` 12/12, `sandbox verify` 18/18,
+`verify-import` 9/9, `check-corpus-equivalence` 154/154, `check-declarations` 5/5, `check-rules` 0
+violations, clean production build.
+
+**Known, deliberate gaps:** `verify-machines-ui.mjs` prints `SKIP` for the observer-reopen assertion
+because the corpus holds zero resolved divergences — re-point it the moment the first one lands, and do
+not replace it with a `check(true, …)`. `color`, `time` and `layer` renderers are unbuilt because those
+property types have zero declared rows. `review_label`/`review_prompt` are empty on all 154 rows; the
+card falls back to `title`/`detail`, and backfill remains scoped to the live rows only.
 
 **Three agents are working this machine concurrently — stay in your lane:**
 
