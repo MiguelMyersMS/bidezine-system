@@ -4,7 +4,7 @@
   "_generatedFrom": {
     "slug": "rail-sidebar",
     "componentState": "build",
-    "rowCount": 168
+    "rowCount": 169
   },
   "rows": [
     {
@@ -3483,6 +3483,7 @@
       "visual": {
         "kind": "icon",
         "beforeLabel": "Origin IconLogo (bidezine mark)",
+        "beforeSvgPath": "M 15.099 2.069 C 21.154 2.069 26.063 6.979 26.063 13.034 C 26.063 19.09 21.154 23.999 15.099 23.999 L 14.087 23.999 C 14.082 23.999 14.076 24 14.07 24 L 9.306 24 C 8.77 24 8.297 23.65 8.141 23.139 L 4.984 12.835 C 4.744 12.052 5.33 11.26 6.149 11.26 L 10.998 11.26 C 11.537 11.26 12.012 11.614 12.166 12.13 L 13.499 16.602 L 15.103 16.602 C 17.073 16.602 18.671 15.004 18.671 13.033 C 18.671 11.063 17.073 9.465 15.103 9.465 C 14.349 9.465 13.685 8.97 13.47 8.248 L 11.985 3.262 C 11.825 2.723 12.182 2.069 12.744 2.069 L 15.099 2.069 Z M 8.441 0 C 8.982 -0.002 9.459 0.352 9.613 0.87 L 10.084 2.446 C 10.201 2.838 10.013 3.256 9.644 3.431 L 9.12 3.678 L 9.12 3.68 L 9.119 3.681 L 8.805 3.832 C 8.366 4.043 8.452 4.692 8.931 4.781 L 10.311 5.038 C 10.666 5.104 10.954 5.363 11.058 5.709 L 11.779 8.129 C 12.012 8.91 11.428 9.695 10.612 9.695 L 3.429 9.695 C 2.893 9.695 2.42 9.345 2.264 8.833 L 0.055 1.602 C -0.184 0.82 0.398 0.029 1.215 0.026 L 8.441 0 Z",
         "beforeViewBox": "0 0 26.064 24",
         "afterLabel": "Same mark, added as a custom manifest entry",
         "afterNote": "Not yet added to icons/manifest.json — happens at Build time, once the rest of Human Decisions is resolved."
@@ -3514,6 +3515,7 @@
         "visual": {
           "kind": "icon",
           "beforeLabel": "Origin IconLogo (bidezine mark)",
+          "beforeSvgPath": "M 15.099 2.069 C 21.154 2.069 26.063 6.979 26.063 13.034 C 26.063 19.09 21.154 23.999 15.099 23.999 L 14.087 23.999 C 14.082 23.999 14.076 24 14.07 24 L 9.306 24 C 8.77 24 8.297 23.65 8.141 23.139 L 4.984 12.835 C 4.744 12.052 5.33 11.26 6.149 11.26 L 10.998 11.26 C 11.537 11.26 12.012 11.614 12.166 12.13 L 13.499 16.602 L 15.103 16.602 C 17.073 16.602 18.671 15.004 18.671 13.033 C 18.671 11.063 17.073 9.465 15.103 9.465 C 14.349 9.465 13.685 8.97 13.47 8.248 L 11.985 3.262 C 11.825 2.723 12.182 2.069 12.744 2.069 L 15.099 2.069 Z M 8.441 0 C 8.982 -0.002 9.459 0.352 9.613 0.87 L 10.084 2.446 C 10.201 2.838 10.013 3.256 9.644 3.431 L 9.12 3.678 L 9.12 3.68 L 9.119 3.681 L 8.805 3.832 C 8.366 4.043 8.452 4.692 8.931 4.781 L 10.311 5.038 C 10.666 5.104 10.954 5.363 11.058 5.709 L 11.779 8.129 C 12.012 8.91 11.428 9.695 10.612 9.695 L 3.429 9.695 C 2.893 9.695 2.42 9.345 2.264 8.833 L 0.055 1.602 C -0.184 0.82 0.398 0.029 1.215 0.026 L 8.441 0 Z",
           "beforeViewBox": "0 0 26.064 24",
           "afterLabel": "Same mark, added as a custom manifest entry",
           "afterNote": "Not yet added to icons/manifest.json — happens at Build time, once the rest of Human Decisions is resolved."
@@ -3530,6 +3532,7 @@
       "visual": {
         "kind": "icon",
         "beforeLabel": "IconPanelLeftContract (real source: ExpandButton.tsx)",
+        "beforeSvgPath": "M10.82 10.5h3.68a.5.5 0 0 0 0-1h-3.68l1-.87a.5.5 0 1 0-.66-.76l-2 1.75a.5.5 0 0 0 0 .76l2 1.75a.5.5 0 1 0 .66-.76l-1-.87ZM4 4a2 2 0 0 0-2 2v8c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H4ZM3 6a1 1 0 0 1 1-1h3v10H4a1 1 0 0 1-1-1V6Zm5 9V5h8a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H8Z",
         "afterIconName": "PanelLeftIcon",
         "afterLabel": "Closest current manifest icon (no arrow) — panel_left_contract to be added",
         "afterNote": "panel_left_contract_20_regular verified to exist in @fluentui/svg-icons — exact match, just not in our manifest yet."
@@ -3561,6 +3564,7 @@
         "visual": {
           "kind": "icon",
           "beforeLabel": "IconPanelLeftContract (real source: ExpandButton.tsx)",
+          "beforeSvgPath": "M10.82 10.5h3.68a.5.5 0 0 0 0-1h-3.68l1-.87a.5.5 0 1 0-.66-.76l-2 1.75a.5.5 0 0 0 0 .76l2 1.75a.5.5 0 1 0 .66-.76l-1-.87ZM4 4a2 2 0 0 0-2 2v8c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H4ZM3 6a1 1 0 0 1 1-1h3v10H4a1 1 0 0 1-1-1V6Zm5 9V5h8a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H8Z",
           "afterIconName": "PanelLeftIcon",
           "afterLabel": "Closest current manifest icon (no arrow) — panel_left_contract to be added",
           "afterNote": "panel_left_contract_20_regular verified to exist in @fluentui/svg-icons — exact match, just not in our manifest yet."
@@ -3630,6 +3634,43 @@
             "id": "R-10b",
             "text": "Independent Audit agent explicitly re-checks the component against CLAUDE.md's new “Sandbox/Limbo fidelity” checklist before promotion, not just the original Intake divergence list",
             "done": false
+          }
+        ]
+      }
+    },
+    {
+      "ref": "R-11",
+      "category": "structure",
+      "originCategory": "R — Notable risks",
+      "title": "Verification was reactive for the entire transformation — the formal Independent Audit gate never ran even once",
+      "detail": "Prompted by “we have detected many divergences even though we suppose to respect the fact that we can only use native primitives/components... we need to refine the protocol for this sandbox factory line to reduce this to zero.” Retrospective across the whole transformation (M-11 through L-13, ~20 findings): every single one was caught because a human looked at the rendered component and noticed something off, never by an AI-initiated systematic check running before work was presented as finished — and the protocol's own Independent Audit agent role was never actually invoked. Added a new, mandatory “Primitive Fidelity Checklist” to CLAUDE.md (className-merge verification via tailwind-merge run directly, full box-model parity via getComputedStyle, every interactive state simulated live, alignment claims measured via getBoundingClientRect, and a full sweep after every fix) that the Build agent must run continuously, not defer to a possibly-never-invoked later Audit phase. Immediately ran this checklist exhaustively against the whole component as proof: found one real dead-code issue in seconds (L-14) that 18 prior turns of reactive, one-at-a-time fixing had not surfaced.",
+      "state": "legacy_unverified",
+      "visual": null,
+      "originRecord": {
+        "id": "R-11",
+        "title": "Verification was reactive for the entire transformation — the formal Independent Audit gate never ran even once",
+        "detail": "Prompted by “we have detected many divergences even though we suppose to respect the fact that we can only use native primitives/components... we need to refine the protocol for this sandbox factory line to reduce this to zero.” Retrospective across the whole transformation (M-11 through L-13, ~20 findings): every single one was caught because a human looked at the rendered component and noticed something off, never by an AI-initiated systematic check running before work was presented as finished — and the protocol's own Independent Audit agent role was never actually invoked. Added a new, mandatory “Primitive Fidelity Checklist” to CLAUDE.md (className-merge verification via tailwind-merge run directly, full box-model parity via getComputedStyle, every interactive state simulated live, alignment claims measured via getBoundingClientRect, and a full sweep after every fix) that the Build agent must run continuously, not defer to a possibly-never-invoked later Audit phase. Immediately ran this checklist exhaustively against the whole component as proof: found one real dead-code issue in seconds (L-14) that 18 prior turns of reactive, one-at-a-time fixing had not surfaced.",
+        "actionItems": [
+          {
+            "id": "R-11a",
+            "text": "New “Primitive Fidelity Checklist” added to CLAUDE.md; Agent Roster table in LIMBO-PROTOCOL-LOG.md updated so Build is explicitly required to run it, and Audit is explicitly a second, independent check rather than the only one",
+            "done": true
+          },
+          {
+            "id": "R-11b",
+            "text": "First exhaustive, AI-initiated sweep of FunctionalRailSidebar.tsx run against the new checklist — found and fixed L-14 (dead hover:bg-transparent on a disabled button); every className merge and interactive state otherwise confirmed clean",
+            "done": true,
+            "refs": [
+              "L-14"
+            ]
+          },
+          {
+            "id": "R-11c",
+            "text": "A genuine, separately-invoked Independent Audit agent (per the Agent Roster's segregation-of-duties requirement, not a self-check by the same Build context) still needs to run before promotion — the sweep above was thorough but was not that independent second pass",
+            "done": false,
+            "refs": [
+              "R-10b"
+            ]
           }
         ]
       }
