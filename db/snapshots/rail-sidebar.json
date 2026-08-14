@@ -518,7 +518,7 @@
       "originCategory": "C — Colors — Light Panel Surface",
       "title": "surface (panel background)",
       "detail": "Approved: use --card for the panel surface.",
-      "reviewPrompt": null,
+      "reviewPrompt": "The panel's own background surface. Origin ships its own value; we map it onto our card surface rather than introduce a second one. Confirm that is right for a panel floating over content.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -550,7 +550,7 @@
       "originCategory": "C — Colors — Light Panel Surface",
       "title": "focusOverlay (keyboard-focus fill)",
       "detail": "Approved: use --ring as the focus-color source while preserving the correct focus mechanism during Build.",
-      "reviewPrompt": null,
+      "reviewPrompt": "Keyboard focus. Origin fills the whole element; we take the colour from our ring token and keep our own focus mechanism. Confirm the mechanism matters more than matching the fill.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -582,7 +582,7 @@
       "originCategory": "C — Colors — Light Panel Surface",
       "title": "hairline (0.5px dividers)",
       "detail": "Approved: use --border for the color and preserve the 0.5px divider weight during Build.",
-      "reviewPrompt": null,
+      "reviewPrompt": "Half-pixel dividers. The colour maps onto our border token; the 0.5px weight is the half that must survive the port. Confirm both halves are intended.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -614,7 +614,7 @@
       "originCategory": "C — Colors — Light Panel Surface",
       "title": "borderStrong (inset pressed ring on light menu rows)",
       "detail": "Approved: use --border; Build must preserve the stronger/pressed border treatment where the component requires it.",
-      "reviewPrompt": null,
+      "reviewPrompt": "The stronger inset ring on pressed light menu rows. Colour maps onto our border token, with the heavier treatment kept where the component needs it. Confirm where that actually is.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -646,7 +646,7 @@
       "originCategory": "C — Colors — Light Panel Surface",
       "title": "statusRedText (danger menu rows)",
       "detail": "Approved: maps directly to --destructive.",
-      "reviewPrompt": null,
+      "reviewPrompt": "Danger rows in a menu. Maps straight onto our destructive token. Confirm the direct mapping, and that nothing else in the rail needs a danger tier.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -678,7 +678,7 @@
       "originCategory": "C — Colors — Light Panel Surface",
       "title": "onInk (text on filled-dark active panel row)",
       "detail": "Approved: maps to --primary-foreground.",
-      "reviewPrompt": null,
+      "reviewPrompt": "Text sitting on a filled, dark, active row. Maps onto our primary-foreground token. Confirm it stays legible against the real active background rather than against a swatch.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -710,7 +710,7 @@
       "originCategory": "C — Colors — Light Panel Surface",
       "title": "ink (full-strength text on light)",
       "detail": "Approved: maps directly to --foreground.",
-      "reviewPrompt": null,
+      "reviewPrompt": "Full-strength body text. Maps straight onto our foreground token with no new value invented. Confirm the direct mapping still holds once composed on the real panel.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -742,7 +742,7 @@
       "originCategory": "C — Colors — Light Panel Surface",
       "title": "textMuted (≈60% subordinate text)",
       "detail": "Approved: maps directly to --muted-foreground.",
-      "reviewPrompt": null,
+      "reviewPrompt": "Subordinate text, around 60% presence in origin. Maps onto our muted-foreground token. Confirm that one token covers this tier — the tier below maps onto it too.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -774,7 +774,7 @@
       "originCategory": "C — Colors — Light Panel Surface",
       "title": "textSubtle (≈40% faint text)",
       "detail": "Approved: use the proposed --muted-foreground mapping.",
-      "reviewPrompt": null,
+      "reviewPrompt": "Faint text, around 40% presence in origin. Also maps onto muted-foreground, collapsing two of origin's tiers into one token. Confirm losing that distinction is acceptable.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -806,7 +806,7 @@
       "originCategory": "C — Colors — Light Panel Surface",
       "title": "textDisabled (≈30% very faint)",
       "detail": "Approved as explicit light/dark values for this disabled text state: light #B9B9B9, dark #585858.",
-      "reviewPrompt": null,
+      "reviewPrompt": "Disabled text on the panel. The code already uses our muted-foreground token at 50% opacity, like 22 other primitives — but this row's record names a bespoke hex pair instead. Confirm the code is right.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -840,7 +840,7 @@
       "originCategory": "C — Colors — Light Panel Surface",
       "title": "hoverBg (panel row hover)",
       "detail": "Location: the panel-header “⋯” (More) menu's plain rows — “Expand all” and “Collapse all” (src/ui/dropdown-menu.tsx's DropdownMenuItem, composed in FunctionalRailSidebar.tsx around line 1232). Resolved: ALREADY native, no code change needed — DropdownMenuItem's own real base recipe already applies `focus:bg-accent focus:text-accent-foreground` on hover/keyboard-highlight, reusing the same --accent token this component uses everywhere else.",
-      "reviewPrompt": null,
+      "reviewPrompt": "Hover on the panel menu's plain rows. Already native to our menu primitive — nothing had to be added. Confirm the primitive's own hover is what this should use.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -878,7 +878,7 @@
       "originCategory": "C — Colors — Light Panel Surface",
       "title": "bgSubtle (checked menu rows)",
       "detail": "Location: the SAME panel-header “⋯” menu's “Search box” row (src/ui/dropdown-menu.tsx's DropdownMenuCheckboxItem, composed around line 1239) — the toggle that shows/hides the search box. RESOLVED by reusing an existing convention, not inventing a new color: added `data-[state=checked]:bg-accent/50` directly to DropdownMenuCheckboxItem's own base recipe — the exact same --accent token this component already uses for `focus:`, at the same reduced opacity NavigationMenuLink's own `data-[active=true]:bg-accent/50` rule (src/ui/navigation-menu.tsx) already establishes for an identical “distinct-but-related resting tint” pattern. No --muted, no new hex — this was flagged by the user as an unforced divergence and corrected system-wide at the primitive level (benefits every DropdownMenuCheckboxItem in bidezine, not just this rail).",
-      "reviewPrompt": null,
+      "reviewPrompt": "The checked state of the menu's Search box toggle. Reuses the accent token at reduced opacity, matching what our nav link already does, rather than a new tint. Confirm that reuse.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -916,7 +916,7 @@
       "originCategory": "C — Colors — Light Panel Surface",
       "title": "activeBg (pressed panel-header menu rows)",
       "detail": "Location: the SAME panel-header “⋯” menu, all three rows (“Expand all”, “Collapse all”, “Search box”) — specifically their mouse-DOWN/pressed instant, not the hover/focus state C-6 already covers. RESOLVED by reusing an existing convention: added `active:bg-accent active:text-accent-foreground` (a true CSS :active pseudo-class) to both DropdownMenuItem and DropdownMenuCheckboxItem's own base recipes — the exact --accent token pair already used for `focus:`, mirroring SidebarMenuButton's own identical `active:bg-sidebar-accent active:text-sidebar-accent-foreground` rule (src/ui/sidebar.tsx) and Button's own new `ghost` variant `active:` rule (see C-9). No new/invented color; this deliberately looks the same as hover/focus by design, since --accent IS this system's single “highlighted state” token.",
-      "reviewPrompt": null,
+      "reviewPrompt": "The pressed instant on all three panel-menu rows, distinct from the hover above. Reuses the accent token the way our sidebar button already does. Confirm rather than a new pressed colour.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -954,7 +954,7 @@
       "originCategory": "C — Colors — Light Panel Surface",
       "title": "pressedOverlay (ellipsis trigger pressed state)",
       "detail": "Location: the panel-header “⋯” TRIGGER button itself (the small icon-only Button that OPENS the menu above — src/ui/button.tsx `variant=\"ghost\" size=\"icon-xs\"`, composed in FunctionalRailSidebar.tsx around line 1221) — distinct from C-6/C-7/C-8, which are all about rows INSIDE the opened menu, not the trigger that opens it. RESOLVED: the originally-proposed #E0E1E6/#363A3F hex values were a genuine, unforced divergence (flagged by the user: “we already have way to manage menus... why diverge and come up with different color tokens”) — corrected by adding `active:bg-accent active:text-accent-foreground dark:active:bg-accent/50` to Button's own `ghost` variant (src/ui/button.tsx), reusing the SAME --accent token the variant's own `hover:` already uses, mirroring SidebarMenuButton's already-established active: convention system-wide (every ghost Button in bidezine, not just this trigger). No new hex values anywhere.",
-      "reviewPrompt": null,
+      "reviewPrompt": "The ellipsis trigger's own pressed state, not the menu rows it opens. Reuses the ghost button's pressed treatment, applied system-wide. Confirm a shared rule beats a local value.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -3755,7 +3755,7 @@
       "originCategory": "Q — Blocking questions",
       "title": "Dark rail surface token family",
       "detail": "The rail needs a coherent family of ~8 dark-surface-specific tokens (darkSurface, darkHoverBg, darkActiveBg, darkPressedBg, darkBorderStrong, onDark, onDarkHover, onDarkSubtle) with no bidezine equivalent. CLAUDE.md's core rule is that tokens are authored only in tokens/*.tokens.json — never hand-written inline.",
-      "reviewPrompt": null,
+      "reviewPrompt": "The rail needs roughly eight dark-surface tokens our system has no equivalent for, and inline values would break the tokens-only rule. Confirm a token family is the answer here.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": null,
@@ -4003,7 +4003,7 @@
       "originCategory": "R — Notable risks",
       "title": "Dark surface token family has zero bidezine equivalents",
       "detail": "The whole rail color system is missing. Authoring ad-hoc inline values would violate the tokens-only rule in CLAUDE.md.",
-      "reviewPrompt": null,
+      "reviewPrompt": "The risk behind that family: the rail's whole colour system is missing, and the tempting shortcut is ad-hoc inline values. Confirm the proposed tokens close it with nothing left inline.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": null,
