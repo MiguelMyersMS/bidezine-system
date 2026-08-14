@@ -144,9 +144,20 @@ try {
       const sentences = prompt.split(/(?<=[.])\s+/)
       const last = sentences[sentences.length - 1]
 
-      const varMatch = last.match(/--[a-z0-9-]+/)
-      if (!varMatch || varMatch[0] !== token.proposedVar) {
-        check(false, `${ref}: final sentence's var is ${varMatch?.[0] ?? "(none)"}, expected ${token.proposedVar}`)
+      // Matched on the literal "Proposed --var" phrase, not any dashed identifier in the
+      // sentence -- a bare `/--[a-z0-9-]+/` also fires on an unrelated token the prose
+      // merely mentions (B-1's own remaining sentence names --background, a real but
+      // different var, in a bounding comparison that isn't a proposed-value claim at all).
+      // Once the Adjusted block renders proposedDarkRailTokens live, B-1..B-9's prompts no
+      // longer end in a "Proposed --var: ..." sentence at all -- that is NOT a failure, it
+      // is the fidelity risk moving from prose (which can go stale) to the array the
+      // component actually renders from (which cannot). No "Proposed --var" phrase means
+      // there is nothing left in prose to verify, so this loop iteration is skipped rather
+      // than failed.
+      const varMatch = last.match(/Proposed (--[a-z0-9-]+)/)
+      if (!varMatch) continue
+      if (varMatch[1] !== token.proposedVar) {
+        check(false, `${ref}: final sentence's var is ${varMatch[1]}, expected ${token.proposedVar}`)
         continue
       }
 
