@@ -1092,7 +1092,24 @@ function PanelTree({
                     edge, the same mechanism that already positions the badge correctly today, so no
                     extra `ml-auto` is needed on the chevron itself. */}
                 <node.icon className="size-4 shrink-0" />
-                <span className="flex-1 truncate">{node.label}</span>
+                {/* L-34 covers "the selected leaf AND its ancestor groups", and until now only
+                    the leaf was anchored — the Independent Audit found the row's own cited
+                    example, "System logic", was measured by nothing. This label is a different
+                    element from the leaf's (line 1004) with the identical exposure: same
+                    `truncate`, same `flex-1`, and its weight comes from the same `pathEmphasis()`
+                    that carried the `leading-none` which caused the clipping.
+
+                    Pinned to `system-logic` rather than to "is on the active path", because BOTH
+                    ancestor groups are on it (`monthly` sits inside `schedules` inside
+                    `system-logic`) and an anchor matching two elements is a runner failure, not a
+                    broader check. It is also the group `F-5` anchors, so the two rows describe the
+                    same row from different angles rather than drifting apart. */}
+                <span
+                  {...(node.id === "system-logic" ? anchor("L-34-group") : {})}
+                  className="flex-1 truncate"
+                >
+                  {node.label}
+                </span>
                 {node.badge && <PanelBadge label={node.badge} />}
                 <svg
                   viewBox="0 0 20 20"

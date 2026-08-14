@@ -1,0 +1,24 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "L-34",
+  "url": "http://localhost:4199",
+  "anchor": "L-34-group",
+  "_decision": "Tree row labels must not clip their descenders. line-height 20px is Tailwind's own pairing for text-sm (14px) and is the value that must hold; leading-none collapsed the line box to the font-size and clipped g/y/p/q/j against this span's own truncate overflow.",
+  "_why_a_second_spec": "L-34's own title says the defect hits 'the selected leaf AND its ancestor groups', and it named 'System logic' as an affected label. Only the leaf was anchored, so that cited example was measured by nothing — found by the Independent Audit. A spec has exactly one anchor, so covering a second element means a second spec writing to the same divergence. F-2/F-2-icon is the established precedent for that.",
+  "_why_not_folded_into_F5": "F-5 already anchors this row's BUTTON and could have gained a line-height assertion instead. It is deliberately not done that way: F-5 is about row height and type scale, and burying L-34's claim inside it would leave the descender contract with no evidence of its own — invisible the moment someone reads F-5 as being about sizing. The label is also a different element from the button, with its own overflow.",
+  "_scope": "Pinned to `system-logic`, not to 'any on-path group'. Both ancestor groups are on the active path (monthly sits inside schedules inside system-logic) and an anchor matching two elements is a runner failure. Measured live: this label and the leaf's are identical on every asserted property — same 14px/20px, same hidden/ellipsis/nowrap, both at weight 500 — which is exactly why one clipping implies the other would.",
+  "_why_emphasis_matters": "The bug only ever appeared on active-path rows, because those are the ones that carried leading-none. An unemphasised row measures 20px whether or not the bug is present and would prove nothing. This anchor is on an emphasised row (weight 500, confirmed live), so the assertion is meaningful rather than incidental.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "rest",
+      "expect": {
+        "line-height": "20px",
+        "font-size": "14px",
+        "overflow": "hidden",
+        "text-overflow": "ellipsis",
+        "white-space": "nowrap"
+      }
+    }
+  ]
+}
