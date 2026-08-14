@@ -166,6 +166,18 @@ const RELATIONS = [
     kind: "risks",
     note: "R-2's review_prompt opens 'The risk behind that family' \u2014 the token family Q2 proposes.",
   },
+  {
+    from: "D-12",
+    to: "D-5",
+    kind: "risks",
+    note: "D-12's review_prompt resolves the apparent conflict with D-5's compact size in favour of the shared menu scale.",
+  },
+  {
+    from: "D-12",
+    to: "D-6",
+    kind: "risks",
+    note: "D-12's review_prompt resolves the apparent conflict with D-6's compact size in favour of the shared menu scale.",
+  },
 ]
 
 let pool
