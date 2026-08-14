@@ -1,0 +1,18 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "B-1",
+  "url": "http://localhost:4199",
+  "anchor": "F-1",
+  "_decision": "darkSurface = oklch(0.205 0 0). the rail column's own surface. The value comes from proposedDarkRailTokens — the approved decision record — NOT from measuring the component and writing down what it happened to say. If this check fails, that is the finding.",
+  "_serialisation": "The expected string is the COMPUTED spelling. tokens.css authors some colours as oklch(55.6% 0 0) while the browser computes oklch(0.556 0 0) — the same colour, and compare() is exact string equality. proposedDarkRailTokens already uses the computed spelling, so the value is copied unchanged. Never resolve a mismatch by pasting the measured value.",
+  "_scope": "Bounded on both sides: above --background or the rail vanishes into the page, below darkHoverBg or hover has nowhere to go. The anchor is F-1 — an anchor names an ELEMENT, not a divergence, and F-1 is this same column's width. Sharing it is intended.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "rest",
+      "expect": {
+        "background-color": "oklch(0.205 0 0)"
+      }
+    }
+  ]
+}

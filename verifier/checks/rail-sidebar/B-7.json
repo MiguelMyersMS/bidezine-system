@@ -1,0 +1,18 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "B-7",
+  "url": "http://localhost:4199",
+  "anchor": "rail-item-savings-icon",
+  "_decision": "onDarkHover = oklch(0.922 0 0). the icon colour inside a hovered rail button. The value comes from proposedDarkRailTokens — the approved decision record — NOT from measuring the component and writing down what it happened to say. If this check fails, that is the finding.",
+  "_serialisation": "The expected string is the COMPUTED spelling. tokens.css authors some colours as oklch(55.6% 0 0) while the browser computes oklch(0.556 0 0) — the same colour, and compare() is exact string equality. proposedDarkRailTokens already uses the computed spelling, so the value is copied unchanged. Never resolve a mismatch by pasting the measured value.",
+  "_scope": "Anchored to the ICON, not the button, because the button already carries a background token's anchor and an element holds exactly one. `color` inherits, so the icon is a truthful subject for the foreground token.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "hover",
+      "expect": {
+        "color": "oklch(0.922 0 0)"
+      }
+    }
+  ]
+}

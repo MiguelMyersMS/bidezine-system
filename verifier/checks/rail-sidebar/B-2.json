@@ -1,0 +1,18 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "B-2",
+  "url": "http://localhost:4199",
+  "anchor": "rail-item-data",
+  "_decision": "darkHoverBg = oklch(0.301 0 0). a rail button's hover overlay. The value comes from proposedDarkRailTokens — the approved decision record — NOT from measuring the component and writing down what it happened to say. If this check fails, that is the finding.",
+  "_serialisation": "The expected string is the COMPUTED spelling. tokens.css authors some colours as oklch(55.6% 0 0) while the browser computes oklch(0.556 0 0) — the same colour, and compare() is exact string equality. proposedDarkRailTokens already uses the computed spelling, so the value is copied unchanged. Never resolve a mismatch by pasting the measured value.",
+  "_scope": "The rail had NO hover feedback at all for most of Build (M-12): the button carried hover:bg-transparent, suppressing Button's own ghost hover without substituting the dark-rail token. This check is what makes that regression mechanical rather than something a human has to notice again.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "hover",
+      "expect": {
+        "background-color": "oklch(0.301 0 0)"
+      }
+    }
+  ]
+}

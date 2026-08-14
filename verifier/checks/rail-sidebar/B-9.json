@@ -1,0 +1,18 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "B-9",
+  "url": "http://localhost:4199",
+  "anchor": "rail-profile-disabled",
+  "_decision": "onDarkDisabled = oklch(0.42 0 0). the icon colour of the permanently disabled Profile button. The value comes from proposedDarkRailTokens — the approved decision record — NOT from measuring the component and writing down what it happened to say. If this check fails, that is the finding.",
+  "_serialisation": "The expected string is the COMPUTED spelling. tokens.css authors some colours as oklch(55.6% 0 0) while the browser computes oklch(0.556 0 0) — the same colour, and compare() is exact string equality. proposedDarkRailTokens already uses the computed spelling, so the value is copied unchanged. Never resolve a mismatch by pasting the measured value.",
+  "_scope": "state is `rest`, not `disabled`, deliberately: this element IS disabled, so rest and disabled render identically here. The runner does not simulate `disabled` either — it requires an already-disabled element, which this is. Forcing it would measure a state the component may never enter.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "rest",
+      "expect": {
+        "color": "oklch(0.42 0 0)"
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "B-4",
+  "url": "http://localhost:4199",
+  "anchor": "rail-item-overview",
+  "_decision": "darkPressedBg = oklch(0.348 0 0). a rail button's pressed overlay. The value comes from proposedDarkRailTokens — the approved decision record — NOT from measuring the component and writing down what it happened to say. If this check fails, that is the finding.",
+  "_serialisation": "The expected string is the COMPUTED spelling. tokens.css authors some colours as oklch(55.6% 0 0) while the browser computes oklch(0.556 0 0) — the same colour, and compare() is exact string equality. proposedDarkRailTokens already uses the computed spelling, so the value is copied unchanged. Never resolve a mismatch by pasting the measured value.",
+  "_scope": "state is `pressed`, meaning CSS :active — a transient press. NOT the persistent selected look, which is B-3 at `selected`. Those two words were the same one until migration 022; this spec is written after the rename and means the press.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "pressed",
+      "expect": {
+        "background-color": "oklch(0.348 0 0)"
+      }
+    }
+  ]
+}
