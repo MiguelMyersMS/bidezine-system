@@ -327,9 +327,54 @@ for it.
 ## 3.11 The comparison blocks
 
 **One constant frame, whatever the divergence is about:** a rendered example, the role it plays
-(`Current` / `Proposal`), and **one short line** distinguishing it from the other. Only the example
+(`Origin` / `Adjusted`), and **one short line** distinguishing it from the other. Only the example
 varies. A reviewer who has read one occupant's cards must read the next occupant's without relearning
 the layout, so the frame holds even where a looser one would suit a particular kind slightly better.
+
+### What the two roles MEAN — get this wrong and the card lies
+
+Both halves were originally labelled `Current` / `Proposal`, and both words were wrong in a way that
+changed what a reviewer thought they were deciding. Corrected on the owner's report.
+
+**`Origin`** — the value detected in the SOURCE this component is being ported from: another design
+system, a screenshot, code, a website, an app. It is where the thing came from. It is **not** "what
+bidezine has now", which is what `Current` was read as.
+
+**`Adjusted`** — the value chosen for bidezine. AI proposes it as a first pass, it may be changed
+several times along the way, and **it is what the component actually uses today**. The reviewer's job
+is to keep it and approve, or send it back for another adjustment. It is **not** a speculative
+suggestion that may or may not exist.
+
+**These two are one row of a conversion table, and the table is real.**
+`proposedDarkRailTokens` pairs `originLightHex`/`originDarkHex` with `proposedLight`/`proposedDark`
+for every rail token; `colorsFor()` feeds the live component from the same array. That table exists so
+the next component ported from the same source can be adjusted from the reference instead of the owner
+supplying the values again. **The card must read both halves of it.**
+
+**The failure this replaces, because it will recur otherwise.** A colour row's `visual` payload carries
+origin's half and, for the rail rows, omits the chosen half — it lives in the token table instead. The
+card read only the payload, found no `after*`, and rendered an empty swatch labelled with a variable
+name. Nine cards said "not decided yet" about values that were decided, are recorded, and are what the
+rail renders right now. An undefined `var()` used as a background is invalid at computed-value time, so
+the empty swatch showed the card behind it — white on a light card, dark on a dark one — which read as
+a proposal to turn the dark rail white.
+
+**So: the Adjusted half resolves in order of authority** — an explicit value on the row, then the
+conversion table's own chosen value (joined by `originName`, and the join is ACCEPTED ONLY IF the
+token's own recorded origin hex equals the payload's, because parsing a label is not evidence), then a
+`afterVar` that genuinely resolves to a shipped token. A swatch is rendered only when one of those
+produces a real colour.
+
+**"Nothing to show" must say which nothing it is, and must deny the reading it invites.** An empty
+`Adjusted` block beside a filled `Origin` one reads as "no change from origin" — a real, choosable
+outcome and the opposite of what the state means. Where no value exists the block says
+`Not decided yet`, names the missing token if there is one, and states outright: *"This is not a
+decision to keep origin's value. Nothing has been chosen either way."*
+
+**Vocabulary comes from the app, never invented here.** `App.tsx`'s source toggle already said
+`Origin` / `Adjusted`, and `CompareVisuals.tsx`'s own older code says "Origin rail column" / "Adjusted
+rail column" — twenty lines from where the card said `Current` / `Proposal`. Checklist item 26 applies
+to language exactly as it does to colours and sizes: reuse what the system already calls a thing.
 
 **Stacked, not side by side.** The card is a ~335px column; two examples across it would shrink each
 below the size at which a colour or a typeface can actually be judged.

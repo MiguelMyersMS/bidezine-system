@@ -15,6 +15,7 @@ import {
   XIcon,
   cn,
 } from "@bidezine/system"
+import { proposedDarkRailTokens } from "@/data/rail-sidebar"
 import type {
   ColorVisual,
   ElevationVisual,
@@ -689,21 +690,64 @@ const CHIP = "flex size-11 shrink-0 items-center justify-center rounded-md borde
  * isn't, the block says which of the two absences it is, because "not authored yet" and
  * "nothing proposed" are different facts and a reviewer's next action differs between them.
  */
+/**
+ * The adjusted value from the conversion table, for a row that has one.
+ *
+ * `proposedDarkRailTokens` IS that table: every entry pairs the value detected in origin
+ * (`originLightHex`/`originDarkHex`) with the value chosen for bidezine
+ * (`proposedLight`/`proposedDark`). A colour row's `visual` payload carries origin's half
+ * and — for the rail rows — omits the chosen half, which is how nine cards came to read
+ * "not decided yet" about values that were decided, are recorded, and are what the rail
+ * renders right now. `colorsFor()` in FullRailPreview feeds the live component from this
+ * same array.
+ *
+ * ── The join verifies itself ───────────────────────────────────────────────────────
+ * The link is `beforeLabel`, which is the token's own `originName` plus a suffix
+ * ("darkHoverBg (origin)"). Parsing a label is not evidence, so the parsed entry is only
+ * accepted when its OWN recorded origin hex equals the one the payload carries. If they
+ * disagree these are not the same row of the table and nothing is shown — a wrong colour
+ * presented confidently is worse than an absence, which is the whole lesson of this card.
+ */
+function adjustedFromTable(visual: ColorVisual, mode: "light" | "dark") {
+  const name = visual.beforeLabel?.replace(/\s*\(origin[^)]*\)\s*$/i, "").trim()
+  if (!name) return null
+  const token = proposedDarkRailTokens.find((t) => t.originName === name)
+  if (!token) return null
+  if (token.originLightHex !== visual.beforeHexLight) return null
+  return {
+    value: mode === "dark" ? token.proposedDark : token.proposedLight,
+    varName: token.proposedVar,
+    note: token.proposalNote,
+  }
+}
+
 function ProposalColor({
   hex,
   varName,
   note,
   mode,
+  visual,
 }: {
   hex?: string
   varName?: string
   note?: string
   mode: "light" | "dark"
+  visual: ColorVisual
 }) {
   const resolved = useResolvedVar(varName, mode)
-  // A literal wins; then a var that genuinely resolves. Nothing else gets a swatch.
-  const paint = hex ?? (resolved ? `var(${varName})` : null)
-  const spec = hex ?? (resolved ? `${varName} — ${resolved}` : varName ? `${varName} (not authored)` : "none")
+  const table = adjustedFromTable(visual, mode)
+  // Order of authority: an explicit value on the row, then the conversion table's own
+  // chosen value, then a var that genuinely resolves to a shipped token.
+  const paint = hex ?? table?.value ?? (resolved ? `var(${varName})` : null)
+  const spec = hex
+    ? hex
+    : table
+      ? `${table.value}${table.varName ? ` → ${table.varName}` : ""}`
+      : resolved
+        ? `${varName} — ${resolved}`
+        : varName
+          ? `${varName} (not authored)`
+          : "none"
 
   if (paint) {
     return (
@@ -723,7 +767,7 @@ function ProposalColor({
             defined in no token file, so no value has been chosen.
           </>
         ) : (
-          <>Not decided yet. No value is recorded on this row.</>
+          <>Not decided yet. No adjusted value is recorded for this row, in the payload or in the conversion table.</>
         )}
       </p>
       {/* Said outright, because the absence is otherwise readable as a decision. An empty
@@ -772,7 +816,7 @@ export function ComparisonBlocks({ visual }: { visual: Visual }) {
         <Block role="Origin" spec={before}>
           <span className="size-11 shrink-0 rounded-md border" style={{ background: before }} />
         </Block>
-        <ProposalColor hex={after} varName={visual.afterVar} note={visual.afterNote} mode={mode} />
+        <ProposalColor hex={after} varName={visual.afterVar} note={visual.afterNote} mode={mode} visual={visual} />
       </div>
     )
   }
