@@ -5,7 +5,7 @@
   "anchor": "rail-item-data-icon",
   "_decision": "onDarkSubtle = oklch(0.708 0 0). the icon colour inside a resting, unselected rail button. The value comes from proposedDarkRailTokens — the approved decision record — NOT from measuring the component and writing down what it happened to say. If this check fails, that is the finding.",
   "_serialisation": "The expected string is the COMPUTED spelling. tokens.css authors some colours as oklch(55.6% 0 0) while the browser computes oklch(0.556 0 0) — the same colour, and compare() is exact string equality. proposedDarkRailTokens already uses the computed spelling, so the value is copied unchanged. Never resolve a mismatch by pasting the measured value.",
-  "_scope": "The subordinate tier — an unselected section. Shares its numeric value with darkBorderStrong, which is a coincidence of the ramp and not a shared token: B-5 is a different role and gets its own check.",
+  "_scope": "The subordinate tier — an unselected section's icon. CORRECTED after the Independent Audit: an earlier version of this note called the shared 0.708 value 'a coincidence of the ramp and not a shared token'. That is the opposite of the record. rail-sidebar.ts states the value deliberately reuses the already-approved onDarkSubtle stop, and this row's own prompt says 'a change here moves both'. It is intentional reuse. CONSEQUENCE, which the audit also named: because darkBorderStrong carries the identical value, a mis-wiring of this icon to colors.border would pass this check. Nothing here guards that, and B-5 — the row that would — has no anchor and no spec.",
   "checks": [
     {
       "kind": "computed-style",

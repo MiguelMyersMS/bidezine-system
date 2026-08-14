@@ -1,0 +1,19 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "B-6",
+  "url": "http://localhost:4199",
+  "anchor": "rail-item-slides-icon",
+  "_decision": "onDark = oklch(0.985 0 0). Full-strength foreground on the dark rail — the icon inside the selected section's button. Value from proposedDarkRailTokens.",
+  "_state": "`selected`, for the same reason as B-3. The anchor is the ICON, not the button: an element carries exactly one anchor and the button already holds B-3's. `color` inherits, so the icon is a truthful subject — and the runner resolves the marker through closest(), so the button's own selected marker satisfies it.",
+  "_serialisation": "The expected string is the COMPUTED spelling. tokens.css authors some colours as oklch(55.6% 0 0) while the browser computes oklch(0.556 0 0) — the same colour, and compare() is exact string equality. proposedDarkRailTokens already uses the computed spelling. Never resolve a mismatch by pasting the measured value.",
+  "_scope": "KNOWN LIMIT, stated so a pass is not read as more than it is: FullRailPreview renders this colour from proposedDarkRailTokens via colorsFor(), which is the same array this expectation is copied from. The check therefore proves the value survives the render — plumbing, cascade and timing — and CANNOT prove the value is correct. --sidebar-rail-* exists in no file under tokens/; these are proposals, not shipped tokens. Independent verification arrives when they are authored as real tokens and this expectation can point at those instead.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "selected",
+      "expect": {
+        "color": "oklch(0.985 0 0)"
+      }
+    }
+  ]
+}

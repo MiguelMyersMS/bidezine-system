@@ -10,14 +10,22 @@
     {
       "kind": "box",
       "state": "rest",
-      "expect": { "width": 38, "height": 38 },
-      "tolerance": 0.5
+      "expect": {
+        "width": 38,
+        "height": 38
+      },
+      "tolerance": 0.5,
+      "_width_is_parent_imposed": "Named by the audit, kept because 38x38 is the decision: `width: 38` is imposed by the parent flex column (F-1's 54 minus 16 of padding), not by this button's own recipe. Measured directly — strip `size-[38px]` from the live element and width stays 38 while height drops to 20. Only `height` tests this row's own subject; a pass on width means the parent holds, which F-1 asserts separately."
     },
     {
-      "kind": "box",
+      "kind": "computed-style",
       "state": "hover",
-      "expect": { "width": 38, "height": 38 },
-      "tolerance": 0.5
+      "expect": {
+        "background-color": "oklch(0.301 0 0)"
+      },
+      "_replaces": "REPLACED a `box` check that asserted 38x38 at hover. Measured: the button is 38x38 at rest AND at hover, so that assertion passed identically whether hover worked or not — it could not distinguish the state it named. That is checklist item 3's exact failure shape, sitting inside a spec written to enforce item 3.",
+      "_why": "The property hover actually moves is the background. This is the regression M-12 recorded: the button carried `hover:bg-transparent`, suppressing Button's own ghost hover without substituting the dark-rail token, so the rail had NO hover feedback while every box measurement stayed correct. A box check could never have caught it. This one does.",
+      "_overlap": "Deliberately the same assertion as B-2, on a different button. B-2 owns the token decision; this owns 'F-2's representative button still responds to hover at all'. If they ever disagree, one of the two buttons has drifted from the other — which is worth knowing and neither check alone would show."
     }
   ]
 }
