@@ -86,7 +86,20 @@ export type CorpusDivergence = {
    * edges would be exactly the plausible-and-unverified fabrication this project keeps
    * catching. Four edges exist; the rest get declared alongside their own review prompt.
    */
-  relations: { direction: "subject" | "satellite"; kind: "answers" | "risks"; ref: string; title: string; state: string; note: string | null }[]
+  /**
+   * `derives` is declared here before the migration that stores it. A type that lists only
+   * what the database happens to hold today makes the first new kind a silent widening —
+   * and `relationPhrase` would have rendered it as "risk against" without a type error.
+   * The string fallback keeps an unknown kind representable rather than unrepresentable.
+   */
+  relations: {
+    direction: "subject" | "satellite"
+    kind: "answers" | "risks" | "derives" | (string & {})
+    ref: string
+    title: string
+    state: string
+    note: string | null
+  }[]
 }
 
 /** Migration 010's own enum. Only `length`, `text` and `keyword` have any rows in the

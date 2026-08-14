@@ -114,9 +114,36 @@ export function categoryLabel(category: string): string {
  * together they make four phrases, and only the phrase belongs on screen. "answered by Q1"
  * is what a reviewer needs; `answers` is what the constraint keeps.
  */
+/**
+ * The stored kind, as a phrase a human reads.
+ *
+ * ── Why this is a lookup and not an if/else ────────────────────────────────────────
+ * It used to be `if (kind === "answers") … else <risks phrase>`, which meant any kind the
+ * database learned to store that this file did not know about would silently render as
+ * "risk against". A migration adding a kind would not break anything visibly — it would
+ * just start describing dependencies as risks, which is worse than not showing them:
+ * the card would assert a structure and then lie about it.
+ *
+ * So unknown kinds fall through to the raw stored value. It reads worse, and that is the
+ * point — it is legible as "the UI does not know this yet" rather than as a wrong phrase.
+ *
+ * `derives` is here AHEAD of the migration that stores it, deliberately: the UI must be
+ * able to say it before the database can, never the other way round.
+ */
+const RELATION_PHRASE: Record<string, { subject: string; satellite: string }> = {
+  answers: { subject: "answers", satellite: "answered by" },
+  risks: { subject: "risk against", satellite: "risk" },
+  // A dependency between two INDEPENDENT decisions, not a satellite of one.
+  // `F-7`'s footer cap computes from `F-2`'s button size; both still need their own
+  // review. The phrasing says "this moves when that moves", never "this belongs to that"
+  // — see the nesting note in `REVIEW-CARD-SPEC.md` §3.10.
+  derives: { subject: "changes with", satellite: "feeds" },
+}
+
 function relationPhrase(rel: CorpusDivergence["relations"][number]): string {
-  if (rel.kind === "answers") return rel.direction === "subject" ? "answers" : "answered by"
-  return rel.direction === "subject" ? "risk against" : "risk"
+  const phrase = RELATION_PHRASE[rel.kind]
+  if (!phrase) return `${rel.kind} (unrecognised)`
+  return rel.direction === "subject" ? phrase.subject : phrase.satellite
 }
 
 export function anchorOf(row: CorpusDivergence): string | null {

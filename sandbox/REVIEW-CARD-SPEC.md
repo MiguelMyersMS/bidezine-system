@@ -517,6 +517,31 @@ questions — *which rows is this bound to* versus *what is this row about* — 
 reads correctly only when the relation happens to render is a description with a dependency it should
 not have.
 
+**`derives` is a third kind, and it must NOT nest.** `answers` and `risks` bind satellites to one
+decision — `Q1`, `A-9` and `R-1` are three rows about a single thing, and collapsing them into one
+card is the entire point. A derivation is the opposite: `F-7`'s footer cap computes from `F-2`'s
+button size, but both are independent divergences each needing their own review. Nesting `F-7` under
+`F-2` would hide a decision someone still has to make. It renders as **"changes with F-2"**, never as
+part of `F-2`.
+
+The card already satisfies this, because it never nested anything — relations are flat chips in the
+identity slot. **The constraint binds the QUEUE**, which does not group by relation yet: if it ever
+nests a subject with its satellites, `derives` must be excluded from that grouping. Written down here
+rather than rediscovered then.
+
+**A kind the UI does not know renders its raw stored value, not a neighbouring phrase.**
+`relationPhrase` was once `if (answers) … else <risks phrase>`, so any kind a migration added would
+have silently rendered as "risk against" — asserting a structure and then lying about it, which is
+worse than showing nothing. It is a lookup now, with an explicit unrecognised fallback, and `derives`
+was added to it BEFORE the migration that stores it. **The UI must be able to say a kind before the
+database can, never the other way round.**
+
+This is `divergence_dependency` (migration 013) at row granularity: that table records path →
+divergence so landing a system change marks evidence stale; `derives` records row → row, and the same
+sweep applies one level in — if `F-2`'s measured value changes, `F-7`'s and `F-9`'s evidence is
+suspect. Not built, but it is the natural home, and it means `derives` may eventually earn enforcement
+rather than only display.
+
 **Edges are hand-authored, never inferred.** Four exist. `origin_record` carries candidate links (R-1's
 action items cite `["Q1","A-9"]`) and they were deliberately not imported: "R-3 mentions H-1" and "R-3
 is a risk against H-1" are different claims. **Declare a row's relation in the same pass that writes
