@@ -140,6 +140,32 @@ const RELATION_PHRASE: Record<string, { subject: string; satellite: string }> = 
   derives: { subject: "changes with", satellite: "feeds" },
 }
 
+/**
+ * The gate's unmet requirements, as the phrase that goes beside a switch which will not
+ * move — derived from `fn_divergence_unmet`'s own output, never re-worded independently.
+ *
+ * Independent wording would be a second description of the same rule, free to drift from
+ * what the database actually refuses. That is the failure the checklist itself was built
+ * from: the card stated the gate's requirements twice, in two vocabularies. Any
+ * requirement this map does not know falls through to its raw name — legible as "the UI
+ * has not been taught this one" rather than silently omitted, which would understate what
+ * is missing.
+ */
+const REQUIREMENT_PHRASE: Record<string, string> = {
+  // Each entry is the OBJECT of "needs", never a whole clause — otherwise two unmet
+  // requirements read "needs a measurement and needs an independent review".
+  "evidence.present": "a measurement",
+  "evidence.current": "a measurement newer than the code",
+  "review.present": "an independent review",
+}
+
+function unmetLabel(unmet: CorpusDivergence["unmet"]): string {
+  if (!unmet?.length) return "the gate is closed"
+  const parts = unmet.map((u) => REQUIREMENT_PHRASE[u.requirement] ?? u.requirement)
+  const list = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`
+  return `needs ${list}`
+}
+
 function relationPhrase(rel: CorpusDivergence["relations"][number]): string {
   const phrase = RELATION_PHRASE[rel.kind]
   if (!phrase) return `${rel.kind} (unrecognised)`
@@ -635,11 +661,25 @@ export function ReviewCard({
               {/* Reopening invalidates the review (migration 007), so the gate closes in
                   the same frame and this control goes disabled. Saying so is the point —
                   the off position is not a state you can casually leave. */}
+              {/* The label says what the control WILL do, or why it cannot — never
+                  "Approve migration" beside a switch that refuses to move.
+                  Reported directly: "the toggle is available but unclickable". The refusal
+                  was correct and explained only in a `title` tooltip, which is invisible
+                  until hovered, so the card showed an approve control, called it one, and
+                  gave no visible reason it was inert. Same defect class as the blank
+                  swatch — the card knowing something and not saying it.
+                  The reason is derived from the gate's own unmet list rather than
+                  re-worded here, so it cannot drift from what the database will actually
+                  refuse. */}
               {resolved
                 ? "Approved"
                 : row.state === "reopened"
                   ? "Reopened — needs a new review before this can be approved again"
-                  : "Approve migration"}
+                  : blockedByOwnership
+                    ? `Cannot approve — ${owner ? `${owner} owns this` : "no machine identity"}`
+                    : ready
+                      ? "Approve migration"
+                      : `Not yet approvable — ${unmetLabel(row.unmet)}`}
             </Label>
             {blockedByOwnership && (
               <Badge variant="secondary" className="ml-auto">
