@@ -14,6 +14,7 @@ import {
 } from "@bidezine/system"
 import { ReviewCard, cardStatus, type CardStatus } from "@/components/ReviewCard"
 import type { CorpusDivergence } from "@/data/corpus"
+import { registerOf } from "@/lib/register"
 
 /**
  * The divergence list, organised by who owes the next move — see
@@ -37,14 +38,35 @@ type Bucket = {
 }
 
 /**
- * The four buckets are exhaustive and mutually exclusive over `cardStatus`, and must stay
- * that way: `ready` and stale-`resolved` land in "waiting on you", `blocked` in "blocked",
- * `open` in "waiting on a machine", fresh-`resolved` in "done". A row matching two buckets
- * would be reviewed twice; a row matching none would vanish from the only list that shows
- * it. Neither failure announces itself — the totals just quietly stop adding up.
+ * The buckets are exhaustive and mutually exclusive over `cardStatus`, and must stay that
+ * way: `ready` and stale-`resolved` land in "waiting on you", `blocked` in "blocked",
+ * `open` splits between "needs your decision" and "waiting on a machine" by REGISTER,
+ * fresh-`resolved` in "done". A row matching two buckets would be reviewed twice; a row
+ * matching none would vanish from the only list that shows it. Neither failure announces
+ * itself — the totals just quietly stop adding up, which is why
+ * `verify-review-cards.mjs` asserts the partition rather than trusting this comment.
+ *
+ * ── Why `open` splits ───────────────────────────────────────────────────────────────
+ * It used to be one bucket, and that hid every decision the corpus contains. All 11
+ * `decide` rows report `evidence.present` and `review.present` unmet — same as the 150
+ * nobody has started — so the queue filed them together and reported "Waiting on you: 0"
+ * while eleven cards said Decide.
+ *
+ * A `decide` row cannot be measured into existence: nothing produces H-2's duration or
+ * G-1's radius step except somebody choosing. Waiting for evidence first waits forever.
+ * See `registerOf` for the full asymmetry.
  */
 
 const BUCKETS: Bucket[] = [
+  {
+    // First, above even "Waiting on you": these block their own chains entirely. A ready
+    // row is one click from done; an undecided row has nothing downstream of it at all.
+    id: "decide",
+    title: "Needs your decision",
+    blurb:
+      "Nothing can be measured until someone chooses. These do not wait on evidence — evidence waits on them.",
+    match: (status, row) => status === "open" && registerOf(row) === "decide",
+  },
   {
     id: "yours",
     title: "Waiting on you",
@@ -61,8 +83,11 @@ const BUCKETS: Bucket[] = [
     id: "machines",
     title: "Waiting on a machine",
     blurb:
-      "Something is owed by an agent or the runner — a check to write, a measurement to take, an independent review to do.",
-    match: (status) => status === "open",
+      "Something is owed by an agent or the runner — a check to write, a measurement to take, an independent review to do. Nothing here needs a decision first.",
+    // The complement of the decide bucket above, so the two together still cover every
+    // `open` row exactly once. Written as an explicit negation rather than relying on
+    // array order, so reordering the list cannot silently drop rows out of both.
+    match: (status, row) => status === "open" && registerOf(row) !== "decide",
   },
   {
     id: "done",
@@ -174,9 +199,16 @@ export function ReviewQueue({
                     correct state most of the time, and an unexplained blank reads like a
                     loading failure. */}
                 <EmptyDescription>
-                  {bucket.id === "yours"
-                    ? "No divergence is currently waiting on a decision from you."
-                    : "No divergence is in this state."}
+                  {bucket.id === "decide"
+                    ? // Distinct from "yours" on purpose. These two empty states mean
+                      // different things — nothing left to CHOOSE versus nothing left to
+                      // APPROVE — and one sentence covering both is how the old single
+                      // "waiting on you" bucket came to report zero while eleven rows
+                      // were asking to be decided.
+                      "Nothing is waiting on a choice. Every open row can proceed without you."
+                    : bucket.id === "yours"
+                      ? "No divergence is currently ready for your approval."
+                      : "No divergence is in this state."}
                 </EmptyDescription>
               </EmptyHeader>
             </Empty>

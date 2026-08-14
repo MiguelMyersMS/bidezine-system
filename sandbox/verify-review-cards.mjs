@@ -208,7 +208,62 @@ try {
       silentlyBlank.length ? `no description and no fallback: ${silentlyBlank.map((r) => r.ref).join(" ")}` : "",
     )
 
-    console.log(`\n  ${slug}: ${withPrompt.length} described, ${without.length} not yet.`)
+    // ── The queue's buckets must partition the rows ────────────────────────────────
+    // `ReviewQueue`'s own header says the buckets are exhaustive and mutually exclusive.
+    // That was a comment, and comments do not fail. A row in two buckets gets reviewed
+    // twice; a row in none vanishes from the only list that shows it — and neither
+    // announces itself, the totals just stop adding up.
+    //
+    // Read from the rendered DOM rather than by re-running the match functions here,
+    // which would only prove this file agrees with itself.
+    const partition = await page.evaluate(() => {
+      const out = {}
+      for (const section of document.querySelectorAll("[data-bucket]")) {
+        out[section.dataset.bucket] = [...section.querySelectorAll("[data-review-card]")].map(
+          (c) => c.dataset.reviewCard,
+        )
+      }
+      return out
+    })
+
+    const placements = new Map()
+    for (const [bucket, refs] of Object.entries(partition)) {
+      for (const ref of refs) placements.set(ref, [...(placements.get(ref) ?? []), bucket])
+    }
+    const twice = [...placements].filter(([, bs]) => bs.length > 1)
+    const nowhere = rows.filter((r) => !placements.has(r.ref)).map((r) => r.ref)
+
+    check(
+      twice.length === 0 && nowhere.length === 0,
+      `${slug}: the buckets partition all ${rows.length} rows exactly once`,
+      twice.length
+        ? `in two buckets: ${twice.map(([ref, bs]) => `${ref} (${bs.join("+")})`).join(", ")}`
+        : nowhere.length
+          ? `in no bucket: ${nowhere.join(" ")}`
+          : "",
+    )
+
+    // The decide bucket exists to stop 11 decisions hiding among 150 not-started rows.
+    // If it silently empties, the queue is back to reporting nothing is waiting while
+    // cards say Decide — the exact regression it was built to end, and one that would
+    // otherwise look like a clean pass.
+    const decideRefs = partition.decide ?? []
+    const claimDecide = rows.filter((r) => /\bDecide\b/.test(r.reviewPrompt ?? "")).map((r) => r.ref)
+    // Compared against the CORPUS, not against the component's own matcher.
+    const missedDecide = claimDecide.filter(
+      (ref) => !decideRefs.includes(ref) && !(partition.done ?? []).includes(ref) && !(partition.blocked ?? []).includes(ref),
+    )
+    checkPopulation(
+      claimDecide.length,
+      missedDecide.length === 0,
+      `${slug}: all ${claimDecide.length} rows asking for a decision are in the decision bucket`,
+      missedDecide.length ? `filed elsewhere: ${missedDecide.join(" ")}` : "",
+    )
+
+    console.log(
+      `\n  ${slug}: ${withPrompt.length} described, ${without.length} not yet.` +
+        `\n  buckets: ${Object.entries(partition).map(([b, r]) => `${b} ${r.length}`).join(" · ")}`,
+    )
   }
 } finally {
   await browser.close()
