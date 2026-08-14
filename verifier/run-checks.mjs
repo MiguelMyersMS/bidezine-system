@@ -139,13 +139,34 @@ function resolveUrl(url) {
 // ── state application ───────────────────────────────────────────────────────────────
 // Each state is produced by driving the real interaction. Reading a class name and
 // inferring the state is exactly the mistake this whole layer exists to prevent.
+/**
+ * What "already in this state" looks like in the DOM — taken from bidezine's OWN primitives
+ * rather than from a general-purpose guess about ARIA. Grepped out of `src/ui/*.tsx`:
+ * `data-[active=true]` (28 uses), `data-[state=checked]` (12), `data-active` (6),
+ * `data-[state=on]` (2), `aria-pressed` (2), `aria-current` (2), `aria-selected` (1); and for
+ * expanded, `data-[state=open]` (78) and `aria-expanded` (1). The rail's own selected nav
+ * button carries `aria-pressed={isActive}` (`FunctionalRailSidebar.tsx`), which is what
+ * B-3/B-6 resolve against.
+ *
+ * Matched with `closest()` rather than on the element alone, on purpose: an anchor may
+ * legitimately name an ICON inside a selected button — B-7's subject is exactly that — and
+ * that icon is in the selected state by virtue of its button. Which element carried the
+ * marker is recorded in the evidence, so a reviewer can see whether it was the subject
+ * itself or an ancestor rather than having to assume.
+ */
+const STATE_MARKERS = {
+  selected:
+    '[aria-pressed="true"],[aria-selected="true"],[data-active="true"],[data-state="on"],[data-state="checked"],[aria-current]:not([aria-current="false"])',
+  expanded: '[aria-expanded="true"],[data-state="open"]',
+}
+
 async function applyState(page, locator, state) {
   switch (state) {
     case "rest":
-      return async () => {}
+      return { release: async () => {} }
     case "hover":
       await locator.hover()
-      return async () => page.mouse.move(0, 0)
+      return { release: async () => page.mouse.move(0, 0) }
     // Renamed from "active" at migration 022: this vocabulary's "active" meant CSS :active
     // (a press) while seven src/ui primitives use "active" for persistently-current, and the
     // collision had already bent a real declaration. What this case does — mouse.down, hold,
@@ -155,11 +176,11 @@ async function applyState(page, locator, state) {
       if (!box) throw new Error("element has no box; cannot press it")
       await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
       await page.mouse.down()
-      return async () => page.mouse.up()
+      return { release: async () => page.mouse.up() }
     }
     case "focus":
       await locator.focus()
-      return async () => locator.blur().catch(() => {})
+      return { release: async () => locator.blur().catch(() => {}) }
     case "focus-visible":
       // Chromium grants :focus-visible based on the LAST INPUT MODALITY. A bare focus()
       // after a mouse interaction will not show a focus ring, which silently makes a
@@ -167,14 +188,133 @@ async function applyState(page, locator, state) {
       // first sets keyboard modality; the focus() then lands with :focus-visible active.
       await page.keyboard.press("Tab")
       await locator.focus()
-      return async () => locator.blur().catch(() => {})
+      return { release: async () => locator.blur().catch(() => {}) }
     case "disabled":
       // Not simulated on purpose: forcing the attribute would measure a state the real
       // component may never enter. Point the spec at an already-disabled element.
-      return async () => {}
+      return { release: async () => {} }
+    // `selected` and `expanded` arrived with migration 022, which taught the DATABASE two new
+    // words and — for three days — did not teach the runner, so a spec declaring either would
+    // have thrown here. That gap is this project's own enum-extension test 3 landing on the
+    // change that introduced it: adding a value is a promise that something uses it distinctly.
+    //
+    // They are not simulated, for the same reason `disabled` is not: forcing the state would
+    // measure something the component may never really enter. But an unsimulated state is a
+    // silent trap in a way a simulated one is not — the runner would happily measure a RESTING
+    // element and file a passing "selected" row if the spec pointed at the wrong subject, and
+    // nothing downstream could tell. So these two are VERIFIED no-ops: the element must already
+    // carry a marker proving it is in the state it claims, and the check fails if it does not.
+    case "selected":
+    case "expanded": {
+      const found = await locator.evaluate((el, sel) => {
+        const host = el.closest(sel)
+        if (!host) return null
+        return {
+          self: host === el,
+          tag: host.tagName.toLowerCase(),
+          marker: [...host.attributes]
+            .filter((a) => a.name.startsWith("aria-") || a.name.startsWith("data-"))
+            .map((a) => `${a.name}="${a.value}"`)
+            .join(" "),
+        }
+      }, STATE_MARKERS[state])
+      if (!found) {
+        throw new Error(
+          `nothing here is ${state}: neither this element nor any ancestor matches ${STATE_MARKERS[state]}.\n\n` +
+            `This state is not simulated — forcing it would measure a state the component may never ` +
+            `enter — so the spec must point at an element that is ALREADY in it. Either the anchor ` +
+            `names the wrong element, or the demo no longer renders that element ${state}.`,
+        )
+      }
+      return {
+        release: async () => {},
+        note: `${state}: confirmed on ${found.self ? "the subject itself" : `an ancestor <${found.tag}>`} — ${found.marker}`,
+      }
+    }
     default:
-      throw new Error(`unknown state: ${state}`)
+      throw new Error(
+        `unknown state: ${state}\n\nThe runner has no case for this state. If it was just added to ` +
+          `the database's subject_state vocabulary, it has to be added here too, or every spec ` +
+          `declaring it is unrunnable.`,
+      )
   }
+}
+
+// ── waiting for the component to stop moving ────────────────────────────────────────
+/**
+ * Wait for the subject's animations and transitions to finish before measuring it.
+ *
+ * Without this the runner measures whatever value the interpolation happens to be passing
+ * through at the moment it looks. That does not fail as "no value" — it fails as a WRONG
+ * value, which is the worst shape a failure can take: the component looks broken, and pasting
+ * the measured number into the spec would "fix" the check while pinning a mid-transition
+ * colour forever. Three of the first six rail colour checks failed exactly this way against
+ * the rail's 150ms transition, each one landing on its approved token at 150ms and holding.
+ * That transition is divergence H-1 — approved, and not going away — so the runner is what
+ * had to change.
+ *
+ * The wait looks BOTH WAYS along the tree, and that is not belt-and-braces. `subtree: true`
+ * alone — the obvious implementation, and the first one written here — walks DOWN, and it
+ * left B-7 failing on `oklab(0.866739 0 0)` while B-2 and B-4 were fixed. B-7's subject is an
+ * icon, and its `color` is not animated on the icon at all: it is INHERITED from the button
+ * around it, which is where the transition actually lives. An element's own subtree can never
+ * contain that. So ancestors are collected too — each ancestor's own animations, without their
+ * subtrees, which keeps the set to this element's real inheritance chain rather than the whole
+ * document. Measuring an icon is the common case for a colour divergence, so a
+ * downward-only wait would have been fixed for buttons and quietly broken for every icon.
+ *
+ * Two things this deliberately does not do. It does not sleep: a fixed delay would slow every
+ * check in the suite and still be a guess. And it does not wait indefinitely — an infinite
+ * animation never resolves its `finished` promise — so the wait is capped, and a timeout is
+ * REPORTED in the evidence rather than swallowed, because "something was still moving" is
+ * precisely the fact a reviewer needs when a measured value looks wrong.
+ */
+const SETTLE_TIMEOUT_MS = 2000
+
+async function settle(locator) {
+  return locator
+    .evaluate(async (el, timeout) => {
+      const ancestors = []
+      for (let p = el.parentElement; p; p = p.parentElement) ancestors.push(p)
+      const running = [
+        ...el.getAnimations({ subtree: true }),
+        ...ancestors.flatMap((a) => a.getAnimations()),
+      ]
+      if (running.length === 0) return { animations: 0, settled: true }
+      let timedOut = false
+      await Promise.race([
+        // A cancelled animation rejects `finished`. For this purpose that is settled.
+        Promise.all(running.map((a) => a.finished.catch(() => {}))),
+        new Promise((resolve) =>
+          setTimeout(() => {
+            timedOut = true
+            resolve()
+          }, timeout),
+        ),
+      ])
+      return { animations: running.length, settled: !timedOut }
+    }, SETTLE_TIMEOUT_MS)
+    .catch((err) => ({ animations: 0, settled: false, error: err.message }))
+}
+
+function motionNote(motion) {
+  if (motion.error) return `settle: could not check for animations (${motion.error})`
+  if (motion.animations === 0) return null
+  return motion.settled
+    ? `settle: waited for ${motion.animations} animation(s) to finish before measuring`
+    : `settle: WARNING — ${motion.animations} animation(s) still running after ${SETTLE_TIMEOUT_MS}ms; the values below may have been read mid-transition`
+}
+
+/**
+ * Chromium serialises a colour it is still interpolating as `oklab(...)` and a settled one as
+ * `oklch(...)`. If a measured value still reads oklab after `settle()` claims to have waited,
+ * something is still moving — and naming that is far more useful to whoever reads the failure
+ * than a bare "expected X, got Y" that looks like a broken component.
+ */
+function midFlightColours(measured) {
+  return Object.entries(measured)
+    .filter(([, v]) => typeof v === "string" && v.includes("oklab("))
+    .map(([k]) => k)
 }
 
 // ── comparison ──────────────────────────────────────────────────────────────────────
@@ -225,9 +365,25 @@ async function runCheck(page, spec, check, runId, commit) {
   }
 
   const locator = page.locator(selector)
-  const release = await applyState(page, locator, check.state ?? "rest")
+
+  // A state that cannot be established is a FAILING ROW, not a thrown run. The distinction
+  // matters: applyState throwing here used to abort the whole batch, so one spec naming an
+  // unknown state took every other spec's evidence down with it and left no record of why.
+  let applied
+  try {
+    applied = await applyState(page, locator, check.state ?? "rest")
+  } catch (err) {
+    return {
+      ...base,
+      passed: 0,
+      raw_output: `STATE NOT ESTABLISHED\nstate: ${check.state ?? "rest"}\nselector: ${selector}\n\n${err.message}\n\nNothing was measured, so this row asserts nothing about the component — only that the check could not be run as written.`,
+    }
+  }
+  const { release, note: stateNote } = applied
 
   try {
+    const motion = await settle(locator)
+
     if (check.kind === "screenshot") {
       const png = await locator.screenshot()
       const hash = createHash("sha256").update(png).digest("hex")
@@ -239,7 +395,7 @@ async function runCheck(page, spec, check, runId, commit) {
         kind: "screenshot",
         passed: 1,
         artifact_hash: hash,
-        raw_output: `state: ${check.state ?? "rest"}\nfile: verifier/artifacts/${file}\nsha256: ${hash}\nbytes: ${png.length}\n\nA screenshot asserts nothing. It cannot satisfy the gate's evidence requirement on its own (db/migrations/005).`,
+        raw_output: `state: ${check.state ?? "rest"}\n${[stateNote, motionNote(motion)].filter(Boolean).join("\n")}${stateNote || motionNote(motion) ? "\n" : ""}file: verifier/artifacts/${file}\nsha256: ${hash}\nbytes: ${png.length}\n\nA screenshot asserts nothing. It cannot satisfy the gate's evidence requirement on its own (db/migrations/005).`,
       }
     }
 
@@ -271,17 +427,25 @@ async function runCheck(page, spec, check, runId, commit) {
     }
 
     const failures = compare(expected, measured, check.tolerance ?? 0)
+    const midFlight = midFlightColours(measured)
     return {
       ...base,
       passed: failures.length === 0 ? 1 : 0,
       raw_output: [
         `state: ${check.state ?? "rest"}`,
+        stateNote,
         `selector: ${selector}`,
+        motionNote(motion),
         `element: ${outerHTML}`,
         `expected: ${JSON.stringify(expected)}`,
         `measured: ${JSON.stringify(measured, null, 2)}`,
+        midFlight.length
+          ? `\nSTILL INTERPOLATING: ${midFlight.join(", ")} came back as oklab(), which is how Chromium serialises a colour mid-transition (a settled one reads oklch()). Whatever value is below was read while the component was still moving — treat a mismatch as a timing fault in the runner before treating it as a wrong colour.`
+          : null,
         failures.length ? `\nFAILURES:\n  ${failures.join("\n  ")}` : "\nall expectations held",
-      ].join("\n"),
+      ]
+        .filter(Boolean)
+        .join("\n"),
     }
   } finally {
     await release()

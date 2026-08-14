@@ -1,0 +1,10 @@
+{
+  "component": "__verifier_test__",
+  "divergence": "T-SELECTED",
+  "url": "file:./verifier/fixtures/fixture.html",
+  "anchor": "T-SELECTED",
+  "_note": "Proves the runner can run a `selected` check at all. The state is NOT simulated — the fixture element already carries aria-pressed=\"true\" — so what this asserts is that the runner accepts the state, confirms the marker, and measures the element the anchor names. The background is unique to the selected element, so reaching the wrong one fails.",
+  "checks": [
+    { "kind": "computed-style", "state": "selected", "expect": { "background-color": "rgb(219, 234, 254)" } }
+  ]
+}

@@ -25,7 +25,21 @@ const SLUG = "__verifier_test__"
 const ANCHOR_FILE = "verifier/fixtures/fixture.html"
 // T-NOSPEC deliberately has NO check spec on disk. It exists to prove --stale reports the
 // rows it cannot reach rather than quietly counting them as done — see the batch section.
-const REFS = ["T-1", "T-WRONG", "T-ANCHOR", "T-DUPLICATE", "T-EDGE", "T-NOSPEC"]
+const REFS = [
+  "T-1",
+  "T-WRONG",
+  "T-ANCHOR",
+  "T-DUPLICATE",
+  "T-EDGE",
+  "T-NOSPEC",
+  // The states migration 022 added to the subject_state vocabulary. Neither is simulated, so
+  // each needs its own already-in-that-state fixture element — and T-NOTSELECTED proves the
+  // runner refuses a spec that claims a state its subject is not in.
+  "T-SELECTED",
+  "T-EXPANDED",
+  "T-SELECTED-CHILD",
+  "T-NOTSELECTED",
+]
 
 const results = []
 const check = (ok, label, note = "") => {
@@ -146,6 +160,58 @@ try {
   check(
     edge.length === 1 && edge[0].passed === false && /NO EXPECTATIONS/.test(edge[0].raw_output),
     "a check that asserts nothing FAILS",
+  )
+
+  // ── the states migration 022 added ────────────────────────────────────────────────
+  // A vocabulary the database accepts and the runner cannot execute is a promise the corpus
+  // cannot keep: a spec declaring `selected` threw `unknown state` for as long as the two
+  // were out of step, which is why two real rail rows could be declared and not run.
+  console.log("\nselected and expanded — accepted, and refused when the subject is not in them\n")
+
+  runner("checks/__verifier_test__/T-SELECTED.json")
+  const selected = await rows("T-SELECTED")
+  check(
+    selected.length === 1 && selected[0].passed === true,
+    "a `selected` check runs and measures the element the anchor names",
+    selected[0] ? (selected[0].passed ? "" : selected[0].raw_output.slice(0, 200)) : "no row",
+  )
+  check(
+    selected[0] ? /selected: confirmed on the subject itself/.test(selected[0].raw_output) : false,
+    "the evidence records WHICH element carried the marker, rather than only that one did",
+    selected[0]?.raw_output.match(/selected: confirmed on [^\n]*/)?.[0] ?? "no note in raw_output",
+  )
+
+  runner("checks/__verifier_test__/T-EXPANDED.json")
+  const expanded = await rows("T-EXPANDED")
+  check(
+    expanded.length === 1 && expanded[0].passed === true,
+    "an `expanded` check runs and measures the element the anchor names",
+    expanded[0] ? (expanded[0].passed ? "" : expanded[0].raw_output.slice(0, 200)) : "no row",
+  )
+
+  runner("checks/__verifier_test__/T-SELECTED-CHILD.json")
+  const child = await rows("T-SELECTED-CHILD")
+  check(
+    child.length === 1 && child[0].passed === true && /confirmed on an ancestor/.test(child[0].raw_output),
+    "a subject INSIDE a selected element resolves through its ancestor — the shape B-7 takes",
+    child[0]?.raw_output.match(/selected: confirmed on [^\n]*/)?.[0] ?? "no note in raw_output",
+  )
+
+  const notSelected = runner("checks/__verifier_test__/T-NOTSELECTED.json")
+  const notSel = await rows("T-NOTSELECTED")
+  check(
+    notSel.length === 1 && notSel[0].passed === false && /STATE NOT ESTABLISHED/.test(notSel[0].raw_output),
+    "declaring `selected` on an element that is NOT selected FAILS rather than measuring it at rest",
+    notSel[0]
+      ? notSel[0].passed
+        ? "it passed — the no-op is unverified, and a spec pointing at the wrong element would be believed"
+        : ""
+      : "no row",
+  )
+  check(
+    notSelected.status !== 0,
+    "and the run exits non-zero, so an unrunnable state cannot pass CI quietly",
+    `exit ${notSelected.status}`,
   )
 
   // ── a screenshot is not verification ──────────────────────────────────────────────

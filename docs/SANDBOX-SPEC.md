@@ -203,7 +203,15 @@ service principal; there is no password-based fallback for local development.
   bent a real declaration. `selected` and `expanded` were added there for the same reason the rename
   happened: the vocabulary had only transient states, so a row about a persistently-open panel could not
   be declared at all. **Extending it is governed by `CLAUDE.md` item 26** — a vocabulary term is a
-  constant, and the occupant's word for a concept is not the concept's name.
+  constant, and the occupant's word for a concept is not the concept's name. **A new term must gain
+  its `applyState` case in `verifier/run-checks.mjs` in the SAME change that adds it to the CHECK
+  constraint.** 022 did not, and for three days the database accepted two words the runner threw
+  `unknown state` on, so the two rows declaring them could not be run — a vocabulary the corpus cannot
+  execute is a promise it cannot keep. Where the state is not simulated (`disabled`, `selected`,
+  `expanded` — forcing it would measure a state the component may never really enter), the case must
+  still be a **verified** no-op: it asserts the subject already carries a marker for that state
+  (`aria-pressed`, `data-state="open"`, and the rest, taken from `src/ui`'s own primitives) and fails
+  if not. A plain no-op would measure a resting element and file a passing row saying otherwise.
 - **divergence_relation** *(migration 020, extended at 021)* — one divergence is ABOUT another: a question
   that `answers` it, a risk that `risks` it, or a value that `derives` from it. **`derives` is a
   dependency, not a satellite:** `answers`/`risks` are several rows about ONE decision and nest together;

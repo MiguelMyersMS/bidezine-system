@@ -939,7 +939,25 @@ a genuinely new failure category is found — not evidence the list is now compl
     real interactive behavior (hover, focus, click, whatever it drives) live afterward, not just that the
     component renders and typechecks.
 
-
+28. **Never measure a component that is still moving — and when adding the wait, prove it covers the
+    element the failure actually happened on, not a convenient one.** Every item above says to measure the
+    live DOM after triggering a state for real; none of them says WHEN, and the gap is not academic. Three
+    of the first six rail colour checks failed against the component's own approved 150ms transition
+    (divergence H-1), each landing exactly on its approved token once settled. The dangerous part is the
+    SHAPE of that failure: it is not "no value" but a WRONG value, so it reads as a broken component, and
+    the obvious fix — pasting the measured number into the expectation — pins a mid-transition colour
+    forever and looks green while doing it. There is a free tell in Chromium: a colour still interpolating
+    serialises as `oklab(...)`, a settled one as `oklch(...)`. Do not sleep — a fixed delay slows every
+    check and is still a guess; wait on the real animations
+    (`el.getAnimations(...).map(a => a.finished)`), cap the wait so an infinite animation cannot hang the
+    run, and report a timeout rather than swallowing it. **The trap inside the fix:** `{subtree: true}` is
+    the obvious implementation and it walks DOWN only. An icon's `color` is usually not animated on the
+    icon at all — it is INHERITED from the button around it — so a downward-only wait fixes buttons and
+    stays silently broken for every icon, which is the common subject of a colour check. It fixed two of
+    the three failures here and left the third (`verifier/run-checks.mjs`'s `settle()` now collects each
+    ancestor's own animations too). A probe written alongside the fix passed 7/7 while that third check was
+    still failing, because the probe measured a button — the same lesson as item 10, one level up:
+    **a verification that does not exercise the specific case that failed is not evidence the fix works.**
 
 ## Three machines, one branch
 

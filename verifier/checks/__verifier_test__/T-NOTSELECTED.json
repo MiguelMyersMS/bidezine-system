@@ -1,0 +1,10 @@
+{
+  "component": "__verifier_test__",
+  "divergence": "T-NOTSELECTED",
+  "url": "file:./verifier/fixtures/fixture.html",
+  "anchor": "T-1",
+  "_note": "The refusal half, and the reason `selected` is a VERIFIED no-op rather than a plain one. This spec declares `selected` against an element that carries no selected marker anywhere in its ancestry. An unverified no-op would measure the resting element and file a passing row saying the selected state was checked. This must produce STATE NOT ESTABLISHED and a failing row instead.",
+  "checks": [
+    { "kind": "computed-style", "state": "selected", "expect": { "background-color": "rgb(244, 244, 245)" } }
+  ]
+}

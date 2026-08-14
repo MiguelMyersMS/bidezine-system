@@ -36,6 +36,16 @@
   .row:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }
   .row:disabled { opacity: 0.5; cursor: not-allowed; }
 
+  /*
+    `selected` and `expanded` are not simulated by the runner — forcing them would measure a
+    state a real component may never enter — so the spec has to point at an element that is
+    ALREADY in the state. These two exist to be exactly that, and they carry a background
+    distinct from .row's so a check can prove the runner measured the right element rather
+    than merely reaching one.
+  */
+  .row[aria-pressed="true"] { background: #dbeafe; }
+  .row[aria-expanded="true"] { background: #dcfce7; }
+
   /* Two elements sharing one anchor value — the runner must refuse to guess which. */
   .dupe { display: block; height: 10px; }
 </style>
@@ -43,6 +53,15 @@
 <button class="row" data-divergence="T-1">Fixture row</button>
 
 <button class="row" data-divergence="T-DISABLED" disabled>Disabled row</button>
+
+<button class="row" data-divergence="T-SELECTED" aria-pressed="true">Selected row</button>
+
+<button class="row" data-divergence="T-EXPANDED" aria-expanded="true">Expanded row</button>
+
+<!-- An icon nested inside a selected button: the marker is on the ANCESTOR, not the subject.
+     This is the shape a real colour divergence takes (rail-sidebar B-7 measures an icon), and
+     the reason the state check uses closest() rather than matching the element alone. -->
+<button class="row" aria-pressed="true"><span class="mark" data-divergence="T-SELECTED-CHILD">icon</span></button>
 
 <div class="dupe" data-divergence="T-DUPLICATE"></div>
 <div class="dupe" data-divergence="T-DUPLICATE"></div>

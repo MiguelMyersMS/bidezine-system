@@ -1,0 +1,10 @@
+{
+  "component": "__verifier_test__",
+  "divergence": "T-SELECTED-CHILD",
+  "url": "file:./verifier/fixtures/fixture.html",
+  "anchor": "T-SELECTED-CHILD",
+  "_note": "The subject is a child of the selected element, not the selected element itself — the shape rail-sidebar B-7 takes, where the anchor names an icon inside a selected button. Proves the marker check resolves through closest() rather than requiring the marker on the subject.",
+  "checks": [
+    { "kind": "computed-style", "state": "selected", "expect": { "background-color": "rgba(0, 0, 0, 0)" } }
+  ]
+}

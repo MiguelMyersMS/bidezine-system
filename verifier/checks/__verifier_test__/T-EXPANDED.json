@@ -1,0 +1,10 @@
+{
+  "component": "__verifier_test__",
+  "divergence": "T-EXPANDED",
+  "url": "file:./verifier/fixtures/fixture.html",
+  "anchor": "T-EXPANDED",
+  "_note": "The same proof for `expanded`. Both words entered the subject_state vocabulary at migration 022; a vocabulary the runner cannot execute is a promise the corpus cannot keep.",
+  "checks": [
+    { "kind": "computed-style", "state": "expanded", "expect": { "background-color": "rgb(220, 252, 231)" } }
+  ]
+}

@@ -190,19 +190,42 @@ not a server problem — try `/mcp` in an interactive session.
 
 Read `docs/SANDBOX-SPEC.md` first. It is the single source of truth for this project.
 
-**`check-declarations` is 6/7, and it is no longer transient.** The red check is *"every bidezine subject
-names an anchor a real check spec measures"*, and the seven orphans are `B-2 → rail-item-data`,
-`B-3 → rail-item-slides`, `B-4 → rail-item-overview`, `B-6 → rail-item-slides-icon`,
-`B-7 → rail-item-savings-icon`, `B-8 → rail-item-data-icon`, `B-9 → rail-profile-disabled`. Those rows
-are anchored and declared; **their check specs under `verifier/checks/rail-sidebar/` have not been
-written.** While the anchoring batch was running this was an in-flight state; the batch is confirmed
-done, so it is now a real standing gap — an anchor with no spec IS incomplete, and the check is right to
-say so. **It clears when the eight B-row specs are written, and not before.** Do not silence it: it is
-the only thing distinguishing "declared and measurable" from "declared".
+**`check-declarations` is 6/7 — two orphans left, down from seven.** The red check is *"every bidezine
+subject names an anchor a real check spec measures"*. Six of the seven specs landed at `d2730ba`; the
+remaining orphans are **`B-3 → rail-item-slides` and `B-6 → rail-item-slides-icon`**, held back
+deliberately because both declare `selected`, which the runner could not execute until the fix below.
+It can now, so nothing blocks them. **It clears when those two specs are written, and not before.** Do
+not silence it: it is the only thing distinguishing "declared and measurable" from "declared".
 
 **Migration 022 — `subject_state` gained the persistent states it never had, and lost a word that meant
 two things.** `active` → `pressed`; `selected` and `expanded` added. Landed whole, because the runner
 case and the fixture spec had to move with the constraint or `verify-runner` breaks.
+
+**Two runner defects found by the first colour run, both fixed and both proven.** Reported by the
+machine writing the specs, with sampled measurements rather than suspicion:
+
+1. **The runner measured during the transition.** Three of six colour checks failed on the rail's own
+   approved 150ms transition (H-1), each landing exactly on its token once settled. It failed as a
+   WRONG value, so it read as a broken component and pasting the measured number would have "fixed" it
+   — see `CLAUDE.md` item 28, which this produced. `run-checks.mjs` now has `settle()`, waiting on the
+   real animations rather than sleeping, capped at 2s and reporting a timeout instead of hiding it.
+   **The first version of that fix was wrong and the runner caught it**: `{subtree: true}` walks down,
+   but B-7's icon inherits its `color` transition from the button ABOVE it, so B-7 kept failing on
+   `oklab(0.866739 0 0)` while B-2 and B-4 went green. `settle()` collects each ancestor's own
+   animations too. Verified end-to-end through the real runner, not a probe: **6/6**.
+2. **022 taught the database `selected` and did not teach the runner.** A spec declaring it threw
+   `unknown state`, which is why B-3/B-6 were held. Both states now have `applyState` cases — and they
+   are **verified** no-ops, not plain ones: neither is simulated (forcing it would measure a state the
+   component may never enter), so the case asserts the subject already carries a real marker for that
+   state and fails if not. A plain no-op would have measured a resting element and filed a passing row
+   claiming the selected state was checked. Markers come from `src/ui`'s own primitives, matched with
+   `closest()` so an icon inside a selected button resolves — the shape B-7 takes.
+
+Also: a state that cannot be established is now a failing evidence row rather than a thrown run. It
+used to abort the whole batch, taking every other spec's evidence down with it and leaving no record.
+
+`verify-runner` is **24/24** (was 18/18): six new checks covering both states, ancestor resolution, and
+the refusal — `T-NOTSELECTED` declares `selected` on an element that is not, and must fail.
 
 - **Why a rename rather than a comment.** In this vocabulary `active` meant CSS `:active`; in the rail
   and in seven `src/ui` primitives it means *current*. That collision had already bent a real
