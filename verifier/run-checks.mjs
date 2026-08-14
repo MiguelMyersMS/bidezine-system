@@ -146,7 +146,11 @@ async function applyState(page, locator, state) {
     case "hover":
       await locator.hover()
       return async () => page.mouse.move(0, 0)
-    case "active": {
+    // Renamed from "active" at migration 022: this vocabulary's "active" meant CSS :active
+    // (a press) while seven src/ui primitives use "active" for persistently-current, and the
+    // collision had already bent a real declaration. What this case does — mouse.down, hold,
+    // mouse.up — is a press, so the name now matches the behaviour.
+    case "pressed": {
       const box = await locator.boundingBox()
       if (!box) throw new Error("element has no box; cannot press it")
       await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)

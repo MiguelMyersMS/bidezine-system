@@ -23,7 +23,7 @@
     },
     {
       "kind": "computed-style",
-      "state": "active",
+      "state": "pressed",
       "expect": { "background-color": "rgb(212, 212, 216)" }
     },
     {

@@ -192,6 +192,18 @@ service principal; there is no password-based fallback for local development.
   `detail` averaging 1,358 characters with 104 of 154 rows over 280. A column that physically cannot
   hold a paragraph enforces concision in a way a style guide cannot be talked out of — the same
   argument §5.5 makes for an attribute over a stored selector.
+- **divergence_subject / divergence_property** *(migration 010)* — what a divergence is ABOUT: which
+  element(s), by `anchor_id`, and which CSS properties, typed `length|color|text|time|keyword|layer`.
+  Properties are DERIVED from the committed check specs so the declaration cannot disagree with the
+  evidence; subject LABELS are hand-authored, because "what this asserts" is mechanical and "what to call
+  it" is a reading. `subject_state` names the state the claim concerns:
+  `rest | hover | pressed | focus | focus-visible | disabled | selected | expanded`. **`pressed` was
+  called `active` until migration 022** — renamed because this vocabulary's `active` meant CSS `:active`
+  while seven `src/ui` primitives use "active" for persistently *current*, and that collision had already
+  bent a real declaration. `selected` and `expanded` were added there for the same reason the rename
+  happened: the vocabulary had only transient states, so a row about a persistently-open panel could not
+  be declared at all. **Extending it is governed by `CLAUDE.md` item 26** — a vocabulary term is a
+  constant, and the occupant's word for a concept is not the concept's name.
 - **divergence_relation** *(migration 020, extended at 021)* — one divergence is ABOUT another: a question
   that `answers` it, a risk that `risks` it, or a value that `derives` from it. **`derives` is a
   dependency, not a satellite:** `answers`/`risks` are several rows about ONE decision and nest together;

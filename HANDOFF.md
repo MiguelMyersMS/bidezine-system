@@ -189,9 +189,44 @@ not a server problem — try `/mcp` in an interactive session.
 
 Read `docs/SANDBOX-SPEC.md` first. It is the single source of truth for this project.
 
-**HELD, ready to write the moment the UI agent's batch lands — this is migration 022.** Do not start it
-without confirming that batch is done: it is DDL on `sandbox.divergence`, the table that batch writes
-`subject_state` into.
+**`check-declarations` is 6/7, and it is no longer transient.** The red check is *"every bidezine subject
+names an anchor a real check spec measures"*, and the seven orphans are `B-2 → rail-item-data`,
+`B-3 → rail-item-slides`, `B-4 → rail-item-overview`, `B-6 → rail-item-slides-icon`,
+`B-7 → rail-item-savings-icon`, `B-8 → rail-item-data-icon`, `B-9 → rail-profile-disabled`. Those rows
+are anchored and declared; **their check specs under `verifier/checks/rail-sidebar/` have not been
+written.** While the anchoring batch was running this was an in-flight state; the batch is confirmed
+done, so it is now a real standing gap — an anchor with no spec IS incomplete, and the check is right to
+say so. **It clears when the eight B-row specs are written, and not before.** Do not silence it: it is
+the only thing distinguishing "declared and measurable" from "declared".
+
+**Migration 022 — `subject_state` gained the persistent states it never had, and lost a word that meant
+two things.** `active` → `pressed`; `selected` and `expanded` added. Landed whole, because the runner
+case and the fixture spec had to move with the constraint or `verify-runner` breaks.
+
+- **Why a rename rather than a comment.** In this vocabulary `active` meant CSS `:active`; in the rail
+  and in seven `src/ui` primitives it means *current*. That collision had already bent a real
+  declaration — B-4 declared `active`, B-3 routed to `rest` to dodge it — by someone who had read the
+  component's own warning comment and still had to route around. A comment is the weakest fix for a
+  failure mode already demonstrated.
+- **`browsing` was not added.** It was the rail's word for `expanded`, which 13 primitives already name
+  (`data-[state=open]`); `selected` is named by 7 (`data-active`/`aria-pressed`). Test 1 of the enum rule.
+- **Verified by probe, not assumption:** `expanded` accepted, `active` refused, `browsing` refused.
+- B-3 and B-6 moved from `rest` to `selected` — `rest` was truthful only because the demo happens to
+  select Slides. **B-5 is now declarable as `expanded`**, which unblocks the forcible-state mechanism
+  that was deliberately not built while no row could legally address it.
+
+**`db/verify-review-prompt-fidelity.mjs` now covers F-3/F-5/F-6 too** — `npm --prefix db run
+verify-review-prompt-fidelity`, **12/12**. The three corrected prompts quote real numbers (256px, 32px),
+which reads better than a paraphrase but was the exact combination §3.10's blanket ban existed to
+prevent: a quoted value goes stale silently. **The rule is now "quoting is allowed when a check pins
+it"**, and this is that check. F-3 pins `PANEL_DEFAULT_WIDTH` by NAME, not line number. F-5/F-6 pin the
+panel-tree row height by finding every row carrying the shared recipe and requiring one height — which
+checks both halves of what those prompts claim, the value AND the uniformity. Comment lines are skipped,
+because this component's only `h-9` mentions are comments explaining the change away from it.
+**Proven able to fail, in both halves:** 256→260 failed F-3; making one row `h-9` failed F-5 and F-6 as
+non-uniform. Source restored byte-identical afterwards. One residual assumption stated in the file
+rather than hidden: `h-8 = 32px` is Tailwind's 4px scale, which this pins the class against, not the
+scale itself.
 
 - **Rename `subject_state`'s `active` → `pressed`.** The vocabulary's `active` means CSS `:active`
   (pressed); the rail's `active` means *current*; and seven `src/ui` primitives model "current" as
