@@ -107,6 +107,18 @@ export function categoryLabel(category: string): string {
   return CODE_CATEGORIES.has(category) ? `Code · ${human}` : human
 }
 
+/**
+ * How an edge reads to a human.
+ *
+ * The stored kind is answers|risks and direction says which end this row sits on —
+ * together they make four phrases, and only the phrase belongs on screen. "answered by Q1"
+ * is what a reviewer needs; `answers` is what the constraint keeps.
+ */
+function relationPhrase(rel: CorpusDivergence["relations"][number]): string {
+  if (rel.kind === "answers") return rel.direction === "subject" ? "answers" : "answered by"
+  return rel.direction === "subject" ? "risk against" : "risk"
+}
+
 export function anchorOf(row: CorpusDivergence): string | null {
   return row.anchorId ?? row.subjects?.find((s) => s.side === "bidezine" && s.anchorId)?.anchorId ?? null
 }
@@ -226,6 +238,7 @@ export function ReviewCard({
   onSelect,
   onReveal,
   onChanged,
+  onGoTo,
 }: {
   slug: string
   row: CorpusDivergence
@@ -235,6 +248,8 @@ export function ReviewCard({
   thisMachine: string | null
   onSelect: () => void
   onReveal: () => void
+  /** Follow a relation to the row it names. */
+  onGoTo?: (ref: string) => void
   onChanged: () => void
   /**
    * The tool you decide THIS row with, chosen by its category — the colour lab for a
@@ -371,6 +386,32 @@ export function ReviewCard({
     <ReviewCardShell
       attrs={{ "data-review-card": row.ref, "data-card-kind": "divergence", "data-status": status }}
       refCode={row.ref}
+      relations={
+        // Migration 020's edges, in the identity slot. `answers`/`risks` read as a phrase
+        // rather than a slug — "answered by Q1" is what a human needs, `answers` is what
+        // the constraint stores. Clicking navigates, restoring the pointer the four
+        // review prompts used to carry inline before the relation made that redundant.
+        row.relations?.length ? (
+          <span className="flex flex-wrap items-center gap-1">
+            {row.relations.map((rel) => (
+              <Button
+                key={`${rel.direction}-${rel.ref}`}
+                size="sm"
+                variant="outline"
+                className="h-5 gap-1 px-1.5 text-[10px] font-normal"
+                title={rel.note ?? rel.title}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onGoTo?.(rel.ref)
+                }}
+              >
+                <span className="text-muted-foreground">{relationPhrase(rel)}</span>
+                <code className="font-mono">{rel.ref}</code>
+              </Button>
+            ))}
+          </span>
+        ) : null
+      }
       badges={statusBadges(row)}
       pill={categoryLabel(row.category)}
       label={label}

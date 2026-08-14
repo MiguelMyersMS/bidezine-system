@@ -437,6 +437,14 @@ function HumanDecisionsPhase({
             onSelect={setActiveRef}
             onReveal={setActiveRef}
             onChanged={onChanged}
+            onGoTo={(ref) => {
+              // Follow an edge: select the row it names and bring it into view. A subject
+              // and its satellites are one piece of work, so moving between them has to be
+              // one click — that is the whole reason the relation is on screen rather than
+              // only in the schema.
+              setActiveRef(ref)
+              document.querySelector(`[data-review-card="${ref}"]`)?.scrollIntoView({ block: "center", behavior: "smooth" })
+            }}
           />
         </QuadrantLayout>
       </TabsContent>

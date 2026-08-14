@@ -50,6 +50,7 @@ const TONE: Record<string, string | undefined> = {
 
 export function ReviewCardShell({
   refCode,
+  relations,
   badges,
   pill,
   label,
@@ -63,6 +64,8 @@ export function ReviewCardShell({
   actions,
 }: {
   refCode: string
+  /** Links to the rows this one is bound to — see `relations` on `CorpusDivergence`. */
+  relations?: React.ReactNode
   badges: ShellBadge[]
   pill: string
   label: string
@@ -104,7 +107,14 @@ export function ReviewCardShell({
     >
       <CardHeader className="gap-2 px-4">
         <div className="flex items-start justify-between gap-3">
-          <code className="text-xs text-muted-foreground">{refCode}</code>
+          {/* The ref, and the rows this one is bound to. Relations live in the IDENTITY
+              slot rather than becoming a ninth section: "which row is this, and what is it
+              part of" is one question, and a subject with its satellites is one piece of
+              work counted three times until you can see the link. */}
+          <div className="flex min-w-0 flex-wrap items-center gap-1">
+            <code className="text-xs text-muted-foreground">{refCode}</code>
+            {relations}
+          </div>
           <div className="flex shrink-0 items-center gap-1">
             {badges.map((b) => (
               <Badge

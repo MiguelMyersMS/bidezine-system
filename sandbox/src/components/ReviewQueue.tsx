@@ -99,6 +99,7 @@ export function ReviewQueue({
   onSelect,
   onReveal,
   onChanged,
+  onGoTo,
 }: {
   slug: string
   rows: CorpusDivergence[]
@@ -109,6 +110,8 @@ export function ReviewQueue({
   onSelect: (ref: string) => void
   onReveal: (ref: string) => void
   onChanged: () => void
+  /** Follow a relation to the row it names. */
+  onGoTo?: (ref: string) => void
 }) {
   const [category, setCategory] = useState<string>("all")
 
@@ -190,6 +193,7 @@ export function ReviewQueue({
                 onSelect={() => onSelect(row.ref)}
                 onReveal={() => onReveal(row.ref)}
                 onChanged={onChanged}
+                onGoTo={onGoTo}
               />
             ))
           )}

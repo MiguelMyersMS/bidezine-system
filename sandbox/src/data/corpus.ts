@@ -75,6 +75,18 @@ export type CorpusDivergence = {
    * ever been declared in hover, active or focus, which is why the highlight does not try
    * to drive one. */
   subjectState: string | null
+
+  /**
+   * Migration 020: typed, directional edges to related rows. `subject` points at what this
+   * row is about; `satellite` is a row pointing here.
+   *
+   * Hand-authored, never inferred. `origin_record` does carry candidate links — R-1's
+   * action items cite `["Q1","A-9"]` — and they were deliberately not imported: "R-3
+   * mentions H-1" and "R-3 is a risk against H-1" are different claims, and forty inferred
+   * edges would be exactly the plausible-and-unverified fabrication this project keeps
+   * catching. Four edges exist; the rest get declared alongside their own review prompt.
+   */
+  relations: { direction: "subject" | "satellite"; kind: "answers" | "risks"; ref: string; title: string; state: string; note: string | null }[]
 }
 
 /** Migration 010's own enum. Only `length`, `text` and `keyword` have any rows in the

@@ -136,6 +136,26 @@ const SUBJECTS_SQL = `
   WHERE  c.slug = @slug
   ORDER  BY d.divergence_id, s.ordinal`
 
+/**
+ * Migration 020's edges, for the whole component in one round trip.
+ *
+ * `OUTER APPLY` over the database's OWN `fn_divergence_relations` rather than joining the
+ * table directly — the function already returns both directions with the other row's ref,
+ * title and state, and re-deriving that here would be a second reading of one rule.
+ *
+ * A subject and its satellites are not duplicates: `Q1` is the decision, `A-9` the
+ * divergence it answers, `R-1` the risk that it be applied correctly, and a risk can carry
+ * an open item its divergence does not. The edge is what lets a card say so instead of
+ * three cards looking unrelated.
+ */
+const RELATIONS_SQL = `
+  SELECT d.ref_code, rel.direction, rel.kind, rel.other_ref, rel.other_title, rel.other_state, rel.note
+  FROM   sandbox.divergence d
+  JOIN   sandbox.component c ON c.component_id = d.component_id
+  OUTER  APPLY sandbox.fn_divergence_relations(d.divergence_id) rel
+  WHERE  c.slug = @slug
+  ORDER  BY d.divergence_id`
+
 const PROPERTIES_SQL = `
   SELECT d.ref_code, p.property, p.property_type
   FROM   sandbox.divergence d
@@ -226,6 +246,10 @@ async function readCorpus() {
         (await pool.request().input("slug", sql.NVarChar(100), c.slug).query(SUBJECTS_SQL)).recordset,
         (r) => ({ ordinal: r.ordinal, side: r.side, anchorId: r.anchor_id, selector: r.selector, label: r.label }),
       )
+      const relationsByRef = groupByRef(
+        (await pool.request().input("slug", sql.NVarChar(100), c.slug).query(RELATIONS_SQL)).recordset.filter((r) => r.direction),
+        (r) => ({ direction: r.direction, kind: r.kind, ref: r.other_ref, title: r.other_title, state: r.other_state, note: r.note }),
+      )
       const propertiesByRef = groupByRef(
         (await pool.request().input("slug", sql.NVarChar(100), c.slug).query(PROPERTIES_SQL)).recordset,
         (r) => ({ property: r.property, type: r.property_type }),
@@ -261,6 +285,10 @@ async function readCorpus() {
         properties: propertiesByRef.get(r.ref_code) ?? [],
         relation: r.relation,
         subjectState: r.subject_state,
+        // Migration 020. Empty for almost every row: four edges exist, deliberately, and
+        // the ten other candidate links sitting in origin_record were NOT imported —
+        // "R-3 mentions H-1" and "R-3 is a risk against H-1" are different claims.
+        relations: relationsByRef.get(r.ref_code) ?? [],
       }))
     }
     return { components, divergences: byComponent, thisMachine: here, fetchedAt: new Date().toISOString() }
