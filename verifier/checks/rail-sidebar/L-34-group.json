@@ -17,8 +17,11 @@
         "font-size": "14px",
         "overflow": "hidden",
         "text-overflow": "ellipsis",
-        "white-space": "nowrap"
-      }
+        "white-space": "nowrap",
+        "font-weight": "500"
+      },
+      "_why_font_weight": "Added after the SECOND Independent Audit, which found this check passing on a row its own spec says would prove nothing. `_why_emphasis_matters` justifies the anchor on the grounds that it sits on an emphasised row — the bug only ever appeared on active-path rows, because those carried the `leading-none` — but the check asserted five properties and never the emphasis. Measured: selecting a leaf OUTSIDE this group drops the row to font-weight 400 while all five original assertions still hold, so the check kept passing on exactly the row the spec disclaims."
     }
-  ]
+  ],
+  "_asymmetry_with_L34": "Worth knowing if either spec is edited. L-34's anchor is bound to `isSelected`, so it FOLLOWS the selection and structurally cannot drift onto an unemphasised row. This one is pinned to the hard-coded id `system-logic` and does not follow — which is why it needs the weight asserted and L-34 does not. Pinning is still correct here: both ancestor groups are on the path, and an anchor matching two elements is a runner failure."
 }
