@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useLayoutEffect, useRef, useState } from "react"
 import {
   Badge,
   Button,
@@ -90,10 +90,48 @@ export function ReviewCardShell({
 }) {
   const [expanded, setExpanded] = useState(false)
   const text = prompt ?? ""
-  // Only worth an expand control if there is genuinely more to read — either the lead is
-  // long enough to be clamped, or a body exists behind it.
   const body = detail && detail !== text ? detail : ""
-  const expandable = body.length > 0 || text.length > 200 || !!examples
+
+  /**
+   * Whether the description is ACTUALLY clipped — measured, never guessed.
+   *
+   * ── The bug this replaces ──────────────────────────────────────────────────────────
+   * The control used to appear when `text.length > 200`. The clamp is `line-clamp-3`,
+   * which is three lines at whatever width the card happens to have — so the two
+   * disagreed the moment the window was not the width they were tuned at. Reported from
+   * a real screenshot, then measured at a 316px description: **40 of 169 cards were
+   * clipped with no way to expand**, including eight of the eleven rows asking for a
+   * decision. A card that ends mid-sentence with no control is not a small styling
+   * defect; it is a review surface that cannot be reviewed.
+   *
+   * `detail` is not passed by `ReviewCard` (resolution history does not belong on a
+   * card), so `body` is empty in practice and the test reduced to the character count
+   * plus `examples` — and `examples` only exists for icon/colour/type visuals. Every row
+   * with a `shape`, `motion`, `elevation` or `zindex` visual therefore had nothing but
+   * the 200-char guess standing between it and being unreadable.
+   *
+   * This is the same defect class as `SC.UNCONDITIONAL-SCROLLBAR-GAP` and L-26: a
+   * width-dependent condition decided from a static value. CLAUDE.md's scroll protocol
+   * already requires the fix — gate on a live `scrollHeight > clientHeight` reading,
+   * re-checked on resize. It applies here for the same reason.
+   */
+  const textRef = useRef<HTMLParagraphElement>(null)
+  const [clipped, setClipped] = useState(false)
+
+  useLayoutEffect(() => {
+    const el = textRef.current
+    // While expanded the clamp is gone, so nothing overflows and this would read false —
+    // which would remove the control that collapses it again. Measure only when clamped;
+    // `expanded` keeps the control alive on its own, below.
+    if (!el || expanded) return
+    const measure = () => setClipped(el.scrollHeight > el.clientHeight + 1)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [text, expanded])
+
+  const expandable = expanded || clipped || body.length > 0 || !!examples
 
   return (
     <Card
@@ -143,7 +181,7 @@ export function ReviewCardShell({
             suppress everything else the card knows. */}
         {text ? (
           <>
-            <p className={cn("text-xs text-muted-foreground", !expanded && "line-clamp-3")}>{text}</p>
+            <p ref={textRef} className={cn("text-xs text-muted-foreground", !expanded && "line-clamp-3")}>{text}</p>
             {expanded && body ? (
               <p className="mt-2 text-xs whitespace-pre-line text-muted-foreground">{body}</p>
             ) : null}
