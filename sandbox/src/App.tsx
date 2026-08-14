@@ -89,7 +89,12 @@ export function App() {
               <p className="text-sm text-muted-foreground">Reading the corpus…</p>
             </div>
           ) : activePhaseId === "human-decisions" && slug ? (
-            <div className="h-full p-[10px]">
+            // Which component's rows are actually on screen. Refs are unique per
+            // component, NOT globally — `__dbg__`'s only row is `D-1`, and so is one of
+            // rail-sidebar's — so a check scoped by ref alone silently verifies the wrong
+            // component's card and passes. Named here so a verifier can scope to the
+            // component rather than infer it.
+            <div className="h-full p-[10px]" data-active-component={slug}>
               <HumanDecisionsPhase
                 slug={slug}
                 rows={corpus.corpus.divergences[slug] ?? []}

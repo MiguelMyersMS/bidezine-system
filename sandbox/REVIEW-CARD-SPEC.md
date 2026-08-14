@@ -441,6 +441,16 @@ canvas or nowhere — not evidence that the cap is wrong. Every draft this proto
 
 ### Three registers: decide, confirm, close
 
+**Say which one a row is in.** It tells a reviewer whether they are exercising judgement, ratifying
+someone else's, or skipping. Writing all three as though they were the same wastes attention on the
+easy ones and hides which are hard.
+
+**Decide** — a real, open question. The reviewer chooses, and the row cannot close until they do.
+
+**Confirm** — settled before the gate existed, waiting to be *confirmed* through it. Their imported
+`detail` says so outright ("user explicitly concurred and marked it decided") while their corpus state
+is still `legacy_unverified`. A settled row asks *"check that this still holds"*, not *"choose"*.
+
 **Close** — nothing is being asked of a human at all. The work was done during Build; the row is
 waiting only on a measurement and an independent review to satisfy the gate. Say so plainly. A
 reviewer who can skip a card with confidence is better served than one who opens it to discover there
@@ -461,17 +471,6 @@ because they are Build-session findings imported wholesale at M4 when the whole 
 corpus rows. Only 7 are genuine component gaps. Expect any occupant whose Build ran before its corpus
 existed to carry the same shape.
 
-### Two registers: decide, and confirm
-
-Not every row is asking for a decision. Some were settled before the gate existed and are waiting to
-be *confirmed* through it — their imported `detail` says so outright ("user explicitly concurred and
-marked it decided"), while their corpus state is still `legacy_unverified`.
-
-**Say which one it is.** A settled row asks *"check that this still holds"*, not *"choose"*. That is
-useful information on its own: it tells a reviewer whether they are exercising judgement or
-ratifying someone else's. Writing both registers as though they were the same wastes attention on the
-easy ones and hides which are hard.
-
 ### Related rows name their relation
 
 A subject can produce several rows: the **question** that had to be answered, the **divergence** that
@@ -487,11 +486,21 @@ Do **not** merge them. They ask different questions — which option, does it di
 applied correctly — and a risk can carry an open item its divergence does not cover. Merging destroys
 that; naming the relation costs a clause.
 
-**This is a stopgap.** The real fix is a divergence-to-divergence relation in the schema, so the queue
-can nest a subject and its satellites rather than listing three peers. No such column exists
-(`blocked_by` points at a system change; `relation` is subject geometry). Worth building because
-**every** occupant produces questions and risks about specific divergences — it is structural to
-intake, not particular to this component.
+**This was a stopgap, and it is no longer one.** Migration 020 added `sandbox.divergence_relation` —
+typed (`answers` | `risks`), directional, and read through `fn_divergence_relations(@id)` — and the
+card renders it in the identity slot beside the ref, so a reviewer sees the link rather than a clause
+about it. `blocked_by` still points at a system change and `relation` is still subject geometry;
+neither was overloaded to do this.
+
+**The clause in the first sentence stays anyway.** The edge and the sentence answer different
+questions — *which rows is this bound to* versus *what is this row about* — and a description that
+reads correctly only when the relation happens to render is a description with a dependency it should
+not have.
+
+**Edges are hand-authored, never inferred.** Four exist. `origin_record` carries candidate links (R-1's
+action items cite `["Q1","A-9"]`) and they were deliberately not imported: "R-3 mentions H-1" and "R-3
+is a risk against H-1" are different claims. **Declare a row's relation in the same pass that writes
+its description** — that is the mechanism, not a bulk import.
 
 ### Hard rules
 
@@ -536,11 +545,32 @@ Sentence 1 names a different thing per category. Keep these consistent across oc
 1. **Length.** Every draft under 280. Check programmatically; do not eyeball it.
 2. **Value fidelity.** Every value quoted in a prompt must equal the value in its source. Diff them with
    a script — this is the check that catches a retyped digit.
-3. **No history verbs.** Grep the drafts for the words above.
-4. **Staleness is a standing risk worth its own check.** A prompt quoting a value goes silently wrong the
-   moment that value changes, and nothing currently notices. Until a check exists, any change to a
-   proposed value requires regenerating every prompt that cites it — treat that as part of the change,
-   not as follow-up.
+3. **No history verbs.** Grep the drafts for the words above. **One expected match**: the close
+   register's *"Found and fixed during build"* is the deliberate exception — do not rephrase it to
+   satisfy a grep.
+4. **Refs matched against the corpus first.** Confirm the target set exists, that none of it already
+   carries a prompt, and that nothing outside it is touched. A batch that writes the right text to the
+   wrong row looks identical to a correct one in every count.
+5. **Staleness is checked, no longer merely flagged.** `db/verify-review-prompt-fidelity.mjs` diffs each
+   prompt's quoted value against its live source, so a proposed value changing after its prompt was
+   written now fails a check instead of going unnoticed. It is scoped to the rows it was written for —
+   extend it when a new batch quotes values, rather than assuming its green covers them.
+
+### And then verify by render — the database cannot answer this one
+
+A `review_prompt` sitting in a column the card never reaches is indistinguishable, from every DB-side
+check, from one a human can read. `verify-import`, `check-corpus-equivalence` and the fidelity check
+above can all pass in full while the description is invisible.
+
+```sh
+npm --prefix sandbox run dev  →  npm --prefix sandbox run verify-cards
+```
+
+It asserts **both directions** — every described row renders its description, and every undescribed row
+still says so — because "the text appears" alone would pass on a card that rendered the same thing
+everywhere. It scopes to the component the app reports as mounted: refs are unique per component and
+**not globally** (`__dbg__`'s only row is `D-1`, and so is one of rail-sidebar's), and its own first
+version passed four assertions against a component that was never on screen.
 
 ## 4. The list — three buckets, not thirteen categories
 
@@ -698,21 +728,24 @@ an aspiration:
 
 Things this work assumes, changes, or leaves open — read before picking up any adjacent milestone.
 
-- **Migration 018** adds `review_label` / `review_prompt`. Nullable, unpopulated, no grants
-  changed (table-level `UPDATE` on `sandbox.divergence` already covers new columns for `app_rw`
-  and `agent_rw`). The card works without them via the fallback in §3.4, so nothing here is
-  blocked on the migration landing.
-- **Backfill is outstanding and deliberately scoped**: the 7 live rows only, hand-written and
-  human-reviewed. Not 154.
-- **`sandbox/server/corpus-api.mjs` gains the two columns** in the divergence bundle payload, and
-  `blocked_by` / `is_stale` if not already surfaced, for §3.2's badges.
-- **`App.tsx`'s `RailSourceToggle` renders two raw `<button>` elements** — a standing
-  "no hand-rolled components" violation already recorded in `HANDOFF.md`. It is in this work's
-  path and will be replaced with a real primitive as part of it.
-- **The evidence widget no longer replaces the preview pane.** Today opening a row's evidence
-  swaps out the very component the evidence is about. Under this spec the component stays on
-  screen permanently and the card holds the evidence — which is the single largest usability
-  change here.
+- **Migration 018 has landed**, adding `review_label` / `review_prompt` (nullable; no grants changed —
+  table-level `UPDATE` on `sandbox.divergence` already covered new columns for `app_rw` and
+  `agent_rw`). `corpus-api.mjs` surfaces both, plus `blocked_by` / `is_stale` for §3.2's badges.
+- **Backfill is under way and is no longer "the 7 live rows only".** That scope was written when the
+  card fell back to `title`/`detail`; once the fallback was removed in favour of stating the absence
+  outright (§3.4), every undescribed row says so on screen, which makes 96 blank cards a visible
+  deficit rather than a quiet one. **73 of 169 are written** — icons `A-1`–`A-9`, colour `B-1`–`B-9`,
+  `Q1`/`Q3`/`Q4`/`R-1`, and all 51 `component-gap` rows. Descriptions are authored in batches by
+  category, each verified per §3.10 and then **by render**.
+- **The register mix is a property of the occupant, not of the writer.** rail-sidebar's remaining work
+  splits roughly: `structure` is 11 genuine porting decisions (`M-1`–`M-10`, `R-4`) against 16 Build
+  findings; every other category is name-shaped and mostly `decide`. Expect any occupant whose Build
+  ran before its corpus existed to carry a large `close` register — see §3.10.
+- **`RailSourceToggle` is a real `ToggleGroup`.** The raw-`<button>` violation recorded in
+  `HANDOFF.md` is closed; that entry can be struck when the milestone owner next touches the file.
+- **The evidence widget no longer replaces the preview pane.** The component stays on screen for the
+  whole decision and the card holds the evidence — the single largest usability change here, and now
+  shipped rather than proposed.
 - **Still unaddressed, and not this work's to fix**: `evidence.current` is vacuously satisfied for
   147 rows because `anchor_file` is NULL on them. §3.6's chain rule stops the UI from *displaying*
   a false pass, but the gate itself still reports one. That is a corpus/gate matter.

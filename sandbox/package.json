@@ -16,7 +16,8 @@
     "check:origin-pane": "node ../scripts/verify-origin-quarantine.mjs",
     "verify": "node verify-approval.mjs",
     "verify-readonly": "node verify-readonly.mjs",
-    "verify-ui": "node verify-machines-ui.mjs"
+    "verify-ui": "node verify-machines-ui.mjs",
+    "verify-cards": "node verify-review-cards.mjs"
   },
   "dependencies": {
     "@bidezine/system": "file:..",
