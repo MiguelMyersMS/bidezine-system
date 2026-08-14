@@ -109,7 +109,8 @@ is inside the same retry. Not fixed from here: `sandbox/` is the UI agent's.
 
 **Suites, current** (three counts moved when 020 landed — the rebuild's own numbers were 9/9, 154/154
 and 5/5): `verify-ui` 16/16, `verify-readonly` 12/12, `sandbox verify` 18/18, `verify-import`
-**10/10**, `check-corpus-equivalence` **169/169**, `check-declarations` **7/7**, `check-rules` 0
+**10/10**, `check-corpus-equivalence` **169/169**, `check-declarations` **6/7** (see above — the seven
+unspecced B-anchors, not a regression), `verify-review-prompt-fidelity` **12/12**, `check-rules` 0
 violations, clean production build.
 
 **Seven tabs became two — `Review` and `Machines`.** Four of the seven read hardcoded per-occupant
