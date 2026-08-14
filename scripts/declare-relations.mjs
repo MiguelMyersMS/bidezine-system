@@ -106,6 +106,66 @@ const RELATIONS = [
     kind: "risks",
     note: "R-5's review_prompt opens 'The risk behind keeping both sidebars (M-8)'.",
   },
+  {
+    from: "Q2",
+    to: "B-1",
+    kind: "answers",
+    note: "Q2's review_prompt names the eight-ish dark-surface tokens B-1..B-9 propose.",
+  },
+  {
+    from: "Q2",
+    to: "B-2",
+    kind: "answers",
+    note: "Q2's review_prompt names the eight-ish dark-surface tokens B-1..B-9 propose.",
+  },
+  {
+    from: "Q2",
+    to: "B-3",
+    kind: "answers",
+    note: "Q2's review_prompt names the eight-ish dark-surface tokens B-1..B-9 propose.",
+  },
+  {
+    from: "Q2",
+    to: "B-4",
+    kind: "answers",
+    note: "Q2's review_prompt names the eight-ish dark-surface tokens B-1..B-9 propose.",
+  },
+  {
+    from: "Q2",
+    to: "B-5",
+    kind: "answers",
+    note: "Q2's review_prompt names the eight-ish dark-surface tokens B-1..B-9 propose.",
+  },
+  {
+    from: "Q2",
+    to: "B-6",
+    kind: "answers",
+    note: "Q2's review_prompt names the eight-ish dark-surface tokens B-1..B-9 propose.",
+  },
+  {
+    from: "Q2",
+    to: "B-7",
+    kind: "answers",
+    note: "Q2's review_prompt names the eight-ish dark-surface tokens B-1..B-9 propose.",
+  },
+  {
+    from: "Q2",
+    to: "B-8",
+    kind: "answers",
+    note: "Q2's review_prompt names the eight-ish dark-surface tokens B-1..B-9 propose.",
+  },
+  {
+    from: "Q2",
+    to: "B-9",
+    kind: "answers",
+    note: "Q2's review_prompt names the eight-ish dark-surface tokens B-1..B-9 propose.",
+  },
+  {
+    from: "R-2",
+    to: "Q2",
+    kind: "risks",
+    note: "R-2's review_prompt opens 'The risk behind that family' \u2014 the token family Q2 proposes.",
+  },
 ]
 
 let pool
