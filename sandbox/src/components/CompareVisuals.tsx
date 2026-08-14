@@ -643,7 +643,7 @@ function Block({
   children,
   stacked = false,
 }: {
-  role: "Current" | "Proposal"
+  role: "Origin" | "Adjusted"
   spec: string
   children: React.ReactNode
   stacked?: boolean
@@ -707,7 +707,7 @@ function ProposalColor({
 
   if (paint) {
     return (
-      <Block role="Proposal" spec={spec}>
+      <Block role="Adjusted" spec={spec}>
         <span className="size-11 shrink-0 rounded-md border" style={{ background: paint }} />
       </Block>
     )
@@ -715,16 +715,22 @@ function ProposalColor({
 
   return (
     <div className="rounded-md border border-dashed bg-muted/30 p-3">
-      <p className="text-xs font-medium">Proposal</p>
+      <p className="text-xs font-medium">Adjusted</p>
       <p className="mt-0.5 text-xs text-muted-foreground">
         {varName ? (
           <>
-            No colour to show. <code className="font-mono">{varName}</code> is the proposed name and is not
-            defined in any token file yet, so there is nothing to compare against.
+            Not decided yet. <code className="font-mono">{varName}</code> is the intended token name and is
+            defined in no token file, so no value has been chosen.
           </>
         ) : (
-          <>No colour is recorded on this row, so there is nothing to compare against.</>
+          <>Not decided yet. No value is recorded on this row.</>
         )}
+      </p>
+      {/* Said outright, because the absence is otherwise readable as a decision. An empty
+          Adjusted block next to a filled Origin one looks like "no change from origin" —
+          which is a real, choosable outcome and NOT what this state means. */}
+      <p className="mt-1 text-xs text-muted-foreground">
+        This is not a decision to keep origin's value. Nothing has been chosen either way.
       </p>
       {note ? <p className="mt-1 text-xs text-muted-foreground italic">{note}</p> : null}
     </div>
@@ -738,7 +744,7 @@ export function ComparisonBlocks({ visual }: { visual: Visual }) {
     const After = visual.afterIconName ? BIDEZINE_ICON_MAP[visual.afterIconName] : undefined
     return (
       <div className="flex flex-col gap-2">
-        <Block role="Current" spec={visual.beforeLabel}>
+        <Block role="Origin" spec={visual.beforeLabel}>
           <span className={CHIP}>
             {/* Inline <svg>, never <img> — an SVG behind an img tag is opaque to
                 `currentColor`, so it would ignore the theme switch these blocks exist to
@@ -746,7 +752,7 @@ export function ComparisonBlocks({ visual }: { visual: Visual }) {
             <RawSvgIcon d={visual.beforeSvgPath} viewBox={visual.beforeViewBox} />
           </span>
         </Block>
-        <Block role="Proposal" spec={visual.afterLabel ?? (After ? "bidezine equivalent" : "no equivalent yet")}>
+        <Block role="Adjusted" spec={visual.afterLabel ?? (After ? "bidezine equivalent" : "no equivalent yet")}>
           <span className={CHIP}>
             {After ? <After className="size-5" /> : <span className="text-xs text-muted-foreground">?</span>}
           </span>
@@ -763,7 +769,7 @@ export function ComparisonBlocks({ visual }: { visual: Visual }) {
     const after = (mode === "dark" ? visual.afterHexDark : visual.afterHexLight) ?? visual.afterHexLight
     return (
       <div className="flex flex-col gap-2">
-        <Block role="Current" spec={before}>
+        <Block role="Origin" spec={before}>
           <span className="size-11 shrink-0 rounded-md border" style={{ background: before }} />
         </Block>
         <ProposalColor hex={after} varName={visual.afterVar} note={visual.afterNote} mode={mode} />
@@ -777,7 +783,7 @@ export function ComparisonBlocks({ visual }: { visual: Visual }) {
     // full width of the card.
     return (
       <div className="flex flex-col gap-2">
-        <Block role="Current" spec={`${visual.beforeFamily}, ${visual.beforeWeight}, ${visual.beforeSize}`} stacked>
+        <Block role="Origin" spec={`${visual.beforeFamily}, ${visual.beforeWeight}, ${visual.beforeSize}`} stacked>
           <p
             className="line-clamp-2 text-lg"
             style={{ fontFamily: visual.beforeFamily, fontWeight: visual.beforeWeight as React.CSSProperties["fontWeight"] }}
@@ -785,7 +791,7 @@ export function ComparisonBlocks({ visual }: { visual: Visual }) {
             Lorem ipsum dolor sit amet, consectetur adipiscing elit.
           </p>
         </Block>
-        <Block role="Proposal" spec={visual.afterLabel} stacked>
+        <Block role="Adjusted" spec={visual.afterLabel} stacked>
           {/* The real utility class, so the sample is the system's own type rather than a
               description of it — and it re-renders on theme change like everything else. */}
           <p className={cn("line-clamp-2", visual.afterClassName)}>
