@@ -478,6 +478,35 @@ Titles are imported and often carry their real meaning in a bracket:
 belongs in sentence 1 where it can be a phrase rather than an abbreviation. **Do not repeat it in the
 description while it is still in the title** — say it once, properly, in the description.
 
+### A description must not restate what a block renders
+
+**Every slot on the card says something no other slot says.** The description carries the reasoning —
+where this is, when it applies, what to weigh. The comparison block carries the values. When both
+carry the value, the reviewer reads it twice and has to work out whether the two agree.
+
+This was introduced, not inherited. §3.10's rule was "value last", written when the Adjusted block
+showed nothing and the description was the only place a value could appear. Once the block began
+reading the conversion table (§3.11), that sentence became a duplicate on all nine rail-colour rows —
+reported by the owner from a single card, and confirmed across the corpus by audit.
+
+**So the rule now depends on what the card renders for that row:**
+
+| the row's block | the description |
+|---|---|
+| renders the value (`color`, `type`, `icon` with a real Adjusted half) | states the reasoning, **never the value** |
+| renders nothing (`shape`, `motion`, `elevation`, `zindex`, code categories) | the value belongs in the description, because nothing else will show it |
+
+**The staleness argument reverses too, and this is the better half.**
+`db/verify-review-prompt-fidelity.mjs` exists because a value typed into prose goes silently wrong
+when its source changes. A value the block reads live from `proposedDarkRailTokens` **cannot** go
+stale — it is the same array the component renders from. Moving the value out of the prose does not
+weaken the guarantee; it removes the thing the guarantee was protecting against. Where the block does
+NOT render a value, the prose keeps it and the fidelity check keeps covering it.
+
+**Audit the whole card, not the sentence you are writing.** The duplication that matters is between
+slots, so it is invisible while drafting one of them. Run the comparison across title, description and
+block before a batch lands.
+
 ### Length is a constraint on wording, not on content
 
 280 characters. If four answers do not fit, the sentences are carrying explanation that belongs in the
