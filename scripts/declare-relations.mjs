@@ -76,6 +76,36 @@ const RELATIONS = [
     kind: "risks",
     note: "R-1's review_prompt opens 'The follow-through on the filled-icon mechanism (A-9)' — filled must reach only actionable states.",
   },
+  {
+    from: "R-3",
+    to: "M-1",
+    kind: "risks",
+    note: "R-3's review_prompt opens 'The risk behind the styling decision (M-1)'.",
+  },
+  {
+    from: "R-7",
+    to: "M-1",
+    kind: "risks",
+    note: "R-7's review_prompt opens 'A second risk against that same decision (M-1)'.",
+  },
+  {
+    from: "R-10",
+    to: "M-18",
+    kind: "risks",
+    note: "R-10's review_prompt opens 'The risk behind the two sizing bugs (M-18, M-19)'.",
+  },
+  {
+    from: "R-10",
+    to: "M-19",
+    kind: "risks",
+    note: "R-10's review_prompt opens 'The risk behind the two sizing bugs (M-18, M-19)'.",
+  },
+  {
+    from: "R-5",
+    to: "M-8",
+    kind: "risks",
+    note: "R-5's review_prompt opens 'The risk behind keeping both sidebars (M-8)'.",
+  },
 ]
 
 let pool
