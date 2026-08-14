@@ -439,6 +439,28 @@ description while it is still in the title** — say it once, properly, in the d
 canvas or nowhere — not evidence that the cap is wrong. Every draft this protocol has produced fits in
 180–270 with all four present.
 
+### Three registers: decide, confirm, close
+
+**Close** — nothing is being asked of a human at all. The work was done during Build; the row is
+waiting only on a measurement and an independent review to satisfy the gate. Say so plainly. A
+reviewer who can skip a card with confidence is better served than one who opens it to discover there
+was nothing there.
+
+This register earns a **deliberate exception to the no-history rule**: *"Found and fixed during
+build"* is history, and here the history **is** the ask. "This is already done, it just needs closing"
+is precisely what the reviewer needs. The exception is narrow — a close-register row states *that* it
+was fixed, never *how it was decided*.
+
+**The tail is constant and the subject is not.** The shape signals "you can skip this"; the subject
+still has to name which row you are skipping, in plain words, or 44 identical cards tell you nothing
+about which one you are looking at.
+
+**It is a large register, and that is a finding rather than a convenience.** Of rail-sidebar's 51
+`component-gap` rows, 44 have titles averaging 305 characters — truncated paragraphs, not names —
+because they are Build-session findings imported wholesale at M4 when the whole data file became
+corpus rows. Only 7 are genuine component gaps. Expect any occupant whose Build ran before its corpus
+existed to carry the same shape.
+
 ### Two registers: decide, and confirm
 
 Not every row is asking for a decision. Some were settled before the gate existed and are waiting to
