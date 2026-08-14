@@ -63,6 +63,29 @@ const check = (ok, label, note = "") => {
   console.log(`  ${ok ? "PASS" : "FAIL"}  ${label}${note ? `\n          ${note}` : ""}`)
 }
 
+/**
+ * A check over a population that might be empty.
+ *
+ * An assertion about zero rows cannot fail, and printing PASS for it is how a suite comes
+ * to report green for something it never exercised — `evidence.current` was vacuously
+ * satisfied for 147 rows from M1 until M7 step 4 for exactly this reason. So an empty
+ * population prints VACUOUS and is counted separately, never as a pass.
+ *
+ * Both directions of this check reach that state in normal operation: `__dbg__` has no
+ * described rows and never did, and rail-sidebar's undescribed set hit zero the moment the
+ * corpus was fully authored — at which point the "undescribed rows say so" assertion
+ * stopped testing the fallback path it was written for.
+ */
+const vacuous = []
+const checkPopulation = (population, ok, label, note = "") => {
+  if (population === 0) {
+    vacuous.push(label)
+    console.log(`  VACUOUS  ${label} — nothing to check, so this proves nothing`)
+    return
+  }
+  check(ok, label, note)
+}
+
 // ── Refuse early and legibly ───────────────────────────────────────────────────────
 try {
   const probe = await fetch(BASE, { signal: AbortSignal.timeout(4000) })
@@ -156,7 +179,8 @@ try {
       const prefix = r.reviewPrompt.slice(0, Math.min(60, r.reviewPrompt.length))
       return !s.text.includes(prefix)
     })
-    check(
+    checkPopulation(
+      withPrompt.length,
       notShown.length === 0,
       `${slug}: all ${withPrompt.length} written descriptions render`,
       notShown.length ? `not on screen: ${notShown.map((r) => r.ref).join(" ")}` : "",
@@ -164,7 +188,8 @@ try {
 
     // 2. …and none of them still shows the fallback beside it.
     const bothShown = withPrompt.filter((r) => seen[r.ref]?.hasFallback)
-    check(
+    checkPopulation(
+      withPrompt.length,
       bothShown.length === 0,
       `${slug}: no described row also shows the "not written yet" fallback`,
       bothShown.length ? `both: ${bothShown.map((r) => r.ref).join(" ")}` : "",
@@ -176,7 +201,8 @@ try {
       const s = seen[r.ref]
       return s && !s.missing && !s.hasFallback
     })
-    check(
+    checkPopulation(
+      without.length,
       silentlyBlank.length === 0,
       `${slug}: all ${without.length} undescribed rows say so`,
       silentlyBlank.length ? `no description and no fallback: ${silentlyBlank.map((r) => r.ref).join(" ")}` : "",
@@ -190,6 +216,14 @@ try {
 
 const failed = results.filter((r) => !r.ok)
 console.log(`\n${results.length - failed.length}/${results.length} passed.`)
+if (vacuous.length) {
+  // Reported every run, not swallowed. A green score beside an assertion that can no
+  // longer fail is exactly how a suite starts describing work it is not doing — and the
+  // corpus reaching 169/169 permanently retires the undescribed-row direction, so this
+  // line is now normal rather than transient. Whoever reads the score has to see it.
+  console.log(`${vacuous.length} assertion(s) had nothing to check and prove nothing:`)
+  for (const label of vacuous) console.log(`   · ${label}`)
+}
 if (!results.length) {
   console.error("Nothing was asserted. Treating that as a failure — see the header.")
   process.exit(1)

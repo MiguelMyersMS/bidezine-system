@@ -588,7 +588,11 @@ npm --prefix sandbox run dev  →  npm --prefix sandbox run verify-cards
 
 It asserts **both directions** — every described row renders its description, and every undescribed row
 still says so — because "the text appears" alone would pass on a card that rendered the same thing
-everywhere. It scopes to the component the app reports as mounted: refs are unique per component and
+everywhere. **Now the corpus is fully authored, that second direction reports `VACUOUS` rather than
+`PASS`**: there are no undescribed rows left to exercise the fallback path, so the assertion cannot
+fail and must not be counted as though it could. It prints every run and is listed under the score.
+A green tally beside an assertion with nothing to check is how `evidence.current` stayed vacuously
+satisfied for 147 rows from M1 until M7 step 4. It scopes to the component the app reports as mounted: refs are unique per component and
 **not globally** (`__dbg__`'s only row is `D-1`, and so is one of rail-sidebar's), and its own first
 version passed four assertions against a component that was never on screen.
 
@@ -751,16 +755,33 @@ Things this work assumes, changes, or leaves open — read before picking up any
 - **Migration 018 has landed**, adding `review_label` / `review_prompt` (nullable; no grants changed —
   table-level `UPDATE` on `sandbox.divergence` already covered new columns for `app_rw` and
   `agent_rw`). `corpus-api.mjs` surfaces both, plus `blocked_by` / `is_stale` for §3.2's badges.
-- **Backfill is under way and is no longer "the 7 live rows only".** That scope was written when the
+- **Backfill is COMPLETE: 169 of 169.** That scope was once "the 7 live rows only", written when the
   card fell back to `title`/`detail`; once the fallback was removed in favour of stating the absence
-  outright (§3.4), every undescribed row says so on screen, which makes 96 blank cards a visible
-  deficit rather than a quiet one. **73 of 169 are written** — icons `A-1`–`A-9`, colour `B-1`–`B-9`,
-  `Q1`/`Q3`/`Q4`/`R-1`, and all 51 `component-gap` rows. Descriptions are authored in batches by
-  category, each verified per §3.10 and then **by render**.
-- **The register mix is a property of the occupant, not of the writer.** rail-sidebar's remaining work
-  splits roughly: `structure` is 11 genuine porting decisions (`M-1`–`M-10`, `R-4`) against 16 Build
-  findings; every other category is name-shaped and mostly `decide`. Expect any occupant whose Build
-  ran before its corpus existed to carry a large `close` register — see §3.10.
+  outright (§3.4), every undescribed row said so on screen, which turned a quiet deficit into a
+  visible one. Authored in batches by category, each verified per §3.10 and then **by render**.
+- **The real queue is 11 rows, not 169.** That is the whole point of the register vocabulary: of 169
+  rows, 11 ask a human to `decide` — `G-1`, `H-2`–`H-6`, `R-5`, `R-6`, `R-8`, `R-9`, `R-11`. The rest
+  confirm something already settled or close something already fixed.
+- **Five of those eleven were recorded green.** `H-2`–`H-6` each carry "DEFERRED, not solved" in their
+  own `detail`, greenlit verbatim to unblock the transformation and pending a planned system-wide
+  motion upgrade — their own records say "Re-open (or fold into that upgrade) rather than treat this
+  as a final design decision." They are written in the `decide` register for that reason. This is
+  checklist item 19 at five-row scale, and it is the strongest argument for the register vocabulary
+  existing at all: without it, "deferred" and "settled" render identically.
+- **Three rows describe a title that contradicts their own code.** `F-3` (`panelW = 300px` vs. a
+  shipped 256), `F-5` (`hitTarget = 40px`) and `F-6` (`compact = 28px`) — both tree-row rows against a
+  uniform shipped height. HANDOFF records only `F-3`. Their descriptions name the staleness rather
+  than repeating it, because correcting an imported title is a policy call and only `L-34`'s was ever
+  authorised. **One ruling should cover all three.**
+- **`divergence_relation` has no kind for a derivation.** `F-7` and `F-9` are both derived from `F-2`
+  (footer cap and item slot, from the button size and gap). `answers` and `risks` cannot express that,
+  so no edge was declared rather than assert something false to make one exist. Either a third kind or
+  an explicit decision that derivations stay unrecorded. Structural, not particular to this occupant —
+  any ported component with computed constants produces the same shape.
+- **The register mix is a property of the occupant, not of the writer.** `component-gap` was 86% Build
+  findings rather than gaps; `structure` split 11 porting decisions against 16 findings; the visual
+  categories are almost entirely `confirm`. Expect any occupant whose Build ran before its corpus
+  existed to carry a large `close` register — see §3.10.
 - **`RailSourceToggle` is a real `ToggleGroup`.** The raw-`<button>` violation recorded in
   `HANDOFF.md` is closed; that entry can be struck when the milestone owner next touches the file.
 - **The evidence widget no longer replaces the preview pane.** The component stays on screen for the
