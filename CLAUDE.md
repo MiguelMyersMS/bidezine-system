@@ -959,6 +959,38 @@ a genuinely new failure category is found — not evidence the list is now compl
     still failing, because the probe measured a button — the same lesson as item 10, one level up:
     **a verification that does not exercise the specific case that failed is not evidence the fix works.**
 
+29. **A surface-scoped token family must cover EVERY state including disabled — any state it omits falls
+    back to a surface-agnostic primitive mechanism and gets applied a second time.** Found on the rail's
+    disabled Profile button (divergence `B-9`), and the value was never the problem. `onDarkDisabled` is
+    *already* the disabled appearance: its own record reads "≈20% on-dark, disabled", origin's value was
+    `rgba(255,255,255,0.2)`, and the approved `oklch(0.42 0 0)` is that 20%-white-on-dark flattened to a
+    solid because this project does not allow alpha in tokens — 20% white over origin's own `#1c2024`
+    lands at ≈`rgb(75)`, and the token is `rgb(77)`. `Button`'s own `disabled:opacity-50` then applied the
+    disabled treatment AGAIN on top of it, painting `rgb(50,50,50)` on a `rgb(23,23,23)` rail: 27 points
+    of separation, on a row whose stated requirement is that it "stays legible enough to read as disabled
+    text rather than a rendering artefact". Suppressing it (`disabled:opacity-100`, keeping
+    `disabled:pointer-events-none`) restored the approved colour and doubled the separation to 54.
+
+    **The cause is structural, not a wrong number, which is why it generalises.** `disabled:opacity-50`
+    appears in **18 primitives and is never surface-aware in any of them** — while a dark-always surface's
+    colours are surface-*specific*. The two cannot compose: an opacity applied without knowing what is
+    behind it will double-apply against any token that already encodes its own contrast. `sidebar.tsx` is
+    the proof this is not particular to the rail — it has a genuine surface pocket (`--sidebar`,
+    `-foreground`, `-accent`, `-border`, `-ring`) and still falls back to bare `opacity-50` for disabled.
+    **Disabled is the one state that escapes the pocket, and no `--sidebar-foreground-disabled` exists.**
+
+    So: when authoring a token family for a surface that does not follow the theme, **enumerate the states
+    the primitives you will compose already handle themselves** — disabled, and check for others — and give
+    the family a token for each, or the uncovered ones silently inherit a mechanism that does not know
+    what surface it is on. Two traps worth stating separately. **First**, do not fix this by compensating
+    the token's value: raising it so the halved result looks right bakes *this* background into a
+    *foreground* token, which is then wrong on every other surface — the failure is at the seam, not in
+    the number. **Second**, suppressing a primitive's mechanism is only legitimate when the replacement is
+    already wired (item 26's rule, met here rather than waived: the token IS the replacement), and the
+    override must be verified with `twMerge` before it is written — a plain `opacity-100` does NOT beat
+    `disabled:opacity-50`, because they are different conflict groups and the `disabled:` one survives.
+    Only `disabled:opacity-100` merges. Checked, not assumed, per item 1.
+
 ## Three machines, one branch
 
 Laptop A, Laptop B, and a PC all work `main` directly. `origin` is the only source of truth — unpushed

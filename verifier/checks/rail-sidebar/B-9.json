@@ -12,10 +12,11 @@
       "state": "rest",
       "expect": {
         "color": "oklch(0.42 0 0)",
-        "opacity": "0.5"
+        "opacity": "1"
       }
     }
   ],
   "_audit_finding": "The Independent Audit found this check certified the DECLARATION, not the colour. Two agents on different lenses found it and it was re-measured directly: the element computes color oklch(0.42 0 0) AND opacity 0.5, from Button's own `disabled:opacity-50` (src/ui/button.tsx). getComputedStyle().color cannot see opacity — they are separate compositing properties — so the glyph a human sees is that colour at half strength over the rail's oklch(0.205 0 0), roughly rgb(50,50,50). The check passed while measuring a colour that is never painted.",
-  "_open_decision": "Asserting opacity 0.5 records what the component does; it does NOT settle whether that is what was approved. onDarkDisabled was approved as a colour — if it was approved as the value a reviewer would SEE, the token or the opacity is wrong and this row needs a real decision. Flagged to the owner, deliberately not resolved here."
+  "_resolution": "RESOLVED by the owner after the Independent Audit surfaced it. The token was never wrong — `opacity-50` was applying the disabled treatment a SECOND time on top of a token that already carried it, so the approved oklch(0.42 0 0) painted as rgb(50,50,50) instead. `Button`'s `disabled:opacity-50` is suppressed for this one element via `disabled:opacity-100` and the token now paints at full strength. `disabled:pointer-events-none` deliberately remains: the suppression is the opacity only, never the disabled behaviour.",
+  "_why_opacity_is_asserted": "`opacity: 1` is asserted alongside the colour and is the load-bearing half. Without it this check passes on a correct `color` while the glyph paints at any strength — which is exactly how it passed before. If Button's base recipe ever reaches this element again, the colour assertion will not notice and this one will."
 }

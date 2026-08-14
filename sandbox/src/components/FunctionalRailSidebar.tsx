@@ -1812,7 +1812,41 @@ export function FunctionalRailSidebar({
               // syntactically correct but 100% dead code. Removed because it closely mimics the
               // M-12 anti-pattern (a hover override with no real purpose) and could mislead a
               // future reader into thinking hover suppression is intentionally needed here.
-              className="size-[38px] shrink-0 rounded-lg"
+              /**
+               * `disabled:opacity-100` suppresses `Button`'s own `disabled:opacity-50`,
+               * and that is a deliberate divergence, not an oversight (divergence B-9).
+               *
+               * ── Why the primitive's mechanism is wrong HERE specifically ──────────────
+               * `onDarkDisabled` is already the disabled appearance. Its own record reads
+               * "≈20% on-dark, disabled", and origin's value was `rgba(255,255,255,0.2)`;
+               * the approved `oklch(0.42 0 0)` is that 20%-white-on-dark flattened into a
+               * solid, because this project does not allow alpha in tokens. Check the
+               * arithmetic: 20% white over origin's own `#1c2024` lands at ≈rgb(75), and
+               * the token is rgb(77).
+               *
+               * So `opacity-50` applied the disabled treatment a SECOND time, on top of a
+               * token that already carried it — painting rgb(50,50,50) on a rgb(23,23,23)
+               * rail, 27 points of separation, against a row whose own requirement is that
+               * it "stays legible enough to read as disabled text rather than a rendering
+               * artefact".
+               *
+               * The cause is structural rather than a wrong number: `disabled:opacity-50`
+               * appears in 18 primitives and is never surface-aware, while this token is
+               * surface-specific. `sidebar.tsx` shows the same seam — it has a full
+               * surface-scoped pocket (`--sidebar`, `-foreground`, `-accent`, `-border`,
+               * `-ring`) and still falls back to plain `opacity-50` for disabled. Disabled
+               * is the one state that escapes the pocket. See CLAUDE.md's rule on this.
+               *
+               * ── Suppressing a built-in state requires wiring its replacement ──────────
+               * CLAUDE.md's own condition, and it is met rather than waived: the token IS
+               * the replacement. `disabled:pointer-events-none` deliberately stays — only
+               * the double-applied opacity goes.
+               *
+               * Verified with `twMerge` before writing, per checklist item 1: a plain
+               * `opacity-100` does NOT win — it is a different conflict group and
+               * `disabled:opacity-50` survives it. Only the `disabled:` variant merges.
+               */
+              className="size-[38px] shrink-0 rounded-lg disabled:opacity-100"
               style={{ color: colors.fgDisabled }}
               // The only element in the component that renders `fgDisabled`, which makes it
               // the sole possible subject for the disabled on-dark foreground token. Named
