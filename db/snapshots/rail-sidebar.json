@@ -992,7 +992,7 @@
       "originCategory": "D — Typography",
       "title": "Global sans family",
       "detail": "Approved and implemented at the design-system token source: --font-sans is Inter-first with ui-sans/system fallbacks.",
-      "reviewPrompt": null,
+      "reviewPrompt": "The typeface for everything. Origin ships Inter; our own font token is already Inter-first with system fallbacks, so nothing had to change. Confirm the fallback chain is acceptable.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -1026,7 +1026,7 @@
       "originCategory": "D — Typography",
       "title": "Large metric (numberL)",
       "detail": "Approved: use text-3xl font-medium tabular-nums for large metrics.",
-      "reviewPrompt": null,
+      "reviewPrompt": "Large metrics. Our scale's nearest step is larger than origin's, so this renders slightly bigger, with tabular figures. Confirm the larger step and that tabular alignment is wanted.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -1060,7 +1060,7 @@
       "originCategory": "D — Typography",
       "title": "Panel header title/subtitle overflow behavior — not previously itemized",
       "detail": "Prompted by “the title should truncate in a single line if the text is too large... i don't have a way to see this behaviour” — the demo content (“Slides”, “Documents”, etc.) is always short, so neither behavior was ever visually exercised before. TITLE: verified against design-system/src/gallery/RailNav.tsx's real, current source — origin renders the title with `whiteSpace: nowrap; textOverflow: ellipsis` (single-line truncation). FunctionalRailSidebar.tsx's title span already used Tailwind's `truncate` (the exact equivalent) — confirmed working by temporarily substituting a long title and reading computed style (whiteSpace: nowrap, textOverflow: ellipsis, scrollWidth 674px clipped to a clientWidth of 202px). SUBTITLE: origin's real source WRAPS the subtitle unbounded (`whiteSpace: normal`, no line cap at all — a 2026-07-31 change away from its earlier single-line truncation, per the source's own code comment). FunctionalRailSidebar.tsx's subtitle was still using single-line `truncate`, diverging from origin's current wrap behavior. Per explicit instruction, bidezine intentionally bounds this to 3 lines (not unbounded like origin) so a very long subtitle can't grow the fixed-width panel header arbitrarily tall — changed to Tailwind's `line-clamp-3`. Verified by substituting a long subtitle and reading computed style (webkitLineClamp: 3, webkitBoxOrient: vertical, scrollHeight 112px clamped to a clientHeight of 48px — exactly 3 lines' worth) and by screenshot: the text visibly wraps to 3 lines with the 3rd line ending in an ellipsis.",
-      "reviewPrompt": null,
+      "reviewPrompt": "The panel header when its text is long: the title truncates on one line, and the subtitle is capped at three rather than wrapping freely as origin does. Found and fixed during build. Nothing to decide — this needs a measurement and an independent review before it can close.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": null,
@@ -1077,7 +1077,7 @@
       "originCategory": "D — Typography",
       "title": "Panel actions / overflow menu row text renders at the shared primitive's text-sm default, not the already-approved text-xs (D-5/D-6)",
       "detail": "Prompted by “is the font token consistent with our dropdown-menu?” Measured live via getComputedStyle: our rail's DropdownMenuItem/CheckboxItem rows (“Expand all”, “Collapse all”, “Search box”) render at 14px/400 Inter — exactly Tailwind's `text-sm`, hard-coded in dropdown-menu.tsx's own className for every item/checkbox/radio/sub-trigger row. Checked origin's real token source (design-system/src/tokens.ts): the equivalent origin rows use TYPE.bodyS (13px/400, unchecked) and TYPE.labelM (13px/500, checked) — and D-5/D-6 ALREADY approved a bidezine mapping for exactly those two origin tokens: text-xs for “compact secondary/menu text” (D-5) and text-xs font-medium for “checked rows” (D-6). So the actually-rendered menu text (text-sm/14px) diverges from D-5/D-6's mapping for this exact origin content. Root cause is structural, not a copy mistake: origin's PanelMenuRow is fully custom-styled (Radix is unstyled; origin applies TYPE.bodyS/labelM via inline `style` on every row itself), while our dropdown-menu.tsx is the shadcn-styled wrapper, where text-sm is shadcn's own deliberate, SHARED, system-wide default across every menu-family primitive (Menubar, Select, Context Menu, Command all use it too) — not something scoped to the rail. DECIDED: keep text-sm, do not override — the shared bidezine dropdown-menu convention takes precedence over matching this one origin instance's smaller scale. This was floated as a live code change (className overrides + a screenshot) to see it rendered, then explicitly reverted at the user's instruction (“i didn't want you to change anything, i only asked, the recommendation to leave it as it is was right”) — no diff was ever committed. D-5/D-6 remain correctly approved for the other bidezine surfaces that actually use bare text-xs directly (not this shared Radix-menu primitive); this row documents that the dropdown-menu family is treated as a separate, deliberately-consistent scale, not a D-5/D-6 violation. For contrast: the rail's OTHER dropdown (overflow “More” menu) was checked too and needs no such call — origin's own overflow menu already uses TYPE.bodyM/labelL (14px), which maps cleanly to our already-approved text-sm/text-sm font-medium (D-4/D-7), so there was never a real conflict there.",
-      "reviewPrompt": null,
+      "reviewPrompt": "Menu row text renders one step larger than the compact size approved for this content. That larger size is our shared menu convention, used by every menu-family primitive. Confirm the shared scale wins.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": null,
@@ -1094,7 +1094,7 @@
       "originCategory": "D — Typography",
       "title": "Page/header title (headingM)",
       "detail": "Approved: keep the current bidezine page/header title mapping, text-lg font-semibold.",
-      "reviewPrompt": null,
+      "reviewPrompt": "The page and header title. Origin sets it at medium weight; our mapping keeps the size and renders it one step bolder. Confirm the heavier title is wanted rather than origin's weight.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -1128,7 +1128,7 @@
       "originCategory": "D — Typography",
       "title": "Panel/card title (headingS)",
       "detail": "Approved/aligned: use text-base font-medium for panel and card titles.",
-      "reviewPrompt": null,
+      "reviewPrompt": "Panel and card titles. Maps exactly onto our base size at medium weight — same size, same weight as origin. Confirm it holds once composed in the real panel header.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -1162,7 +1162,7 @@
       "originCategory": "D — Typography",
       "title": "Body / main option rows (bodyM)",
       "detail": "Approved/aligned: main panel option rows map to text-sm. The adjusted preview now uses text-sm for these rows.",
-      "reviewPrompt": null,
+      "reviewPrompt": "The main option rows in the panel. Maps exactly onto our small size. Confirm this is the row text, and that the compact size below is not being used here by mistake.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -1196,7 +1196,7 @@
       "originCategory": "D — Typography",
       "title": "Compact body (bodyS)",
       "detail": "Approved for compact secondary/menu text only: use text-xs. Do not use this for main panel option rows.",
-      "reviewPrompt": null,
+      "reviewPrompt": "Compact secondary and menu text. Our scale has no step at origin's size, so this lands one pixel smaller. Confirm the shrink is acceptable, and that main rows never use it.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -1230,7 +1230,7 @@
       "originCategory": "D — Typography",
       "title": "Medium label (labelM)",
       "detail": "Approved: use text-xs font-medium for medium labels, subtitles, checked rows, and compact label cases.",
-      "reviewPrompt": null,
+      "reviewPrompt": "Medium labels, subtitles and checked rows. Same one-pixel shrink as the compact size, at medium weight. Confirm the weight carries the emphasis the lost pixel used to.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -1264,7 +1264,7 @@
       "originCategory": "D — Typography",
       "title": "Large label / active row (labelL)",
       "detail": "Approved/aligned: selected or active option rows use text-sm font-medium.",
-      "reviewPrompt": null,
+      "reviewPrompt": "Selected and active option rows. Maps exactly onto our small size at medium weight. Confirm weight alone is enough to mark a row active, with no size change.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -1298,7 +1298,7 @@
       "originCategory": "D — Typography",
       "title": "Caption",
       "detail": "Approved/aligned: use text-xs for caption text.",
-      "reviewPrompt": null,
+      "reviewPrompt": "Caption text. Maps exactly onto our smallest size. Confirm captions and compact menu text sharing one size is intended — two different roles landing on one value.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
@@ -1332,7 +1332,7 @@
       "originCategory": "D — Typography",
       "title": "Strong caption / badge",
       "detail": "Approved/aligned: use text-xs font-semibold for dense badges and compact emphatic labels.",
-      "reviewPrompt": null,
+      "reviewPrompt": "Dense badges and compact emphatic labels. Same size as a caption, two weights heavier. Confirm the weight is doing the work, since the size cannot.",
       "reviewLabel": null,
       "state": "legacy_unverified",
       "visual": {
