@@ -1542,23 +1542,53 @@ export function FunctionalRailSidebar({
               overflow-hidden was ALSO incidentally guarding against, while now giving the focus ring
               genuine room to render. `min-h-0 flex-1` (the actual footer-anchoring mechanism) stays. */}
           <div ref={trackRef} aria-label="Main navigation" role="navigation" className="flex min-h-0 flex-1 flex-col gap-1">
-            {pinnedSections.map((section, index) => (
-              <RailIconButton
-                key={section.id}
-                section={section}
-                state={railState(section.id)}
-                colors={colors}
-                onClick={() => handleRailClick(section)}
-                // F-2 (railButton = 38px) is anchored to the FIRST pinned rail button only. The
-                // anchor must resolve to exactly one element, so this proves the representative
-                // instance rather than the whole set — see lib/divergence-anchors.tsx.
-                anchorRef={index === 0 ? "F-2" : undefined}
-                // Only the anchored button can be forced. A colour claim is about ONE
-                // rendered subject — lighting all 27 rail buttons would show the colour
-                // while destroying the "which element is this about" the anchor exists for.
-                forcedState={index === 0 && forcedState?.ref === "F-2" ? forcedState.state : undefined}
-              />
-            ))}
+            {pinnedSections.map((section, index) => {
+              /**
+               * An anchor names an ELEMENT, not a divergence — and that distinction is what
+               * makes the colour rows anchorable at all.
+               *
+               * `[data-divergence="…"]` must match exactly one element, so an element can
+               * carry exactly one anchor. But several divergences may legitimately describe
+               * different properties of the SAME element: `B-3` is the selected button's
+               * background and `B-6` is its foreground; `B-1` is the rail column's background
+               * while `F-1` is that same column's width and padding. One-divergence-per-element
+               * would make all of those unanchorable.
+               *
+               * They are not, because `spec.anchor` and `subjects.anchorId` are free strings
+               * rather than refs — `F-2` already declares subjects on `F-2` AND `F-2-icon`,
+               * where the second names no divergence at all. So rows point at element names,
+               * and a name can be shared.
+               *
+               * New anchors are therefore named for the element rather than for the first row
+               * that happened to need them. `F-2` keeps its ref-shaped name because a committed
+               * check spec resolves it; renaming it to match the convention would break that
+               * spec to satisfy a naming preference.
+               */
+              const anchorRef = index === 0 ? "F-2" : `rail-item-${section.id}`
+              return (
+                <RailIconButton
+                  key={section.id}
+                  section={section}
+                  state={railState(section.id)}
+                  colors={colors}
+                  onClick={() => handleRailClick(section)}
+                  anchorRef={anchorRef}
+                  // Only the row's own subject is forced. A colour claim is about ONE rendered
+                  // subject — lighting every rail button would show the colour while destroying
+                  // the "which element is this about" the anchor exists for.
+                  //
+                  // The `-icon` arm matters and is not defensive padding: a foreground token
+                  // (`B-6`/`B-7`/`B-8`) anchors the ICON, since the button already carries the
+                  // background token's anchor. Without it, selecting a foreground row would
+                  // highlight the icon and hold nothing.
+                  forcedState={
+                    forcedState && (forcedState.ref === anchorRef || forcedState.ref === `${anchorRef}-icon`)
+                      ? forcedState.state
+                      : undefined
+                  }
+                />
+              )
+            })}
 
             {mustStash && (
               <DropdownMenu open={overflowMenuOpen} onOpenChange={setOverflowMenuOpen}>
@@ -1784,6 +1814,16 @@ export function FunctionalRailSidebar({
               // future reader into thinking hover suppression is intentionally needed here.
               className="size-[38px] shrink-0 rounded-lg"
               style={{ color: colors.fgDisabled }}
+              // The only element in the component that renders `fgDisabled`, which makes it
+              // the sole possible subject for the disabled on-dark foreground token. Named
+              // for the element, per the anchor convention above.
+              //
+              // Its state needs no forcing: the button is genuinely `disabled`, so `rest` and
+              // `disabled` are the same rendered thing here. That is worth stating because
+              // the reverse would be a trap — `disabled:pointer-events-none` makes real hover
+              // unreachable on this element (see the L-14 note above), so a row declaring a
+              // hover state against it would force something that can never occur.
+              {...anchor("rail-profile-disabled")}
             >
               <UserIcon className="size-5" />
             </Button>
