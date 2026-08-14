@@ -439,6 +439,26 @@ description while it is still in the title** — say it once, properly, in the d
 canvas or nowhere — not evidence that the cap is wrong. Every draft this protocol has produced fits in
 180–270 with all four present.
 
+**The column cap is not the real constraint — the card is.** The description is clamped to three lines,
+which at the card's width is roughly **220 characters**. A draft that fits the column can still hide
+its own ask: measured on the real card, eleven confirm-register drafts at ~250 chars each lost their
+closing clause, showing *"Confirm both the cap and that"* and hiding *"stashing rather than scrolling
+is right."* The word "Confirm" was visible; the thing being confirmed was not.
+
+**The budget therefore differs by register, and the difference is principled:**
+
+| register | ask sits | budget | may clamp? |
+|---|---|---|---|
+| `decide` · `confirm` | **last** | ≤ ~220 | **no** — nothing below the fold |
+| `close` | first (*"Nothing to decide"*) | ≤ ~280 | yes — the trailing clause costs nothing |
+
+A close row is *meant* to be skipped, and its skip signal sits early enough to survive the clamp. A
+confirm or decide row carries its ask in the tail, so it must fit whole.
+
+**Measure this before writing to the corpus, not after.** Intercepting `/api/corpus` and injecting
+drafts into the payload renders them on the real card with no database write — which is how both of
+the above were caught while they were still drafts.
+
 ### Three registers: decide, confirm, close
 
 **Say which one a row is in.** It tells a reviewer whether they are exercising judgement, ratifying
