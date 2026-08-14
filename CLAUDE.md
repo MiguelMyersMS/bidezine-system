@@ -894,6 +894,24 @@ a genuinely new failure category is found — not evidence the list is now compl
     row as closed.** A row can be fully, correctly reasoned about in documentation while the corresponding
     code was never written at all; documentation completeness is not evidence of implementation completeness.
 
+    **A fifth axis: A VOCABULARY TERM IS A CONSTANT, and this rule governs enum values too.** Two Sandbox
+    enums hit the same gap in succession — `divergence_relation.kind` had no term for a derived value, then
+    `subject_state` had none for "this section's panel is open". Both enums had been drawn from what the
+    FIRST occupant happened to need, which is the same defect as a colour invented from one component's
+    palette. **Three tests before extending any enum:** (1) **does an existing value already cover it?** If
+    the occupant merely uses a different word, rename it in the declaration rather than extending — the rail's
+    `browsing` was its own word for `expanded`, and adding it would have encoded one component's vocabulary
+    system-wide; (2) **do bidezine's own primitives already name the concept?** This is the strong test
+    because it is checkable by counting files rather than by predicting the future — `expanded` appears in 13
+    `src/ui` primitives as `data-[state=open]`, persistent-current in 7 as `data-active`/`aria-pressed`;
+    (3) **adding a value promises something renders or uses it DISTINCTLY** — a value nothing distinguishes is
+    worse than none, because it asserts a structure and then lies about it. **And watch for a term that
+    already means something else in the same system:** `subject_state`'s `active` means CSS `:active`
+    (pressed) while seven primitives use "active" for *current*, and that collision silently bent a real
+    declaration (B-4 declared `active`, B-3 routed to `rest` to dodge it) before anyone named it. A comment
+    warning about a collision is the weakest available fix — the component's own comment already warned, was
+    read, and the workaround was written anyway. Rename the colliding term instead.
+
 27. **Any custom component placed directly under a Radix `asChild`-enabled trigger (`TooltipTrigger`,
     `DropdownMenuTrigger`, `PopoverTrigger`, etc.) needs BOTH `React.forwardRef` AND full rest-prop forwarding
     — a passing typecheck or build proves neither, only a live hover/focus interaction test does.** `L-1`'s

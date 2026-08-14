@@ -192,8 +192,12 @@ service principal; there is no password-based fallback for local development.
   `detail` averaging 1,358 characters with 104 of 154 rows over 280. A column that physically cannot
   hold a paragraph enforces concision in a way a style guide cannot be talked out of — the same
   argument §5.5 makes for an attribute over a stored selector.
-- **divergence_relation** *(migration 020)* — one divergence is ABOUT another: a question that `answers`
-  it, or a risk that `risks` it. Typed and directional; an untyped "related to" cannot answer "nest this
+- **divergence_relation** *(migration 020, extended at 021)* — one divergence is ABOUT another: a question
+  that `answers` it, a risk that `risks` it, or a value that `derives` from it. **`derives` is a
+  dependency, not a satellite:** `answers`/`risks` are several rows about ONE decision and nest together;
+  `derives` links two INDEPENDENT decisions (F-7's footer cap computes from F-2's `RAIL_BUTTON_SIZE`), so
+  it renders as "changes with F-2" and must never nest, or it hides a decision someone still owes. It is
+  `divergence_dependency` (013) at row granularity, and that is where enforcement would eventually live. Typed and directional; an untyped "related to" cannot answer "nest this
   row under that one", which is the whole point. **Hand-authored, never inferred** — `origin_record`
   carries these links, but its contract is verbatim fidelity, so reading structure out of it would take
   meaning from a field promising only preservation, and the next occupant's source may carry none. Each

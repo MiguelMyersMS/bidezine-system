@@ -45,6 +45,10 @@ const DRY = process.argv.includes("--dry-run")
  *
  * `answers` — a decision row resolving the question a divergence raises.
  * `risks`   — a follow-through the divergence's resolution must not lose.
+ * `derives` — a value COMPUTED from another row's (migration 021). A dependency between two
+ *              independent decisions, NOT a satellite of one: F-7 needs its own review, its
+ *              value merely resolves from F-2's. It must render as "changes with F-2", never
+ *              nested inside F-2 the way a question is.
  *
  * R-1 is a `risks` edge rather than an `answers` one even though it concerns the same
  * subject as Q1: the question decided WHAT the mechanism is, the risk constrains where it
@@ -177,6 +181,23 @@ const RELATIONS = [
     to: "D-6",
     kind: "risks",
     note: "D-12's review_prompt resolves the apparent conflict with D-6's compact size in favour of the shared menu scale.",
+  },
+  // Established by the CODE, not by a review_prompt sentence — the only two edges here that
+  // are, and the distinction is worth keeping visible. FOOTER_MAX_HEIGHT and the rail item
+  // slot are literal expressions over RAIL_BUTTON_SIZE in FunctionalRailSidebar.tsx, so what
+  // establishes them is a measurement rather than a reading. That makes them stronger
+  // evidence than prose, not weaker.
+  {
+    from: "F-7",
+    to: "F-2",
+    kind: "derives",
+    note: "FOOTER_MAX_HEIGHT = RAIL_BUTTON_SIZE * FOOTER_MAX_ICONS + FOOTER_GAP * (FOOTER_MAX_ICONS - 1), literally, at FunctionalRailSidebar.tsx:454.",
+  },
+  {
+    from: "F-9",
+    to: "F-2",
+    kind: "derives",
+    note: "The rail item slot resolves from RAIL_BUTTON_SIZE plus one spacing step; F-2 owns that constant.",
   },
 ]
 

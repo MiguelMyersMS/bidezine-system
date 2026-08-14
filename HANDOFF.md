@@ -189,6 +189,54 @@ not a server problem — try `/mcp` in an interactive session.
 
 Read `docs/SANDBOX-SPEC.md` first. It is the single source of truth for this project.
 
+**HELD, ready to write the moment the UI agent's batch lands — this is migration 022.** Do not start it
+without confirming that batch is done: it is DDL on `sandbox.divergence`, the table that batch writes
+`subject_state` into.
+
+- **Rename `subject_state`'s `active` → `pressed`.** The vocabulary's `active` means CSS `:active`
+  (pressed); the rail's `active` means *current*; and seven `src/ui` primitives model "current" as
+  `data-active`/`aria-pressed`. Same word, opposite meanings, already in one system — and it had already
+  bent a declaration before anyone named it: **B-4 (`darkPressedBg`) is declared `active` and B-3
+  (`darkActiveBg`) was routed to `rest`** to dodge the collision. Blast radius measured, not guessed:
+  one CHECK, one row (B-4 is the only `active` in the corpus), one case in `verifier/run-checks.mjs:149`
+  (which does `mouse.down()` — the rename makes it read as what it already does), and one fixture line,
+  `verifier/checks/__verifier_test__/T-1.json:26`. **No real check spec uses `active`.** The runner case
+  and the fixture must move in the SAME commit or `verify-runner` breaks.
+- **Add `selected` and `expanded`.** Not `browsing` — that was the rail's word for `expanded`. `selected`
+  = persistent current (7 primitives). `expanded` = disclosure open (13 primitives, `data-[state=open]`).
+  B-5 (`darkBorderStrong`, the browsing ring) becomes declarable as `expanded`; the forcible mechanism
+  for it was deliberately not built while no row could legally address it.
+- **Then re-declare B-3 and B-6 from `rest` to `selected`.** `rest` is truthful today only because the
+  demo happens to select Slides — if the demo's default section changes, those two checks fail for a
+  reason unrelated to the token.
+
+**Enum policy, decided once so it is not answered a third time.** Two vocabulary gaps in a row
+(`derives`, then `browsing`) had the same cause: an enum drawn from what the first occupant needed.
+Enums EXTEND, but only with the general concept, never the occupant's word — and `CLAUDE.md` item 26's
+rule governs it, because a vocabulary term is a constant like any colour or size. Three tests, in
+migration 021's header in full: (1) does an existing value already cover it — if the occupant merely
+uses a different word, rename it in the declaration; (2) do bidezine's own primitives already name the
+concept — checkable by counting files, not speculation; (3) adding a value promises something renders it
+DISTINCTLY, and a value nothing distinguishes is worse than none.
+
+**Migration 021 — `derives`, the third relation kind.** `F-7` and `F-9` both compute from `F-2`'s
+`RAIL_BUTTON_SIZE`; `FOOTER_MAX_HEIGHT` is a literal expression over it at
+`FunctionalRailSidebar.tsx:454`. Neither is an answer or a risk, and forcing one would have put a false
+claim in the corpus. **`derives` is a DEPENDENCY, not a satellite — it must not nest.** `answers`/`risks`
+are satellites of one decision; `derives` links two independent decisions, and nesting F-7 under F-2
+would hide a decision someone still has to make. It renders as "changes with F-2" or it does not render.
+It is also `divergence_dependency` (013) at row granularity — if F-2's measured value changes, F-7's and
+F-9's evidence is suspect for the same reason — which is where enforcement would eventually live.
+
+**Three stale titles corrected — F-3, F-5 and F-6, not just F-3.** Measured against the live component:
+`PANEL_DEFAULT_WIDTH = 256` (line 424) against a title saying 300; panel-tree rows are `h-8` at 950/979/
+1073 against titles saying 40px and 28px, with the three remaining `h-9` mentions all inside comments.
+**Authorised because `title` is not the archive:** `origin_record.what` still holds each original
+verbatim and was untouched, so M4's lossless rule was never at risk — which is also why L-34's correction
+was authorised, though nobody had noticed that was the actual reason. Their three `review_prompt`s moved
+with them: each had ended by asking the reviewer to confirm the title was stale, which becomes false the
+moment it is not.
+
 **Migration 020 — a divergence can be about another divergence.** `sandbox.divergence_relation`, typed
 (`answers` | `risks`) and directional, plus `fn_divergence_relations(@id)` returning both directions with
 the other row's ref resolved. Populated by `node scripts/declare-relations.mjs`.
