@@ -605,6 +605,37 @@ function useThemeMode(): "light" | "dark" {
   return mode
 }
 
+/**
+ * A CSS custom property's real resolved value, or `null` if it is not defined anywhere.
+ *
+ * ── Why the card has to ask this at runtime ────────────────────────────────────────
+ * A divergence's `afterVar` is a PROPOSED variable name. Some of them are real bidezine
+ * tokens that exist today (`--card`, `--accent`, `--border` …); others name a token that
+ * has not been authored yet (`--sidebar-rail-*` exists in no file under `tokens/`). The
+ * payload does not distinguish them, and nothing except the browser can: "does this token
+ * exist" is a question about the compiled stylesheet, not about the record.
+ *
+ * Getting this wrong is not cosmetic. An undefined `var()` used as a background is invalid
+ * at computed-value time, so the element paints nothing and shows whatever is behind it —
+ * white on a light card, dark on a dark one. Reported directly by the owner while
+ * reviewing B-1: the Proposal swatch looked like a real colour that "switches when I
+ * switch themes", i.e. like a proposal to turn the dark rail white. It was an empty box.
+ *
+ * Re-resolved on theme change, because a token's value differs per mode and the whole
+ * point of these blocks is to show the mode you are actually looking at.
+ */
+function useResolvedVar(name: string | undefined, mode: "light" | "dark"): string | null {
+  const [value, setValue] = useState<string | null>(null)
+  useEffect(() => {
+    if (!name) return setValue(null)
+    // Read off the documentElement: that is where both :root and .dark declare, so it is
+    // the only node whose computed value reflects the theme actually in force.
+    const raw = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+    setValue(raw || null)
+  }, [name, mode])
+  return value
+}
+
 /** One block. `example` is whatever the kind renders; `spec` is the single differentiator. */
 function Block({
   role,
@@ -633,6 +664,72 @@ function Block({
 }
 
 const CHIP = "flex size-11 shrink-0 items-center justify-center rounded-md border bg-background"
+
+/**
+ * The Proposal half of a colour comparison, in the four states it can actually be in.
+ *
+ * It used to be one branch: render a swatch, fill it with `after ?? "transparent"`, and
+ * label it `after ?? afterVar ?? "not proposed yet"`. That collapsed three genuinely
+ * different situations into one square that looked identical in all of them:
+ *
+ *   1. a literal hex               — a real proposal, correctly shown
+ *   2. a var naming a REAL token   — 14 rows (C-1…C-14) whose colour was available all
+ *                                    along; `afterVar` was never read, so they rendered
+ *                                    EMPTY while a perfectly good token sat behind the name
+ *   3. a var naming a token that does not exist — B-1/B-5/B-6's `--sidebar-rail-*`,
+ *                                    proposals nobody has authored
+ *   4. nothing at all              — B-2/B-3/B-4/B-7/B-8/B-9, which carry only a note
+ *
+ * States 2, 3 and 4 all painted a bordered box with no background, captioned with a
+ * variable name. A reviewer reads that as "the proposal is this colour" — and since an
+ * empty box shows the card behind it, the "colour" changes with the theme. That is how
+ * B-1 came to look like a proposal to turn the dark rail white.
+ *
+ * Now: a swatch is rendered ONLY when there is a real colour to put in it. Where there
+ * isn't, the block says which of the two absences it is, because "not authored yet" and
+ * "nothing proposed" are different facts and a reviewer's next action differs between them.
+ */
+function ProposalColor({
+  hex,
+  varName,
+  note,
+  mode,
+}: {
+  hex?: string
+  varName?: string
+  note?: string
+  mode: "light" | "dark"
+}) {
+  const resolved = useResolvedVar(varName, mode)
+  // A literal wins; then a var that genuinely resolves. Nothing else gets a swatch.
+  const paint = hex ?? (resolved ? `var(${varName})` : null)
+  const spec = hex ?? (resolved ? `${varName} — ${resolved}` : varName ? `${varName} (not authored)` : "none")
+
+  if (paint) {
+    return (
+      <Block role="Proposal" spec={spec}>
+        <span className="size-11 shrink-0 rounded-md border" style={{ background: paint }} />
+      </Block>
+    )
+  }
+
+  return (
+    <div className="rounded-md border border-dashed bg-muted/30 p-3">
+      <p className="text-xs font-medium">Proposal</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">
+        {varName ? (
+          <>
+            No colour to show. <code className="font-mono">{varName}</code> is the proposed name and is not
+            defined in any token file yet, so there is nothing to compare against.
+          </>
+        ) : (
+          <>No colour is recorded on this row, so there is nothing to compare against.</>
+        )}
+      </p>
+      {note ? <p className="mt-1 text-xs text-muted-foreground italic">{note}</p> : null}
+    </div>
+  )
+}
 
 export function ComparisonBlocks({ visual }: { visual: Visual }) {
   const mode = useThemeMode()
@@ -669,12 +766,7 @@ export function ComparisonBlocks({ visual }: { visual: Visual }) {
         <Block role="Current" spec={before}>
           <span className="size-11 shrink-0 rounded-md border" style={{ background: before }} />
         </Block>
-        <Block role="Proposal" spec={after ?? visual.afterVar ?? "not proposed yet"}>
-          <span
-            className="size-11 shrink-0 rounded-md border"
-            style={{ background: after ?? "transparent" }}
-          />
-        </Block>
+        <ProposalColor hex={after} varName={visual.afterVar} note={visual.afterNote} mode={mode} />
       </div>
     )
   }
