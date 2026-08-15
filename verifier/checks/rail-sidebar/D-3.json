@@ -1,0 +1,20 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "D-3",
+  "url": "http://localhost:4199",
+  "anchor": "panel-title",
+  "_decision": "Panel and card titles map onto text-base at medium weight — the same size AND the same weight as origin's headingS, one of the six exact matches in this category.",
+  "_scale": "Values come from the approved type mapping, not from measuring the component: Tailwind's own theme.css defines --text-base 1rem/1.5rem, --text-sm 0.875rem/1.25rem, --text-xs 0.75rem/1rem, --font-weight-medium 500.",
+  "_scope": "The panel header's own title. Also carries D-11's truncation claim, which is a separate spec on the same element.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "rest",
+      "expect": {
+        "font-size": "16px",
+        "line-height": "24px",
+        "font-weight": "500"
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "D-1",
+  "url": "http://localhost:4199",
+  "anchor": "panel-title",
+  "_decision": "Origin ships Inter. Our --font-sans is already Inter-first with system fallbacks, so nothing had to change — an exact match rather than a divergence.",
+  "_scale": "Values come from the approved type mapping, not from measuring the component: Tailwind's own theme.css defines --text-base 1rem/1.5rem, --text-sm 0.875rem/1.25rem, --text-xs 0.75rem/1rem, --font-weight-medium 500.",
+  "_scope": "Asserted on the panel title because the family is inherited and any real text element proves it. The FIRST family in the stack is what matters — a fallback firing would mean the font failed to load, which is a different failure from the wrong family being configured.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "rest",
+      "expect": {
+        "font-family": "Inter, ui-sans-serif, system-ui, sans-serif"
+      }
+    }
+  ],
+  "_value_source": "The expected stack is read from tokens/base.tokens.json's own font-sans $value at spec-authoring time and joined, NOT copied from the browser. That direction matters: a token change must fail this check, and an expectation pasted from a measurement can never fail — it would only ever re-describe whatever the component currently does.",
+  "_why_the_whole_stack": "The first attempt asserted just \"Inter\" and failed, because getComputedStyle returns the resolved stack. Asserting the whole stack is the stronger claim anyway: it proves Inter is FIRST and that the fallbacks are the intended ones. A stack that silently lost its system fallbacks would pass an Inter-only check."
+}

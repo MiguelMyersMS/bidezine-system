@@ -1001,7 +1001,21 @@ function PanelTree({
                   line box to the 14px font-size and clipping descenders against this same span's
                   own `truncate` overflow. An unselected row would measure 20px whether or not the
                   bug were present, and would prove nothing. */}
-              <span {...(isSelected ? anchor("L-34") : {})} className="flex-1 truncate">
+              {/* Two anchors, mutually exclusive by construction. `L-34` follows the SELECTION,
+                  because its claim is about active-path rows — the only ones that carried the
+                  `leading-none` that clipped descenders. `tree-leaf-resting` is pinned to a node
+                  that is NOT on the active path, because D-4's claim is the resting body row
+                  (14px/400), and measuring it on a selected row would read 500 and prove the
+                  opposite. `rules-engine` sits inside `system-logic` but is not an ancestor of
+                  `monthly`, so it stays unemphasised while the demo's default selection holds. */}
+              <span
+                {...(isSelected
+                  ? anchor("L-34")
+                  : node.id === "rules-engine"
+                    ? anchor("tree-leaf-resting")
+                    : {})}
+                className="flex-1 truncate"
+              >
                 {node.label}
               </span>
               {node.badge && <PanelBadge label={node.badge} />}
@@ -2076,7 +2090,15 @@ export function FunctionalRailSidebar({
                         screenshot): the panel title is single-line, truncated with an ellipsis
                         (`whiteSpace: nowrap; textOverflow: ellipsis`) — `truncate` here is the exact
                         Tailwind equivalent. See divergence row D-11. */}
-                    <span className="truncate text-base font-medium">{displaySection.label}</span>
+                    {/* D-3 (panel/card title, text-base font-medium) and D-11's title half, which
+                        requires single-line truncation. One element, two rows — anchors name
+                        elements, not divergences. */}
+                    <span
+                      className="truncate text-base font-medium"
+                      {...anchor("panel-title")}
+                    >
+                      {displaySection.label}
+                    </span>
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
                     <DropdownMenu>
@@ -2141,7 +2163,7 @@ export function FunctionalRailSidebar({
                     this to 3 lines (not unbounded) so a very long subtitle can't make the fixed-
                     width panel header grow arbitrarily tall; `line-clamp-3` wraps up to 3 lines then
                     truncates the 3rd with an ellipsis. See divergence row D-11. */}
-                <p className="line-clamp-3 pl-[22px] text-xs text-muted-foreground">
+                <p className="line-clamp-3 pl-[22px] text-xs text-muted-foreground" {...anchor("panel-subtitle")}>
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit.
                 </p>
               </div>

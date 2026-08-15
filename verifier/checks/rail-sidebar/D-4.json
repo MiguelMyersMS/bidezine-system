@@ -1,0 +1,20 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "D-4",
+  "url": "http://localhost:4199",
+  "anchor": "tree-leaf-resting",
+  "_decision": "The main option rows in the panel map exactly onto text-sm. Exact match to origin's bodyM.",
+  "_scale": "Values come from the approved type mapping, not from measuring the component: Tailwind's own theme.css defines --text-base 1rem/1.5rem, --text-sm 0.875rem/1.25rem, --text-xs 0.75rem/1rem, --font-weight-medium 500.",
+  "_scope": "Anchored to a RESTING leaf (`rules-engine`), deliberately not the selected one: a row on the active path renders at weight 500, so measuring there would prove D-7's claim and silently pass this one for the wrong reason.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "rest",
+      "expect": {
+        "font-size": "14px",
+        "line-height": "20px",
+        "font-weight": "400"
+      }
+    }
+  ]
+}

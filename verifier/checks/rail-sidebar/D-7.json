@@ -1,0 +1,20 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "D-7",
+  "url": "http://localhost:4199",
+  "anchor": "L-34-group",
+  "_decision": "Selected and active rows map exactly onto text-sm at medium weight. Weight alone marks a row active — the size does not change, which is what makes this and D-4 a genuine pair.",
+  "_scale": "Values come from the approved type mapping, not from measuring the component: Tailwind's own theme.css defines --text-base 1rem/1.5rem, --text-sm 0.875rem/1.25rem, --text-xs 0.75rem/1rem, --font-weight-medium 500.",
+  "_scope": "Reuses L-34-group's anchor: one element, several rows. L-34 asserts the same three properties for a DIFFERENT reason (descender clipping needs line-height >= 20px), and the overlap is deliberate — if they ever disagree, one of the two claims has drifted.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "rest",
+      "expect": {
+        "font-size": "14px",
+        "line-height": "20px",
+        "font-weight": "500"
+      }
+    }
+  ]
+}

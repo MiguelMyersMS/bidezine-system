@@ -1,0 +1,20 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "D-5",
+  "url": "http://localhost:4199",
+  "anchor": "panel-subtitle",
+  "_decision": "Compact secondary text maps onto text-xs. Our scale has no step at origin's 13px, so this lands one pixel smaller — a real, accepted shrink rather than an exact match.",
+  "_scale": "Values come from the approved type mapping, not from measuring the component: Tailwind's own theme.css defines --text-base 1rem/1.5rem, --text-sm 0.875rem/1.25rem, --text-xs 0.75rem/1rem, --font-weight-medium 500.",
+  "_scope": "The panel header's subtitle, the one place in the rail this tier renders. D-11's line-clamp claim is on the same element and is its own spec.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "rest",
+      "expect": {
+        "font-size": "12px",
+        "line-height": "16px",
+        "font-weight": "400"
+      }
+    }
+  ]
+}
