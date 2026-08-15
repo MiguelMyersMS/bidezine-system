@@ -20,6 +20,7 @@ import {
 } from "@bidezine/system"
 import { ReviewCardShell, type ShellBadge } from "@/components/ReviewCardShell"
 import { BLOCK_KINDS, ComparisonBlocks } from "@/components/CompareVisuals"
+import { registerOf } from "@/lib/register"
 import type { CorpusDivergence } from "@/data/corpus"
 
 /**
@@ -679,7 +680,19 @@ export function ReviewCard({
                     ? `Cannot approve — ${owner ? `${owner} owns this` : "no machine identity"}`
                     : ready
                       ? "Approve migration"
-                      : `Not yet approvable — ${unmetLabel(row.unmet)}`}
+                      : registerOf(row) === "decide"
+                        ? // A decide row inverts the pipeline, and saying "needs a
+                          // measurement" here points at the wrong actor. Nothing can be
+                          // measured until someone chooses: no value means nothing to
+                          // anchor, nothing to anchor means nothing to measure, and the
+                          // gate reports evidence and review unmet for that reason rather
+                          // than because a machine is behind.
+                          //
+                          // The queue's own bucket already says this — "evidence waits on
+                          // them" — and this label said the opposite four inches below it,
+                          // on the same screen. Reported from a screenshot of G-1.
+                          "Waiting on your decision — the measurement follows it, not the other way round"
+                        : `Not yet approvable — ${unmetLabel(row.unmet)}`}
             </Label>
             {blockedByOwnership && (
               <Badge variant="secondary" className="ml-auto">
