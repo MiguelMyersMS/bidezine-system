@@ -158,6 +158,18 @@ const REQUIREMENT_PHRASE: Record<string, string> = {
   "evidence.present": "a measurement",
   "evidence.current": "a measurement newer than the code",
   "review.present": "an independent review",
+  // Added after B-1 rendered "needs a measurement, a measurement newer than the code,
+  // review.citations_support and token.authored" — the last two falling through to raw
+  // slugs. The fallback behaved as designed (a name the UI has not been taught is shown
+  // rather than dropped, which would understate what is missing), and the right response
+  // is to teach it rather than to widen the fallback.
+  "review.citations_support": "a review citing evidence that still passes",
+  "review.cites_evidence": "a review that cites its evidence",
+  // Migration 026. The one requirement a reviewer cannot clear by reviewing: the proposed
+  // token has to exist in tokens/ before the row can be approved at all.
+  "token.authored": "its token to exist in tokens/",
+  "decision.present": "your decision",
+  "divergence.blocked": "the system change it is parked on",
 }
 
 function unmetLabel(unmet: CorpusDivergence["unmet"]): string {
