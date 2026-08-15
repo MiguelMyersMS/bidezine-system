@@ -639,6 +639,30 @@ export function ReviewCard({
             <Switch
               id={`approve-${row.ref}`}
               data-approve-switch={row.ref}
+              /**
+               * `cursor-pointer` at the CALL SITE, not in the primitive.
+               *
+               * Reported directly: "I cannot click on it, and there is only a small section
+               * between the toggle and the text that seems clickable." Measured, and the
+               * description was exact — on a ready row the switch and its label both compute
+               * `cursor: default` while the CARD around them computes `cursor: pointer`,
+               * because the card is selectable. So the two things that ARE clickable looked
+               * inert, and the only place showing a pointer was the 8px gap between them,
+               * which belongs to the card.
+               *
+               * Checked the reference before diverging, per the one-design-source rule:
+               * shadcn's own Switch and Label carry `cursor-not-allowed` and nothing for the
+               * enabled state, and our port matches exactly. There is no fidelity bug to fix.
+               * The problem is compositional and belongs to this card — a Switch on shadcn's
+               * own neutral background is not out-competed by its container. Changing the
+               * shared primitive to solve one call site's context would be the wrong scope.
+               *
+               * twMerge checked before writing (item 1): `cursor-pointer` and
+               * `disabled:cursor-not-allowed` are different conflict groups, so both survive
+               * and the disabled cursor still wins when disabled — which is the behaviour a
+               * closed gate depends on.
+               */
+              className="cursor-pointer"
               // `checked` is bound to the SERVER's answer, never to local state. A switch
               // that flips optimistically announces a state change to a screen reader that
               // may not have happened — and here it frequently would not have.
@@ -670,7 +694,11 @@ export function ReviewCard({
                       : "The gate is closed. This cannot succeed; the database refuses the transition."
               }
             />
-            <Label htmlFor={`approve-${row.ref}`} className="text-xs font-normal">
+            {/* The label is the larger target by far — 100px against the switch's 32x18 —
+                and clicking it genuinely toggles the switch (verified: the POST fires). It
+                needs the same cursor for the same reason, or the bigger hit area is the one
+                that looks least interactive. */}
+            <Label htmlFor={`approve-${row.ref}`} className="cursor-pointer text-xs font-normal">
               {/* Reopening invalidates the review (migration 007), so the gate closes in
                   the same frame and this control goes disabled. Saying so is the point —
                   the off position is not a state you can casually leave. */}
