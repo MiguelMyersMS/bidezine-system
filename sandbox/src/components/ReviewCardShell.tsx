@@ -195,7 +195,16 @@ export function ReviewCardShell({
           </p>
         )}
 
-        {expanded && examples ? <div>{examples}</div> : null}
+        {/* `min-w-0` because THIS is the grid item.
+            `CardHeader` is a CSS grid, and a grid item's default `min-width: auto` sizes it
+            to its content's min-content. The comparison block's spec line carries
+            `truncate`, whose `white-space: nowrap` makes min-content the WHOLE string — so
+            an untruncated spec sized the grid column, every sibling in the header stretched
+            to match, and the card's own description painted past its border.
+            Putting `min-w-0` on the block's own wrapper is not enough: the item has to be
+            allowed to shrink, not just its child. Measured on G-1 at a 300px card — header
+            children 444px, overflowing by 161px. */}
+        {expanded && examples ? <div className="min-w-0">{examples}</div> : null}
 
         {expandable ? (
           <div>
