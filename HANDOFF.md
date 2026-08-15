@@ -205,8 +205,21 @@ all had audit tables; deciding had none, so it could not be required or reused.
 - **`sandbox.design_token`** is synced from the real token files by `verifier/sync-design-tokens.mjs`.
   **Run it after any commit touching `tokens/`**, or a newly-authored token still reads as missing.
 
-**THE READY QUEUE IS 6, DOWN FROM 14 — that is the protocol working, not a regression.** All nine B rows
-are blocked on tokens that do not exist. `F-1, F-2, F-3, F-5, F-6, L-34` remain.
+**THE READY QUEUE IS 5, DOWN FROM 14 — that is the protocol working, not a regression.** All nine B rows
+are blocked on tokens that do not exist. `F-2, F-3, F-5, F-6, L-34` remain.
+
+**F-1 was reopened against `decision.present` (028).** It was resolved and in the queue. Its whole
+justification is *"match the origin Rail Sidebar rail width at 54px instead of using the Sidebar
+primitive's 48px"* — a comparison with no reason for rejecting bidezine's own value, which is the F-3
+mistake and item 26's core case. **The evidence was left standing on purpose**: the 54px measurement is
+correct and beside the point. Re-registered `decide` in the same act.
+
+**A summary can lose the justification its record holds, and F-1/G-1 is the demonstrated case.** Judged
+from their `review_prompt` summaries the two came out backwards — G-1 looked like a bare fact and F-1
+looked defended, while their `detail` fields say the opposite. **Judge a row by its `detail`, never its
+summary.** How often this happened across the other 167 rows is unknown, and prose-matching will not find
+it; `divergence_decision.rejected_value` is the structural answer for new decisions. Recorded in
+`CLAUDE.md`'s Sandbox-fidelity list.
 
 **CI blocks now.** `scope-detection.yml` fails a system-scope change carrying no `System-Change: SC-nn`
 trailer. A replay of the same classifier over all 107 commits since it landed found ONE system-scope
@@ -219,12 +232,12 @@ commit, so this will not fire constantly.
   `src/styles` or `tokens/` with no `system_change` record. 22 of those 23 commits predate the CI check
   and were invisible to it. Reporting the two as one number would overstate the first.
 
-**`check-declarations` is 6/7 — two orphans left, down from seven.** The red check is *"every bidezine
-subject names an anchor a real check spec measures"*. Six of the seven specs landed at `d2730ba`; the
-remaining orphans are **`B-3 → rail-item-slides` and `B-6 → rail-item-slides-icon`**, held back
-deliberately because both declare `selected`, which the runner could not execute until the fix below.
-It can now, so nothing blocks them. **It clears when those two specs are written, and not before.** Do
-not silence it: it is the only thing distinguishing "declared and measurable" from "declared".
+**`check-declarations` is 6/7, and this file described the wrong failure until now.** The anchor check —
+*"every bidezine subject names an anchor a real check spec measures"* — now **passes**; the B-3/B-6 specs
+landed. The red one is a different check: **`L-34: asserts font-weight but does not declare it`**
+(declared and asserted properties must be the same set, both directions). That is a Copilot ask predating
+migrations 023–028 and has not landed. Do not silence it: it is the only thing distinguishing "declared
+and measurable" from "declared".
 
 **Migration 022 — `subject_state` gained the persistent states it never had, and lost a word that meant
 two things.** `active` → `pressed`; `selected` and `expanded` added. Landed whole, because the runner

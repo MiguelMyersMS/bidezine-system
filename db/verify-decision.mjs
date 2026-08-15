@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════════
-// The decision record, proved against a fixture — migrations 023–026.
+// The decision record, proved against a fixture — migrations 023–028.
 //
 //   node db/verify-decision.mjs
 //
@@ -108,14 +108,17 @@ try {
     r.input("by", o.by ?? "fixture-owner")
     r.input("machine", o.machine ?? "Laptop A")
     r.input("token", o.token ?? null)
+    r.input("rejected", o.rejected ?? null)
+    r.input("noEquivalent", o.noEquivalent ? 1 : 0)
     return r.query(`
       EXEC sandbox.usp_record_decision
         @divergence_id=${id}, @concept=@concept, @chosen_value=@chosen,
         @disposition=@disposition, @rationale=@rationale, @decided_by=@by,
-        @machine=@machine, @chosen_token=@token`)
+        @machine=@machine, @chosen_token=@token,
+        @rejected_value=@rejected, @no_equivalent=@noEquivalent`)
   }
 
-  await record(proposal, { disposition: "authored", token: "--decision-test-missing" })
+  await record(proposal, { disposition: "authored", token: "--decision-test-missing", rejected: "--muted (too light against the rail)" })
   check(await unmetOf(proposal, "decision.present") === 0, "recording one clears it")
 
   // ── 026: token.authored, in every direction it has ───────────────────────────────
@@ -137,7 +140,7 @@ try {
   )
 
   const noTokenRow = await addRow("D-NOTOKEN", { register: "decide" })
-  await record(noTokenRow, { disposition: "authored", token: null })
+  await record(noTokenRow, { disposition: "authored", token: null, rejected: "Sidebar primitive 48px" })
   check(
     await unmetOf(noTokenRow, "token.authored") === 0,
     "an authored decision about something that is not a token at all does not block",
@@ -154,8 +157,66 @@ try {
     "and the superseded decision is still on record — append-only, not overwritten",
   )
 
+  // ── 028: an authored value must say what it was chosen INSTEAD OF ────────────────
+  console.log("\nan authored value must name what it rejected — the F-1 shape\n")
+
+  const undefendedRow = await addRow("D-UNDEFENDED", { register: "decide" })
+  let undefended = null
+  try {
+    await record(undefendedRow, { disposition: "authored", rationale: "origin uses 54px" })
+  } catch (err) {
+    undefended = err.message
+  }
+  check(
+    undefended !== null && /chosen instead of/.test(undefended),
+    "an authored value with nothing rejected and no `no equivalent` marker is REFUSED",
+    undefended?.split("\n")[0].slice(0, 96) ?? "IT WAS ACCEPTED — F-1 could be recorded again exactly as it was",
+  )
+
+  await record(undefendedRow, {
+    disposition: "authored",
+    rejected: "Sidebar primitive's 48px collapsed rail",
+    rationale: "fixture: names the bidezine value it was chosen instead of",
+  })
+  check(
+    (await q(`SELECT rejected_value FROM sandbox.divergence_decision WHERE divergence_id=${undefendedRow}`))[0]
+      ?.rejected_value === "Sidebar primitive's 48px collapsed rail",
+    "naming the rejected value is accepted and stored",
+  )
+
+  const novelRow = await addRow("D-NOVEL", { register: "decide" })
+  await record(novelRow, {
+    disposition: "authored",
+    noEquivalent: true,
+    rationale: "fixture: a genuinely new concept with nothing to weigh it against",
+  })
+  check(
+    (await q(`SELECT no_equivalent FROM sandbox.divergence_decision WHERE divergence_id=${novelRow}`))[0]
+      ?.no_equivalent === true,
+    "`no equivalent existed` is the honest escape, and must be STATED — a NULL would make silence look like an answer",
+  )
+
+  // A `reused` decision names an existing value by definition; demanding it also name a
+  // rejected one would be ceremony with nothing behind it.
+  const reusedUndefended = await addRow("D-REUSED-2", { register: "decide" })
+  let reusedErr = null
+  try {
+    await record(reusedUndefended, { disposition: "reused", token: realToken })
+  } catch (err) {
+    reusedErr = err.message
+  }
+  check(reusedErr === null, "a REUSED decision is not asked what it rejected — it reuses, it does not reject")
+
   // ── the refusals ─────────────────────────────────────────────────────────────────
   console.log("\nwhat usp_record_decision refuses\n")
+
+  // Measured immediately before the refusals rather than hard-coded. A literal count here
+  // silently becomes wrong the moment a check is added above it, and then fails for a reason
+  // that has nothing to do with what it is testing.
+  const decisionsBeforeRefusals = (
+    await q(`SELECT COUNT(*) n FROM sandbox.divergence_decision dd
+             JOIN sandbox.component c ON c.component_id = dd.component_id WHERE c.slug='${SLUG}'`)
+  )[0].n
 
   for (const [label, opts, pattern] of [
     ["an empty rationale", { disposition: "reused", rationale: "   " }, /rationale is required/i],
@@ -170,7 +231,11 @@ try {
   }
 
   const written = (await q(`SELECT COUNT(*) n FROM sandbox.divergence_decision dd JOIN sandbox.component c ON c.component_id=dd.component_id WHERE c.slug='${SLUG}'`))[0].n
-  check(written === 4, "no refused call reached the INSERT", `${written} decision rows on the fixture`)
+  check(
+    written === decisionsBeforeRefusals,
+    "no refused call reached the INSERT",
+    `${decisionsBeforeRefusals} before, ${written} after`,
+  )
 
   // ── the app cannot write around the procedure ────────────────────────────────────
   console.log("\nthe procedure is the only door\n")

@@ -456,6 +456,22 @@ sandbox component before it's considered ready to promote — not a one-off list
   data was ever long enough to expose a real divergence. Temporarily substitute long test strings and check
   computed style/screenshots before signing off on any text-bearing element's overflow behavior.
 
+- **A summary layer can lose the justification the record contains — and reviewing from the summary can
+  invert which rows are sound.** `divergence.review_prompt` is a one- or two-sentence restatement of a row
+  written for the review card. Two structurally identical rows were judged from those summaries and came
+  out backwards. `G-1`'s summary ("origin's value falls between two of our steps, so it ships as a raw
+  inline number") reads as a bare fact, while its own `detail` gives the full defence: *"radius-lg is 10px,
+  radius-xl is 14px, so the containers keep the exact raw 12px rather than settling for a slightly-off
+  token."* `F-1`'s summary ("we match origin here") reads as a decision, while its `detail` shows a default:
+  *"match the origin Rail Sidebar rail width at 54px instead of using the Sidebar primitive's 48px"* — a
+  comparison with no reason for rejecting bidezine's own value, which is CLAUDE.md item 26's core case and
+  the exact mistake `F-3` was already corrected for. F-1 was `resolved` and in the ready queue when this
+  was found; it has been reopened against `decision.present`. **Judge a row against its `detail`, never its
+  `review_prompt`** — and when writing a summary, treat dropping the justification as a defect, not
+  concision. How often this happened across the other 167 rows is unknown and prose-matching will not find
+  it; the structural answer is `divergence_decision.rejected_value` (migration 028), which makes "what was
+  this chosen instead of" a column a check can read rather than a sentence a summary can drop.
+
 Whenever a new failure class like these is found, add it here directly (not only to a component's own
 temporary working log) so it protects every future Sandbox occupant, not just the one that exposed it.
 

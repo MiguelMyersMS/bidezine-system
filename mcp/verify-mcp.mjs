@@ -307,9 +307,21 @@ try {
     `decided_by=${principal.decided_by} · recorded_by=${principal.recorded_by_principal?.slice(0, 38)}`,
   )
 
+  const undefended = await decide({
+    disposition: "authored",
+    chosen_token: "--mcp-test-undefended",
+    rationale: "origin uses this number",
+  })
+  check(
+    /chosen instead of/.test(undefended),
+    "an authored value naming nothing it rejected is refused through the tool, not just at the table",
+    undefended.split("\n").slice(-1)[0].slice(0, 96),
+  )
+
   const authored = await decide({
     disposition: "authored",
     chosen_token: "--mcp-test-token-that-does-not-exist",
+    rejected_value: "--sidebar-accent (wrong surface)",
     rationale: "fixture: authors a token that resolves nowhere",
   })
   check(

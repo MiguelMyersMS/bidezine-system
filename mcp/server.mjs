@@ -680,6 +680,22 @@ server.registerTool(
         ),
       decided_by: z.string().describe("The human who decided. Never an agent, model or tool name."),
       machine: z.string().describe("The machine you are running on — see MACHINE_NAME in .env."),
+      rejected_value: z
+        .string()
+        .optional()
+        .describe(
+          "REQUIRED when disposition is 'authored': the design-system value that was weighed and set " +
+            "aside, e.g. \"Sidebar primitive's 48px collapsed rail\" or \"--muted, too light on this surface\". " +
+            "That origin used a number is not a reason to reject bidezine's own — search sandbox_decisions " +
+            "and name what you looked at.",
+        ),
+      no_equivalent: z
+        .boolean()
+        .optional()
+        .describe(
+          "Set true INSTEAD of rejected_value only when the design system genuinely has nothing covering " +
+            "this concept. It must be stated rather than left blank, so silence is never mistaken for an answer.",
+        ),
       chosen_value_dark: z.string().optional().describe("Dark-mode value, when the decision varies by mode."),
       chosen_token: z.string().optional().describe("The CSS custom property, e.g. --sidebar-rail-hover."),
       origin_value: z.string().optional(),
@@ -714,13 +730,16 @@ server.registerTool(
       .input("originValue", mssql.NVarChar(100), a.origin_value ?? null)
       .input("originDark", mssql.NVarChar(100), a.origin_value_dark ?? null)
       .input("usage", mssql.NVarChar(300), a.usage_note ?? null)
+      .input("rejected", mssql.NVarChar(200), a.rejected_value ?? null)
+      .input("noEquivalent", mssql.Bit, a.no_equivalent ? 1 : 0)
       .query(
         "DECLARE @did INT = (SELECT d.divergence_id FROM sandbox.divergence d" +
           " JOIN sandbox.component c ON c.component_id = d.component_id" +
           " WHERE c.slug = @slug AND d.ref_code = @ref);" +
           " IF @did IS NULL THROW 52013, 'No such divergence.', 1;" +
           " EXEC sandbox.usp_record_decision @did, @concept, @chosen, @disposition, @rationale," +
-          " @by, @machine, @chosenDark, @token, @originValue, @originDark, @usage;" +
+          " @by, @machine, @chosenDark, @token, @originValue, @originDark, @usage," +
+          " @rejected, @noEquivalent;" +
           " SELECT requirement, detail FROM sandbox.fn_divergence_unmet(@did);",
       )
 
