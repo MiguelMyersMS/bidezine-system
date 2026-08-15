@@ -1,0 +1,17 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "C-7",
+  "url": "http://localhost:4199?open=panel-actions",
+  "anchor": "menu-item-checkbox",
+  "_claim": "Origin's bgSubtle for a checked row. Resolved by reusing an existing convention rather than inventing a tint: DropdownMenuCheckboxItem gained data-[state=checked]:bg-accent/50, mirroring NavigationMenuLink's own data-[active=true]:bg-accent/50.",
+  "_expectation_source": "accent is oklch [0.97, 0, 0] in tokens/light.tokens.json; /50 is the half-opacity modifier the convention above already uses.",
+  "_serialization": "oklab(), not oklch(), and this is NOT a mid-transition read. Tailwind v4 compiles an opacity modifier to color-mix(in oklab, ...), so oklab IS the settled value here. Verified rather than assumed: transition-duration is 0s, getAnimations() is empty, and the value is byte-identical when re-read a second later. NOTE for whoever maintains the runner: midFlightColours() treats oklab as evidence of an in-flight transition (CLAUDE.md item 28), so it will emit a false STILL INTERPOLATING note on this row and on every /NN utility. The note is advisory and does not fail the check, but a heuristic that cries wolf is the failure mode that rule exists to avoid.",
+  "_state": "rest, deliberately. The claim is about the resting appearance of a CHECKED row, and searchEnabled starts true, so the state is real component state rather than something forced.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "rest",
+      "expect": { "background-color": "oklab(0.97 0 0 / 0.5)" }
+    }
+  ]
+}

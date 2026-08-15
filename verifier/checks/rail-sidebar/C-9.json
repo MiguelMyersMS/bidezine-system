@@ -1,0 +1,16 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "C-9",
+  "url": "http://localhost:4199",
+  "anchor": "panel-actions-trigger",
+  "_claim": "Origin's pressedOverlay on the panel-header trigger BUTTON itself, not on the menu rows C-6/C-7/C-8 describe. Resolved by Button's own ghost variant, which already carries active:bg-accent active:text-accent-foreground system-wide.",
+  "_expectation_source": "tokens/light.tokens.json: accent is oklch [0.97, 0, 0].",
+  "_no_precondition_and_why_that_is_not_an_oversight": "This is the ONE row of the four that must be measured with the menu CLOSED. Measured first with ?open=panel-actions and it returned rgba(0, 0, 0, 0) — fully transparent, the active rule never applying. Cause: while the menu is open Radix mounts a dismissable layer that intercepts the pointer, so mousedown never reaches the trigger. Pressing this button with the menu already open is also not a state a user reaches; they press it to OPEN the menu. Measuring it under the precondition would have recorded a real number for a state that does not exist.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "pressed",
+      "expect": { "background-color": "oklch(0.97 0 0)" }
+    }
+  ]
+}

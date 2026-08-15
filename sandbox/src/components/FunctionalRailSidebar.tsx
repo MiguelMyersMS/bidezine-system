@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useMemo, useRef, useState, type CSSProperties } 
 import { Presence } from "@radix-ui/react-presence"
 import { useOverflowFit } from "@/hooks/useOverflowFit"
 import { DivergenceAnchorProvider, anchorAttrs, useDivergenceAnchor } from "@/lib/divergence-anchors"
+import { readPrecondition } from "@/lib/preconditions"
 import {
   AppsIcon,
   Badge,
@@ -1374,6 +1375,13 @@ export function FunctionalRailSidebar({
     maxVisible: RAIL_MAX_VISIBLE_SECTIONS,
   })
 
+  // Gated on `anchors` on purpose. Both copies of this component are always mounted (light and
+  // dark — see FullRailPreview), so an ungated precondition would open the menu in BOTH, and the
+  // portal contents of the unanchored copy would sit over the anchored one during a screenshot.
+  // Tying it to the same flag that emits the anchors keeps "the instance being measured" a single
+  // idea rather than two that can drift apart.
+  const precondition = anchors ? readPrecondition() : null
+
   const mustStash = TOP_SECTIONS.length > pinnedCount
   const pinnedSections = mustStash ? TOP_SECTIONS.slice(0, Math.max(1, pinnedCount - 1)) : TOP_SECTIONS
   const stashedSections = mustStash ? TOP_SECTIONS.slice(pinnedSections.length) : []
@@ -2101,9 +2109,20 @@ export function FunctionalRailSidebar({
                     </span>
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
-                    <DropdownMenu>
+                    {/* `open` is undefined unless a spec asked for it, so ordinary use stays
+                        uncontrolled and behaves exactly as before. See lib/preconditions.ts for
+                        why this is driven by the spec's own URL rather than by a runner change:
+                        the runner cannot perform a preparatory click, so a portal's contents are
+                        unreachable to it, and C-6..C-9 plus D-12 all live in this menu. */}
+                    <DropdownMenu open={precondition === "panel-actions" ? true : undefined}>
                       <DropdownMenuTrigger asChild>
-                        <Button type="button" variant="ghost" size="icon-xs" className="text-muted-foreground">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          className="text-muted-foreground"
+                          {...anchor("panel-actions-trigger")}
+                        >
                           {/* A-1: origin's IconEllipsis maps to our MoreHorizontalIcon. Anchored on
                               the ICON, not the trigger, because the claim is which glyph renders —
                               and `d` is readable through getComputedStyle, so a spec can assert the
@@ -2121,19 +2140,31 @@ export function FunctionalRailSidebar({
                             while DropdownMenuCheckboxItem below ("Search box") is hard-coded to 32px to make
                             room for its checkmark. Without `inset`, "Expand all"/"Collapse all" sit 24px to
                             the left of "Search box". `inset` forces this row onto the same 32px gutter. */}
-                        <DropdownMenuItem inset onSelect={() => setExpanded(new Set(collectGroupIds(displaySection.items)))}>
+                        {/* C-6 (hover) and C-8 (pressed) both describe a plain menu row. One anchor
+                            serves both: anchors name elements, not divergences. "Collapse all" is
+                            deliberately left unanchored — it is the same primitive with the same
+                            recipe, and a second anchor would imply a second, independent claim. */}
+                        <DropdownMenuItem
+                          inset
+                          onSelect={() => setExpanded(new Set(collectGroupIds(displaySection.items)))}
+                          {...anchor("menu-item-plain")}
+                        >
                           Expand all
                         </DropdownMenuItem>
                         <DropdownMenuItem inset onSelect={() => setExpanded(new Set())}>
                           Collapse all
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
+                        {/* C-7's subject. `checked` is driven by real component state, and it starts
+                            true, so the checked-tint claim is measurable on a default load rather
+                            than needing a second precondition to toggle it. */}
                         <DropdownMenuCheckboxItem
                           checked={searchEnabled}
                           onCheckedChange={(v) => {
                             setSearchEnabled(Boolean(v))
                             if (!v) setQuery("")
                           }}
+                          {...anchor("menu-item-checkbox")}
                         >
                           Search box
                         </DropdownMenuCheckboxItem>

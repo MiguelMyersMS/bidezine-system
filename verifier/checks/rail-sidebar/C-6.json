@@ -1,0 +1,17 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "C-6",
+  "url": "http://localhost:4199?open=panel-actions",
+  "anchor": "menu-item-plain",
+  "_claim": "Origin's hoverBg for a plain menu row. Resolved as ALREADY NATIVE — DropdownMenuItem's own base recipe carries focus:bg-accent, so no bidezine code changed and no colour was invented (CLAUDE.md item 26).",
+  "_expectation_source": "tokens/light.tokens.json defines accent as oklch components [0.97, 0, 0]. The runner drives the light copy (no dark class on the document), so that is the applicable mode. The value is the token's, not a number read back out of the browser.",
+  "_why_hover_reaches_a_focus_rule": "The recipe styles focus:, not hover:. Radix moves DOM focus to a menu item on pointer-over, so a real hover is what a user's hover triggers — measuring the rule as written would have needed a keyboard path that no user takes to reach this state.",
+  "_precondition": "?open=panel-actions. This subject renders inside a Radix portal that exists only while the menu is open, and the runner cannot perform a preparatory click. See sandbox/src/lib/preconditions.ts.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "hover",
+      "expect": { "background-color": "oklch(0.97 0 0)" }
+    }
+  ]
+}

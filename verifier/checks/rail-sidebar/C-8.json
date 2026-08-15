@@ -1,0 +1,17 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "C-8",
+  "url": "http://localhost:4199?open=panel-actions",
+  "anchor": "menu-item-plain",
+  "_claim": "Origin's activeBg — the mouse-DOWN instant on a menu row, distinct from the hover state C-6 covers. Resolved by reusing SidebarMenuButton's own established active:bg-accent convention rather than inventing a pressed colour.",
+  "_expectation_source": "tokens/light.tokens.json: accent is oklch [0.97, 0, 0].",
+  "_finding_accent_pressed_is_undefined": "The recipe reads active:bg-[var(--accent-pressed,var(--accent))]. Measured on the live document, --accent-pressed does NOT resolve — it is undefined, so what actually ships is the var() fallback to --accent. That is why this row's pressed value is identical to C-6's hover value. The custom property anticipates a distinct pressed token that no one has authored; until one exists, pressed and hover are the same colour, which is a real design question this row should surface rather than hide behind a var() that looks like it resolves. Same for --accent-selected on the data-[active=true] rule.",
+  "_shares_an_anchor_with_C-6": "Anchors name elements, not divergences. C-6 and C-8 describe the same row in two different states, so one anchor and two specs is correct.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "pressed",
+      "expect": { "background-color": "oklch(0.97 0 0)" }
+    }
+  ]
+}
