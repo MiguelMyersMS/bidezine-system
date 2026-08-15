@@ -61,8 +61,22 @@ three machines present.
 
 ### Active task
 
-**Driving rail-sidebar rows to evidence, category by category.** Current: **10 rows are one
-independent review from approvable** — `D-1 D-3 D-4 D-5 D-7 E-7 F-1 F-7 G-1 G-3`. Their only unmet
+**SC-1 landed as tokens-only. The motion family exists; nothing was re-pointed.**
+`tokens/base.tokens.json` gains four durations and two easing curves, every value measured out of
+`src/ui` rather than chosen. **The premise I was handed needed correcting, and this is the finding:**
+200ms is the most common DELIBERATE duration (8 explicit `duration-200`), but **150ms is what the
+system actually runs at** — Tailwind's `--default-transition-duration`, which `system.css` does not
+override, and which **33 transitions across 26 files** use today, including `Button`'s own base
+recipe. So the rail's 150ms (`H-1`) is not a divergence from the design system; it is the design
+system's default. Both values are authored and named for what they are; `H-1`'s fate is the owner's
+call, not mine.
+
+Not authored, deliberately: `ease-out` (zero uses in `src/ui`) and a 700ms reveal duration (exists
+nowhere in the system). `H-2`/`H-4`/`H-5` are `decide` rows — they now have a vocabulary to decide
+against, and `token.authored` is what makes their answer real once chosen.
+
+**Driving rail-sidebar rows to evidence.** Current: **14 rows are one independent review from
+approvable** — `C-6 C-7 C-8 C-9 D-1 D-3 D-4 D-5 D-7 E-7 F-1 F-7 G-1 G-3`. Their only unmet
 requirement is `review.present`. Five rows are already resolved (`F-2 F-3 F-5 F-6 L-34`).
 
 The bottleneck has moved off measurement and onto review. Nothing more I write changes that for these

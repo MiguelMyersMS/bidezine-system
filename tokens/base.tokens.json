@@ -15,5 +15,13 @@
   "radius-4xl": { "$type": "dimension", "$description": "2.6x base.", "$value": { "value": 1.625, "unit": "rem" } },
 
   "font-sans": { "$type": "fontFamily", "$value": ["Inter", "ui-sans-serif", "system-ui", "sans-serif"] },
-  "font-mono": { "$type": "fontFamily", "$value": ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"] }
+  "font-mono": { "$type": "fontFamily", "$value": ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"] },
+
+  "motion-duration-fast": { "$type": "duration", "$description": "100ms. Two explicit uses in src/ui.", "$value": { "value": 100, "unit": "ms" } },
+  "motion-duration-base": { "$type": "duration", "$description": "150ms. Tailwind's --default-transition-duration, which system.css does not override — 33 transitions across 26 src/ui files run at it today, including Button's own base recipe. The most-used duration in the system by a wide margin, and the one you get without asking.", "$value": { "value": 150, "unit": "ms" } },
+  "motion-duration-moderate": { "$type": "duration", "$description": "200ms. The most common DELIBERATE duration — 8 explicit duration-200 usages (accordion, dialog, alert-dialog, navigation-menu, sidebar, message-scroller).", "$value": { "value": 200, "unit": "ms" } },
+  "motion-duration-slow": { "$type": "duration", "$description": "300ms. Two explicit uses.", "$value": { "value": 300, "unit": "ms" } },
+
+  "motion-ease-linear": { "$type": "cubicBezier", "$description": "Tailwind's ease-linear, four uses in src/ui.", "$value": [0, 0, 1, 1] },
+  "motion-ease-in-out": { "$type": "cubicBezier", "$description": "Tailwind's ease-in-out, read from node_modules/tailwindcss. One use in src/ui.", "$value": [0.4, 0, 0.2, 1] }
 }
