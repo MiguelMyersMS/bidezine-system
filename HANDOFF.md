@@ -48,7 +48,7 @@
 
 ## Laptop A (main)
 
-**Baseline** — branch `main`, last verified commit `2717f59`, working tree clean, in sync
+**Baseline** — branch `main`, last verified commit `341dd4d`, working tree clean, in sync
 with `origin/main`. Verify this yourself (`git log --oneline -1`, `git status`) before trusting
 anything below it.
 
@@ -75,15 +75,23 @@ Not authored, deliberately: `ease-out` (zero uses in `src/ui`) and a 700ms revea
 nowhere in the system). `H-2`/`H-4`/`H-5` are `decide` rows — they now have a vocabulary to decide
 against, and `token.authored` is what makes their answer real once chosen.
 
-**Two runner defects fixed, and a third left open and named.**  before  was
-writing false ANCHOR NOT FOUND rows;  flagged every  opacity utility because
-Tailwind compiles those to  — it now fires only when  actually
-waited on something. **Still open:**  wrote ANCHOR NOT FOUND against B-4/F-3/F-5 on one run and
-E-7/G-3 on the one before — different victims each time, all passing alone. Ten instrumented cold
-loads found the cause (load 1 had every anchor absent at  and still absent 5s later —
-a Vite on-demand compile), and the wait is now 15s, **but I could not re-create the cold state to
-watch 15s catch it.**  still fails alone and its anchor  is generated
-dynamically — unresolved, and the next thing to look at.
+**Two runner defects fixed, and a third left open and named.** `count()` ran before `settle()` and
+does not auto-wait, so a present anchor reported 0 and the runner filed a FAILING row saying the
+subject does not exist. `midFlightColours()` flagged every `/NN` opacity utility, because Tailwind
+compiles those to `color-mix(in oklab, …)` and Chromium computes that to a settled `oklab(...)`; it
+now fires only when `settle()` actually waited on an animation.
+
+**STILL OPEN, and do not trust a batch until it is closed.** `--all` wrote ANCHOR NOT FOUND against
+`B-4 F-3 F-5` on one run and `E-7 G-3` on the run before — different victims each time, all passing
+when re-run alone. Ten instrumented cold loads found the cause: on load 1 every anchor was absent at
+`networkidle` and still absent five seconds later, a Vite on-demand compile. The wait is now 15s,
+**but I could not re-create the cold state to watch 15s catch it** — by then the server had
+recompiled. And `B-4` still fails alone: its anchor `rail-item-overview` appears nowhere in
+`sandbox/src` as a literal (it is generated from an item id), yet a live probe found it present on
+9 of 10 loads. Unresolved, and the first thing to pick up.
+
+The gate absorbed all of it — `evidence.present` wants SOME passing non-stale row, not the newest —
+so no row lost status. A human reading the latest row would still see a failure that is not real.
 
 **Driving rail-sidebar rows to evidence.** Current: **14 rows are one independent review from
 approvable** — `C-6 C-7 C-8 C-9 D-1 D-3 D-4 D-5 D-7 E-7 F-1 F-7 G-1 G-3`. Their only unmet
@@ -92,13 +100,11 @@ requirement is `review.present`. Five rows are already resolved (`F-2 F-3 F-5 F-
 The bottleneck has moved off measurement and onto review. Nothing more I write changes that for these
 ten.
 
-**Two things block the rest, and both are the owner's:**
+**SC-1 is landed** (`a973d16`), so only one of the two blockers remains and it is still the owner's:
 
-1. **`SC-1` is at `assessing` and the database refuses my approval.** It blocks 5 rows and is where the
-   9 `B` colour rows' tokens are supposed to land.
-2. **Can CI rule-checks count as evidence for the 29 code-shaped rows?** The gate already accepts
-   `grep`/`enforcement`/`build` kinds and `check-rules.mjs` already asserts source facts — nothing has
-   ever written one. If yes, 29 rows have a path; if no, they need a different one.
+- **Can CI rule-checks count as evidence for the 29 code-shaped rows?** The gate already accepts
+  `grep`/`enforcement`/`build` kinds and `check-rules.mjs` already asserts source facts — nothing has
+  ever written one. If yes, 29 rows have a path; if no, they need a different one.
 
 **Rows whose subject the component never renders.** Recurring across every category, not a one-off:
 `D-2 D-6 D-9 D-10` are type scale steps the rail does not use, `D-12` needs the menu open, `E-1`–`E-6`
@@ -106,14 +112,6 @@ are spacing-scale claims rather than element claims. They cannot be anchored as 
 failures — they need either a different check kind or a decision that a scale claim is verified
 somewhere other than this component.
 
-**A runner defect I found but did not fix** (`run-checks.mjs` is the doer's — they have a pending
-change in it):
-
-`runCheck()` calls `page.locator(selector).count()` BEFORE `settle()`, and `count()` does not
-auto-wait. At `networkidle` the React app may not have mounted, so a present anchor reports 0 and the
-runner files a **failing** evidence row saying the subject does not exist. Hit 2 of 12 cold loads;
-E-7 failed this way once, then passed alone immediately after. Fix is small: wait for attachment
-before counting, keeping both the not-found and ambiguous failure modes intact.
 
 The other half is worth knowing precisely because it is NOT broken: the panel's `zoom-in-95` entry
 animation is still running at `networkidle` on **100%** of loads (the title icon measures 15.2px —
