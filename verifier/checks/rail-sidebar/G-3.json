@@ -1,0 +1,19 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "G-3",
+  "url": "http://localhost:4199",
+  "anchor": "rail-item-slides",
+  "_claim": "Origin's RADIUS.xs is 4px for rail icon slots. bidezine's rail icon buttons use rounded-lg instead. The row was itself CORRECTED once already, from a stale note claiming rounded-md/8px, after someone read the real className.",
+  "_expectation_source": "tokens/base.tokens.json defines radius-lg as 0.625rem, which is 10px at the root font size. The expectation is that token's value, not a number copied back out of the browser.",
+  "_scope": "A radius sweep of the rail found 10px on 15 visible elements — every rail icon button, the overflow trigger, the logo slot and the footer buttons, exactly the set the row's correction lists. The anchor names one representative rail item; the others share the class, not the anchor.",
+  "_why_this_verifies_the_correction": "The row was corrected on the strength of a className read. A className is not what the browser applies (CLAUDE.md checklist item 1 — tailwind-merge resolves by conflict group, so a class present in the string can still lose). This measures the resolved value, so the correction now rests on the rendered result rather than on the source text that was already wrong once.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "rest",
+      "expect": {
+        "border-radius": "10px"
+      }
+    }
+  ]
+}

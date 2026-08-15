@@ -1,0 +1,20 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "E-7",
+  "url": "http://localhost:4199",
+  "anchor": "panel-subtitle",
+  "_finding": "This row's own detail says 'Approved: use pl-7 from Tailwind's 4px scale' — 28px. The component renders 22px. Measured, not read from the className. The DOC is the stale side here, not the code: see _derivation.",
+  "_derivation": "22px is not an off-scale magic number, it is the panel title row's own geometry. That row is `flex items-center gap-1.5` holding a `size-4` icon then the title: 16px icon + 6px gap = 22px, which is exactly where the title's text begins. Both operands are real tokens already in the markup, so the value is derived from the design system rather than invented.",
+  "_measured": "With the layout settled (polled until three consecutive reads agreed), the title's text starts at x=1009.00 and the subtitle's text starts at x=1009.00 — 0.00px drift. pl-7/28px would push the subtitle 6px PAST the title it is meant to hang under.",
+  "_why_not_28": "Origin hardcoded 28px because origin's own title row had different geometry. Adopting 28px here would reproduce origin's number while breaking the alignment that number existed to achieve — the value is only meaningful relative to the row above it.",
+  "_settle_warning": "A first pass measured the icon at 15.2px and reported a 1.1px misalignment that does not exist. Layout had not finished. Any re-measurement of this row must settle first; a single post-networkidle read is not enough.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "rest",
+      "expect": {
+        "padding-left": "22px"
+      }
+    }
+  ]
+}

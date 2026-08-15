@@ -1,0 +1,19 @@
+{
+  "component": "rail-sidebar",
+  "divergence": "G-1",
+  "url": "http://localhost:4199",
+  "anchor": "F-1",
+  "_claim": "Origin's RADIUS.rounded is 12px. bidezine has no token at 12px, so the rail and panel outer containers keep the raw value rather than settling for a near-miss token.",
+  "_premise_verified": "Read from tokens/base.tokens.json, not from the row's own text: radius-lg is 0.625rem (10px) and radius-xl is 0.875rem (14px). 12px genuinely falls between two adjacent steps, so the row's stated reason for diverging is true — this is not a case where a fitting token was overlooked (CLAUDE.md checklist item 26).",
+  "_scope": "A sweep of every visible element in the rail found border-radius: 12px on exactly two: this one (the rail column, 54x634) and the panel at anchor F-3 (243x602). The anchor must resolve to one element, so it names the rail; F-3 was measured at the same 12px in the same pass. The claim is about both containers and the evidence proves one of them.",
+  "_note": "Deliberately asserted as the raw pixel value, because a raw value is what the row approved. If this component is later given a dedicated 12px token at Promote time, this check should start failing until it is repointed — that is the check doing its job, not a regression.",
+  "checks": [
+    {
+      "kind": "computed-style",
+      "state": "rest",
+      "expect": {
+        "border-radius": "12px"
+      }
+    }
+  ]
+}
