@@ -1485,9 +1485,9 @@
       "originCategory": "F — Layout / Sizing",
       "title": "railW = 54px",
       "detail": "Approved now: match the origin Rail Sidebar rail width at 54px in the adjusted example instead of using the Sidebar primitive's 48px collapsed rail width.",
-      "reviewPrompt": "The rail's own width. Origin sets it wider than our Sidebar primitive's collapsed rail, and we match origin here. Confirm the wider rail is right, given our own primitive disagrees.",
+      "reviewPrompt": "The rail's own width matches origin's, not our Sidebar primitive's collapsed rail. The record gives no reason beyond matching origin — the same justification F-3 was corrected for. Decide whether the wider rail earns the divergence.",
       "reviewLabel": null,
-      "state": "resolved",
+      "state": "reopened",
       "visual": {
         "kind": "shape",
         "beforeLabel": "Origin railW 54px",
