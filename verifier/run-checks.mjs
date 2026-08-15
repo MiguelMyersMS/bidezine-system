@@ -305,9 +305,17 @@ function motionNote(motion) {
     : `settle: WARNING — ${motion.animations} animation(s) still running after ${SETTLE_TIMEOUT_MS}ms; the values below may have been read mid-transition`
 }
 
-// Long enough for a cold React mount on a dev server, short enough that a genuinely absent
-// anchor is reported quickly rather than stalling a batch.
-const ANCHOR_ATTACH_TIMEOUT_MS = 5000
+// Sized against a measurement, not a guess. Ten instrumented cold loads: on load 1 EVERY anchor
+// was still absent at `networkidle` and still absent five seconds later — a Vite dev server
+// compiling the module graph on demand, which it does again after anything invalidates it (this
+// batch followed a tokens.css rebuild). Loads 2–10 had them all within the same instant.
+//
+// So the failure is a cold first navigation, not a slow component, and 5s sat just under it.
+// Fifteen costs nothing when the anchor is there — `waitFor` resolves the moment it attaches —
+// and only spends time on the one case that was writing false ANCHOR NOT FOUND rows. A genuinely
+// missing anchor now takes 15s to report, which is the right trade: that row is a real finding
+// either way, and a fast wrong answer is worth less than a slow right one.
+const ANCHOR_ATTACH_TIMEOUT_MS = 15000
 
 /**
  * Chromium serialises a colour it is still interpolating as `oklab(...)` and a settled one as
