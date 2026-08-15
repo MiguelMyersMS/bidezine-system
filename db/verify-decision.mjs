@@ -61,13 +61,23 @@ try {
   // ── 023: the register, and the constraint that makes it mean something ───────────
   console.log("\nregister — a proposal cannot hide as something already built\n")
 
-  let refused = false
+  // 029 dropped `ck_divergence_register_proposal`, and this now guards against it coming back.
+  // It said a row whose `visual` proposes an after-value cannot be registered `confirm` —
+  // classifying by whether a value was PROPOSED, when the register is about what a human is
+  // ASKED FOR. Against the real corpus it refuses all 21 such rows: most colour rows propose a
+  // value AND are already settled. The register comes from the row's own prompt now, and
+  // `scripts/check-register.mjs` is what holds the column to it.
+  let proposalRefused = null
   try {
-    await addRow("D-BAD", { visual: JSON.stringify({ kind: "color", afterVar: "--nope" }) })
+    await addRow("D-PROPOSES-CONFIRM", { visual: JSON.stringify({ kind: "color", afterVar: "--nope" }) })
   } catch (err) {
-    refused = /ck_divergence_register_proposal/.test(err.message)
+    proposalRefused = err.message
   }
-  check(refused, "a row proposing a token CANNOT be inserted as `confirm`, whatever the caller intended")
+  check(
+    proposalRefused === null,
+    "a row may propose a value and still be `confirm` — proposing is not the same question as deciding",
+    proposalRefused?.split("\n")[0].slice(0, 96) ?? "",
+  )
 
   const plain = await addRow("D-PLAIN")
   check(

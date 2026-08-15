@@ -196,8 +196,8 @@ concern `tokens/` or `src/ui/`, and eleven `--sidebar-rail-*` tokens were propos
 authored into no file. Approving, reviewing, declaring a completion false and handing over a component
 all had audit tables; deciding had none, so it could not be required or reused.
 
-- **`register`** (decide|confirm|close) says what a row owes a human. A CHECK makes the dangerous
-  combination impossible: a row whose `visual` proposes an after-value cannot be registered `confirm`.
+- **`register`** (decide|confirm|close) says what a row owes a human. **023's backfill was wrong on 100
+  of 169 rows and 029 corrects it** — see below before trusting anything written about it.
 - **`divergence_decision`** is `proposedDarkRailTokens` moved out of a TypeScript array into a table,
   plus the two fields it never had — `decided_by` and `rationale`. No rationale was invented; every one
   of the eleven carries a sentence somebody really wrote about that value.
@@ -207,6 +207,27 @@ all had audit tables; deciding had none, so it could not be required or reused.
 
 **THE READY QUEUE IS 5, DOWN FROM 14 — that is the protocol working, not a regression.** All nine B rows
 are blocked on tokens that do not exist. `F-2, F-3, F-5, F-6, L-34` remain.
+
+**029 — the register is what the reviewer is ASKED TO DO, and 023 got it wrong on 100 of 169 rows.**
+023 classified by whether a row's `visual` proposed a value. That is a different question: most colour
+rows propose a value AND are already settled. The corpus's 169 prompts were already authored in §3.10's
+own vocabulary and the backfill invented a second one. **Not one of the 21 rows 023 marked `decide` is
+`decide` by its prompt, and it found none of the 11 that are** — the owner's queue would silently have
+become 28 different rows. 61 rows literally saying "Nothing to decide" were stored `confirm`; `close`
+did not exist in the column at all.
+
+Found by wiring the card to the column and measuring, then reverting rather than shipping — not by
+reading code. Fixed by backfilling from `sandbox/src/lib/register.ts`'s own `registerOf`, bundled and
+called, never restated. `ck_divergence_register_proposal` is **dropped, not adjusted**: against correct
+data it refuses all 21 such rows, so the invariant it asserted does not exist.
+
+**`node scripts/check-register.mjs` is what keeps it honest** (4/4, proven to fail on injected drift).
+`register_source` marks rows a human set against their prompt — today only **F-1** — so the exemption
+is a fact in the table, not a ref list in a script. **F-1's prompt still reads "Confirm the wider rail
+is right" and should be rewritten as a decision;** that belongs to whoever owns the card's descriptions.
+
+`decision.present` now fires for exactly `G-1, H-2..H-6, R-5, R-6, R-8, R-9, R-11` plus F-1.
+`token.authored` still blocks the nine B rows — it keys on the decision's disposition, not the register.
 
 **F-1 was reopened against `decision.present` (028).** It was resolved and in the queue. Its whole
 justification is *"match the origin Rail Sidebar rail width at 54px instead of using the Sidebar
