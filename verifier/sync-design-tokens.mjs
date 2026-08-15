@@ -43,7 +43,22 @@ function collect(json, file, into) {
       if (key.startsWith("$")) continue
       if (!value || typeof value !== "object") continue
       if ("$value" in value) {
-        const name = [...prefix, key].join("-")
+        // Stored as the CSS CUSTOM PROPERTY, `--name`, not the bare token key.
+        //
+        // This is the one canonical form every consumer already uses: `divergence.visual`'s
+        // `afterVar` is `--card`, `divergence_decision.chosen_token` is
+        // `--sidebar-rail-surface`, and the emitted stylesheet declares `--card`. Storing the
+        // bare key here made `token.authored`'s `t.name = latest.chosen_token` compare
+        // `sidebar-rail-surface` against `--sidebar-rail-surface` — never equal, for any
+        // token, ever. The requirement was therefore UNSATISFIABLE: authoring the token in
+        // tokens/ would not have released the row, and the nine B rows would have stayed
+        // blocked with nothing left to do about it.
+        //
+        // It survived its own test because that test INSERTED a probe row spelled
+        // `--sidebar-rail-surface` and watched the gate clear — data in a shape this sync
+        // never produces. `db/verify-decision.mjs` now takes its token from this table
+        // instead, so the check and the pipeline cannot disagree about the format again.
+        const name = `--${[...prefix, key].join("-")}`
         const entry = into.get(name) ?? { files: new Set(), light: null, dark: null }
         // The value is stored for readability in the table, not for comparison: the gate
         // asserts existence only. A token authored with the WRONG value is a different

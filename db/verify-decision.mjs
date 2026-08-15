@@ -43,6 +43,20 @@ try {
   const realToken = (await q(`SELECT TOP 1 name FROM sandbox.design_token ORDER BY name`))[0]?.name
   if (!realToken) throw new Error("sandbox.design_token is empty — run verifier/sync-design-tokens.mjs first")
 
+  // Asserted FIRST, before anything uses a token name, and reported as a named failure rather
+  // than left to surface as a stack trace two sections later. `token.authored` compares
+  // `design_token.name` to `divergence_decision.chosen_token` directly, so if the two ever
+  // disagree about the `--` prefix the requirement becomes unsatisfiable for every token —
+  // authoring one in tokens/ would release nothing. That shipped once, and the check meant to
+  // cover it passed because it inserted its own probe row in the right shape.
+  console.log("\nthe two sides of token.authored still spell a token the same way\n")
+  const badlyNamed = (await q(`SELECT COUNT(*) n FROM sandbox.design_token WHERE name NOT LIKE '--%'`))[0].n
+  check(
+    badlyNamed === 0,
+    "every synced token name is a CSS custom property — the form chosen_token and afterVar also use",
+    badlyNamed ? `${badlyNamed} token(s) stored without the -- prefix; token.authored can never clear` : realToken,
+  )
+
   await run(`
     INSERT INTO sandbox.component (slug, title, state) VALUES ('${SLUG}', 'Decision self-test', 'build');`)
   const componentId = (await q(`SELECT component_id FROM sandbox.component WHERE slug='${SLUG}'`))[0].component_id
@@ -147,6 +161,31 @@ try {
   check(
     await unmetOf(reusedRow, "token.authored") === 0,
     `a REUSED token does not block — the half of the rule the real corpus cannot exercise (${realToken})`,
+  )
+
+  // THE CHECK THAT WAS MISSING, and the reason token.authored shipped unsatisfiable.
+  //
+  // An earlier version proved the release path by INSERTING a row into design_token spelled
+  // `--sidebar-rail-surface` and watching the gate clear. The real sync stored bare token keys
+  // (`sidebar-rail-surface`), so `t.name = latest.chosen_token` could never match for any token
+  // — authoring one in tokens/ would not have released anything, and the nine B rows would have
+  // stayed blocked forever with the fix already applied. The test passed because it built its
+  // own data in a shape the pipeline never produces.
+  //
+  // So the token here comes from the SYNCED TABLE, and this asserts an AUTHORED decision naming
+  // a token that really resolves does not block. That is the same code path the B rows will take
+  // the day their tokens are authored, exercised end to end.
+  const authoredRealRow = await addRow("D-AUTHORED-REAL", { register: "decide" })
+  await record(authoredRealRow, {
+    disposition: "authored",
+    token: realToken,
+    rejected: "fixture: an earlier candidate",
+    rationale: "fixture: an authored token that really exists in tokens/",
+  })
+  check(
+    await unmetOf(authoredRealRow, "token.authored") === 0,
+    "an AUTHORED token that really resolves clears the gate — proving the requirement is satisfiable at all",
+    `${realToken}, read back from sandbox.design_token rather than invented here`,
   )
 
   const noTokenRow = await addRow("D-NOTOKEN", { register: "decide" })
