@@ -97,9 +97,14 @@ const REF_TO_ORIGIN_NAME = {
 }
 
 const results = []
+const skipped = []
 const check = (ok, label, note = "") => {
   results.push({ ok, label })
   console.log(`  ${ok ? "PASS" : "FAIL"}  ${label}${note ? `\n          ${note}` : ""}`)
+}
+const skip = (label, note = "") => {
+  skipped.push(label)
+  console.log(`  SKIP  ${label}${note ? `\n          ${note}` : ""}`)
 }
 
 const tmp = await mkdtemp(join(tmpdir(), "rail-sidebar-bundle-"))
@@ -155,7 +160,10 @@ try {
       // there is nothing left in prose to verify, so this loop iteration is skipped rather
       // than failed.
       const varMatch = last.match(/Proposed (--[a-z0-9-]+)/)
-      if (!varMatch) continue
+      if (!varMatch) {
+        skip(`${ref}: no "Proposed --var" claim left in prose`, `${originName} / ${token.proposedVar} now renders live from the Adjusted block instead -- nothing here can go stale`)
+        continue
+      }
       if (varMatch[1] !== token.proposedVar) {
         check(false, `${ref}: final sentence's var is ${varMatch[1]}, expected ${token.proposedVar}`)
         continue
@@ -209,6 +217,12 @@ ${layout.length} layout-sizing rows whose prompts quote a real value
 
 const failed = results.filter((r) => !r.ok)
 console.log(`\n${results.length - failed.length}/${results.length} checks passed.`)
+if (skipped.length) {
+  // A score that shrinks silently is indistinguishable from a check that stopped
+  // checking. This line is what tells the difference: SKIP is a deliberate, named
+  // outcome (the claim moved out of prose entirely) not an absence.
+  console.log(`${skipped.length} skipped -- no "Proposed --var" claim left to check, correctly: the value now renders live.`)
+}
 if (failed.length) {
   console.log("\nA review_prompt no longer matches the token it quotes. Failing checks:")
   failed.forEach((r) => console.log(`  - ${r.label}`))
