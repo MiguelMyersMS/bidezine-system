@@ -14,7 +14,7 @@
 // cases would have missed both of the real incidents (P5) that M7 exists for.
 // ═══════════════════════════════════════════════════════════════════════════════════
 
-import { classifyPaths } from "./lib/scope.mjs"
+import { classifyPaths, findSystemChangeRefs } from "./lib/scope.mjs"
 
 const results = []
 const check = (ok, label, note = "") => {
@@ -119,6 +119,31 @@ check(
   forRecord.matches.every((m) => m.rule.why && m.rule.source),
   "every match carries the reason it qualified, not just the fact that it did",
 )
+
+console.log("\nthe System-Change trailer — and what only looks like one\n")
+
+// The workflow now BLOCKS a system-scope change that names no system change, and what counts
+// as naming one is this function. A gate whose admission rule has never been tested is a gate
+// that has never been tested.
+const trailerCases = [
+  ["a trailer is found", ["fix\n\nSystem-Change: SC-12"], ["SC-12"]],
+  ["the key is case-insensitive — CI must not fail over capitalisation", ["x\n\nsystem-change: SC-3"], ["SC-3"]],
+  ["leading whitespace is tolerated", ["x\n\n  System-Change: SC-9"], ["SC-9"]],
+  [
+    "refs are collected across commits and sorted numerically, not as strings",
+    ["a\n\nSystem-Change: SC-12", "b\n\nSystem-Change: SC-2"],
+    ["SC-2", "SC-12"],
+  ],
+  ["the same ref in two commits is one ref", ["a\n\nSystem-Change: SC-4", "b\n\nSystem-Change: SC-4"], ["SC-4"]],
+  // The one that matters: a reference you can satisfy by TALKING about one is not a reference.
+  ["a prose mention mid-sentence does NOT satisfy the gate", ["we discussed System-Change: SC-12 at length"], []],
+  ["an ordinary commit declares nothing", ["ordinary commit"], []],
+  ["a malformed id is not a reference", ["x\n\nSystem-Change: SC-abc"], []],
+]
+for (const [label, messages, expected] of trailerCases) {
+  const got = findSystemChangeRefs(messages)
+  check(JSON.stringify(got) === JSON.stringify(expected), label, JSON.stringify(got))
+}
 
 const failed = results.filter((r) => !r).length
 console.log(`\n${results.length - failed}/${results.length} checks passed.`)

@@ -50,6 +50,7 @@ const adminPool = () =>
   })
 
 const cleanupSql = `
+  DELETE dd FROM sandbox.divergence_decision dd JOIN sandbox.component c ON c.component_id=dd.component_id WHERE c.slug='${SLUG}';
   DELETE fc FROM sandbox.false_completion fc JOIN sandbox.divergence d ON d.divergence_id=fc.divergence_id JOIN sandbox.component c ON c.component_id=d.component_id WHERE c.slug='${SLUG}';
   DELETE a  FROM sandbox.approval a  JOIN sandbox.divergence d ON d.divergence_id=a.divergence_id  JOIN sandbox.component c ON c.component_id=d.component_id WHERE c.slug='${SLUG}';
   DELETE rc FROM sandbox.review_citation rc JOIN sandbox.review r ON r.review_id=rc.review_id JOIN sandbox.divergence d ON d.divergence_id=r.divergence_id JOIN sandbox.component c ON c.component_id=d.component_id WHERE c.slug='${SLUG}';
@@ -76,6 +77,9 @@ try {
              'resolved' FROM sandbox.component WHERE slug='${SLUG}';
     INSERT INTO sandbox.divergence (component_id, ref_code, category, title, state)
       SELECT component_id, 'P-2', 'layout-sizing', 'Fixture with failing evidence', 'implemented'
+      FROM sandbox.component WHERE slug='${SLUG}';
+    INSERT INTO sandbox.divergence (component_id, ref_code, category, title, state, register)
+      SELECT component_id, 'P-4', 'color', 'Fixture awaiting a human decision', 'implemented', 'decide'
       FROM sandbox.component WHERE slug='${SLUG}';`)
 
   const p2 = (
@@ -108,6 +112,10 @@ try {
   console.log("\nthe server speaks MCP\n")
   const { tools } = await client.listTools()
   check(tools.length >= 9, "server exposes its toolset over stdio", `${tools.length} tools`)
+  check(
+    tools.some((t) => t.name === "sandbox_record_decision"),
+    "an agent can reach the decision record — before this, a human's answer had nowhere to go but the chat log",
+  )
   check(
     tools.every((t) => t.description && t.description.length > 80),
     "every tool carries a description that teaches the protocol, not just a label",
@@ -242,6 +250,77 @@ try {
     reopened.state === "reopened" && reopened.fc === 1,
     "an agent can reopen without permission, and it is recorded",
     `state = ${reopened.state}, false_completion = ${reopened.fc}`,
+  )
+
+  // ── relaying a decision, without becoming the decider ─────────────────────────────
+  console.log("\nan agent may relay what a human decided, and is recorded AS a relay\n")
+
+  const decide = async (args) =>
+    say(
+      await client.callTool({
+        name: "sandbox_record_decision",
+        arguments: {
+          component: SLUG,
+          ref_code: "P-4",
+          concept: "fixture value",
+          chosen_value: "oklch(0.5 0 0)",
+          disposition: "reused",
+          rationale: "fixture: reuses an existing value rather than inventing one",
+          decided_by: "a real person",
+          machine: "Laptop A",
+          ...args,
+        },
+      }),
+    )
+
+  const gateBefore = say(await client.callTool({ name: "sandbox_gate", arguments: { component: SLUG, ref_code: "P-4" } }))
+  check(/decision\.present/.test(gateBefore), "a `decide` row's gate names decision.present as unmet")
+
+  for (const name of ["Claude", "copilot", "the agent", "AI"]) {
+    const refused = await decide({ decided_by: name })
+    check(
+      /REFUSED/.test(refused) && /names an agent rather than a person/.test(refused),
+      `decided_by '${name}' is refused before it reaches the database`,
+    )
+  }
+
+  const recorded = await decide({})
+  check(/^Recorded:/.test(recorded), "a decision naming a human is recorded", recorded.split("\n")[0].slice(0, 88))
+  check(
+    !/decision\.present/.test(
+      say(await client.callTool({ name: "sandbox_gate", arguments: { component: SLUG, ref_code: "P-4" } })),
+    ),
+    "and the gate stops asking for one",
+  )
+
+  const principal = (
+    await admin.request().query(`
+      SELECT TOP 1 dd.decided_by, dd.recorded_by_principal
+      FROM   sandbox.divergence_decision dd
+      JOIN   sandbox.component c ON c.component_id = dd.component_id
+      WHERE  c.slug='${SLUG}' ORDER BY dd.decision_id DESC`)
+  ).recordset[0]
+  check(
+    principal.decided_by === "a real person" &&
+      principal.recorded_by_principal?.toLowerCase().startsWith(process.env.FABRIC_AGENT_CLIENT_ID.toLowerCase()),
+    "the row records the HUMAN as decider and the AGENT as the principal that wrote it — a claim and a fact, kept apart",
+    `decided_by=${principal.decided_by} · recorded_by=${principal.recorded_by_principal?.slice(0, 38)}`,
+  )
+
+  const authored = await decide({
+    disposition: "authored",
+    chosen_token: "--mcp-test-token-that-does-not-exist",
+    rationale: "fixture: authors a token that resolves nowhere",
+  })
+  check(
+    /stays blocked until that token really resolves/.test(authored) && /npm run tokens/.test(authored),
+    "authoring a token tells the agent exactly what is now owed, rather than reporting success",
+  )
+  check(
+    /token\.authored/.test(
+      say(await client.callTool({ name: "sandbox_gate", arguments: { component: SLUG, ref_code: "P-4" } })),
+    ),
+    "and the gate blocks the row on it",
   )
 
   // ── the invariant, through the MCP surface this time ──────────────────────────────

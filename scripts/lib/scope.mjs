@@ -92,6 +92,33 @@ export const SYSTEM_PATHS = [
  * the classification rule is the thing worth testing, and it should not need a repository
  * in a particular state to exercise it.
  */
+/**
+ * Every `System-Change: SC-nn` reference declared across a set of commit messages.
+ *
+ * A TRAILER, not a mention: the match is anchored to the start of a line, so prose that
+ * happens to discuss "System-Change: SC-12" in the middle of a sentence does not satisfy the
+ * gate. That distinction is the whole value of the convention — a reference that can be
+ * satisfied by talking about one is not a reference.
+ *
+ * Case-insensitive on the key, because `system-change:` and `System-Change:` are the same
+ * intent and failing CI over capitalisation would teach people the gate is arbitrary. The
+ * `SC-` prefix itself is matched exactly, since that is a real identifier from
+ * `sandbox.system_change.ref_code` rather than a word.
+ *
+ * Lives here rather than in `detect-scope.mjs` for the reason stated at the top of that file:
+ * the rule belongs in the module, the command belongs in the script, and a rule that only
+ * exists inside a CLI cannot be tested without running a program.
+ */
+export function findSystemChangeRefs(messages) {
+  const refs = new Set()
+  for (const message of messages) {
+    for (const match of String(message).matchAll(/^[ \t]*System-Change:[ \t]*(SC-\d+)/gim)) {
+      refs.add(match[1])
+    }
+  }
+  return [...refs].sort((a, b) => Number(a.slice(3)) - Number(b.slice(3)))
+}
+
 export function classifyPaths(paths) {
   const matches = []
   for (const path of paths) {

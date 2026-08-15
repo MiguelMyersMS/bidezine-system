@@ -39,7 +39,21 @@ import { connect, sql } from "../verifier/lib/db.mjs"
 import { corpusApiMiddleware } from "./server/corpus-api.mjs"
 
 const SLUG = "rail-sidebar"
-const REF = "F-1"
+
+// CHOSEN AT RUN TIME, not hard-coded. This was `F-1` until F-1 was legitimately reviewed
+// and resolved by another machine, at which point four checks failed — not because anything
+// regressed, but because the negative control needs a row whose gate is UNMET, and a
+// resolved row's gate is clean by definition. A fixed ref makes this suite fail every time
+// the corpus makes progress, which trains people to ignore it.
+//
+// The guard that caught it is worth keeping in mind while reading the rest of this file: the
+// check refused to fire rather than POSTing approve at a clean gate, which would have
+// resolved a real row to make a test pass. It reported "point this check at another row",
+// and this is that.
+//
+// Ordered by ref_code so a run is reproducible rather than picking whatever the query
+// planner returns first.
+let REF
 
 const results = []
 const check = (ok, label, note = "") => {
@@ -66,6 +80,25 @@ const server = createServer((req, res) => {
 })
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve))
 const base = `http://127.0.0.1:${server.address().port}`
+
+REF = await as("ADMIN", async (pool) => {
+  const { recordset } = await pool.request().query(`
+    SELECT TOP 1 d.ref_code
+    FROM   sandbox.divergence d
+    JOIN   sandbox.component c ON c.component_id = d.component_id
+    WHERE  c.slug = '${SLUG}'
+      AND  d.state <> 'resolved'
+      AND  EXISTS (SELECT 1 FROM sandbox.fn_divergence_unmet(d.divergence_id))
+    ORDER BY d.ref_code`)
+  return recordset[0]?.ref_code
+})
+if (!REF) {
+  // Every row resolved would be a triumph, not a failure — but this suite could not prove
+  // anything, and saying so beats reporting green against nothing.
+  console.error(`\nNo unresolved ${SLUG} row with an unmet gate. This suite needs one for its negative control.`)
+  process.exit(1)
+}
+console.log(`\nnegative control: ${SLUG}/${REF} (chosen at run time — a row whose gate is genuinely unmet)`)
 
 const bundle = async () => (await fetch(`${base}/api/divergence/${SLUG}/${REF}`)).json()
 const postTransfer = async (body) => {

@@ -635,4 +635,108 @@ server.registerTool(
   }),
 )
 
+// ── recording what a human decided ─────────────────────────────────────────────────
+// The owner of this project decides in conversation, not in a form. Before this tool the
+// answer went into a chat log and stayed there — which is how eleven `--sidebar-rail-*`
+// tokens came to be proposed, approved, and authored into no file under tokens/.
+//
+// You are RELAYING, not deciding. `decided_by` names the human; the database separately
+// records which principal wrote the row (migration 027), so a relay is visible as a relay
+// whatever you put in that field.
+
+// A short list of names that would mean the agent recorded itself as the decider. It is a
+// guard against the obvious mistake, not a proof of anything — an agent that writes a
+// plausible human name defeats it, which is why 027 records the writing principal too.
+const NOT_A_DECIDER =
+  /^(claude|copilot|chatgpt|gpt|gemini|cursor|codex|assistant|agent|ai|bot|the agent|me|myself|system|automation)$/i
+
+server.registerTool(
+  "sandbox_record_decision",
+  {
+    title: "Write down what the owner decided",
+    description:
+      "Call this the moment a human answers a question about a VALUE — a colour, a size, a spacing, a " +
+      "duration, a token to reuse. Not later, and not only when it feels significant. A decision that stays " +
+      "in the conversation cannot be required of the next component and cannot be found by sandbox_decisions, " +
+      "which is the whole reason that tool has precedent to search at all. " +
+      "A row registered 'decide' is BLOCKED until this is called — that is the gate's decision.present " +
+      "requirement, and it is not bypassable. " +
+      "disposition is the point of the record: 'reused' means an existing design-system value was chosen " +
+      "(name it in chosen_token), 'authored' means a new one, and an authored token keeps the row blocked " +
+      "until it really resolves in tokens/. Search sandbox_decisions BEFORE proposing anything, so 'reused' " +
+      "is the answer whenever it can be. " +
+      "You are recording someone else's choice: decided_by must name the human, never you.",
+    inputSchema: {
+      component: z.string(),
+      ref_code: z.string(),
+      concept: z.string().describe("What was decided about, e.g. 'rail hover overlay'."),
+      chosen_value: z.string().describe("The value chosen, exactly as it will be written."),
+      disposition: z.enum(["reused", "authored"]),
+      rationale: z
+        .string()
+        .describe(
+          "WHY, in the decider's own terms. Required. This is the field the next component reads; a rationale " +
+            "that only restates the value teaches nobody anything.",
+        ),
+      decided_by: z.string().describe("The human who decided. Never an agent, model or tool name."),
+      machine: z.string().describe("The machine you are running on — see MACHINE_NAME in .env."),
+      chosen_value_dark: z.string().optional().describe("Dark-mode value, when the decision varies by mode."),
+      chosen_token: z.string().optional().describe("The CSS custom property, e.g. --sidebar-rail-hover."),
+      origin_value: z.string().optional(),
+      origin_value_dark: z.string().optional(),
+      usage_note: z.string().optional(),
+    },
+  },
+  guard(async (a) => {
+    if (NOT_A_DECIDER.test(a.decided_by.trim())) {
+      return text(
+        `REFUSED\n\ndecided_by was '${a.decided_by}', which names an agent rather than a person.\n\n` +
+          "This record exists to say WHO CHOSE. You are relaying a human's answer; if no human has actually " +
+          "answered yet, ask them — do not record the decision on their behalf. The database separately logs " +
+          "which principal wrote the row, so naming yourself here does not hide anything, it just makes the " +
+          "record wrong.",
+      )
+    }
+
+    const p = await db()
+    const r = await p
+      .request()
+      .input("slug", mssql.NVarChar(100), a.component)
+      .input("ref", mssql.NVarChar(20), a.ref_code)
+      .input("concept", mssql.NVarChar(100), a.concept)
+      .input("chosen", mssql.NVarChar(100), a.chosen_value)
+      .input("chosenDark", mssql.NVarChar(100), a.chosen_value_dark ?? null)
+      .input("disposition", mssql.NVarChar(10), a.disposition)
+      .input("rationale", mssql.NVarChar(mssql.MAX), a.rationale)
+      .input("by", mssql.NVarChar(100), a.decided_by)
+      .input("machine", mssql.NVarChar(50), a.machine)
+      .input("token", mssql.NVarChar(100), a.chosen_token ?? null)
+      .input("originValue", mssql.NVarChar(100), a.origin_value ?? null)
+      .input("originDark", mssql.NVarChar(100), a.origin_value_dark ?? null)
+      .input("usage", mssql.NVarChar(300), a.usage_note ?? null)
+      .query(
+        "DECLARE @did INT = (SELECT d.divergence_id FROM sandbox.divergence d" +
+          " JOIN sandbox.component c ON c.component_id = d.component_id" +
+          " WHERE c.slug = @slug AND d.ref_code = @ref);" +
+          " IF @did IS NULL THROW 52013, 'No such divergence.', 1;" +
+          " EXEC sandbox.usp_record_decision @did, @concept, @chosen, @disposition, @rationale," +
+          " @by, @machine, @chosenDark, @token, @originValue, @originDark, @usage;" +
+          " SELECT requirement, detail FROM sandbox.fn_divergence_unmet(@did);",
+      )
+
+    const unmet = r.recordset ?? []
+    const lines = [`Recorded: ${a.component}/${a.ref_code} — ${a.concept} = ${a.chosen_value} (${a.disposition}), decided by ${a.decided_by}.`]
+    if (a.disposition === "authored" && a.chosen_token) {
+      lines.push(
+        "",
+        `${a.chosen_token} is AUTHORED, so this row stays blocked until that token really resolves in tokens/.`,
+        "Add it to the token source, run `npm run tokens`, then `npm --prefix verifier run sync-tokens` so the",
+        "database can see it. Authoring it in one mode only will not do: the parity gate refuses that.",
+      )
+    }
+    lines.push("", unmet.length ? `Still unmet: ${unmet.map((u) => u.requirement).join(", ")}` : "Nothing unmet — this row is ready for a human to approve.")
+    return text(lines.join("\n"))
+  }),
+)
+
 await server.connect(new StdioServerTransport())

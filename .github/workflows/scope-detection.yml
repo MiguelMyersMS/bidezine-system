@@ -6,10 +6,19 @@ name: Scope detection
 # and silently invalidated everything already verified. A rule that only runs when someone
 # remembers to run it would have caught neither.
 #
-# This job reports; it does not yet block or open a system_change record. Those need M7
-# steps 3 and 5 (the lifecycle, and the invalidation sweep) to exist first — and a gate
-# that blocked with nowhere to route the escalation would just teach people to bypass it.
-# Making the classification VISIBLE on every change is the part that is useful today.
+# This job now BLOCKS a system-wide change that names no system change. It reported and
+# never blocked from M7 until this commit, and said why: steps 3 and 5 did not exist, and
+# "a gate that blocked with nowhere to route the escalation would just teach people to
+# bypass it." That was correct. usp_land_system_change, sandbox.system_change and the
+# invalidation sweep all exist now, and the exemption was simply never revisited — which is
+# CLAUDE.md checklist item 19 exactly: a provisional exemption applied for a sound reason,
+# left open across sessions, becoming permanent by default.
+#
+# What it checks is a `System-Change: SC-nn` trailer, not a database lookup — CI holds no
+# credential, and it gives an author a route rather than a wall. A replay of this same
+# classifier over all 107 commits since it landed found ONE system-scope commit, so this
+# gate is not about to start firing constantly; the 22 that predate it were invisible to CI
+# and are a separate, retrospective debt.
 
 on:
   pull_request:
@@ -51,6 +60,10 @@ jobs:
             BASE="HEAD~1"
           fi
 
+          # Exported, not just echoed: the blocking step below has to diff the SAME range
+          # this one classified, or it would answer a different question than the one that
+          # triggered it.
+          echo "base=$BASE" >> "$GITHUB_OUTPUT"
           echo "base=$BASE"
           set +e
           node scripts/detect-scope.mjs --base "$BASE" | tee scope.txt
@@ -78,11 +91,23 @@ jobs:
             echo '```'
             if [ "${{ steps.scope.outputs.scope }}" = "system" ]; then
               echo
-              echo "This change reaches beyond the component being worked on. Per SANDBOX-SPEC §5.7"
-              echo "it needs a \`system_change\` record, and landing it should mark affected evidence"
-              echo "stale (M7 steps 3-5)."
+              echo "This change reaches beyond the component being worked on. Per SANDBOX-SPEC §5.7 it"
+              echo "needs a \`system_change\` record, and the next step FAILS without a"
+              echo "\`System-Change: SC-nn\` trailer on a commit in this range."
+              echo
+              echo "No record yet? File one — \`sandbox_propose_system_change\` over MCP — pass the"
+              echo "affected paths above verbatim, then assess it. Landing it marks the evidence under"
+              echo "those paths stale, which is the point: everything already verified there needs"
+              echo "re-checking."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: A system-wide change must name a system change
+        # Deliberately AFTER the summary step, so a blocked author reads the classification,
+        # the affected paths and the reason before they read the failure. A gate that fails
+        # first and explains nowhere is the kind people learn to route around.
+        if: steps.scope.outputs.scope == 'system'
+        run: node scripts/detect-scope.mjs --base "${{ steps.scope.outputs.base }}" --require-record
 
       - name: The rule itself still classifies correctly
         # Run AFTER the report rather than before: if the rule has regressed, the report
