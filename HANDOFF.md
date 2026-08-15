@@ -48,7 +48,7 @@
 
 ## Laptop A (main)
 
-**Baseline** — branch `main`, last verified commit `9860a85`, working tree clean, in sync
+**Baseline** — branch `main`, last verified commit `2717f59`, working tree clean, in sync
 with `origin/main`. Verify this yourself (`git log --oneline -1`, `git status`) before trusting
 anything below it.
 
@@ -60,6 +60,48 @@ gitignored `.env`. Laptop B's `.env` still cannot be fixed from here, so the ren
 three machines present.
 
 ### Active task
+
+**Driving rail-sidebar rows to evidence, category by category.** Current: **10 rows are one
+independent review from approvable** — `D-1 D-3 D-4 D-5 D-7 E-7 F-1 F-7 G-1 G-3`. Their only unmet
+requirement is `review.present`. Five rows are already resolved (`F-2 F-3 F-5 F-6 L-34`).
+
+The bottleneck has moved off measurement and onto review. Nothing more I write changes that for these
+ten.
+
+**Two things block the rest, and both are the owner's:**
+
+1. **`SC-1` is at `assessing` and the database refuses my approval.** It blocks 5 rows and is where the
+   9 `B` colour rows' tokens are supposed to land.
+2. **Can CI rule-checks count as evidence for the 29 code-shaped rows?** The gate already accepts
+   `grep`/`enforcement`/`build` kinds and `check-rules.mjs` already asserts source facts — nothing has
+   ever written one. If yes, 29 rows have a path; if no, they need a different one.
+
+**Rows whose subject the component never renders.** Recurring across every category, not a one-off:
+`D-2 D-6 D-9 D-10` are type scale steps the rail does not use, `D-12` needs the menu open, `E-1`–`E-6`
+are spacing-scale claims rather than element claims. They cannot be anchored as written. They are not
+failures — they need either a different check kind or a decision that a scale claim is verified
+somewhere other than this component.
+
+**A runner defect I found but did not fix** (`run-checks.mjs` is the doer's — they have a pending
+change in it):
+
+`runCheck()` calls `page.locator(selector).count()` BEFORE `settle()`, and `count()` does not
+auto-wait. At `networkidle` the React app may not have mounted, so a present anchor reports 0 and the
+runner files a **failing** evidence row saying the subject does not exist. Hit 2 of 12 cold loads;
+E-7 failed this way once, then passed alone immediately after. Fix is small: wait for attachment
+before counting, keeping both the not-found and ambiguous failure modes intact.
+
+The other half is worth knowing precisely because it is NOT broken: the panel's `zoom-in-95` entry
+animation is still running at `networkidle` on **100%** of loads (the title icon measures 15.2px —
+16 × 0.95), and `settle()` catches it every time across 14 instrumented runs. `settle()` is not a
+safety net, it is load-bearing; without it every box measurement in this corpus would silently be 95%
+of the truth. The four approved F-rows are safe for a checkable reason rather than luck — each expects
+the settled number (F-3 expects 256; mid-animation it measures 243), so a mid-flight read fails
+rather than passes.
+
+**A corpus write I owe:** E-7's detail says "Approved: use pl-7" (28px); the component renders 22px
+and the code is the correct side (22 = `size-4` 16 + `gap-1.5` 6, measured at 0.00px drift from the
+title's text). The record needs correcting, not the code. Detail is in `verifier/checks/rail-sidebar/E-7.json`.
 
 **M1–M9 are complete.** M9's two data-driven deliverables (the false-completion ranking and the tier
 criteria) are built but cannot yet produce a queue or a fast lane — the corpus has zero resolutions and
