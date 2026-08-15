@@ -247,8 +247,24 @@ try {
     // If it silently empties, the queue is back to reporting nothing is waiting while
     // cards say Decide — the exact regression it was built to end, and one that would
     // otherwise look like a clean pass.
+    // Asserted against the STORED register, not the prompt's wording.
+    //
+    // It used to derive from the prose — the same convention the card fell back on before
+    // migration 023 gave it a column. Keeping that here would leave two checks testing the
+    // convention and none testing the card: `scripts/check-register.mjs` already holds the
+    // column to the prompt, and it imports `registerOf` rather than restating it.
+    //
+    // What only this check can see is whether the card AGREES WITH THE DATABASE. That
+    // distinction is not academic — the first backfill of `register` classified 100 of 169
+    // rows differently from the corpus, and had the card been wired to it, the decision
+    // queue would have become 28 other rows. A prose-derived assertion here would have gone
+    // on passing throughout, because the prose never changed.
+    //
+    // It also correctly tolerates a deliberate deviation: F-1 is stored `decide` while its
+    // prompt still reads as a confirm (`register_source = 'explicit'`), and the card should
+    // follow the database.
     const decideRefs = partition.decide ?? []
-    const claimDecide = rows.filter((r) => /\bDecide\b/.test(r.reviewPrompt ?? "")).map((r) => r.ref)
+    const claimDecide = rows.filter((r) => r.register === "decide").map((r) => r.ref)
     // Compared against the CORPUS, not against the component's own matcher.
     const missedDecide = claimDecide.filter(
       (ref) => !decideRefs.includes(ref) && !(partition.done ?? []).includes(ref) && !(partition.blocked ?? []).includes(ref),

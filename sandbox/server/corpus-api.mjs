@@ -86,7 +86,7 @@ const DIVERGENCES_SQL = `
          d.visual, d.origin_record, d.anchor_id, d.anchor_file,
          -- Migration 018. Both NULL on every row today; the card falls back to
          -- title/detail, which is the normal path rather than a transitional one.
-         d.review_label, d.review_prompt, d.relation, d.subject_state,
+         d.review_label, d.review_prompt, d.register, d.register_source, d.relation, d.subject_state,
          blocked_ref = sc.ref_code,
          evidence_total = (SELECT COUNT(*) FROM sandbox.evidence e
                            WHERE e.divergence_id = d.divergence_id),
@@ -273,6 +273,19 @@ async function readCorpus() {
         // ── everything below drives the review card (sandbox/REVIEW-CARD-SPEC.md) ──
         reviewLabel: r.review_label,
         reviewPrompt: r.review_prompt,
+        // Migration 023, corrected in 45874f2. Wired only AFTER the stored value was
+        // verified to agree with the corpus: the first backfill classified 100 of 169 rows
+        // differently — every one of the eleven real `decide` rows filed as `confirm`, and
+        // the `close` register absent entirely — because it keyed on "does this row propose
+        // a value" rather than "what is the reviewer being asked to do". Shipping it then
+        // would have silently replaced the owner's decision queue with 28 other rows.
+        //
+        // `register_source` says whether the stored value follows the prompt's own wording
+        // or deviates deliberately. F-1 is the single 'explicit' row: reopened and
+        // re-registered to `decide` while its prompt still reads "Confirm the wider rail is
+        // right". Without this column a prompt-derived backfill would silently revert that.
+        register: r.register,
+        registerSource: r.register_source,
         blockedRef: r.blocked_ref,
         evidenceTotal: r.evidence_total,
         evidenceStale: r.evidence_stale,

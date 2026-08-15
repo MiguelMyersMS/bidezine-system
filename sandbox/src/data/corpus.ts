@@ -50,6 +50,14 @@ export type CorpusDivergence = {
    * the few live rows rather than all 154. */
   reviewLabel: string | null
   reviewPrompt: string | null
+  /** Migration 023's stored register — preferred by `registerOf()` over the prompt's own
+   * wording, which is a naming convention and exactly the fragility item 15 describes. */
+  register: "decide" | "confirm" | "close" | null
+  /** Whether the stored register follows the prompt ('prompt') or deviates deliberately
+   * ('explicit'). F-1 is the only 'explicit' row today: reopened to `decide` while its
+   * prompt still reads as a confirm. `scripts/check-register.mjs` holds prompt rows to the
+   * convention and REPORTS the explicit ones rather than skipping them silently. */
+  registerSource: "prompt" | "explicit" | null
   /** The `ref_code` of the system change blocking this row, if any. Drives the `Blocked`
    * badge — deliberately a badge and not a checklist item, since no amount of checking
    * clears it. */
