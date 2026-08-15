@@ -264,7 +264,13 @@ try {
     // prompt still reads as a confirm (`register_source = 'explicit'`), and the card should
     // follow the database.
     const decideRefs = partition.decide ?? []
-    const claimDecide = rows.filter((r) => r.register === "decide").map((r) => r.ref)
+    // Matched on the gate's own OUTSTANDING requirement, not on the register alone. The
+    // register says a decision was ever required; the unmet list says one is still owed —
+    // and six rows sat in the bucket after being decided and recorded, because those are
+    // different questions and this check was asking the wrong one.
+    const claimDecide = rows
+      .filter((r) => r.register === "decide" && (r.unmet ?? []).some((u) => u.requirement === "decision.present"))
+      .map((r) => r.ref)
     // Compared against the CORPUS, not against the component's own matcher.
     const missedDecide = claimDecide.filter(
       (ref) => !decideRefs.includes(ref) && !(partition.done ?? []).includes(ref) && !(partition.blocked ?? []).includes(ref),

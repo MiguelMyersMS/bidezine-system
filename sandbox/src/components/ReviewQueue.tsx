@@ -65,7 +65,19 @@ const BUCKETS: Bucket[] = [
     title: "Needs your decision",
     blurb:
       "Nothing can be measured until someone chooses. These do not wait on evidence — evidence waits on them.",
-    match: (status, row) => status === "open" && registerOf(row) === "decide",
+    // The register says a decision was ever REQUIRED; the gate says whether one is still
+    // OWED. Matching on the register alone kept six rows here after they had been decided
+    // and recorded — the bucket's own blurb promises "nothing can be measured until someone
+    // chooses", which stops being true the moment the choice exists.
+    //
+    // `decision.present` is the gate's own answer and disappears when a decision lands, so
+    // this asks the database rather than re-deriving the rule. The register still selects
+    // WHICH rows can appear here at all, because a confirm row missing evidence is not
+    // waiting on a person.
+    match: (status, row) =>
+      status === "open" &&
+      registerOf(row) === "decide" &&
+      row.unmet.some((u) => u.requirement === "decision.present"),
   },
   {
     id: "yours",
@@ -87,7 +99,13 @@ const BUCKETS: Bucket[] = [
     // The complement of the decide bucket above, so the two together still cover every
     // `open` row exactly once. Written as an explicit negation rather than relying on
     // array order, so reordering the list cannot silently drop rows out of both.
-    match: (status, row) => status === "open" && registerOf(row) !== "decide",
+    // The complement of the decide bucket, written as an explicit negation of the SAME
+    // condition so the two together still cover every `open` row exactly once. A decided
+    // row lands here, correctly: what it owes next is a measurement, and that is a machine's
+    // job rather than a person's.
+    match: (status, row) =>
+      status === "open" &&
+      !(registerOf(row) === "decide" && row.unmet.some((u) => u.requirement === "decision.present")),
   },
   {
     id: "done",
