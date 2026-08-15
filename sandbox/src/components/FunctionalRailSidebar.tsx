@@ -2082,7 +2082,14 @@ export function FunctionalRailSidebar({
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button type="button" variant="ghost" size="icon-xs" className="text-muted-foreground">
-                          <MoreHorizontalIcon className="size-4" />
+                          {/* A-1: origin's IconEllipsis maps to our MoreHorizontalIcon. Anchored on
+                              the ICON, not the trigger, because the claim is which glyph renders —
+                              and `d` is readable through getComputedStyle, so a spec can assert the
+                              exact Fluent path rather than the fact that some svg exists. That is the
+                              defect class checklist item 18 describes as only surfacing on close
+                              visual inspection: a fabricated-but-plausible path passes typecheck,
+                              build and a smoke test, and fails this. */}
+                          <MoreHorizontalIcon className="size-4" {...anchor("icon-panel-actions")} />
                           <span className="sr-only">Panel actions</span>
                         </Button>
                       </DropdownMenuTrigger>
@@ -2117,7 +2124,13 @@ export function FunctionalRailSidebar({
                       className="text-muted-foreground"
                       onClick={() => setOpenPanel(null)}
                     >
-                      <PanelLeftContractIcon className="size-4" />
+                      {/* A-7 and Q4 both concern this glyph — Q4 is the question ("which Fluent
+                          icon?"), A-7 the divergence, and both were CORRECTED to
+                          panel_left_contract after being misidentified as a double-chevron. One
+                          element, two rows: anchors name elements rather than divergences, so both
+                          specs point here. Asserting the path is what makes the correction
+                          durable — a revert to the wrong glyph fails mechanically. */}
+                      <PanelLeftContractIcon className="size-4" {...anchor("icon-collapse-panel")} />
                       <span className="sr-only">Collapse sidebar</span>
                     </Button>
                   </div>
