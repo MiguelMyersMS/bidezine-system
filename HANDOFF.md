@@ -75,6 +75,16 @@ Not authored, deliberately: `ease-out` (zero uses in `src/ui`) and a 700ms revea
 nowhere in the system). `H-2`/`H-4`/`H-5` are `decide` rows — they now have a vocabulary to decide
 against, and `token.authored` is what makes their answer real once chosen.
 
+**Two runner defects fixed, and a third left open and named.**  before  was
+writing false ANCHOR NOT FOUND rows;  flagged every  opacity utility because
+Tailwind compiles those to  — it now fires only when  actually
+waited on something. **Still open:**  wrote ANCHOR NOT FOUND against B-4/F-3/F-5 on one run and
+E-7/G-3 on the one before — different victims each time, all passing alone. Ten instrumented cold
+loads found the cause (load 1 had every anchor absent at  and still absent 5s later —
+a Vite on-demand compile), and the wait is now 15s, **but I could not re-create the cold state to
+watch 15s catch it.**  still fails alone and its anchor  is generated
+dynamically — unresolved, and the next thing to look at.
+
 **Driving rail-sidebar rows to evidence.** Current: **14 rows are one independent review from
 approvable** — `C-6 C-7 C-8 C-9 D-1 D-3 D-4 D-5 D-7 E-7 F-1 F-7 G-1 G-3`. Their only unmet
 requirement is `review.present`. Five rows are already resolved (`F-2 F-3 F-5 F-6 L-34`).
