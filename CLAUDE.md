@@ -472,6 +472,31 @@ sandbox component before it's considered ready to promote — not a one-off list
   it; the structural answer is `divergence_decision.rejected_value` (migration 028), which makes "what was
   this chosen instead of" a column a check can read rather than a sentence a summary can drop.
 
+- **A check must take its input FROM the pipeline it is checking, never construct its own — four
+  separate checks were found in one day passing while the thing they covered was broken, and every one
+  had built its own input.** This is not four bugs; it is one, and it is the most dangerous shape a
+  defect takes here, because the check reports green and nobody looks again:
+  - **`token.authored` was permanently unsatisfiable.** `sandbox.design_token` stored bare token keys
+    (`sidebar-rail-surface`) while `divergence_decision.chosen_token` stores CSS custom properties
+    (`--sidebar-rail-surface`), and the gate compares them directly — never equal, for any token, ever.
+    Authoring the tokens would have released nothing. Its test passed because it INSERTED a probe row
+    spelled with the `--` prefix, a shape the real sync never produces. It proved the SQL and nothing
+    about the pipeline.
+  - **`evidence.current` counted rows its own chain rule kept off screen**, because the fraction was
+    computed from a join the display never used.
+  - **A card check collided with a `__dbg__` fixture ref** and asserted against the wrong row.
+  - **A `settle()` probe passed 7/7 while the fix was still broken for icons**, because the probe
+    measured a button — the element class that was never failing.
+
+  The rule: **a check's subject and its input must come from the same place the real code gets them.**
+  Read the token from the synced table, not a literal you typed. Pick the row by querying for one in the
+  state you need, not by hard-coding a ref. Exercise the element class that actually failed, not a
+  convenient sibling. When a check must fabricate input — a fixture component, an injected drift — the
+  fabrication belongs to the SUBJECT (a throwaway component you own end to end), never to the CONTRACT
+  being verified (the format two tables agree on, the ref a card resolves, the element a bug lived in).
+  And prove the check can fail: reproduce the defect, watch it go red with the right row named, then
+  restore through the real mechanism rather than by undoing your own edit.
+
 Whenever a new failure class like these is found, add it here directly (not only to a component's own
 temporary working log) so it protects every future Sandbox occupant, not just the one that exposed it.
 

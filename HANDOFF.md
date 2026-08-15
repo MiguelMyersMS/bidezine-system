@@ -229,6 +229,21 @@ is right" and should be rewritten as a decision;** that belongs to whoever owns 
 `decision.present` now fires for exactly `G-1, H-2..H-6, R-5, R-6, R-8, R-9, R-11` plus F-1.
 `token.authored` still blocks the nine B rows — it keys on the decision's disposition, not the register.
 
+**Decision coverage is 22 of 169, and the gap is a number rather than a feeling** —
+`node scripts/check-decision-coverage.mjs`. 030 recorded the 13 rows where `disposition='reused'` is
+PROVABLE: each names a token that resolves in `design_token`, so the join is the evidence and no prose
+was extracted. **72 were deliberately left.** 69 have no structured after-value at all, and **38 of
+those assert a decision happened while recording nothing it was weighed against** — that figure is how
+much of this component was approved with no reason on file. The 3 literals are left too: `J-1`/`J-2`
+are a reading, and **`C-5`'s record contradicts the shipped code** (it names `#B9B9B9` while the
+component uses `--muted-foreground` at 50%, and the CODE was ruled correct), so its record needs
+fixing before anything is derived from it.
+
+**`token.authored` was permanently unsatisfiable until `9efd2cc`.** `design_token` stored bare keys,
+`chosen_token` stores `--`-prefixed properties, and the gate compared them directly — authoring the
+nine tokens would have released nothing. **Its own test passed because it inserted a probe row in the
+right shape.** That is the fourth check found this way; the general rule is now in `CLAUDE.md`.
+
 **F-1 was reopened against `decision.present` (028).** It was resolved and in the queue. Its whole
 justification is *"match the origin Rail Sidebar rail width at 54px instead of using the Sidebar
 primitive's 48px"* — a comparison with no reason for rejecting bidezine's own value, which is the F-3
