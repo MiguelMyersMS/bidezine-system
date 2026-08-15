@@ -305,13 +305,34 @@ function motionNote(motion) {
     : `settle: WARNING — ${motion.animations} animation(s) still running after ${SETTLE_TIMEOUT_MS}ms; the values below may have been read mid-transition`
 }
 
+// Long enough for a cold React mount on a dev server, short enough that a genuinely absent
+// anchor is reported quickly rather than stalling a batch.
+const ANCHOR_ATTACH_TIMEOUT_MS = 5000
+
 /**
  * Chromium serialises a colour it is still interpolating as `oklab(...)` and a settled one as
- * `oklch(...)`. If a measured value still reads oklab after `settle()` claims to have waited,
- * something is still moving — and naming that is far more useful to whoever reads the failure
- * than a bare "expected X, got Y" that looks like a broken component.
+ * `oklch(...)`. If a measured value still reads oklab after `settle()` waited, something is still
+ * moving — and naming that is far more useful than a bare "expected X, got Y" that looks like a
+ * broken component.
+ *
+ * ── Why the `motion` argument, and why the shape test alone was wrong ──────────────
+ * `oklab(...)` is NOT unique to interpolation. Tailwind v4 compiles every `/NN` opacity modifier
+ * to `color-mix(in oklab, …)`, and Chromium computes that to a plain `oklab(...)` value that is
+ * completely settled. C-7 is exactly this: it EXPECTS an oklab value, at
+ * `transition-duration: 0s`, with `getAnimations()` empty and byte-identical on re-read.
+ *
+ * So the string shape alone would have flagged every opacity-modified colour in the corpus as
+ * mid-transition. It fails nothing — the note is advisory — but CLAUDE.md item 28 exists because
+ * a WRONG value that looks authoritative is worse than no value, and a warning that fires on
+ * correct measurements trains people to skip reading it, which costs exactly the one case it was
+ * written for.
+ *
+ * The distinguishing fact is not in the string, it is in `settle()`: it already reports how many
+ * animations it waited on. Nothing animating means an oklab value is a `color-mix` result, not a
+ * read taken mid-flight. Only when something WAS moving is the shape worth remarking on.
  */
-function midFlightColours(measured) {
+function midFlightColours(measured, motion) {
+  if (!motion || motion.animations === 0) return []
   return Object.entries(measured)
     .filter(([, v]) => typeof v === "string" && v.includes("oklab("))
     .map(([k]) => k)
@@ -345,6 +366,22 @@ async function runCheck(page, spec, check, runId, commit) {
     kind: check.kind === "box" ? "measurement" : check.kind,
     check_spec: JSON.stringify({ ...check, url: spec.url, anchor: spec.anchor, selector }),
   }
+
+  // `count()` does NOT auto-wait — it asks the DOM once, right now. At `networkidle` the React
+  // app may not have mounted yet, so a perfectly present anchor reports 0 and the runner files a
+  // FAILING evidence row claiming the subject does not exist. Reproduced twice in one batch here:
+  // E-7 and G-3 both failed this way and both passed immediately when re-run alone.
+  //
+  // Waiting for attachment first fixes it without weakening either failure mode. The wait is
+  // deliberately swallowed rather than allowed to throw: a genuinely missing anchor must still
+  // produce the ANCHOR NOT FOUND row below — which says WHICH selector and WHICH url — not a
+  // Playwright timeout with none of that. And the count is still read afterwards, so two matching
+  // elements still reach the AMBIGUOUS branch rather than being silently resolved to the first.
+  await page
+    .locator(selector)
+    .first()
+    .waitFor({ state: "attached", timeout: ANCHOR_ATTACH_TIMEOUT_MS })
+    .catch(() => {})
 
   const count = await page.locator(selector).count()
   if (count === 0) {
@@ -427,7 +464,7 @@ async function runCheck(page, spec, check, runId, commit) {
     }
 
     const failures = compare(expected, measured, check.tolerance ?? 0)
-    const midFlight = midFlightColours(measured)
+    const midFlight = midFlightColours(measured, motion)
     return {
       ...base,
       passed: failures.length === 0 ? 1 : 0,
@@ -440,7 +477,7 @@ async function runCheck(page, spec, check, runId, commit) {
         `expected: ${JSON.stringify(expected)}`,
         `measured: ${JSON.stringify(measured, null, 2)}`,
         midFlight.length
-          ? `\nSTILL INTERPOLATING: ${midFlight.join(", ")} came back as oklab(), which is how Chromium serialises a colour mid-transition (a settled one reads oklch()). Whatever value is below was read while the component was still moving — treat a mismatch as a timing fault in the runner before treating it as a wrong colour.`
+          ? `\nSTILL INTERPOLATING: ${midFlight.join(", ")} came back as oklab() while settle() was still waiting on ${motion.animations} animation(s). Chromium serialises an interpolating colour that way, so the value below may have been read mid-flight — treat a mismatch as a timing fault in the runner before treating it as a wrong colour. (A settled color-mix(in oklab, …), which is what Tailwind compiles every /NN opacity modifier to, also reads oklab and is NOT flagged here — nothing was animating in that case.)`
           : null,
         failures.length ? `\nFAILURES:\n  ${failures.join("\n  ")}` : "\nall expectations held",
       ]
