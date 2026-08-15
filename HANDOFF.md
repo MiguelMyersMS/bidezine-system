@@ -190,6 +190,35 @@ not a server problem — try `/mcp` in an interactive session.
 
 Read `docs/SANDBOX-SPEC.md` first. It is the single source of truth for this project.
 
+**Deciding is now a recorded, required act — migrations 023–027, `bb23e24` · `7ba1f3e` · `2b0ec8f`.**
+A full-corpus audit found `sandbox.system_change` had never held a row while 39 of 169 rail-sidebar rows
+concern `tokens/` or `src/ui/`, and eleven `--sidebar-rail-*` tokens were proposed, approved, and
+authored into no file. Approving, reviewing, declaring a completion false and handing over a component
+all had audit tables; deciding had none, so it could not be required or reused.
+
+- **`register`** (decide|confirm|close) says what a row owes a human. A CHECK makes the dangerous
+  combination impossible: a row whose `visual` proposes an after-value cannot be registered `confirm`.
+- **`divergence_decision`** is `proposedDarkRailTokens` moved out of a TypeScript array into a table,
+  plus the two fields it never had — `decided_by` and `rationale`. No rationale was invented; every one
+  of the eleven carries a sentence somebody really wrote about that value.
+- **`decision.present`** and **`token.authored`** gate on it. `usp_record_decision` is the only door.
+- **`sandbox.design_token`** is synced from the real token files by `verifier/sync-design-tokens.mjs`.
+  **Run it after any commit touching `tokens/`**, or a newly-authored token still reads as missing.
+
+**THE READY QUEUE IS 6, DOWN FROM 14 — that is the protocol working, not a regression.** All nine B rows
+are blocked on tokens that do not exist. `F-1, F-2, F-3, F-5, F-6, L-34` remain.
+
+**CI blocks now.** `scope-detection.yml` fails a system-scope change carrying no `System-Change: SC-nn`
+trailer. A replay of the same classifier over all 107 commits since it landed found ONE system-scope
+commit, so this will not fire constantly.
+
+**Two open debts, deliberately not merged into one number** — they are owed by different things:
+- **Blocking (floor: 5 rows).** Rows proposing a token that resolves nowhere. `token.authored` holds
+  these; nothing further is needed to enforce them.
+- **Retrospective (ceiling: 39 rows / 23 commits).** Work already landed under `src/ui`, `src/lib`,
+  `src/styles` or `tokens/` with no `system_change` record. 22 of those 23 commits predate the CI check
+  and were invisible to it. Reporting the two as one number would overstate the first.
+
 **`check-declarations` is 6/7 — two orphans left, down from seven.** The red check is *"every bidezine
 subject names an anchor a real check spec measures"*. Six of the seven specs landed at `d2730ba`; the
 remaining orphans are **`B-3 → rail-item-slides` and `B-6 → rail-item-slides-icon`**, held back
