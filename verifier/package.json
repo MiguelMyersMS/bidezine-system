@@ -9,7 +9,8 @@
     "check": "node run-checks.mjs",
     "recheck": "node run-checks.mjs --stale",
     "sync-source": "node sync-source-files.mjs",
-    "verify": "node verify-runner.mjs"
+    "verify": "node verify-runner.mjs",
+    "sync-tokens": "node sync-design-tokens.mjs"
   },
   "dependencies": {
     "mssql": "^11.0.1",

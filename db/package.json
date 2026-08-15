@@ -13,7 +13,8 @@
     "verify-import": "node verify-import.mjs",
     "verify-review-prompt-fidelity": "node verify-review-prompt-fidelity.mjs",
     "verify-system-change": "node verify-system-change.mjs",
-    "verify-ownership": "node verify-ownership.mjs"
+    "verify-ownership": "node verify-ownership.mjs",
+    "verify-decision": "node verify-decision.mjs"
   },
   "dependencies": {
     "esbuild": "^0.27.7",
