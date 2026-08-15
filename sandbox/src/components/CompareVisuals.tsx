@@ -846,8 +846,105 @@ export function ComparisonBlocks({ visual }: { visual: Visual }) {
     )
   }
 
+  /**
+   * shape · elevation · zindex · motion — 20 rows the card used to hold data for and
+   * render nothing at all.
+   *
+   * §3.11 originally said these "belong in the canvas where they can be triggered", and
+   * that reasoning was sound for MOTION specifically — a duration has no static before to
+   * sit beside an after. It was wrong for the other three, and it was applied to all four.
+   * The consequence was concrete: F-2, F-5 and F-6 sat in the owner's approval queue with
+   * a comparison recorded and nothing on screen, so the only way to judge them was the
+   * prose. That is the same defect as the blank swatch — the card holding something and
+   * not saying it — and it was reported the same way.
+   *
+   * Motion still gets no animation. Its values ARE the comparison a reviewer can act on
+   * ("120ms ease → 150ms ease"), and a looping demo inside a review card would be movement
+   * for its own sake. The frame carries the numbers; the canvas carries the behaviour.
+   */
+  if (visual.kind === "shape") {
+    // Sized from the row's own recorded style, so the box IS the claim rather than an
+    // illustration of it. Capped so a 380px panel width cannot blow out a 335px card.
+    const box = (style: Record<string, string> | undefined) => (
+      <span
+        className="shrink-0 rounded-md border bg-background"
+        style={{ ...style, maxWidth: 120, maxHeight: 64 }}
+      />
+    )
+    return (
+      <div className="flex flex-col gap-2">
+        <Block role="Origin" spec={visual.beforeLabel}>{box(visual.beforeStyle)}</Block>
+        <Block role="Adjusted" spec={visual.afterLabel ?? "not recorded"}>{box(visual.afterStyle)}</Block>
+      </div>
+    )
+  }
+
+  if (visual.kind === "elevation") {
+    return (
+      <div className="flex flex-col gap-2">
+        <Block role="Origin" spec={visual.beforeLabel}>
+          <span className={cn(CHIP, "border-dashed")} />
+        </Block>
+        <Block role="Adjusted" spec={visual.afterLabel ?? "not recorded"}>
+          {/* The real utility class, so the sample is the system's own elevation rather
+              than a picture of it — same rule as the type block's className. */}
+          <span className={cn(CHIP, visual.afterShadowClassName)} />
+        </Block>
+      </div>
+    )
+  }
+
+  if (visual.kind === "zindex") {
+    // No meaningful visual: a stacking level is a number, and drawing two overlapping
+    // squares would illustrate the CONCEPT of z-index rather than this row's claim. The
+    // frame and the values are the comparison.
+    return (
+      <div className="flex flex-col gap-2">
+        <Block role="Origin" spec={visual.beforeLabel}>
+          <span className={cn(CHIP, "text-xs text-muted-foreground")}>—</span>
+        </Block>
+        <Block role="Adjusted" spec={visual.afterLabel ?? "not recorded"}>
+          <span className={cn(CHIP, "font-mono text-xs")}>{visual.afterValue ?? "?"}</span>
+        </Block>
+      </div>
+    )
+  }
+
+  if (visual.kind === "motion") {
+    // Append duration/easing ONLY when the label does not already carry them — several
+    // labels read "MOTION.fast 120ms ease", and appending produced
+    // "MOTION.fast 120ms ease · 120ms · ease". §3.10's own no-duplication rule, which I
+    // wrote and then broke in the next component I touched.
+    const spec = (label: string, ms?: number, easing?: string) => {
+      const extra = [
+        ms != null && !label.includes(`${ms}ms`) ? `${ms}ms` : null,
+        easing && !label.includes(easing) ? easing : null,
+      ].filter(Boolean)
+      return [label, ...extra].join(" · ")
+    }
+    return (
+      <div className="flex flex-col gap-2">
+        <Block role="Origin" spec={spec(visual.beforeLabel, visual.beforeDurationMs, visual.beforeEasing)}>
+          <span className={cn(CHIP, "text-xs text-muted-foreground")}>{visual.beforeDurationMs ?? "—"}</span>
+        </Block>
+        <Block
+          role="Adjusted"
+          spec={spec(visual.afterLabel ?? "not recorded", visual.afterDurationMs, visual.afterEasing)}
+        >
+          <span className={cn(CHIP, "text-xs")}>{visual.afterDurationMs ?? "—"}</span>
+        </Block>
+      </div>
+    )
+  }
+
   return null
 }
 
-/** Which kinds the card renders inline. Everything else goes to the canvas. */
-export const BLOCK_KINDS = new Set(["icon", "color", "type"])
+/**
+ * Which kinds the card renders inline.
+ *
+ * Was `icon`/`color`/`type`, which silently dropped the comparison on 20 rows — three of
+ * them in the approval queue. Every kind the corpus holds now renders; a row whose data
+ * the card cannot draw says so rather than showing nothing.
+ */
+export const BLOCK_KINDS = new Set(["icon", "color", "type", "shape", "elevation", "zindex", "motion"])
