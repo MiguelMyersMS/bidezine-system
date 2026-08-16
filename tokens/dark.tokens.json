@@ -1,67 +1,620 @@
 {
   "$description": "Dark-mode semantic colours → .dark. Values are shadcn/ui's own, unmodified. Must declare exactly the same token names as light.tokens.json — the emitter fails the build on any mismatch.",
-
-  "background": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.145, 0, 0] } },
-  "foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] } },
-
-  "card": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.205, 0, 0] } },
-  "card-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] } },
-
-  "popover": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.205, 0, 0] } },
-  "popover-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] } },
-
-  "primary": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.922, 0, 0] } },
-  "primary-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.205, 0, 0] } },
-
-  "secondary": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.269, 0, 0] } },
-  "secondary-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] } },
-
-  "muted": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.269, 0, 0] } },
-  "muted-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.708, 0, 0] } },
-
-  "accent": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.371, 0, 0] } },
-  "accent-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] } },
-
-  "destructive": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.704, 0.191, 22.216] } },
-  "destructive-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.58, 0.22, 27] } },
-
-  "success": { "$type": "color", "$description": "bidezine Adjustment — see light.tokens.json. Same hue as light mode, lighter/desaturated to match destructive's own light<->dark relationship (dark badge fill uses this at 60% opacity over the dark surface, mirroring destructive's dark treatment).", "$value": { "colorSpace": "oklch", "components": [0.696, 0.17, 162.48] } },
-  "success-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.97, 0.02, 150] } },
-
-  "warning": { "$type": "color", "$description": "bidezine Adjustment — see light.tokens.json.", "$value": { "colorSpace": "oklch", "components": [0.72, 0.16, 70] } },
-  "warning-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.97, 0.02, 68] } },
-
-  "info": { "$type": "color", "$description": "bidezine Adjustment — see light.tokens.json.", "$value": { "colorSpace": "oklch", "components": [0.623, 0.214, 259.815] } },
-  "info-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.97, 0.02, 262] } },
-
-  "destructive-soft": { "$type": "color", "$description": "bidezine Adjustment — see light.tokens.json for the full rationale. Dark-mode pair: an opaque dark tint of destructive's own hue (not an alpha blend), paired with destructive-soft-foreground: 7.04:1 contrast.", "$value": { "colorSpace": "oklch", "components": [0.24, 0.05, 22.216] } },
-  "destructive-soft-foreground": { "$type": "color", "$description": "bidezine Adjustment — lighter/saturated shade of destructive's own hue for legibility on the dark destructive-soft tint. See light.tokens.json.", "$value": { "colorSpace": "oklch", "components": [0.75, 0.15, 22.216] } },
-
-  "success-soft": { "$type": "color", "$description": "bidezine Adjustment — see destructive-soft. Paired with success-soft-foreground: 9.13:1 contrast.", "$value": { "colorSpace": "oklch", "components": [0.24, 0.05, 162.48] } },
-  "success-soft-foreground": { "$type": "color", "$description": "bidezine Adjustment — see destructive-soft-foreground; success's own hue.", "$value": { "colorSpace": "oklch", "components": [0.795, 0.17, 162.48] } },
-
-  "warning-soft": { "$type": "color", "$description": "bidezine Adjustment — see destructive-soft. Paired with warning-soft-foreground: 8.31:1 contrast.", "$value": { "colorSpace": "oklch", "components": [0.24, 0.05, 70] } },
-  "warning-soft-foreground": { "$type": "color", "$description": "bidezine Adjustment — see destructive-soft-foreground; warning's own hue.", "$value": { "colorSpace": "oklch", "components": [0.79, 0.17, 70] } },
-
-  "info-soft": { "$type": "color", "$description": "bidezine Adjustment — see destructive-soft. Paired with info-soft-foreground: 7.24:1 contrast.", "$value": { "colorSpace": "oklch", "components": [0.24, 0.05, 259.815] } },
-  "info-soft-foreground": { "$type": "color", "$description": "bidezine Adjustment — see destructive-soft-foreground; info's own hue.", "$value": { "colorSpace": "oklch", "components": [0.745, 0.13, 259.815] } },
-
-  "border": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.1 } },
-  "input": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.15 } },
-  "ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.556, 0, 0] } },
-
-  "chart-1": { "$type": "color", "$value": "var(--color-blue-300)" },
-  "chart-2": { "$type": "color", "$value": "var(--color-blue-500)" },
-  "chart-3": { "$type": "color", "$value": "var(--color-blue-600)" },
-  "chart-4": { "$type": "color", "$value": "var(--color-blue-700)" },
-  "chart-5": { "$type": "color", "$value": "var(--color-blue-800)" },
-
-  "sidebar": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.205, 0, 0] } },
-  "sidebar-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] } },
-  "sidebar-primary": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.488, 0.243, 264.376] } },
-  "sidebar-primary-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] } },
-  "sidebar-accent": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.269, 0, 0] } },
-  "sidebar-accent-foreground": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.985, 0, 0] } },
-  "sidebar-border": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [1, 0, 0], "alpha": 0.1 } },
-  "sidebar-ring": { "$type": "color", "$value": { "colorSpace": "oklch", "components": [0.439, 0, 0] } }
+  "background": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.145,
+        0,
+        0
+      ]
+    }
+  },
+  "foreground": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.985,
+        0,
+        0
+      ]
+    }
+  },
+  "card": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.205,
+        0,
+        0
+      ]
+    }
+  },
+  "card-foreground": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.985,
+        0,
+        0
+      ]
+    }
+  },
+  "popover": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.205,
+        0,
+        0
+      ]
+    }
+  },
+  "popover-foreground": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.985,
+        0,
+        0
+      ]
+    }
+  },
+  "primary": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.922,
+        0,
+        0
+      ]
+    }
+  },
+  "primary-foreground": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.205,
+        0,
+        0
+      ]
+    }
+  },
+  "secondary": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.269,
+        0,
+        0
+      ]
+    }
+  },
+  "secondary-foreground": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.985,
+        0,
+        0
+      ]
+    }
+  },
+  "muted": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.269,
+        0,
+        0
+      ]
+    }
+  },
+  "muted-foreground": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.708,
+        0,
+        0
+      ]
+    }
+  },
+  "accent": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.371,
+        0,
+        0
+      ]
+    }
+  },
+  "accent-foreground": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.985,
+        0,
+        0
+      ]
+    }
+  },
+  "destructive": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.704,
+        0.191,
+        22.216
+      ]
+    }
+  },
+  "destructive-foreground": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.58,
+        0.22,
+        27
+      ]
+    }
+  },
+  "success": {
+    "$type": "color",
+    "$description": "bidezine Adjustment — see light.tokens.json. Same hue as light mode, lighter/desaturated to match destructive's own light<->dark relationship (dark badge fill uses this at 60% opacity over the dark surface, mirroring destructive's dark treatment).",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.696,
+        0.17,
+        162.48
+      ]
+    }
+  },
+  "success-foreground": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.97,
+        0.02,
+        150
+      ]
+    }
+  },
+  "warning": {
+    "$type": "color",
+    "$description": "bidezine Adjustment — see light.tokens.json.",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.72,
+        0.16,
+        70
+      ]
+    }
+  },
+  "warning-foreground": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.97,
+        0.02,
+        68
+      ]
+    }
+  },
+  "info": {
+    "$type": "color",
+    "$description": "bidezine Adjustment — see light.tokens.json.",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.623,
+        0.214,
+        259.815
+      ]
+    }
+  },
+  "info-foreground": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.97,
+        0.02,
+        262
+      ]
+    }
+  },
+  "destructive-soft": {
+    "$type": "color",
+    "$description": "bidezine Adjustment — see light.tokens.json for the full rationale. Dark-mode pair: an opaque dark tint of destructive's own hue (not an alpha blend), paired with destructive-soft-foreground: 7.04:1 contrast.",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.24,
+        0.05,
+        22.216
+      ]
+    }
+  },
+  "destructive-soft-foreground": {
+    "$type": "color",
+    "$description": "bidezine Adjustment — lighter/saturated shade of destructive's own hue for legibility on the dark destructive-soft tint. See light.tokens.json.",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.75,
+        0.15,
+        22.216
+      ]
+    }
+  },
+  "success-soft": {
+    "$type": "color",
+    "$description": "bidezine Adjustment — see destructive-soft. Paired with success-soft-foreground: 9.13:1 contrast.",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.24,
+        0.05,
+        162.48
+      ]
+    }
+  },
+  "success-soft-foreground": {
+    "$type": "color",
+    "$description": "bidezine Adjustment — see destructive-soft-foreground; success's own hue.",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.795,
+        0.17,
+        162.48
+      ]
+    }
+  },
+  "warning-soft": {
+    "$type": "color",
+    "$description": "bidezine Adjustment — see destructive-soft. Paired with warning-soft-foreground: 8.31:1 contrast.",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.24,
+        0.05,
+        70
+      ]
+    }
+  },
+  "warning-soft-foreground": {
+    "$type": "color",
+    "$description": "bidezine Adjustment — see destructive-soft-foreground; warning's own hue.",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.79,
+        0.17,
+        70
+      ]
+    }
+  },
+  "info-soft": {
+    "$type": "color",
+    "$description": "bidezine Adjustment — see destructive-soft. Paired with info-soft-foreground: 7.24:1 contrast.",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.24,
+        0.05,
+        259.815
+      ]
+    }
+  },
+  "info-soft-foreground": {
+    "$type": "color",
+    "$description": "bidezine Adjustment — see destructive-soft-foreground; info's own hue.",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.745,
+        0.13,
+        259.815
+      ]
+    }
+  },
+  "border": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        1,
+        0,
+        0
+      ],
+      "alpha": 0.1
+    }
+  },
+  "input": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        1,
+        0,
+        0
+      ],
+      "alpha": 0.15
+    }
+  },
+  "ring": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.556,
+        0,
+        0
+      ]
+    }
+  },
+  "chart-1": {
+    "$type": "color",
+    "$value": "var(--color-blue-300)"
+  },
+  "chart-2": {
+    "$type": "color",
+    "$value": "var(--color-blue-500)"
+  },
+  "chart-3": {
+    "$type": "color",
+    "$value": "var(--color-blue-600)"
+  },
+  "chart-4": {
+    "$type": "color",
+    "$value": "var(--color-blue-700)"
+  },
+  "chart-5": {
+    "$type": "color",
+    "$value": "var(--color-blue-800)"
+  },
+  "sidebar": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.205,
+        0,
+        0
+      ]
+    }
+  },
+  "sidebar-foreground": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.985,
+        0,
+        0
+      ]
+    }
+  },
+  "sidebar-primary": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.488,
+        0.243,
+        264.376
+      ]
+    }
+  },
+  "sidebar-primary-foreground": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.985,
+        0,
+        0
+      ]
+    }
+  },
+  "sidebar-accent": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.269,
+        0,
+        0
+      ]
+    }
+  },
+  "sidebar-accent-foreground": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.985,
+        0,
+        0
+      ]
+    }
+  },
+  "sidebar-border": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        1,
+        0,
+        0
+      ],
+      "alpha": 0.1
+    }
+  },
+  "sidebar-ring": {
+    "$type": "color",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.439,
+        0,
+        0
+      ]
+    }
+  },
+  "sidebar-rail-active": {
+    "$type": "color",
+    "$description": "What a rail row looks like when it is the current one.",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.252,
+        0,
+        0
+      ]
+    }
+  },
+  "sidebar-rail-active-hover": {
+    "$type": "color",
+    "$description": "Approved — extends the already-approved hover→pressed→active ramp one more step, inspired by navigation-menu.tsx's own data-[active=true]:hover:bg-accent precedent.",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.282,
+        0,
+        0
+      ]
+    }
+  },
+  "sidebar-rail-border-strong": {
+    "$type": "color",
+    "$description": "Approved: oklch(0.708 0 0) for both app modes (reuses the already-approved onDarkSubtle value / the base theme's own --ring token) — visibly stronger against the rail surface than ",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.708,
+        0,
+        0
+      ]
+    }
+  },
+  "sidebar-rail-divider": {
+    "$type": "color",
+    "$description": "Reuses darkBorderStrong's original, already-reviewed value (oklch(0.256)/oklch(0.254)), now under its own name so raising the ring's brightness (M-13) doesn't also brighten this di",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.254,
+        0,
+        0
+      ]
+    }
+  },
+  "sidebar-rail-foreground": {
+    "$type": "color",
+    "$description": "Text and icons at full strength on the dark rail — the baseline the other three on-dark values step down from.",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.985,
+        0,
+        0
+      ]
+    }
+  },
+  "sidebar-rail-foreground-disabled": {
+    "$type": "color",
+    "$description": "Disabled text and icons on the rail, around 20%.",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.375,
+        0,
+        0
+      ]
+    }
+  },
+  "sidebar-rail-foreground-hover": {
+    "$type": "color",
+    "$description": "Text and icons on a rail row being hovered.",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.922,
+        0,
+        0
+      ]
+    }
+  },
+  "sidebar-rail-foreground-subtle": {
+    "$type": "color",
+    "$description": "Subordinate text on the rail, around 50% strength.",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.708,
+        0,
+        0
+      ]
+    }
+  },
+  "sidebar-rail-hover": {
+    "$type": "color",
+    "$description": "What a rail row looks like on hover.",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.191,
+        0,
+        0
+      ]
+    }
+  },
+  "sidebar-rail-pressed": {
+    "$type": "color",
+    "$description": "What a rail row looks like while it is being pressed — the step between hover and active, and only visible for an instant.",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.222,
+        0,
+        0
+      ]
+    }
+  },
+  "sidebar-rail-surface": {
+    "$type": "color",
+    "$description": "Approved: oklch(0.18 0 0) for dark app mode only (light app mode's oklch(0.205 0 0) is unchanged — no collision there against a white --background).",
+    "$value": {
+      "colorSpace": "oklch",
+      "components": [
+        0.18,
+        0,
+        0
+      ]
+    }
+  }
 }
