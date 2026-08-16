@@ -94,6 +94,7 @@ export const navManifest: NavCategory[] = [
       { slug: "navigation-menu", name: "Navigation Menu", status: "ready" },
       { slug: "pagination", name: "Pagination", status: "ready" },
       { slug: "sidebar", name: "Sidebar", status: "ready" },
+      { slug: "rail-sidebar", name: "Rail Sidebar", status: "ready" },
     ],
   },
   {
