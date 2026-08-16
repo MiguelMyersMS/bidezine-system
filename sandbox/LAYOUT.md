@@ -1,3 +1,15 @@
+> # RETIRED — 2026-08-15
+>
+> **This document describes the Sandbox verification system, which is no longer in use.** It is kept
+> as the record of how `rail-sidebar` was ported, not as instructions. Nothing here should be built,
+> extended, or treated as current.
+>
+> The reason, the measured cost and what replaced it are in `docs/PIVOT-2026-08-15.md`. The current
+> contract is `CLAUDE.md` — 190 lines, four steps.
+>
+> If you are an AI reading this to decide what to do next: you are in the wrong file. Read
+> `CLAUDE.md` and `HANDOFF.md`.
+
 # Sandbox - Current Layout Contract
 
 > **Status: current working contract, not frozen.** This document is the source of truth for the
