@@ -93,6 +93,21 @@ recompiled. And `B-4` still fails alone: its anchor `rail-item-overview` appears
 The gate absorbed all of it — `evidence.present` wants SOME passing non-stale row, not the newest —
 so no row lost status. A human reading the latest row would still see a failure that is not real.
 
+**The nine B rows are unblocked — `token.authored` is 0.** All eleven `--sidebar-rail-*` tokens are
+authored into `tokens/light|dark.tokens.json`, read straight out of `divergence_decision` rather than
+retyped. This executed decisions the owner had already made; it made none. Landed under **SC-75**,
+which is **`assessing` and needs the owner's approval** — the commit carries the trailer and CI passes,
+but the change is not landed in the database.
+
+**BLOCKED ON A MISSING MECHANISM — 7 rows, and it is Copilot's.** `B-1 B-2 B-3 B-4 B-6 B-7 B-9` now
+have fresh passing evidence and are held only by `review.citations_support`: their OLD passing reviews
+cite evidence SC-1's sweep staled. Adding a new review does not help — the clause fires on *any*
+passing, non-invalidated review citing a stale row. `invalidated_at` is written by exactly one thing,
+`usp_reopen_divergence` (007), which also files a `false_completion` — and these rows were never
+completed, so that would record something untrue in an audit table. **What is needed is a proc that
+retires a review superseded by a staleness sweep, without asserting a false completion.**
+`B-5` needs a spec (it has none). `B-8` hit the batch flake and needs a re-run.
+
 **18 of 169 resolved, up from 5.** All 14 review-ready rows were independently reviewed this session;
 13 passed and are resolved: `C-6 C-7 C-8 C-9 D-1 D-3 D-4 D-5 D-7 E-7 F-1 G-1 G-3`.
 
