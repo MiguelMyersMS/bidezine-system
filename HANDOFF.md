@@ -93,7 +93,28 @@ recompiled. And `B-4` still fails alone: its anchor `rail-item-overview` appears
 The gate absorbed all of it — `evidence.present` wants SOME passing non-stale row, not the newest —
 so no row lost status. A human reading the latest row would still see a failure that is not real.
 
-REVIEWED_BLOCK**Rows whose subject the component never renders.** Recurring across every category, not a one-off:
+**18 of 169 resolved, up from 5.** All 14 review-ready rows were independently reviewed this session;
+13 passed and are resolved: `C-6 C-7 C-8 C-9 D-1 D-3 D-4 D-5 D-7 E-7 F-1 G-1 G-3`.
+
+**Reviewed by trying to refute, and judged against each row's `detail` rather than its
+`review_prompt`.** That caught two RECORDS rather than two defects, and both were corrected before
+passing rather than passed as written:
+
+- **E-7** said "Approved: use `pl-7`" (28px); the component renders 22px and the CODE is right — 22 is
+  `size-4` + `gap-1.5`, so the subtitle hangs under the title's TEXT, at 0.00px drift.
+- **C-8** said `active:bg-accent`; the real recipe is `active:bg-[var(--accent-pressed,var(--accent))]`
+  and `--accent-pressed` is defined nowhere, so the fallback renders and pressed is identical to hover.
+  Deliberate, and the seam is left on purpose — but the record described a mechanism the code does not
+  have. **Whether pressed SHOULD differ from hover is now stated as the owner's open question.**
+
+**F-7 FAILED review, and it is a real refutation rather than caution.** Its claim is a 122px footer cap
+(`38×3 + 4×2`, via `maxHeight` + `overflow-hidden`). Its evidence measures the footer at **80px** —
+`38×2 + 4`, the natural height of the two items this rail ships, well under the cap. That measurement
+would be identical with the cap deleted, which is a check that cannot fail for the reason it exists.
+The code is fine. **To close it: a precondition rendering 3 then 4 footer items, asserting 122px at
+both with the 4th clipped.**
+
+**Rows whose subject the component never renders.** Recurring across every category, not a one-off:
 `D-2 D-6 D-9 D-10` are type scale steps the rail does not use, `D-12` needs the menu open, `E-1`–`E-6`
 are spacing-scale claims rather than element claims. They cannot be anchored as written. They are not
 failures — they need either a different check kind or a decision that a scale claim is verified
