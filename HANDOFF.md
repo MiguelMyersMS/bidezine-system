@@ -93,20 +93,7 @@ recompiled. And `B-4` still fails alone: its anchor `rail-item-overview` appears
 The gate absorbed all of it — `evidence.present` wants SOME passing non-stale row, not the newest —
 so no row lost status. A human reading the latest row would still see a failure that is not real.
 
-**Driving rail-sidebar rows to evidence.** Current: **14 rows are one independent review from
-approvable** — `C-6 C-7 C-8 C-9 D-1 D-3 D-4 D-5 D-7 E-7 F-1 F-7 G-1 G-3`. Their only unmet
-requirement is `review.present`. Five rows are already resolved (`F-2 F-3 F-5 F-6 L-34`).
-
-The bottleneck has moved off measurement and onto review. Nothing more I write changes that for these
-ten.
-
-**SC-1 is landed** (`a973d16`), so only one of the two blockers remains and it is still the owner's:
-
-- **Can CI rule-checks count as evidence for the 29 code-shaped rows?** The gate already accepts
-  `grep`/`enforcement`/`build` kinds and `check-rules.mjs` already asserts source facts — nothing has
-  ever written one. If yes, 29 rows have a path; if no, they need a different one.
-
-**Rows whose subject the component never renders.** Recurring across every category, not a one-off:
+REVIEWED_BLOCK**Rows whose subject the component never renders.** Recurring across every category, not a one-off:
 `D-2 D-6 D-9 D-10` are type scale steps the rail does not use, `D-12` needs the menu open, `E-1`–`E-6`
 are spacing-scale claims rather than element claims. They cannot be anchored as written. They are not
 failures — they need either a different check kind or a decision that a scale claim is verified
