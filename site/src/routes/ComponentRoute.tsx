@@ -58,6 +58,7 @@ import { NavigationMenuShowcase } from "./components/NavigationMenuShowcase"
 import { PaginationShowcase } from "./components/PaginationShowcase"
 import { ResizableShowcase } from "./components/ResizableShowcase"
 import { ScrollAreaShowcase } from "./components/ScrollAreaShowcase"
+import { RailSidebarShowcase } from "./components/RailSidebarShowcase"
 import { SidebarShowcase } from "./components/SidebarShowcase"
 import { SonnerShowcase } from "./components/SonnerShowcase"
 import { TableShowcase } from "./components/TableShowcase"
@@ -125,6 +126,7 @@ const showcases: Record<string, React.ComponentType> = {
   "pagination": PaginationShowcase,
   "resizable": ResizableShowcase,
   "scroll-area": ScrollAreaShowcase,
+  "rail-sidebar": RailSidebarShowcase,
   "sidebar": SidebarShowcase,
   "sonner": SonnerShowcase,
   "table": TableShowcase,

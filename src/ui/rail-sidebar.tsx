@@ -5,9 +5,12 @@ import {
   AppsIcon,
   Badge,
   BellIcon,
+  BookOpenIcon,
   BoxArrowLeftIcon,
   Button,
+  CalendarIcon,
   CartIcon,
+  ChevronDownIcon,
   cn,
   Collapsible,
   CollapsibleContent,
@@ -30,6 +33,7 @@ import {
   FoodAppleIcon,
   FoodGrainsIcon,
   GaugeIcon,
+  GitBranchIcon,
   GiftIcon,
   GlobeLocationIcon,
   GridIcon,
@@ -72,7 +76,11 @@ import {
   VehicleCarProfileIcon,
   VehicleTruckProfileIcon,
 } from "../index"
-import { BIDEZINE_LOGO_PATH, BIDEZINE_LOGO_VIEWBOX, FULL_PREVIEW_ICONS, type ProposedToken } from "@/data/rail-sidebar"
+/** The bidezine mark. Inlined rather than imported: this is a brand asset the design system owns,
+ *  and a shipped primitive cannot depend on sandbox demo data. Callers wanting their own pass `logoIcon`. */
+const BIDEZINE_LOGO_VIEWBOX = "0 0 26.064 24"
+const BIDEZINE_LOGO_PATH =
+  "M 15.099 2.069 C 21.154 2.069 26.063 6.979 26.063 13.034 C 26.063 19.09 21.154 23.999 15.099 23.999 L 14.087 23.999 C 14.082 23.999 14.076 24 14.07 24 L 9.306 24 C 8.77 24 8.297 23.65 8.141 23.139 L 4.984 12.835 C 4.744 12.052 5.33 11.26 6.149 11.26 L 10.998 11.26 C 11.537 11.26 12.012 11.614 12.166 12.13 L 13.499 16.602 L 15.103 16.602 C 17.073 16.602 18.671 15.004 18.671 13.033 C 18.671 11.063 17.073 9.465 15.103 9.465 C 14.349 9.465 13.685 8.97 13.47 8.248 L 11.985 3.262 C 11.825 2.723 12.182 2.069 12.744 2.069 L 15.099 2.069 Z M 8.441 0 C 8.982 -0.002 9.459 0.352 9.613 0.87 L 10.084 2.446 C 10.201 2.838 10.013 3.256 9.644 3.431 L 9.12 3.678 L 9.12 3.68 L 9.119 3.681 L 8.805 3.832 C 8.366 4.043 8.452 4.692 8.931 4.781 L 10.311 5.038 C 10.666 5.104 10.954 5.363 11.058 5.709 L 11.779 8.129 C 12.012 8.91 11.428 9.695 10.612 9.695 L 3.429 9.695 C 2.893 9.695 2.42 9.345 2.264 8.833 L 0.055 1.602 C -0.184 0.82 0.398 0.029 1.215 0.026 L 8.441 0 Z"
 
 /**
  * The bidezine "adjusted" Rail Sidebar — a REAL, functional implementation built exclusively from
@@ -121,68 +129,40 @@ interface RailSection {
   items: PanelNode[]
 }
 
-// "Slides" keeps the exact origin SPEC_TREE content (icon paths sourced verbatim, see
-// FULL_PREVIEW_ICONS) so the richly-nested/badged panel case stays represented faithfully.
-//
-// QA finding (see divergence row L-23): confirmed the actual root cause behind a recurring class of
-// "icon doesn't fill on hover/select" reports across this whole session. src/lib/action-icons.tsx's
-// own `isIconElement()` check has TWO detection paths: an explicit `isActionIcon === true` marker
-// (set on every real generated icon by scripts/build-icons.mjs specifically because minifiers rename
-// function declarations), and a fallback that checks whether the component's runtime `.name` ends in
-// "Icon" -- with its own code comment already warning this fallback is unsafe under production
-// minification. This factory previously relied ONLY on that unsafe fallback (the returned function was
-// named `SpecIcon`, nothing else). Built sandbox for production and confirmed empirically (not
-// assumed): the minified bundle's SpecIcon closure name does NOT survive (`grep "SpecIcon"` on the
-// built JS returns no match), while `isActionIcon` (a static property access, not a renamed
-// identifier) does. Served the actual built dist/ output and tested hover live: every specTreeIcon-based
-// icon ("Participants", "Rules engine", etc.) had COMPLETELY STOPPED filling on hover/select with zero
-// errors -- a fully silent failure -- while a real bidezine-generated icon in the same bundle
-// ("Documents") still worked correctly. This explains why the bug kept "recurring" across this session:
-// every fix was verified against the Vite dev server (function names preserved there), never against
-// an actual production build, so a component-wide regression shipped invisibly underneath passing
-// dev-server checks every time. FIXED at the source: mark the returned component with the same
-// `isActionIcon = true` static property real generated icons carry, making it immune to minification
-// exactly like the mechanism it was already supposed to opt into.
-function specTreeIcon(entry: { d: string; filledD?: string }): React.ComponentType<{ className?: string; filled?: boolean }> {
-  function SpecIcon({ className, filled }: { className?: string; filled?: boolean }) {
-    const d = filled && entry.filledD ? entry.filledD : entry.d
-    return (
-      <svg viewBox="0 0 20 20" className={className} fill="currentColor" aria-hidden="true">
-        <path d={d} />
-      </svg>
-    )
-  }
-  SpecIcon.isActionIcon = true
-  return SpecIcon
-}
+// "Slides" keeps the origin SPEC_TREE's shape -- deeply nested, badged, with a disabled leaf -- so the
+// hardest panel case stays represented. The icons are real generated Fluent components rather than the
+// raw-path factory this file used to carry: that factory built an icon from a `d` string and relied on
+// a runtime `.name` check that minification does not preserve, so every one of these icons silently
+// stopped filling on hover in a production build while passing every dev-server check. See CLAUDE.md,
+// build checklist item 5.
 
 const SLIDES_PANEL: PanelNode[] = [
-  { kind: "leaf", id: "activity", label: "Activity stream", badge: "+23", icon: specTreeIcon(FULL_PREVIEW_ICONS.video) },
-  { kind: "leaf", id: "live-ops", label: "Live operations", icon: specTreeIcon(FULL_PREVIEW_ICONS.videoSettings) },
-  { kind: "leaf", id: "participants", label: "Participants", icon: specTreeIcon(FULL_PREVIEW_ICONS.peopleCommunity) },
+  { kind: "leaf", id: "activity", label: "Activity stream", badge: "+23", icon: DataUsageSparkleIcon },
+  { kind: "leaf", id: "live-ops", label: "Live operations", icon: GaugeIcon },
+  { kind: "leaf", id: "participants", label: "Participants", icon: PeopleIcon },
   {
     kind: "group",
     id: "system-logic",
     label: "System logic",
     badge: "New",
-    icon: specTreeIcon(FULL_PREVIEW_ICONS.cubeTree),
+    icon: GitBranchIcon,
     children: [
-      { kind: "leaf", id: "rules-engine", label: "Rules engine", icon: specTreeIcon(FULL_PREVIEW_ICONS.engine) },
-      { kind: "leaf", id: "triggers", label: "Triggers", icon: specTreeIcon(FULL_PREVIEW_ICONS.syncOff) },
+      { kind: "leaf", id: "rules-engine", label: "Rules engine", icon: SettingsIcon },
+      { kind: "leaf", id: "triggers", label: "Triggers", icon: FlagIcon },
       {
         kind: "group",
         id: "schedules",
         label: "Schedules",
-        icon: specTreeIcon(FULL_PREVIEW_ICONS.calendarClock),
+        icon: CalendarIcon,
         children: [
-          { kind: "leaf", id: "daily", label: "Daily", badge: "+05", icon: specTreeIcon(FULL_PREVIEW_ICONS.document) },
-          { kind: "leaf", id: "monthly", label: "Monthly", badge: "+11", icon: specTreeIcon(FULL_PREVIEW_ICONS.document) },
-          { kind: "leaf", id: "yearly", label: "Yearly", disabled: true, icon: specTreeIcon(FULL_PREVIEW_ICONS.document) },
+          { kind: "leaf", id: "daily", label: "Daily", badge: "+05", icon: DocumentMultipleIcon },
+          { kind: "leaf", id: "monthly", label: "Monthly", badge: "+11", icon: DocumentMultipleIcon },
+          { kind: "leaf", id: "yearly", label: "Yearly", disabled: true, icon: DocumentMultipleIcon },
         ],
       },
     ],
   },
-  { kind: "leaf", id: "content", label: "Content", icon: specTreeIcon(FULL_PREVIEW_ICONS.contentView) },
+  { kind: "leaf", id: "content", label: "Content", icon: BookOpenIcon },
 ]
 
 const SETTINGS_PANEL: PanelNode[] = [
@@ -1122,14 +1102,9 @@ function PanelTree({
                   {node.label}
                 </span>
                 {node.badge && <PanelBadge label={node.badge} />}
-                <svg
-                  viewBox="0 0 20 20"
+                <ChevronDownIcon
                   className={cn("size-4 shrink-0 transition-transform", isOpen && "rotate-180")}
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path d={FULL_PREVIEW_ICONS.chevronDown.d} />
-                </svg>
+                />
               </Button>
             </CollapsibleTrigger>
             {/* RESOLVED (see divergence row L-7): real expand/collapse animation using
@@ -1262,19 +1237,49 @@ function AdjacentContentPlaceholder({ collapseLeftInset }: { collapseLeftInset: 
  * further up the tree, such as `h-screen` at the app-shell level) over requiring a measured-height
  * prop like this one.
  */
+
+/**
+ * The rail's own palette, resolved from real design-system tokens.
+ *
+ * Every value here is a recorded decision, not a choice made at this line. The ten
+ * `--sidebar-rail-*` entries are the dark-rail family authored in `tokens/`; `panelSurface` and
+ * `hairline` come from decisions C-1 ("use --card for the panel surface") and C-11 ("use --border
+ * for the colour"), which mapped the origin's own surface and hairline onto tokens this system
+ * already had rather than introducing a second set.
+ *
+ * The rail is deliberately dark in BOTH themes — that is what the family is for — so these do not
+ * flip with `.dark`. What changes between themes is the canvas and the panel around it.
+ *
+ * A consumer wanting a different palette passes `colors`; this is a default, not a lock.
+ */
+export const RAIL_SIDEBAR_COLORS: RailColors = {
+  surface: "var(--sidebar-rail-surface)",
+  hover: "var(--sidebar-rail-hover)",
+  pressed: "var(--sidebar-rail-pressed)",
+  active: "var(--sidebar-rail-active)",
+  border: "var(--sidebar-rail-border-strong)",
+  divider: "var(--sidebar-rail-divider)",
+  fg: "var(--sidebar-rail-foreground)",
+  fgHover: "var(--sidebar-rail-foreground-hover)",
+  fgSubtle: "var(--sidebar-rail-foreground-subtle)",
+  fgDisabled: "var(--sidebar-rail-foreground-disabled)",
+  panelSurface: "var(--card)",
+  hairline: "var(--border)",
+}
+
 export function FunctionalRailSidebar({
-  colors,
+  colors = RAIL_SIDEBAR_COLORS,
   height = 550,
-  fontFamily,
+  fontFamily = "var(--font-sans)",
   adjacentContent,
   logoLabel = "BiDezine",
   logoHref,
   logoIcon,
   logoPlaceholder = false,
 }: {
-  colors: RailColors
+  colors?: RailColors
   height?: number
-  fontFamily: string
+  fontFamily?: string
   /**
    * M-7: real content to render in the resizable region beside the panel — the actual
    * "rest of the page" a production consumer would place here. Falls back to a lightweight
@@ -1483,7 +1488,7 @@ export function FunctionalRailSidebar({
   // provider itself, and `useContext` only ever resolves to a provider *above* the calling
   // component — so the hook here would read the default `false` and every anchor below would
   // silently emit nothing. Descendants (RailIconButton, PanelTree) use the hook normally.
-  const anchor = (ref: string) => {}
+  const anchor = (_ref?: string) => ({})
 
   return (
     <>
@@ -2404,4 +2409,3 @@ export function FunctionalRailSidebar({
   )
 }
 
-export type { ProposedToken }
