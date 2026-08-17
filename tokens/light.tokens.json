@@ -653,6 +653,32 @@
   "light-border-strong": {
     "$type": "color",
     "$value": "{neutral-300}"
+  },
+  "surface-contrast": {
+    "$type": "color",
+    "$description": "Mode-independent maximum-contrast panel. Identical in light and dark by definition — the one token that does not shift.",
+    "$value": "{neutral-1000}"
+  },
+  "surface-contrast-foreground": {
+    "$type": "color",
+    "$value": "{neutral-0}"
+  },
+  "dark-surface-contrast": {
+    "$type": "color",
+    "$value": "{neutral-1000}"
+  },
+  "dark-surface-contrast-foreground": {
+    "$type": "color",
+    "$value": "{neutral-0}"
+  },
+  "light-surface-contrast": {
+    "$type": "color",
+    "$value": "{neutral-1000}"
+  },
+  "light-surface-contrast-foreground": {
+    "$type": "color",
+    "$value": "{neutral-0}"
   }
 }
+
 

@@ -15,6 +15,76 @@ import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { dirname, join } from "node:path"
 
+/**
+ * Token names allowed to hold a literal `$value` (a DTCG colour object)
+ * instead of a `{neutral-N}` alias reference, in tokens/light.tokens.json
+ * and tokens/dark.tokens.json. Every semantic colour not on this list must
+ * be a reference — that is the point of the neutral ramp: no semantic
+ * holds a literal by accident. Each entry names the reason it is still a
+ * literal today and the phase expected to remove it.
+ */
+const LITERALS_ALLOWED = new Set([
+  // Chromatic — non-zero chroma, out of scope for the achromatic neutral
+  // ramp. Removed only if/when a chromatic ramp tier is introduced; no such
+  // phase exists yet.
+  "destructive",
+  "destructive-foreground",
+  "success",
+  "success-foreground",
+  "warning",
+  "warning-foreground",
+  "info",
+  "info-foreground",
+  "destructive-soft",
+  "destructive-soft-foreground",
+  "success-soft",
+  "success-soft-foreground",
+  "warning-soft",
+  "warning-soft-foreground",
+  "info-soft",
+  "info-soft-foreground",
+
+  // Dark-mode alpha-on-white overlays (shadcn's own values: white at 10%/15%
+  // alpha over --background) — not a ramp stop, and converting to one would
+  // change compositing behaviour, not just re-point a reference. Kept
+  // literal indefinitely; no removal phase.
+  "border",
+  "input",
+
+  // Chart series colours are an intentional `var(--color-blue-N)` passthrough
+  // to the Tailwind palette, not a `{name}` alias or a literal oklch() value —
+  // still fails the `{name}`-only alias test, so it needs the same escape
+  // hatch. Out of scope for the neutral ramp; no removal phase.
+  "chart-1",
+  "chart-2",
+  "chart-3",
+  "chart-4",
+  "chart-5",
+
+  // --sidebar-*/--sidebar-rail-* family — untouched since the drift-fix
+  // commit (only sidebar-foreground was corrected there). Out of scope for
+  // phase 0; removed in a future sidebar-family alias-conversion phase.
+  "sidebar",
+  "sidebar-foreground",
+  "sidebar-primary",
+  "sidebar-primary-foreground",
+  "sidebar-accent",
+  "sidebar-accent-foreground",
+  "sidebar-border",
+  "sidebar-ring",
+  "sidebar-rail-active",
+  "sidebar-rail-active-hover",
+  "sidebar-rail-border-strong",
+  "sidebar-rail-divider",
+  "sidebar-rail-foreground",
+  "sidebar-rail-foreground-disabled",
+  "sidebar-rail-foreground-hover",
+  "sidebar-rail-foreground-subtle",
+  "sidebar-rail-hover",
+  "sidebar-rail-pressed",
+  "sidebar-rail-surface",
+])
+
 const root = join(dirname(fileURLToPath(import.meta.url)), "..")
 const read = (name) =>
   JSON.parse(readFileSync(join(root, "tokens", `${name}.tokens.json`), "utf8"))
@@ -143,6 +213,34 @@ if (missingInDark.length || missingInLight.length) {
     "Token parity check FAILED — light and dark must declare the same names.",
     ...missingInDark.map((n) => `  missing in dark.tokens.json:  ${n}`),
     ...missingInLight.map((n) => `  missing in light.tokens.json: ${n}`),
+  ]
+  console.error(lines.join("\n"))
+  process.exit(1)
+}
+
+// ── No-literal gate ────────────────────────────────────────────────────────
+// Every colour semantic in light/dark.tokens.json must reference the neutral
+// ramp — a literal oklch() there is either unreviewed drift or a value that
+// can't be re-themed by re-pointing a reference. LITERALS_ALLOWED is the sole,
+// explicit escape hatch; dropping a name from it without converting the token
+// fails the build just as loudly as introducing a brand-new literal would.
+const ALIAS_RE = /^\{[\w.-]+\}$/
+function findLiteralColors(doc) {
+  return entries(doc)
+    .filter(([, token]) => token.$type === "color")
+    .filter(([, token]) => typeof token.$value !== "string" || !ALIAS_RE.test(token.$value))
+    .map(([name]) => name)
+    .filter((name) => !LITERALS_ALLOWED.has(name))
+}
+
+const literalsInLight = findLiteralColors(light)
+const literalsInDark = findLiteralColors(dark)
+
+if (literalsInLight.length || literalsInDark.length) {
+  const lines = [
+    'No-literal gate FAILED — every color $type not in LITERALS_ALLOWED must be a "{name}" alias.',
+    ...literalsInLight.map((n) => `  literal in light.tokens.json: ${n}`),
+    ...literalsInDark.map((n) => `  literal in dark.tokens.json:  ${n}`),
   ]
   console.error(lines.join("\n"))
   process.exit(1)
