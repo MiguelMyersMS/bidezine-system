@@ -243,6 +243,92 @@ async function ruleLeadingNoneTruncate(files) {
 // about whether the boundary held.
 // ═══════════════════════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════════════════════
+// R6 — no raw Tailwind type utility in src/ui/.
+//
+// Issue 05 phase 1: src/ui consumes named type roles (text-body, text-control, …) instead
+// of raw font-size/leading/tracking utilities, so a component's typography traces back to
+// one token instead of a scattered literal. Forbidden: text-xs/sm/base/lg/xl/2xl+ and
+// length-valued text-[...] arbitrary values, leading-*, tracking-*. Legal: bare
+// font-normal/font-medium/font-semibold (overriding weight on a parent-inherited size is a
+// pattern no role can express), the text-<role> utilities themselves, and text-* colour
+// utilities (text-muted-foreground etc. — matched precisely so a colour never trips a
+// size rule).
+//
+// TYPE_UTILITIES_ALLOWED is scoped per file+snippet, not per file: several files (e.g.
+// calendar.tsx) carry both a rewired slot and an untouched sibling slot in the same file,
+// so a file-level exception would silently blanket the sibling too.
+//
+// Only src/ui/ is scanned — that is this issue's stated scope, not the wider `files` list
+// R1-R4 share (site/ and sandbox/ were never part of Issue 05's rewire and are not gated
+// here).
+//
+// This rule is deliberately NOT wired into a blocking `npm run *` script. The rewire table
+// in Issue 05 explicitly leaves ~90 raw-utility lines across ~25 files untouched by design
+// (every one is a real, working component slot the issue never asked to change) — wiring
+// this gate into `npm run tokens`/`build`/`check-shipped` would fail those builds on
+// pre-existing, intentionally-unrewired code the very same day this rule is introduced.
+// Run it explicitly (`node scripts/check-rules.mjs`) and read its R6 output; do not infer
+// that a clean `npm run build` means R6 passed, because R6 is not part of that chain.
+// ═══════════════════════════════════════════════════════════════════════════════════
+const TYPE_UTILITIES_ALLOWED = [
+  {
+    file: "src/ui/empty.tsx",
+    match: "text-sm/relaxed",
+    reason: "Empty description — deliberately loose (22.75px) zero-state prose; no role expresses text-sm/relaxed.",
+  },
+  {
+    file: "src/ui/bubble.tsx",
+    match: "leading-relaxed",
+    reason: "Bubble content — deliberately loose (22.75px) chat prose; no role expresses text-sm leading-relaxed.",
+  },
+  {
+    file: "src/ui/dialog.tsx",
+    match: "leading-none font-semibold",
+    reason:
+      "Dialog title — type-heading-sm carries letter-spacing:tight (-0.025em, from issue 04) but the shipped title has no tracking utility (normal/0em); rewiring would add real tracking, not preserve it. Reported in Issue 05, not forced.",
+  },
+  {
+    file: "src/ui/alert-dialog.tsx",
+    match: "text-lg font-semibold",
+    reason:
+      "AlertDialog title — same mismatch as Dialog title: type-heading-sm-loose carries letter-spacing:tight but the shipped title has none. Reported in Issue 05, not forced.",
+  },
+]
+
+const FONT_SIZE_RE = /\btext-(?:xs|sm|base|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl|8xl|9xl)\b/
+const FONT_SIZE_ARBITRARY_RE = /\btext-\[(?:length:[^\]]+|[\d.]+(?:px|rem|em))\]/
+const LEADING_RE = /\bleading-(?:none|tight|snug|normal|relaxed|loose|\d+|\[[^\]]+\])\b/
+const TRACKING_RE = /\btracking-(?:tighter|tight|normal|wide|wider|widest|\[[^\]]+\])\b/
+
+function isAllowed(path, cls) {
+  return TYPE_UTILITIES_ALLOWED.some((e) => e.file === path && cls.includes(e.match))
+}
+
+async function ruleNoRawTypeUtility() {
+  const seenAllowed = new Set()
+  const files = await walk(join(REPO_ROOT, "src", "ui"))
+  for (const file of files) {
+    const path = rel(file)
+    const source = stripComments(await readFile(file, "utf8"))
+    for (const m of source.matchAll(/["'`]([^"'`\n]{0,600})["'`]/g)) {
+      const cls = m[1]
+      const hit =
+        FONT_SIZE_RE.test(cls) || FONT_SIZE_ARBITRARY_RE.test(cls) || LEADING_RE.test(cls) || TRACKING_RE.test(cls)
+      if (!hit) continue
+      if (isAllowed(path, cls)) {
+        seenAllowed.add(`${path}::${cls}`)
+        continue
+      }
+      report("type.no-raw-utility", path, lineOf(source, m.index), `"${cls.slice(0, 100)}"`)
+    }
+  }
+  for (const e of TYPE_UTILITIES_ALLOWED) {
+    const stillPresent = [...seenAllowed].some((k) => k.startsWith(`${e.file}::`) && k.includes(e.match))
+    if (!stillPresent) notes.push(`R6 allow-list entry ${e.file} (${e.match}) no longer matches anything — the entry can go`)
+  }
+}
+
 // ── run ─────────────────────────────────────────────────────────────────────────────
 const SHIPPED = [join(REPO_ROOT, "src"), join(REPO_ROOT, "site", "src"), join(REPO_ROOT, "sandbox", "src")]
 const files = (await Promise.all(SHIPPED.map((d) => walk(d)))).flat()
@@ -251,6 +337,7 @@ await ruleIconSources(files)
 await ruleNoRawScroll()
 await ruleIconMarker(files)
 await ruleLeadingNoneTruncate(files)
+await ruleNoRawTypeUtility()
 
 if (JSON_OUT) {
   console.log(JSON.stringify({ violations, notes }, null, 2))

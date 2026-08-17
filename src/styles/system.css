@@ -83,6 +83,101 @@
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+
+  /*
+   * Named type roles → Tailwind's text-* namespace. Each role maps to one
+   * utility (text-<role>) that sets font-size, line-height, font-weight and
+   * letter-spacing together. Two sub-properties some roles carry cannot be
+   * expressed here, because Tailwind has no text-* modifier for either:
+   *   - text-transform (type-eyebrow) — pair the utility with "uppercase".
+   *   - font-variant-numeric (type-metric, type-metric-sm) — pair the
+   *     utility with "tabular-nums".
+   * Neither is invented as a modifier name below.
+   */
+  --text-display: var(--type-display-font-size);
+  --text-display--line-height: var(--type-display-line-height);
+  --text-display--font-weight: var(--type-display-font-weight);
+  --text-display--letter-spacing: var(--type-display-letter-spacing);
+
+  --text-heading-lg: var(--type-heading-lg-font-size);
+  --text-heading-lg--line-height: var(--type-heading-lg-line-height);
+  --text-heading-lg--font-weight: var(--type-heading-lg-font-weight);
+  --text-heading-lg--letter-spacing: var(--type-heading-lg-letter-spacing);
+
+  --text-heading: var(--type-heading-font-size);
+  --text-heading--line-height: var(--type-heading-line-height);
+  --text-heading--font-weight: var(--type-heading-font-weight);
+  --text-heading--letter-spacing: var(--type-heading-letter-spacing);
+
+  --text-heading-sm: var(--type-heading-sm-font-size);
+  --text-heading-sm--line-height: var(--type-heading-sm-line-height);
+  --text-heading-sm--font-weight: var(--type-heading-sm-font-weight);
+  --text-heading-sm--letter-spacing: var(--type-heading-sm-letter-spacing);
+
+  --text-heading-sm-loose: var(--type-heading-sm-loose-font-size);
+  --text-heading-sm-loose--line-height: var(--type-heading-sm-loose-line-height);
+  --text-heading-sm-loose--font-weight: var(--type-heading-sm-loose-font-weight);
+  --text-heading-sm-loose--letter-spacing: var(--type-heading-sm-loose-letter-spacing);
+
+  --text-body-lg: var(--type-body-lg-font-size);
+  --text-body-lg--line-height: var(--type-body-lg-line-height);
+  --text-body-lg--font-weight: var(--type-body-lg-font-weight);
+  --text-body-lg--letter-spacing: var(--type-body-lg-letter-spacing);
+
+  --text-body: var(--type-body-font-size);
+  --text-body--line-height: var(--type-body-line-height);
+  --text-body--font-weight: var(--type-body-font-weight);
+  --text-body--letter-spacing: var(--type-body-letter-spacing);
+
+  --text-body-strong: var(--type-body-strong-font-size);
+  --text-body-strong--line-height: var(--type-body-strong-line-height);
+  --text-body-strong--font-weight: var(--type-body-strong-font-weight);
+  --text-body-strong--letter-spacing: var(--type-body-strong-letter-spacing);
+
+  --text-control: var(--type-control-font-size);
+  --text-control--line-height: var(--type-control-line-height);
+  --text-control--font-weight: var(--type-control-font-weight);
+  --text-control--letter-spacing: var(--type-control-letter-spacing);
+
+  --text-control-sm: var(--type-control-sm-font-size);
+  --text-control-sm--line-height: var(--type-control-sm-line-height);
+  --text-control-sm--font-weight: var(--type-control-sm-font-weight);
+  --text-control-sm--letter-spacing: var(--type-control-sm-letter-spacing);
+
+  --text-caption: var(--type-caption-font-size);
+  --text-caption--line-height: var(--type-caption-line-height);
+  --text-caption--font-weight: var(--type-caption-font-weight);
+  --text-caption--letter-spacing: var(--type-caption-letter-spacing);
+
+  --text-label: var(--type-label-font-size);
+  --text-label--line-height: var(--type-label-line-height);
+  --text-label--font-weight: var(--type-label-font-weight);
+  --text-label--letter-spacing: var(--type-label-letter-spacing);
+
+  --text-eyebrow: var(--type-eyebrow-font-size);
+  --text-eyebrow--line-height: var(--type-eyebrow-line-height);
+  --text-eyebrow--font-weight: var(--type-eyebrow-font-weight);
+  --text-eyebrow--letter-spacing: var(--type-eyebrow-letter-spacing);
+
+  --text-metric: var(--type-metric-font-size);
+  --text-metric--line-height: var(--type-metric-line-height);
+  --text-metric--font-weight: var(--type-metric-font-weight);
+  --text-metric--letter-spacing: var(--type-metric-letter-spacing);
+
+  --text-metric-sm: var(--type-metric-sm-font-size);
+  --text-metric-sm--line-height: var(--type-metric-sm-line-height);
+  --text-metric-sm--font-weight: var(--type-metric-sm-font-weight);
+  --text-metric-sm--letter-spacing: var(--type-metric-sm-letter-spacing);
+
+  --text-code: var(--type-code-font-size);
+  --text-code--line-height: var(--type-code-line-height);
+  --text-code--font-weight: var(--type-code-font-weight);
+  --text-code--letter-spacing: var(--type-code-letter-spacing);
+
+  --text-shortcut: var(--type-shortcut-font-size);
+  --text-shortcut--line-height: var(--type-shortcut-line-height);
+  --text-shortcut--font-weight: var(--type-shortcut-font-weight);
+  --text-shortcut--letter-spacing: var(--type-shortcut-letter-spacing);
 }
 
 /*

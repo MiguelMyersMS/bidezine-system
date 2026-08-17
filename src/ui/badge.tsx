@@ -134,7 +134,7 @@ import { cn } from "@/lib/utils"
  * the lighter-background equivalent of today's bold solid badges.
  */
 const badgeVariants = cva(
-  "inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden text-ellipsis rounded-full border border-transparent px-2 py-0.5 text-xs whitespace-nowrap transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3",
+  "inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden text-ellipsis rounded-full border border-transparent px-2 py-0.5 whitespace-nowrap transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3",
   {
     variants: {
       variant: {
@@ -168,8 +168,11 @@ const badgeVariants = cva(
         soft: "",
       },
       weight: {
-        regular: "font-normal",
-        emphasis: "font-medium",
+        // Base string previously carried a shared `text-xs`; each weight role now supplies its
+        // own complete size+weight recipe instead (text-caption = 12/16/400, text-control-sm =
+        // 12/16/500), so bare font-normal/font-medium no longer need to layer on top of it.
+        regular: "text-caption",
+        emphasis: "text-control-sm",
       },
     },
     compoundVariants: [

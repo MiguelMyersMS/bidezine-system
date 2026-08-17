@@ -86,6 +86,17 @@
       "letterSpacing": "{letter-spacing-tight}"
     }
   },
+  "type-heading-sm-loose": {
+    "$type": "typography",
+    "$description": "18px title on a normal line box — AlertDialog and Empty titles. type-heading-sm is the leading-none variant Dialog ships; these two are not the same value and are not being merged in this issue.",
+    "$value": {
+      "fontFamily": "{font-sans}",
+      "fontSize": "{font-size-18}",
+      "lineHeight": { "value": 28, "unit": "px" },
+      "fontWeight": "{font-weight-semibold}",
+      "letterSpacing": "{letter-spacing-tight}"
+    }
+  },
   "type-body-lg": {
     "$type": "typography",
     "$description": "Larger body copy — lead paragraphs, empty-state descriptions.",
@@ -130,6 +141,17 @@
       "letterSpacing": "{letter-spacing-normal}"
     }
   },
+  "type-control-sm": {
+    "$type": "typography",
+    "$description": "Small control and micro-label — Kbd, Badge emphasis, sidebar group labels, message authors, combobox chips. 12px at weight 500, the most repeated recipe after type-control.",
+    "$value": {
+      "fontFamily": "{font-sans}",
+      "fontSize": "{font-size-12}",
+      "lineHeight": { "value": 16, "unit": "px" },
+      "fontWeight": "{font-weight-medium}",
+      "letterSpacing": "{letter-spacing-normal}"
+    }
+  },
   "type-caption": {
     "$type": "typography",
     "$description": "Secondary/supporting text — helper text, timestamps, metadata.",
@@ -143,18 +165,18 @@
   },
   "type-label": {
     "$type": "typography",
-    "$description": "Form field label — matches the Label component's shipped metrics (text-sm, weight 500, no transform).",
+    "$description": "Form field label — matches the Label component's shipped metrics (text-sm, leading-none, weight 500).",
     "$value": {
       "fontFamily": "{font-sans}",
       "fontSize": "{font-size-14}",
-      "lineHeight": { "value": 20, "unit": "px" },
+      "lineHeight": { "value": 14, "unit": "px" },
       "fontWeight": "{font-weight-medium}",
       "letterSpacing": "{letter-spacing-normal}"
     }
   },
   "type-eyebrow": {
     "$type": "typography",
-    "$description": "Uppercase micro-label — section eyebrows, sidebar category headings. Not the Label component; form labels use type-label.",
+    "$description": "Uppercase micro-label — section eyebrows, sidebar category headings. Not the Label component; form labels use type-label. Site and documentation surfaces only; no src/ui component consumes this. Do not wire a component to it — components use type-control-sm.",
     "$value": {
       "fontFamily": "{font-sans}",
       "fontSize": "{font-size-12}",
@@ -199,14 +221,14 @@
       "letterSpacing": "{letter-spacing-normal}"
     }
   },
-  "type-kbd": {
+  "type-shortcut": {
     "$type": "typography",
-    "$description": "Keyboard shortcut / key-cap label — monospace, widest tracking for legibility at small size.",
+    "$description": "Keyboard shortcut hint in a menu — DropdownMenu, ContextMenu, Menubar, Command. Weight 400 with wide tracking, which is why it is not type-control-sm.",
     "$value": {
       "fontFamily": "{font-mono}",
       "fontSize": "{font-size-12}",
       "lineHeight": { "value": 16, "unit": "px" },
-      "fontWeight": "{font-weight-medium}",
+      "fontWeight": "{font-weight-regular}",
       "letterSpacing": "{letter-spacing-widest}"
     }
   }
