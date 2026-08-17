@@ -1,5 +1,5 @@
 {
-  "$description": "Mode-independent tokens, mirroring shadcn/ui's own theme. DTCG 2025.10. Source of truth — emits src/styles/tokens.css + src/tokens.ts via `npm run tokens`. Never hand-write a CSS variable.\n\nOnly what shadcn defines lives here. Inter is the system sans face; named type roles remain Tailwind utility mappings until the typography lab promotes them to authored tokens. Spacing, opacity, breakpoints and shadows are Tailwind defaults and need no token until something actually demands one.",
+  "$description": "Mode-independent tokens, mirroring shadcn/ui's own theme. DTCG 2025.10. Source of truth — emits src/styles/tokens.css + src/tokens.ts via `npm run tokens`. Never hand-write a CSS variable.\n\nOnly what shadcn defines lives here. Inter is the system sans face; named type roles remain Tailwind utility mappings until the typography lab promotes them to authored tokens. Spacing, opacity, breakpoints and shadows are Tailwind defaults and need no token until something actually demands one. A type role consumed by a ported component holds shadcn's shipped value; a role nothing consumes yet holds the authored ideal. Changing a consumed value is a deliberate act that gets its own commit and its own screenshot diff — never a drive-by edit.",
 
   "radius": {
     "$type": "dimension",
@@ -39,7 +39,6 @@
 
   "letter-spacing-tight": { "$type": "dimension", "$value": { "value": -0.025, "unit": "em" } },
   "letter-spacing-normal": { "$type": "dimension", "$value": { "value": 0, "unit": "em" } },
-  "letter-spacing-wide": { "$type": "dimension", "$value": { "value": 0.01, "unit": "em" } },
   "letter-spacing-wider": { "$type": "dimension", "$value": { "value": 0.025, "unit": "em" } },
   "letter-spacing-widest": { "$type": "dimension", "$value": { "value": 0.1, "unit": "em" } },
 
@@ -49,7 +48,7 @@
     "$value": {
       "fontFamily": "{font-sans}",
       "fontSize": "{font-size-32}",
-      "lineHeight": { "value": 36.8, "unit": "px" },
+      "lineHeight": { "value": 36, "unit": "px" },
       "fontWeight": "{font-weight-semibold}",
       "letterSpacing": "{letter-spacing-tight}"
     }
@@ -122,7 +121,7 @@
   },
   "type-control": {
     "$type": "typography",
-    "$description": "Button, input, tab and menu item label. Tight line height — it is centred in a control, not flowing.",
+    "$description": "Button, input, tab and menu item label. 20px line height, matching the shipped text-sm control metrics.",
     "$value": {
       "fontFamily": "{font-sans}",
       "fontSize": "{font-size-14}",
@@ -139,12 +138,23 @@
       "fontSize": "{font-size-12}",
       "lineHeight": { "value": 16, "unit": "px" },
       "fontWeight": "{font-weight-regular}",
-      "letterSpacing": "{letter-spacing-wide}"
+      "letterSpacing": "{letter-spacing-normal}"
     }
   },
   "type-label": {
     "$type": "typography",
-    "$description": "Uppercase field/group label — form labels, section eyebrows.",
+    "$description": "Form field label — matches the Label component's shipped metrics (text-sm, weight 500, no transform).",
+    "$value": {
+      "fontFamily": "{font-sans}",
+      "fontSize": "{font-size-14}",
+      "lineHeight": { "value": 20, "unit": "px" },
+      "fontWeight": "{font-weight-medium}",
+      "letterSpacing": "{letter-spacing-normal}"
+    }
+  },
+  "type-eyebrow": {
+    "$type": "typography",
+    "$description": "Uppercase micro-label — section eyebrows, sidebar category headings. Not the Label component; form labels use type-label.",
     "$value": {
       "fontFamily": "{font-sans}",
       "fontSize": "{font-size-12}",
@@ -160,7 +170,7 @@
     "$value": {
       "fontFamily": "{font-sans}",
       "fontSize": "{font-size-32}",
-      "lineHeight": { "value": 33.6, "unit": "px" },
+      "lineHeight": { "value": 34, "unit": "px" },
       "fontWeight": "{font-weight-semibold}",
       "letterSpacing": "{letter-spacing-tight}",
       "fontVariantNumeric": "tabular-nums"
