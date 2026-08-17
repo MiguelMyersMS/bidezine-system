@@ -2,7 +2,7 @@
 /**
  * DTCG token source  →  CSS custom properties + typed tokens.
  *
- * Reads   tokens/{base,light,dark}.tokens.json   (DTCG 2025.10 — ADR-001)
+ * Reads   tokens/{base,neutral,light,dark}.tokens.json   (DTCG 2025.10 — ADR-001)
  * Writes  src/styles/tokens.css                  (runtime: :root + .dark)
  *         src/tokens.ts                          (authoring: typed names + var() refs)
  *
@@ -43,9 +43,26 @@ function colorToCss(value, name) {
 
 const dim = (d) => `${d.value}${d.unit}`
 
+/**
+ * Resolve a DTCG alias reference, e.g. `"{neutral-900}"`, to the referenced
+ * token's own `$value`. Semantics hold references, not literals — the neutral
+ * ramp (tokens/neutral.tokens.json) is the only referenceable tier today, so
+ * this looks the name up there. A non-alias string (hex passthrough, or the
+ * `var(--color-blue-300)` chart passthrough) has no braces and returns as-is.
+ */
+function resolveAlias(value, name) {
+  if (typeof value !== "string") return value
+  const m = /^\{([\w.-]+)\}$/.exec(value)
+  if (!m) return value
+  const ref = primitives[m[1]]
+  if (!ref) throw new Error(`Token "${name}": unknown reference "${value}".`)
+  return ref.$value
+}
+
 /** Render one DTCG $value as a CSS value. */
 function toCss(token, name) {
-  const { $type: type, $value: value } = token
+  const { $type: type, $value: rawValue } = token
+  const value = resolveAlias(rawValue, name)
 
   switch (type) {
     case "color":
@@ -106,8 +123,12 @@ const block = (doc) =>
     .join("\n")
 
 const base = read("base")
+const neutral = read("neutral")
 const light = read("light")
 const dark = read("dark")
+
+/** Name → token lookup for every alias `{...}` a semantic can reference. */
+const primitives = Object.fromEntries(entries(neutral))
 
 // ── Parity gate ────────────────────────────────────────────────────────────
 // A token that exists in one mode but not the other renders as "unset" there,
@@ -189,6 +210,7 @@ const css = `${banner}
 
 :root {
 ${block(base)}
+${block(neutral)}
 ${block(light)}
 }
 
@@ -206,6 +228,7 @@ const allNames = [
   ...entries(base).flatMap(([n, t]) =>
     t.$type === "typography" ? TYPO_PARTS.map((p) => `${n}-${p}`) : [n]
   ),
+  ...entries(neutral).map(([n]) => n),
   ...lightNames,
 ]
 

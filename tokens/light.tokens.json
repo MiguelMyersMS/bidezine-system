@@ -2,157 +2,63 @@
   "$description": "Light-mode semantic colours → :root. Values are shadcn/ui's own, unmodified, so a deployment can be verified against the source before anything is adjusted.",
   "background": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        1,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-0}"
   },
   "foreground": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0,
-        0,
-        0
-      ]
-    }
+    "$description": "bidezine Adjustment: restored to the vendored shadcn value; the shipped oklch(0 0 0) was porting drift, not a decision.",
+    "$value": "{neutral-900}"
   },
   "card": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        1,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-0}"
   },
   "card-foreground": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0,
-        0,
-        0
-      ]
-    }
+    "$description": "bidezine Adjustment: restored to the vendored shadcn value; the shipped oklch(0 0 0) was porting drift, not a decision.",
+    "$value": "{neutral-900}"
   },
   "popover": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        1,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-0}"
   },
   "popover-foreground": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0,
-        0,
-        0
-      ]
-    }
+    "$description": "bidezine Adjustment: restored to the vendored shadcn value; the shipped oklch(0 0 0) was porting drift, not a decision.",
+    "$value": "{neutral-900}"
   },
   "primary": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0,
-        0,
-        0
-      ]
-    }
+    "$description": "bidezine Adjustment: restored to the vendored shadcn value; the shipped oklch(0 0 0) was porting drift, not a decision.",
+    "$value": "{neutral-850}"
   },
   "primary-foreground": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.985,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-25}"
   },
   "secondary": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.97,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-50}"
   },
   "secondary-foreground": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.205,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-850}"
   },
   "muted": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.97,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-50}"
   },
   "muted-foreground": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.556,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-500}"
   },
   "accent": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.97,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-50}"
   },
   "accent-foreground": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.205,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-850}"
   },
   "destructive": {
     "$type": "color",
@@ -343,36 +249,15 @@
   },
   "border": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.922,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-200}"
   },
   "input": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.922,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-200}"
   },
   "ring": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.708,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-400}"
   },
   "chart-1": {
     "$type": "color",
@@ -408,14 +293,8 @@
   },
   "sidebar-foreground": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0,
-        0,
-        0
-      ]
-    }
+    "$description": "bidezine Adjustment: restored to the vendored shadcn value; the shipped oklch(0 0 0) was porting drift, not a decision.",
+    "$value": "{neutral-900}"
   },
   "sidebar-primary": {
     "$type": "color",
@@ -614,5 +493,166 @@
         0
       ]
     }
+  },
+  "surface-sunken": {
+    "$type": "color",
+    "$value": "{neutral-100}"
+  },
+  "border-strong": {
+    "$type": "color",
+    "$value": "{neutral-300}"
+  },
+  "dark-background": {
+    "$type": "color",
+    "$value": "{neutral-850}"
+  },
+  "dark-foreground": {
+    "$type": "color",
+    "$value": "{neutral-25}"
+  },
+  "dark-card": {
+    "$type": "color",
+    "$value": "{neutral-800}"
+  },
+  "dark-card-foreground": {
+    "$type": "color",
+    "$value": "{neutral-25}"
+  },
+  "dark-popover": {
+    "$type": "color",
+    "$value": "{neutral-800}"
+  },
+  "dark-popover-foreground": {
+    "$type": "color",
+    "$value": "{neutral-25}"
+  },
+  "dark-primary": {
+    "$type": "color",
+    "$value": "{neutral-200}"
+  },
+  "dark-primary-foreground": {
+    "$type": "color",
+    "$value": "{neutral-850}"
+  },
+  "dark-secondary": {
+    "$type": "color",
+    "$value": "{neutral-700}"
+  },
+  "dark-secondary-foreground": {
+    "$type": "color",
+    "$value": "{neutral-25}"
+  },
+  "dark-muted": {
+    "$type": "color",
+    "$value": "{neutral-700}"
+  },
+  "dark-muted-foreground": {
+    "$type": "color",
+    "$value": "{neutral-400}"
+  },
+  "dark-accent": {
+    "$type": "color",
+    "$value": "{neutral-600}"
+  },
+  "dark-accent-foreground": {
+    "$type": "color",
+    "$value": "{neutral-25}"
+  },
+  "dark-border": {
+    "$type": "color",
+    "$value": "{neutral-700}"
+  },
+  "dark-input": {
+    "$type": "color",
+    "$value": "{neutral-700}"
+  },
+  "dark-ring": {
+    "$type": "color",
+    "$value": "{neutral-500}"
+  },
+  "dark-surface-sunken": {
+    "$type": "color",
+    "$value": "{neutral-900}"
+  },
+  "dark-border-strong": {
+    "$type": "color",
+    "$value": "{neutral-600}"
+  },
+  "light-background": {
+    "$type": "color",
+    "$value": "{neutral-0}"
+  },
+  "light-foreground": {
+    "$type": "color",
+    "$value": "{neutral-900}"
+  },
+  "light-card": {
+    "$type": "color",
+    "$value": "{neutral-0}"
+  },
+  "light-card-foreground": {
+    "$type": "color",
+    "$value": "{neutral-900}"
+  },
+  "light-popover": {
+    "$type": "color",
+    "$value": "{neutral-0}"
+  },
+  "light-popover-foreground": {
+    "$type": "color",
+    "$value": "{neutral-900}"
+  },
+  "light-primary": {
+    "$type": "color",
+    "$value": "{neutral-850}"
+  },
+  "light-primary-foreground": {
+    "$type": "color",
+    "$value": "{neutral-25}"
+  },
+  "light-secondary": {
+    "$type": "color",
+    "$value": "{neutral-50}"
+  },
+  "light-secondary-foreground": {
+    "$type": "color",
+    "$value": "{neutral-850}"
+  },
+  "light-muted": {
+    "$type": "color",
+    "$value": "{neutral-50}"
+  },
+  "light-muted-foreground": {
+    "$type": "color",
+    "$value": "{neutral-500}"
+  },
+  "light-accent": {
+    "$type": "color",
+    "$value": "{neutral-50}"
+  },
+  "light-accent-foreground": {
+    "$type": "color",
+    "$value": "{neutral-850}"
+  },
+  "light-border": {
+    "$type": "color",
+    "$value": "{neutral-200}"
+  },
+  "light-input": {
+    "$type": "color",
+    "$value": "{neutral-200}"
+  },
+  "light-ring": {
+    "$type": "color",
+    "$value": "{neutral-400}"
+  },
+  "light-surface-sunken": {
+    "$type": "color",
+    "$value": "{neutral-100}"
+  },
+  "light-border-strong": {
+    "$type": "color",
+    "$value": "{neutral-300}"
   }
 }
+

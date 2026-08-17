@@ -2,157 +2,59 @@
   "$description": "Dark-mode semantic colours → .dark. Values are shadcn/ui's own, unmodified. Must declare exactly the same token names as light.tokens.json — the emitter fails the build on any mismatch.",
   "background": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.145,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-900}"
   },
   "foreground": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.985,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-25}"
   },
   "card": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.205,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-850}"
   },
   "card-foreground": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.985,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-25}"
   },
   "popover": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.205,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-850}"
   },
   "popover-foreground": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.985,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-25}"
   },
   "primary": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.922,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-200}"
   },
   "primary-foreground": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.205,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-850}"
   },
   "secondary": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.269,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-800}"
   },
   "secondary-foreground": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.985,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-25}"
   },
   "muted": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.269,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-800}"
   },
   "muted-foreground": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.708,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-400}"
   },
   "accent": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.371,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-700}"
   },
   "accent-foreground": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.985,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-25}"
   },
   "destructive": {
     "$type": "color",
@@ -367,14 +269,7 @@
   },
   "ring": {
     "$type": "color",
-    "$value": {
-      "colorSpace": "oklch",
-      "components": [
-        0.556,
-        0,
-        0
-      ]
-    }
+    "$value": "{neutral-500}"
   },
   "chart-1": {
     "$type": "color",
@@ -616,5 +511,166 @@
         0
       ]
     }
+  },
+  "surface-sunken": {
+    "$type": "color",
+    "$value": "{neutral-950}"
+  },
+  "border-strong": {
+    "$type": "color",
+    "$value": "{neutral-600}"
+  },
+  "dark-background": {
+    "$type": "color",
+    "$value": "{neutral-900}"
+  },
+  "dark-foreground": {
+    "$type": "color",
+    "$value": "{neutral-25}"
+  },
+  "dark-card": {
+    "$type": "color",
+    "$value": "{neutral-850}"
+  },
+  "dark-card-foreground": {
+    "$type": "color",
+    "$value": "{neutral-25}"
+  },
+  "dark-popover": {
+    "$type": "color",
+    "$value": "{neutral-850}"
+  },
+  "dark-popover-foreground": {
+    "$type": "color",
+    "$value": "{neutral-25}"
+  },
+  "dark-primary": {
+    "$type": "color",
+    "$value": "{neutral-200}"
+  },
+  "dark-primary-foreground": {
+    "$type": "color",
+    "$value": "{neutral-900}"
+  },
+  "dark-secondary": {
+    "$type": "color",
+    "$value": "{neutral-800}"
+  },
+  "dark-secondary-foreground": {
+    "$type": "color",
+    "$value": "{neutral-25}"
+  },
+  "dark-muted": {
+    "$type": "color",
+    "$value": "{neutral-800}"
+  },
+  "dark-muted-foreground": {
+    "$type": "color",
+    "$value": "{neutral-400}"
+  },
+  "dark-accent": {
+    "$type": "color",
+    "$value": "{neutral-700}"
+  },
+  "dark-accent-foreground": {
+    "$type": "color",
+    "$value": "{neutral-25}"
+  },
+  "dark-border": {
+    "$type": "color",
+    "$value": "{neutral-800}"
+  },
+  "dark-input": {
+    "$type": "color",
+    "$value": "{neutral-800}"
+  },
+  "dark-ring": {
+    "$type": "color",
+    "$value": "{neutral-500}"
+  },
+  "dark-surface-sunken": {
+    "$type": "color",
+    "$value": "{neutral-950}"
+  },
+  "dark-border-strong": {
+    "$type": "color",
+    "$value": "{neutral-700}"
+  },
+  "light-background": {
+    "$type": "color",
+    "$value": "{neutral-25}"
+  },
+  "light-foreground": {
+    "$type": "color",
+    "$value": "{neutral-900}"
+  },
+  "light-card": {
+    "$type": "color",
+    "$value": "{neutral-25}"
+  },
+  "light-card-foreground": {
+    "$type": "color",
+    "$value": "{neutral-900}"
+  },
+  "light-popover": {
+    "$type": "color",
+    "$value": "{neutral-25}"
+  },
+  "light-popover-foreground": {
+    "$type": "color",
+    "$value": "{neutral-900}"
+  },
+  "light-primary": {
+    "$type": "color",
+    "$value": "{neutral-850}"
+  },
+  "light-primary-foreground": {
+    "$type": "color",
+    "$value": "{neutral-25}"
+  },
+  "light-secondary": {
+    "$type": "color",
+    "$value": "{neutral-100}"
+  },
+  "light-secondary-foreground": {
+    "$type": "color",
+    "$value": "{neutral-850}"
+  },
+  "light-muted": {
+    "$type": "color",
+    "$value": "{neutral-100}"
+  },
+  "light-muted-foreground": {
+    "$type": "color",
+    "$value": "{neutral-500}"
+  },
+  "light-accent": {
+    "$type": "color",
+    "$value": "{neutral-100}"
+  },
+  "light-accent-foreground": {
+    "$type": "color",
+    "$value": "{neutral-850}"
+  },
+  "light-border": {
+    "$type": "color",
+    "$value": "{neutral-300}"
+  },
+  "light-input": {
+    "$type": "color",
+    "$value": "{neutral-300}"
+  },
+  "light-ring": {
+    "$type": "color",
+    "$value": "{neutral-400}"
+  },
+  "light-surface-sunken": {
+    "$type": "color",
+    "$value": "{neutral-200}"
+  },
+  "light-border-strong": {
+    "$type": "color",
+    "$value": "{neutral-400}"
   }
 }
+
