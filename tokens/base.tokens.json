@@ -23,5 +23,181 @@
   "motion-duration-slow": { "$type": "duration", "$description": "300ms. Two explicit uses.", "$value": { "value": 300, "unit": "ms" } },
 
   "motion-ease-linear": { "$type": "cubicBezier", "$description": "Tailwind's ease-linear, four uses in src/ui.", "$value": [0, 0, 1, 1] },
-  "motion-ease-in-out": { "$type": "cubicBezier", "$description": "Tailwind's ease-in-out, read from node_modules/tailwindcss. One use in src/ui.", "$value": [0.4, 0, 0.2, 1] }
+  "motion-ease-in-out": { "$type": "cubicBezier", "$description": "Tailwind's ease-in-out, read from node_modules/tailwindcss. One use in src/ui.", "$value": [0.4, 0, 0.2, 1] },
+
+  "font-size-12": { "$type": "dimension", "$value": { "value": 12, "unit": "px" } },
+  "font-size-14": { "$type": "dimension", "$value": { "value": 14, "unit": "px" } },
+  "font-size-16": { "$type": "dimension", "$value": { "value": 16, "unit": "px" } },
+  "font-size-18": { "$type": "dimension", "$value": { "value": 18, "unit": "px" } },
+  "font-size-20": { "$type": "dimension", "$value": { "value": 20, "unit": "px" } },
+  "font-size-24": { "$type": "dimension", "$value": { "value": 24, "unit": "px" } },
+  "font-size-32": { "$type": "dimension", "$value": { "value": 32, "unit": "px" } },
+
+  "font-weight-regular": { "$type": "fontWeight", "$value": 400 },
+  "font-weight-medium": { "$type": "fontWeight", "$value": 500 },
+  "font-weight-semibold": { "$type": "fontWeight", "$value": 600 },
+
+  "letter-spacing-tight": { "$type": "dimension", "$value": { "value": -0.025, "unit": "em" } },
+  "letter-spacing-normal": { "$type": "dimension", "$value": { "value": 0, "unit": "em" } },
+  "letter-spacing-wide": { "$type": "dimension", "$value": { "value": 0.01, "unit": "em" } },
+  "letter-spacing-wider": { "$type": "dimension", "$value": { "value": 0.025, "unit": "em" } },
+  "letter-spacing-widest": { "$type": "dimension", "$value": { "value": 0.1, "unit": "em" } },
+
+  "type-display": {
+    "$type": "typography",
+    "$description": "Largest heading, for documentation surfaces — hero titles, landing-page headers.",
+    "$value": {
+      "fontFamily": "{font-sans}",
+      "fontSize": "{font-size-32}",
+      "lineHeight": { "value": 36.8, "unit": "px" },
+      "fontWeight": "{font-weight-semibold}",
+      "letterSpacing": "{letter-spacing-tight}"
+    }
+  },
+  "type-heading-lg": {
+    "$type": "typography",
+    "$description": "Largest in-app heading — page titles, top-level section headers.",
+    "$value": {
+      "fontFamily": "{font-sans}",
+      "fontSize": "{font-size-24}",
+      "lineHeight": { "value": 32, "unit": "px" },
+      "fontWeight": "{font-weight-semibold}",
+      "letterSpacing": "{letter-spacing-tight}"
+    }
+  },
+  "type-heading": {
+    "$type": "typography",
+    "$description": "Section heading — dialog titles, card titles, sub-sections.",
+    "$value": {
+      "fontFamily": "{font-sans}",
+      "fontSize": "{font-size-20}",
+      "lineHeight": { "value": 28, "unit": "px" },
+      "fontWeight": "{font-weight-semibold}",
+      "letterSpacing": "{letter-spacing-tight}"
+    }
+  },
+  "type-heading-sm": {
+    "$type": "typography",
+    "$description": "Small heading — nested sections, sidebar group titles. Line height equals font size: it sits on a single tight line, not a flowing paragraph.",
+    "$value": {
+      "fontFamily": "{font-sans}",
+      "fontSize": "{font-size-18}",
+      "lineHeight": { "value": 18, "unit": "px" },
+      "fontWeight": "{font-weight-semibold}",
+      "letterSpacing": "{letter-spacing-tight}"
+    }
+  },
+  "type-body-lg": {
+    "$type": "typography",
+    "$description": "Larger body copy — lead paragraphs, empty-state descriptions.",
+    "$value": {
+      "fontFamily": "{font-sans}",
+      "fontSize": "{font-size-16}",
+      "lineHeight": { "value": 24, "unit": "px" },
+      "fontWeight": "{font-weight-regular}",
+      "letterSpacing": "{letter-spacing-normal}"
+    }
+  },
+  "type-body": {
+    "$type": "typography",
+    "$description": "Default running text — paragraphs, descriptions, list items.",
+    "$value": {
+      "fontFamily": "{font-sans}",
+      "fontSize": "{font-size-14}",
+      "lineHeight": { "value": 20, "unit": "px" },
+      "fontWeight": "{font-weight-regular}",
+      "letterSpacing": "{letter-spacing-normal}"
+    }
+  },
+  "type-body-strong": {
+    "$type": "typography",
+    "$description": "Emphasised inline text within body copy — same metrics as type-body, heavier weight.",
+    "$value": {
+      "fontFamily": "{font-sans}",
+      "fontSize": "{font-size-14}",
+      "lineHeight": { "value": 20, "unit": "px" },
+      "fontWeight": "{font-weight-medium}",
+      "letterSpacing": "{letter-spacing-normal}"
+    }
+  },
+  "type-control": {
+    "$type": "typography",
+    "$description": "Button, input, tab and menu item label. Tight line height — it is centred in a control, not flowing.",
+    "$value": {
+      "fontFamily": "{font-sans}",
+      "fontSize": "{font-size-14}",
+      "lineHeight": { "value": 20, "unit": "px" },
+      "fontWeight": "{font-weight-medium}",
+      "letterSpacing": "{letter-spacing-normal}"
+    }
+  },
+  "type-caption": {
+    "$type": "typography",
+    "$description": "Secondary/supporting text — helper text, timestamps, metadata.",
+    "$value": {
+      "fontFamily": "{font-sans}",
+      "fontSize": "{font-size-12}",
+      "lineHeight": { "value": 16, "unit": "px" },
+      "fontWeight": "{font-weight-regular}",
+      "letterSpacing": "{letter-spacing-wide}"
+    }
+  },
+  "type-label": {
+    "$type": "typography",
+    "$description": "Uppercase field/group label — form labels, section eyebrows.",
+    "$value": {
+      "fontFamily": "{font-sans}",
+      "fontSize": "{font-size-12}",
+      "lineHeight": { "value": 16, "unit": "px" },
+      "fontWeight": "{font-weight-medium}",
+      "letterSpacing": "{letter-spacing-wider}",
+      "textTransform": "uppercase"
+    }
+  },
+  "type-metric": {
+    "$type": "typography",
+    "$description": "Large numeric statistic, for documentation surfaces — dashboards, stat cards. Tabular figures so digits don't shift width.",
+    "$value": {
+      "fontFamily": "{font-sans}",
+      "fontSize": "{font-size-32}",
+      "lineHeight": { "value": 33.6, "unit": "px" },
+      "fontWeight": "{font-weight-semibold}",
+      "letterSpacing": "{letter-spacing-tight}",
+      "fontVariantNumeric": "tabular-nums"
+    }
+  },
+  "type-metric-sm": {
+    "$type": "typography",
+    "$description": "Smaller numeric statistic — compact stat cards, inline metrics. Tabular figures so digits don't shift width.",
+    "$value": {
+      "fontFamily": "{font-sans}",
+      "fontSize": "{font-size-20}",
+      "lineHeight": { "value": 22, "unit": "px" },
+      "fontWeight": "{font-weight-semibold}",
+      "letterSpacing": "{letter-spacing-tight}",
+      "fontVariantNumeric": "tabular-nums"
+    }
+  },
+  "type-code": {
+    "$type": "typography",
+    "$description": "Inline and block code — monospace body text.",
+    "$value": {
+      "fontFamily": "{font-mono}",
+      "fontSize": "{font-size-14}",
+      "lineHeight": { "value": 20, "unit": "px" },
+      "fontWeight": "{font-weight-regular}",
+      "letterSpacing": "{letter-spacing-normal}"
+    }
+  },
+  "type-kbd": {
+    "$type": "typography",
+    "$description": "Keyboard shortcut / key-cap label — monospace, widest tracking for legibility at small size.",
+    "$value": {
+      "fontFamily": "{font-mono}",
+      "fontSize": "{font-size-12}",
+      "lineHeight": { "value": 16, "unit": "px" },
+      "fontWeight": "{font-weight-medium}",
+      "letterSpacing": "{letter-spacing-widest}"
+    }
+  }
 }

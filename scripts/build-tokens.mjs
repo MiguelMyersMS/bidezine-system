@@ -165,22 +165,52 @@ function toCss(token, name) {
 }
 
 /**
+ * The five sub-properties every typography composite has, plus the two
+ * optional ones (textTransform, fontVariantNumeric) emitted only when the
+ * composite's own $value carries them. Drives both the CSS expansion and the
+ * typed surface (src/tokens.ts), so the two can never list different names.
+ */
+function typoParts(token) {
+  const v = token.$value
+  const parts = ["font-family", "font-size", "line-height", "font-weight", "letter-spacing"]
+  if (v.textTransform !== undefined) parts.push("text-transform")
+  if (v.fontVariantNumeric !== undefined) parts.push("font-variant-numeric")
+  return parts
+}
+
+/**
  * A `typography` composite cannot be one CSS variable, so it expands into one
  * variable per sub-property. The composite still lives in the source as a single
  * named role — which is what makes the Figma text style and the CSS agree.
+ * Every sub-property is resolved through resolveAlias first: a composite's
+ * $value holds `{name}` references (font-sans, font-size-14, ...), not
+ * literals, and rendering the raw string would ship the literal brace.
  */
 function expandTypography(name, token) {
   const v = token.$value
-  const fam = (Array.isArray(v.fontFamily) ? v.fontFamily : [v.fontFamily])
+  const famRaw = resolveAlias(v.fontFamily, name)
+  const fam = (Array.isArray(famRaw) ? famRaw : [famRaw])
     .map((f) => (f.includes(" ") ? `"${f}"` : f))
     .join(", ")
-  return [
+  const fontSize = resolveAlias(v.fontSize, name)
+  const lineHeight = resolveAlias(v.lineHeight, name)
+  const fontWeight = resolveAlias(v.fontWeight, name)
+  const letterSpacing = resolveAlias(v.letterSpacing, name)
+
+  const lines = [
     `  --${name}-font-family: ${fam};`,
-    `  --${name}-font-size: ${dim(v.fontSize)};`,
-    `  --${name}-line-height: ${dim(v.lineHeight)};`,
-    `  --${name}-font-weight: ${v.fontWeight};`,
-    `  --${name}-letter-spacing: ${dim(v.letterSpacing)};`,
-  ].join("\n")
+    `  --${name}-font-size: ${dim(fontSize)};`,
+    `  --${name}-line-height: ${dim(lineHeight)};`,
+    `  --${name}-font-weight: ${fontWeight};`,
+    `  --${name}-letter-spacing: ${dim(letterSpacing)};`,
+  ]
+  if (v.textTransform !== undefined) {
+    lines.push(`  --${name}-text-transform: ${resolveAlias(v.textTransform, name)};`)
+  }
+  if (v.fontVariantNumeric !== undefined) {
+    lines.push(`  --${name}-font-variant-numeric: ${resolveAlias(v.fontVariantNumeric, name)};`)
+  }
+  return lines.join("\n")
 }
 
 const block = (doc) =>
@@ -197,8 +227,27 @@ const neutral = read("neutral")
 const light = read("light")
 const dark = read("dark")
 
-/** Name → token lookup for every alias `{...}` a semantic can reference. */
-const primitives = Object.fromEntries(entries(neutral))
+/**
+ * Name → token lookup for every alias `{...}` a semantic or composite can
+ * reference: the neutral ramp (colour) and base.tokens.json's own primitives
+ * (font-size-*, font-weight-*, letter-spacing-*, font-sans, font-mono, ...).
+ * A name defined in both files is ambiguous — which one wins would be an
+ * implementation detail, not a decision anyone made — so it fails the build
+ * rather than silently picking one.
+ */
+const baseEntryNames = entries(base).map(([n]) => n)
+const neutralEntryNames = entries(neutral).map(([n]) => n)
+const primitiveCollisions = baseEntryNames.filter((n) => neutralEntryNames.includes(n))
+if (primitiveCollisions.length) {
+  console.error(
+    [
+      "Primitive name collision — defined in both base.tokens.json and neutral.tokens.json:",
+      ...primitiveCollisions.map((n) => `  ${n}`),
+    ].join("\n")
+  )
+  process.exit(1)
+}
+const primitives = Object.fromEntries([...entries(neutral), ...entries(base)])
 
 // ── Parity gate ────────────────────────────────────────────────────────────
 // A token that exists in one mode but not the other renders as "unset" there,
@@ -320,11 +369,12 @@ ${themeCss}`
 
 // ── Emit typed tokens ──────────────────────────────────────────────────────
 // A typography composite has no single CSS variable, so the typed surface lists
-// its five sub-properties instead — matching exactly what the CSS emits.
-const TYPO_PARTS = ["font-family", "font-size", "line-height", "font-weight", "letter-spacing"]
+// its sub-properties instead — derived per-composite from typoParts() so the
+// list matches exactly what the CSS emits (e.g. type-label gains
+// -text-transform, type-body does not).
 const allNames = [
   ...entries(base).flatMap(([n, t]) =>
-    t.$type === "typography" ? TYPO_PARTS.map((p) => `${n}-${p}`) : [n]
+    t.$type === "typography" ? typoParts(t).map((p) => `${n}-${p}`) : [n]
   ),
   ...entries(neutral).map(([n]) => n),
   ...lightNames,
