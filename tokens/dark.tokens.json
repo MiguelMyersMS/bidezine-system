@@ -691,11 +691,11 @@
   },
   "light-surface-contrast": {
     "$type": "color",
-    "$value": "{neutral-1000}"
+    "$value": "{neutral-0}"
   },
   "light-surface-contrast-foreground": {
     "$type": "color",
-    "$value": "{neutral-0}"
+    "$value": "{neutral-1000}"
   }
 }
 
