@@ -33,28 +33,30 @@
 import { readFile, stat } from "node:fs/promises"
 import { join } from "node:path"
 import { REPO_ROOT } from "../verifier/lib/db.mjs"
-// Neutral parsing helper, not another gate — see scripts/lib/class-literals.mjs's own
+// Neutral parsing helper, not another gate — see scripts/lib/lexical-scan.mjs's own
 // header. This is scripts/lib/dependencies.mjs's precedent (scan-dependencies.mjs
 // already imports it), not the R6-importing-into-a-blocking-script problem the
 // comment below used to guard against: R6 lives in check-rules.mjs and stays
-// non-blocking regardless of where the two gates' shared literal-capture code lives.
-import { classLiterals } from "./lib/class-literals.mjs"
+// non-blocking regardless of where the two gates' shared literal/comment scan lives.
+//
+// Issue 06d: classLiterals and stripComments used to be answered independently — this
+// file's own private stripComments (a bare `//`/`/* */` regex) and class-literals.mjs's
+// literal scan (no comment awareness) each assumed the other's question was already
+// solved. An intermediate fix that derived literal spans from raw source to protect
+// them from comment-stripping (since deleted) was still backwards for the same reason.
+// lexical-scan.mjs answers both from one pass, since comments and literals are
+// mutually exclusive lexical states; classLiterals and stripComments below are both
+// thin views over it, and neither file keeps a private copy of either's scanning logic.
+import { classLiterals, stripComments } from "./lib/lexical-scan.mjs"
 
 const SHIPPED_CSS = join(REPO_ROOT, "dist", "system.css")
-
-/** Same stripping check-rules.mjs uses, and for the same reason: a role name mentioned in
- * a comment (this file's own header does it repeatedly) must never count as a reference. */
-const stripComments = (source) =>
-  source
-    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " "))
-    .replace(/(^|[^:])\/\/[^\n]*/g, (m, p) => p + " ".repeat(Math.max(0, m.length - p.length)))
 
 const lineOf = (source, index) => source.slice(0, index).split("\n").length
 
 // Issue 06c: this used to duplicate scripts/check-rules.mjs's R6 capture regex rather
 // than import it, on self-contained-gate grounds — R6 is explicitly non-blocking, and
 // a blocking script's exit code must never depend on a module that says it must stay
-// that way. That reasoning does not extend to scripts/lib/class-literals.mjs (see its
+// that way. That reasoning does not extend to scripts/lib/lexical-scan.mjs (see its
 // header and the import comment above): it is neutral parsing code, not R6 itself, and
 // this file and check-rules.mjs each import it independently without either depending
 // on the other. The duplicated regex is retired — it closed a double-quoted literal on
@@ -265,11 +267,11 @@ async function checkLinkA(entry) {
   const matches = []
   for (const { value: cls, index, truncated } of classLiterals(source)) {
     if (truncated) {
-      // Not silently consumed as a partial value — see class-literals.mjs's cap
+      // Not silently consumed as a partial value — see lexical-scan.mjs's cap
       // comment. No literal in src/ui/ is anywhere near 2000 characters, so this is
       // expected to never fire; if it does, this entry must fail rather than risk
       // matching (or missing a forbidden utility in) a value it never fully read.
-      return { ok: false, detail: `${entry.file}: a literal exceeds the ${cls.length}+ char cap and was truncated before it could be fully checked — see class-literals.mjs` }
+      return { ok: false, detail: `${entry.file}: a literal exceeds the ${cls.length}+ char cap and was truncated before it could be fully checked — see lexical-scan.mjs` }
     }
     if (re.test(cls) && cls.includes(entry.anchor)) matches.push({ cls, index })
   }
