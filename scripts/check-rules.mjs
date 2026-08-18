@@ -369,6 +369,24 @@ const TYPE_UTILITIES_ALLOWED = [
     reason:
       "FieldLabel — same as FieldContent above: leading-snug overrides the line-height of whatever size the composed Label/content ends up rendering at, which is not this element's own size to name a role for.",
   },
+  {
+    file: "src/ui/attachment.tsx",
+    match: "flex-1 leading-tight",
+    reason:
+      "AttachmentContent — leading-tight on a size inherited from the attachment root; no role can express a leading override on a size it doesn't own. Same pattern as card.tsx's title above.",
+  },
+  {
+    file: "src/ui/chart.tsx",
+    match: "justify-between leading-none",
+    reason:
+      "ChartTooltipContent row — leading-none on a size inherited from the tooltip container; no role can express a leading override on a size it doesn't own.",
+  },
+  {
+    file: "src/ui/calendar.tsx",
+    match: "leading-none font-normal",
+    reason:
+      "CalendarDayButton — leading-none font-normal on a size inherited from the calendar root (via Button); no role can express a leading override on a size it doesn't own.",
+  },
 ]
 
 const FONT_SIZE_RE = /\btext-(?:xs|sm|base|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl|8xl|9xl)\b/
