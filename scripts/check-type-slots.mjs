@@ -79,13 +79,36 @@ const SLOT_TABLE = [
   { file: "src/ui/tabs.tsx", slot: "TabsTrigger label", role: "control", anchor: "h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5" },
   { file: "src/ui/toggle.tsx", slot: "Toggle label", role: "control", anchor: "rounded-md text-control whitespace-nowrap transition-[color,box-shadow]" },
   { file: "src/ui/accordion.tsx", slot: "AccordionTrigger label", role: "control", anchor: "justify-between gap-4 rounded-md py-4 text-left text-control" },
+  { file: "src/ui/context-menu.tsx", slot: "ContextMenuLabel", role: "control", anchor: "text-control text-foreground data-[inset]:pl-8", note: "text-sm font-medium collapses to text-control; font-medium dropped." },
+  { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuLabel", role: "control", anchor: "text-control data-[inset]:pl-8", note: "text-sm font-medium collapses to text-control; font-medium dropped." },
+  { file: "src/ui/menubar.tsx", slot: "MenubarTrigger", role: "control", anchor: "px-2 py-1 text-control", note: "text-sm font-medium collapses to text-control; font-medium dropped." },
+  { file: "src/ui/menubar.tsx", slot: "MenubarLabel", role: "control", anchor: "text-control data-[inset]:pl-8", note: "text-sm font-medium collapses to text-control; font-medium dropped." },
+  { file: "src/ui/navigation-menu.tsx", slot: "NavigationMenuTrigger style", role: "control", anchor: "group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-control", note: "text-sm font-medium collapses to text-control; font-medium dropped." },
 
   { file: "src/ui/table.tsx", slot: "Table root text", role: "body", anchor: "caption-bottom text-body" },
   { file: "src/ui/dialog.tsx", slot: "DialogDescription", role: "body", anchor: "text-body text-muted-foreground" },
   { file: "src/ui/card.tsx", slot: "CardDescription", role: "body", anchor: "text-body text-muted-foreground" },
   { file: "src/ui/select.tsx", slot: "SelectItem", role: "body", anchor: "pr-8 pl-2 text-body" },
+  { file: "src/ui/select.tsx", slot: "SelectTrigger", role: "body", anchor: "data-[size=default]:h-9 data-[size=sm]:h-8", note: "text-sm with no weight utility is text-body even though the element reads semantically as a control." },
   { file: "src/ui/breadcrumb.tsx", slot: "Breadcrumb root text", role: "body", anchor: "flex-wrap items-center gap-1.5 text-body" },
   { file: "src/ui/item.tsx", slot: "ItemDescription", role: "body", anchor: "line-clamp-2 text-body text-balance", note: "absorbed slot — 21px → 20px line-height, deliberate." },
+  { file: "src/ui/context-menu.tsx", slot: "ContextMenuSubTrigger", role: "body", anchor: "select-none focus:bg-accent focus:text-accent-foreground data-[inset]:pl-8 data-[state=open]:bg-accent" },
+  { file: "src/ui/context-menu.tsx", slot: "ContextMenuItem", role: "body", anchor: "data-[variant=destructive]:text-destructive" },
+  { file: "src/ui/context-menu.tsx", slot: "ContextMenuCheckboxItem/RadioItem", role: "body", anchor: "py-1.5 pr-2 pl-8 text-body outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none", literals: 2, note: "CheckboxItem and RadioItem share one byte-identical recipe — two consumers, one entry." },
+  { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuItem", role: "body", anchor: "active:bg-[var(--accent-pressed,var(--accent))]" },
+  { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuCheckboxItem", role: "body", anchor: "data-[state=checked]:bg-accent/50" },
+  { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuRadioItem", role: "body", anchor: "focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0", note: "Anchor stops before the [class*='size-'] embedded single quote — the literal-capture regex treats an embedded ' as a closing quote, truncating cls there." },
+  { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuSubTrigger", role: "body", anchor: "data-[inset]:pl-8 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0", note: "Anchor stops before the [class*='size-'] embedded single quote — see DropdownMenuRadioItem note." },
+  { file: "src/ui/menubar.tsx", slot: "MenubarItem", role: "body", anchor: "data-[variant=destructive]:text-destructive" },
+  { file: "src/ui/menubar.tsx", slot: "MenubarCheckboxItem/RadioItem", role: "body", anchor: "rounded-xs py-1.5 pr-2 pl-8 text-body outline-hidden select-none", literals: 2, note: "CheckboxItem and RadioItem share one byte-identical recipe — two consumers, one entry." },
+  { file: "src/ui/menubar.tsx", slot: "MenubarSubTrigger", role: "body", anchor: "data-[inset]:pl-8 data-[state=open]:bg-accent" },
+  { file: "src/ui/command.tsx", slot: "CommandInput", role: "body", anchor: "h-10 w-full rounded-md bg-transparent py-3 text-body outline-hidden placeholder:text-muted-foreground" },
+  { file: "src/ui/command.tsx", slot: "CommandEmpty", role: "body", anchor: "py-6 text-center text-body" },
+  { file: "src/ui/command.tsx", slot: "CommandItem", role: "body", anchor: "data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground" },
+  { file: "src/ui/combobox.tsx", slot: "Combobox item", role: "body", anchor: "data-highlighted:bg-accent data-highlighted:text-accent-foreground" },
+  { file: "src/ui/combobox.tsx", slot: "Combobox empty", role: "body", anchor: "group-data-empty/combobox-content:flex" },
+  { file: "src/ui/combobox.tsx", slot: "Combobox chips", role: "body", anchor: "min-h-9 flex-wrap items-center gap-1.5 rounded-md border border-input" },
+  { file: "src/ui/navigation-menu.tsx", slot: "NavigationMenuLink", role: "body", anchor: "flex flex-col gap-1 rounded-sm p-2 text-body transition-all" },
 
   { file: "src/ui/input.tsx", slot: "Input (base breakpoint)", role: "body-lg", anchor: "px-3 py-1 text-body-lg" },
 
@@ -94,6 +117,7 @@ const SLOT_TABLE = [
   { file: "src/ui/badge.tsx", slot: "Badge regular", role: "caption", anchor: "text-caption" },
   { file: "src/ui/calendar.tsx", slot: "Calendar weekday", role: "caption", anchor: "flex-1 rounded-md text-caption", note: "absorbed slot — 12.8px → 12px line-height, deliberate." },
   { file: "src/ui/calendar.tsx", slot: "Calendar week number", role: "caption", anchor: "text-muted-foreground text-caption", note: "absorbed slot — 12.8px → 12px line-height, deliberate." },
+  { file: "src/ui/combobox.tsx", slot: "Combobox group heading", role: "caption", anchor: "px-2 py-1.5 text-caption text-muted-foreground pointer-coarse:px-3", note: "condition-only pointer-coarse:text-sm variant is in scope per 05c and becomes pointer-coarse:text-body." },
 
   { file: "src/ui/kbd.tsx", slot: "Kbd", role: "control-sm", anchor: "bg-muted px-1 text-control-sm" },
   { file: "src/ui/sidebar.tsx", slot: "SidebarGroupLabel", role: "control-sm", anchor: "px-2 text-control-sm text-sidebar-foreground/70" },
@@ -215,15 +239,24 @@ async function checkLinkA(entry) {
   if (raw === null) return { ok: false, detail: `file not found: ${entry.file}` }
   const source = stripComments(raw)
   const re = roleRegex(entry.role)
+  const expectedCount = entry.literals ?? 1
 
   // Every literal in the file that carries BOTH the role utility and this slot's own
   // anchor. Zero means the anchor doesn't identify this slot's literal (wrong anchor, or
-  // the rewire never happened); more than one means the anchor is ambiguous — a check
-  // that silently used the first match regardless is exactly the bug this file exists to
-  // fix (Issue 06a: the Calendar weekday entry matched the ALREADY-rewired weekday cell
-  // while the actually-unrewired week_number cell, the one the "absorbed slot" note was
-  // written about, went unchecked). An ambiguous anchor must fail loudly, not silently
-  // pick one.
+  // the rewire never happened); more than expected means the anchor is ambiguous — a
+  // check that silently used the first match regardless is exactly the bug this file
+  // exists to fix (Issue 06a: the Calendar weekday entry matched the ALREADY-rewired
+  // weekday cell while the actually-unrewired week_number cell, the one the "absorbed
+  // slot" note was written about, went unchecked). An ambiguous anchor must fail loudly,
+  // not silently pick one.
+  //
+  // `literals` (default 1) exists for the case an anchor genuinely cannot separate: two
+  // elements sharing one byte-identical class string (Issue 06b: context-menu.tsx's
+  // CheckboxItem/RadioItem, menubar.tsx's same pair). The count is EXACT, not a floor —
+  // "at least N" would let a slot silently grow a third consumer that was never read
+  // against this table, and report PASS on two literals while a new, unexamined third
+  // one ships untouched. Every one of the `literals` matches is scanned; a violation in
+  // any of them fails the whole entry, and every line number is reported.
   const matches = []
   for (const m of source.matchAll(/["'`]([^"'`\n]{0,2000})["'`]/g)) {
     const cls = m[1]
@@ -233,21 +266,23 @@ async function checkLinkA(entry) {
   if (matches.length === 0) {
     return { ok: false, detail: `no literal in ${entry.file} contains both text-${entry.role} and the anchor "${entry.anchor}"` }
   }
-  if (matches.length > 1) {
+  if (matches.length !== expectedCount) {
     return {
       ok: false,
-      detail: `the anchor "${entry.anchor}" matches ${matches.length} literals in ${entry.file}; it must identify exactly one`,
+      detail: `the anchor "${entry.anchor}" matches ${matches.length} literal(s) in ${entry.file}; entry declares literals: ${expectedCount}`,
     }
   }
 
-  const { cls, index } = matches[0]
-  const scoped = stripElementTargeting(cls)
-  const forbidden =
-    FONT_SIZE_RE.test(scoped) || FONT_SIZE_ARBITRARY_RE.test(scoped) || LEADING_RE.test(scoped) || TRACKING_RE.test(scoped)
-  if (forbidden) {
-    return { ok: false, detail: `${entry.file}:${lineOf(source, index)} carries a forbidden utility alongside text-${entry.role}: "${cls.slice(0, 120)}"` }
+  const lines = matches.map((m) => lineOf(source, m.index))
+  for (const { cls, index } of matches) {
+    const scoped = stripElementTargeting(cls)
+    const forbidden =
+      FONT_SIZE_RE.test(scoped) || FONT_SIZE_ARBITRARY_RE.test(scoped) || LEADING_RE.test(scoped) || TRACKING_RE.test(scoped)
+    if (forbidden) {
+      return { ok: false, detail: `${entry.file}:${lineOf(source, index)} carries a forbidden utility alongside text-${entry.role}: "${cls.slice(0, 120)}"` }
+    }
   }
-  return { ok: true, detail: `${entry.file}:${lineOf(source, index)}  "${cls.slice(0, 120)}"` }
+  return { ok: true, detail: `${entry.file}:${lines.join(",")}  "${matches[0].cls.slice(0, 120)}"` }
 }
 
 // ── Table integrity ─────────────────────────────────────────────────────────────────

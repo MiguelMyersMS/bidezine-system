@@ -288,6 +288,12 @@ const TYPE_UTILITIES_ALLOWED = [
     reason:
       "Card title — leading-none on a size inherited from the card; a role would have to set a size, which would change what the title renders at. Weight and leading override only.",
   },
+  {
+    file: "src/ui/command.tsx",
+    match: "[&_[cmdk-group-heading]]:text-xs",
+    reason:
+      "CommandGroup's heading is styled through a descendant selector ([&_[cmdk-group-heading]]:*), not on the element's own class string — 05c's variant-scoping rule treats descendant selectors as out of scope for role rewiring, since no role can reach through to a nested element it doesn't own. The alternative is giving the heading its own element (so its class string could carry a role directly), which is a structural change deferred to a later batch — not pursued in this commit.",
+  },
 ]
 
 const FONT_SIZE_RE = /\btext-(?:xs|sm|base|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl|8xl|9xl)\b/
