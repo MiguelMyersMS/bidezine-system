@@ -62,15 +62,6 @@ const LEADING_RE = /\bleading-(?:none|tight|snug|normal|relaxed|loose|\d+|\[[^\]
 const TRACKING_RE = /\btracking-(?:tighter|tight|normal|wide|wider|widest|\[[^\]]+\])\b/
 
 // ── the slot table ──────────────────────────────────────────────────────────────────
-// One entry per rewired slot named in Issue 05's Step 4 table and Issue 05b's Findings
-// 1 & 3, MINUS src/ui/label.tsx. Issue 05b's shipped-value table lists "label" as a
-// text-label consumer, but src/ui/label.tsx's `Label` was never in Issue 05's Step-4
-// rewire table and is still raw ("text-sm leading-none font-medium") — nothing in Issue
-// 05b's three findings instructs touching it. Asserting text-label against it here would
-// either fail honestly against unrewired code or (worse) get quietly "fixed" by rewiring
-// a file no instruction named. Excluded; reported as a discrepancy instead, in the 05b
-// report, not silently resolved in either direction.
-//
 // expected values are [font-size, line-height, font-weight, letter-spacing] literals.
 const SLOT_TABLE = [
   { file: "src/ui/button.tsx", slot: "Button label", role: "control" },
@@ -86,21 +77,7 @@ const SLOT_TABLE = [
   { file: "src/ui/breadcrumb.tsx", slot: "Breadcrumb root text", role: "body" },
   { file: "src/ui/item.tsx", slot: "ItemDescription", role: "body", note: "absorbed slot — 21px → 20px line-height, deliberate." },
 
-  {
-    file: "src/ui/input.tsx",
-    slot: "Input (base breakpoint)",
-    role: "body-lg",
-    // Link A flags this file for `file:text-sm` later in the SAME shared cn() literal —
-    // sizing the ::file-selector-button pseudo-element, unrelated to the input's own
-    // text-body-lg role. Confirmed pre-existing and out of Issue 05b's scope: `node
-    // scripts/check-rules.mjs` already lists src/ui/input.tsx:11 among the ~85 deferred
-    // R6 hits issue 06 owns. Recorded here rather than silently narrowed (which would
-    // weaken Link A's literal-scoping for every slot) or silently allow-listed in R6's
-    // own TYPE_UTILITIES_ALLOWED (explicitly out of scope for this issue). Link B still
-    // runs as a hard requirement — only this file's Link A is downgraded to a note.
-    knownLinkAException:
-      "file:text-sm on the ::file-selector-button pseudo — pre-existing R6 hit unrelated to the text-body-lg role, deferred to issue 06.",
-  },
+  { file: "src/ui/input.tsx", slot: "Input (base breakpoint)", role: "body-lg" },
 
   { file: "src/ui/tooltip.tsx", slot: "TooltipContent", role: "caption" },
   { file: "src/ui/select.tsx", slot: "SelectLabel", role: "caption" },
@@ -118,6 +95,7 @@ const SLOT_TABLE = [
   { file: "src/ui/menubar.tsx", slot: "Menubar shortcut", role: "shortcut" },
   { file: "src/ui/command.tsx", slot: "Command shortcut", role: "shortcut" },
 
+  { file: "src/ui/label.tsx", slot: "Label", role: "label" },
   { file: "src/ui/item.tsx", slot: "ItemTitle", role: "label", note: "absorbed slot — 19.25px → 14px line-height, deliberate." },
   { file: "src/ui/field.tsx", slot: "FieldTitle", role: "label", note: "absorbed slot — 19.25px → 14px line-height, deliberate." },
 
@@ -158,6 +136,68 @@ function roleRegex(role) {
   return new RegExp(`\\btext-${escaped}(?!-)\\b`)
 }
 
+// ── Element-targeting vs condition-only variants ───────────────────────────────────
+// A slot check asks whether THIS element carries a raw type utility. A variant that
+// changes what gets styled — a pseudo-element or a descendant — takes the declaration
+// out of this element's scope entirely, so it is not this question's concern regardless
+// of what utility it carries. A variant that only changes the CONDITION under which
+// this same element is styled (a breakpoint, a state, a theme) leaves the element being
+// styled unchanged, so it stays in scope — `md:text-sm` on the slot itself is still the
+// slot at a different breakpoint, and must still be a role.
+//
+// Named element-targeting variants: pseudo-elements Tailwind ships variants for.
+const ELEMENT_TARGETING_NAMED = new Set([
+  "file",
+  "placeholder",
+  "before",
+  "after",
+  "marker",
+  "selection",
+  "first-line",
+  "first-letter",
+  "backdrop",
+])
+// Arbitrary descendant/child selectors: "[&_svg]" (space, encoded "_") or "[&>span]"
+// (direct child, ">") both select something other than the element the base utility
+// class lives on.
+const ELEMENT_TARGETING_ARBITRARY_RE = /^\[&[_>]/
+
+/** Splits a Tailwind utility token on ':' into its variant chain plus trailing utility,
+ * ignoring colons that appear inside `[...]` (an arbitrary value like `text-[length:1rem]`
+ * has a colon that is not a variant separator). Returns { variants, utility }. */
+function splitVariantChain(token) {
+  const parts = []
+  let depth = 0
+  let current = ""
+  for (const ch of token) {
+    if (ch === "[") depth++
+    if (ch === "]") depth--
+    if (ch === ":" && depth === 0) {
+      parts.push(current)
+      current = ""
+    } else {
+      current += ch
+    }
+  }
+  parts.push(current)
+  return { variants: parts.slice(0, -1), utility: parts[parts.length - 1] }
+}
+
+function isElementTargetingToken(token) {
+  const { variants } = splitVariantChain(token)
+  return variants.some((v) => ELEMENT_TARGETING_NAMED.has(v) || ELEMENT_TARGETING_ARBITRARY_RE.test(v))
+}
+
+/** Removes every whitespace-delimited utility token whose variant chain contains an
+ * element-targeting variant, leaving condition-only-variant and bare tokens (including
+ * the slot's own role utility) in place for the forbidden-utility scan. */
+function stripElementTargeting(cls) {
+  return cls
+    .split(/\s+/)
+    .filter((token) => token.length > 0 && !isElementTargetingToken(token))
+    .join(" ")
+}
+
 async function checkLinkA(entry) {
   const abs = join(REPO_ROOT, entry.file)
   const raw = await readFile(abs, "utf8").catch(() => null)
@@ -168,8 +208,9 @@ async function checkLinkA(entry) {
   for (const m of source.matchAll(/["'`]([^"'`\n]{0,2000})["'`]/g)) {
     const cls = m[1]
     if (!re.test(cls)) continue
+    const scoped = stripElementTargeting(cls)
     const forbidden =
-      FONT_SIZE_RE.test(cls) || FONT_SIZE_ARBITRARY_RE.test(cls) || LEADING_RE.test(cls) || TRACKING_RE.test(cls)
+      FONT_SIZE_RE.test(scoped) || FONT_SIZE_ARBITRARY_RE.test(scoped) || LEADING_RE.test(scoped) || TRACKING_RE.test(scoped)
     if (forbidden) {
       return { ok: false, detail: `${entry.file}:${lineOf(source, m.index)} carries a forbidden utility alongside text-${entry.role}: "${cls.slice(0, 120)}"` }
     }
@@ -293,22 +334,10 @@ for (const entry of SLOT_TABLE) {
   linksChecked++
   rolesChecked.add(entry.role)
 
-  // A documented, narrowly-scoped downgrade: Link A failing on a KNOWN, pre-existing,
-  // out-of-scope R6 hit elsewhere in the same shared literal is not evidence the role
-  // itself is mis-wired. Only entries carrying knownLinkAException get this treatment,
-  // and it never touches Link B — the compiled value is still a hard requirement.
-  const aDowngraded = !a.ok && entry.knownLinkAException
-  const effectiveOk = (a.ok || aDowngraded) && b.ok
-
   const label = `${entry.slot} (${entry.file} → text-${entry.role})${entry.note ? `  [${entry.note}]` : ""}`
-  if (effectiveOk) {
+  if (a.ok && b.ok) {
     console.log(`  PASS  ${label}`)
-    if (aDowngraded) {
-      console.log(`        A: NOTE (downgraded) — ${a.detail}`)
-      console.log(`             known exception: ${entry.knownLinkAException}`)
-    } else {
-      console.log(`        A: ${a.detail}`)
-    }
+    console.log(`        A: ${a.detail}`)
     console.log(`        B: ${b.detail}`)
   } else {
     console.log(`  FAIL  ${label}`)

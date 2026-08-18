@@ -299,13 +299,25 @@ function isAllowed(path, cls) {
   return TYPE_UTILITIES_ALLOWED.some((e) => e.file === path && cls.includes(e.match))
 }
 
+// The literal-capture cap below is 2000, matching scripts/check-type-slots.mjs. A cap
+// shorter than the literal it is meant to bound does NOT truncate-and-partially-match:
+// `["'`]([^"'`\n]{0,N})["'`]` requires the closing quote to fall within N characters, so
+// a literal longer than N finds no closing quote in range and the WHOLE match fails —
+// the literal is skipped entirely, not shortened. That makes an undersized cap silently
+// under-report: every forbidden utility inside a skipped literal goes unchecked, and the
+// violation count becomes a floor, not a real count. This was caught because a 600-char
+// cap here was missing src/ui/tabs.tsx's ~700+ char class literal outright.
+//
+// scripts/check-rules.mjs's R4 (ruleLeadingNoneTruncate, above) carries the same
+// structural issue at a 400-char cap. Left alone in this change — R4 is a different rule
+// with its own incident history — but flagged here for issue 06 to size correctly.
 async function ruleNoRawTypeUtility() {
   const seenAllowed = new Set()
   const files = await walk(join(REPO_ROOT, "src", "ui"))
   for (const file of files) {
     const path = rel(file)
     const source = stripComments(await readFile(file, "utf8"))
-    for (const m of source.matchAll(/["'`]([^"'`\n]{0,600})["'`]/g)) {
+    for (const m of source.matchAll(/["'`]([^"'`\n]{0,2000})["'`]/g)) {
       const cls = m[1]
       const hit =
         FONT_SIZE_RE.test(cls) || FONT_SIZE_ARBITRARY_RE.test(cls) || LEADING_RE.test(cls) || TRACKING_RE.test(cls)
