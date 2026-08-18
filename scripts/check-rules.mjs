@@ -357,6 +357,18 @@ const TYPE_UTILITIES_ALLOWED = [
     reason:
       "CommandGroup's heading is styled through a descendant selector ([&_[cmdk-group-heading]]:*), not on the element's own class string — 05c's variant-scoping rule treats descendant selectors as out of scope for role rewiring, since no role can reach through to a nested element it doesn't own. The alternative is giving the heading its own element (so its class string could carry a role directly), which is a structural change deferred to a later batch — not pursued in this commit.",
   },
+  {
+    file: "src/ui/field.tsx",
+    match: "gap-1.5 leading-snug",
+    reason:
+      "FieldContent — leading-snug on a size inherited from whatever element renders inside it (FieldTitle/FieldDescription set their own size); no role can express a leading override with no size of its own to attach it to.",
+  },
+  {
+    file: "src/ui/field.tsx",
+    match: "gap-2 leading-snug",
+    reason:
+      "FieldLabel — same as FieldContent above: leading-snug overrides the line-height of whatever size the composed Label/content ends up rendering at, which is not this element's own size to name a role for.",
+  },
 ]
 
 const FONT_SIZE_RE = /\btext-(?:xs|sm|base|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl|8xl|9xl)\b/
