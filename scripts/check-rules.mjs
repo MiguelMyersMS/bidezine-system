@@ -45,8 +45,18 @@ import { classLiterals, stripComments } from "./lib/lexical-scan.mjs"
 // variant scoping at all — so `file:text-sm` (an element-targeting variant, out of
 // scope per Issue 05c) was a violation here while Link A (check-type-slots.mjs) already
 // treated it as legal. Same literal, two answers. Both checks now share one answer —
-// see scripts/lib/variant-scope.mjs's own header.
-import { stripElementTargeting } from "./lib/variant-scope.mjs"
+// see scripts/lib/variant-scope.mjs's own header. Issue 07a: the scoping itself moved
+// into lib/type-utility.mjs (below) so R7 could reuse it; this file no longer calls
+// stripElementTargeting directly.
+// Issue 07a: the forbidden-utility regexes and the variant-scoped test used to live
+// only inline in R6 below. R7 needs the identical test — same regexes, same
+// stripElementTargeting scoping — so it moved here rather than being copied a second
+// time. See type-utility.mjs's own header.
+import { hasForbiddenTypeUtility } from "./lib/type-utility.mjs"
+// Issue 07a: R7 asks a different question than R6's whole-file scan can answer outside
+// src/ui/ — see componentClassLiterals's own header for why a caller-side scan needs to
+// first find which literals reach a component's className-shaped prop at all.
+import { componentClassLiterals } from "./lib/component-class-scope.mjs"
 
 
 const JSON_OUT = process.argv.includes("--json")
@@ -395,11 +405,6 @@ const TYPE_UTILITIES_ALLOWED = [
   },
 ]
 
-const FONT_SIZE_RE = /\btext-(?:xs|sm|base|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl|8xl|9xl)\b/
-const FONT_SIZE_ARBITRARY_RE = /\btext-\[(?:length:[^\]]+|[\d.]+(?:px|rem|em))\]/
-const LEADING_RE = /\bleading-(?:none|tight|snug|normal|relaxed|loose|\d+|\[[^\]]+\])\b/
-const TRACKING_RE = /\btracking-(?:tighter|tight|normal|wide|wider|widest|\[[^\]]+\])\b/
-
 function isAllowed(path, cls) {
   return TYPE_UTILITIES_ALLOWED.some((e) => e.file === path && cls.includes(e.match))
 }
@@ -434,10 +439,9 @@ async function ruleNoRawTypeUtility() {
       // element's scope regardless of what utility it carries, the same rule 05c
       // established for Link A. Reporting/allow-listing below still reads the ORIGINAL
       // `cls`, matching Link A's own scoped-for-detection/whole-literal-for-identity split.
-      const scoped = stripElementTargeting(cls)
-      const hit =
-        FONT_SIZE_RE.test(scoped) || FONT_SIZE_ARBITRARY_RE.test(scoped) || LEADING_RE.test(scoped) || TRACKING_RE.test(scoped)
-      if (!hit) continue
+      // Issue 07a: the scoping + regex test itself moved to lib/type-utility.mjs so R7
+      // could share it rather than copy it — see that module's header.
+      if (!hasForbiddenTypeUtility(cls)) continue
       if (isAllowed(path, cls)) {
         seenAllowed.add(`${path}::${cls}`)
         continue
@@ -451,6 +455,109 @@ async function ruleNoRawTypeUtility() {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════════
+// R7 — no caller override of a role-bearing component's type
+//
+// A different claim from R6's, not a wider version of it. R6 asks "does this
+// component's OWN class string carry a raw type utility" — a question that only makes
+// sense where every literal in the file genuinely IS a component's own class string,
+// which is true throughout src/ui/ and false everywhere else. Issue 07a tried widening
+// R6's directory list to site/src/ + sandbox/src/ and got 427 hits, almost all page
+// headings and code-sample chrome that never claimed a role — proof the claim itself
+// doesn't hold outside src/ui/, not evidence of a bigger version of the same problem.
+//
+// R7's claim is different and DOES hold everywhere a component is called from OUTSIDE
+// the system: a CALLER must not override the type of a component that already consumes
+// a role. That claim needs a narrower scan than R6's — not "every literal in this
+// file", but "every literal that actually reaches a capitalised JSX tag's className-
+// shaped prop" — see scripts/lib/component-class-scope.mjs's own header for how that's
+// found. The forbidden-utility test itself (size/leading/tracking, variant-scoped) is
+// identical to R6's and shared from scripts/lib/type-utility.mjs rather than copied.
+//
+// ── Scope: site/src/ only — not bare src/, not sandbox/src/ ──────────────────────────
+// R7 was first tried scoped to src/ + site/src/, matching R1-R4's SHIPPED list. Running
+// it that way surfaced three hits inside src/ui/ itself (bubble.tsx:77's asChild `Comp`,
+// calendar.tsx:211's internal `Button`, field.tsx:118's internal `Label`) — every one of
+// them a literal R6 had ALREADY adjudicated and allow-listed in TYPE_UTILITIES_ALLOWED
+// above. src/ui/ contains nothing but component internals: when Calendar composes its
+// own Button, or Field its own Label, that is not a caller from outside overriding a
+// role, it is the system's own composition, and R6 already owns that entire directory.
+// Scanning it again under R7 asks R6's question a second time through a second, empty
+// allow-list — exactly the "same literal, two answers" failure Issue 06h fixed by
+// giving R6 and Link A one shared stripElementTargeting rather than two. R7 therefore
+// walks site/src/ only; src/ (all of it, not just src/ui/) is out of its scope, and R6
+// remains the sole rule governing src/ui/.
+//
+// docs/PIVOT-2026-08-15.md is a further, standing instruction, not a per-issue one:
+// "The database and sandbox/ are left in place, read-only. Nothing new should be
+// written to either." Issue 07a's re-derived component-scoped scan found 28 caller
+// overrides; all but one (site/src/components/Layout.tsx:46) live under sandbox/src/ —
+// 27 real, unreachable-while-frozen instances. The honest way to record that is a
+// directory exclusion with the standing reason cited once here, not 27 allow-list
+// entries (an allow-list that long is the same "nobody got around to fixing it" outcome
+// this file's own header warns against, just spelled differently). sandbox/ is not
+// walked by this rule at all.
+//
+// ── Tags excluded because they do not ship a role of their own ──────────────────────
+// The component-scoped detector (component-class-scope.mjs) only knows "this is a
+// capitalised JSX tag with a className-shaped prop" — it cannot know whether that tag's
+// OWN recipe carries a text-role utility. Five tags matched during Issue 07a's manual
+// 40→28 count that were checked against their own src/ui/ source and found to carry NO
+// font-size role themselves (CardTitle/CardContent render a plain heading/div with no
+// text-* role; PopoverContent, ContextMenuTrigger and NavLink are structural/positioning
+// wrappers, not typography slots) — overriding their size is not overriding a role,
+// because there is no role there to override. Excluded by name below rather than
+// re-deriving "does this tag ship a role" from the SLOT_TABLE check-type-slots.mjs
+// already maintains, which is keyed to literal anchors inside src/ui/, not tag names as
+// consumed elsewhere.
+//
+// R7 starts blocking from its first commit — not added to NON_BLOCKING_RULES below. R6
+// spent two phases (Issue 06 through 06h) non-blocking before anyone noticed the gate
+// was red regardless; starting R7 the same way risks the identical failure mode for no
+// reason, since at introduction R7's count is 0 in-scope (the one editable instance,
+// Layout.tsx:46, is a design question left in place and reported — see the commit's own
+// report, not this file — because Button structurally cannot express the token this
+// element needs; that is not this rule relaxing, it is TYPE_UTILITIES_ALLOWED-style
+// allow-listing with its own cited reason, same mechanism R6 already uses).
+// ═══════════════════════════════════════════════════════════════════════════════════
+const NON_ROLE_BEARING_TAGS = new Set(["CardTitle", "CardContent", "PopoverContent", "ContextMenuTrigger", "NavLink"])
+
+const COMPONENT_TYPE_OVERRIDES_ALLOWED = [
+  {
+    file: "site/src/components/Layout.tsx",
+    match: "text-xs font-medium uppercase tracking-wide",
+    reason:
+      "Category-header Button (Collapsible trigger). Its recipe (12/16/500/+wide uppercase) matches type-eyebrow almost exactly, but type-eyebrow's own token description says \"site and documentation surfaces only... do not wire a component to it\" and Button's cva ships no size/variant that produces an eyebrow-style recipe — its base class always sets text-control. Adding one is a component-API decision, not a cleanup (Issue 07a's own \"what not to do\"); the honest fix may be that this element should not be a Button, which is a separate design decision for its own commit. Left in place and reported.",
+  },
+]
+
+function isComponentOverrideAllowed(path, cls) {
+  return COMPONENT_TYPE_OVERRIDES_ALLOWED.some((e) => e.file === path && cls.includes(e.match))
+}
+
+async function ruleNoCallerTypeOverride() {
+  const seenAllowed = new Set()
+  const files = await walk(join(REPO_ROOT, "site", "src"))
+  for (const file of files) {
+    const path = rel(file)
+    const source = stripComments(await readFile(file, "utf8"))
+    for (const { value: cls, tagName, viaVariable, index } of componentClassLiterals(source)) {
+      if (NON_ROLE_BEARING_TAGS.has(tagName)) continue
+      if (!hasForbiddenTypeUtility(cls)) continue
+      if (isComponentOverrideAllowed(path, cls)) {
+        seenAllowed.add(`${path}::${cls}`)
+        continue
+      }
+      const via = viaVariable ? ` (via ${viaVariable})` : ""
+      report("type.no-caller-override", path, lineOf(source, index), `<${tagName}>${via} "${cls.slice(0, 100)}"`)
+    }
+  }
+  for (const e of COMPONENT_TYPE_OVERRIDES_ALLOWED) {
+    const stillPresent = [...seenAllowed].some((k) => k.startsWith(`${e.file}::`) && k.includes(e.match))
+    if (!stillPresent) notes.push(`R7 allow-list entry ${e.file} (${e.match}) no longer matches anything — the entry can go`)
+  }
+}
+
 // ── run ─────────────────────────────────────────────────────────────────────────────
 const SHIPPED = [join(REPO_ROOT, "src"), join(REPO_ROOT, "site", "src"), join(REPO_ROOT, "sandbox", "src")]
 const files = (await Promise.all(SHIPPED.map((d) => walk(d)))).flat()
@@ -460,6 +567,7 @@ await ruleNoRawScroll()
 await ruleIconMarker(files)
 await ruleLeadingNoneTruncate(files)
 await ruleNoRawTypeUtility()
+await ruleNoCallerTypeOverride()
 
 if (JSON_OUT) {
   console.log(JSON.stringify({ violations, notes }, null, 2))
