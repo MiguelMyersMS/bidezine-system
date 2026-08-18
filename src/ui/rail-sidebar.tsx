@@ -839,17 +839,25 @@ function RailIconButton({
 // genuinely needs to stand out (an alert-level status, something explicitly requested), just not the
 // unexamined default for every new one.
 //
-// D-13 (Issue 06h): `text-[10px]` stays a raw arbitrary value, not a role. 10px sits below the
-// smallest step on the type scale (`text-caption` is 12px); minting a role for one consumer would
-// legitimise a value the system doesn't otherwise offer, and raising it to 12px would be a visual
-// change nobody asked for. Allow-listed in scripts/check-rules.mjs's TYPE_UTILITIES_ALLOWED
-// (match: "px-1.5 py-0 text-[10px]") rather than rewired, with this comment as the reason on record.
+// D-13 (Issue 06h, CORRECTED Issue 06i): originally decided to keep `text-[10px]` as a raw
+// arbitrary value on the grounds that 10px sits below the smallest step on the type scale and
+// minting a role for one consumer would legitimise a value the system doesn't otherwise offer.
+// That framing was wrong: `text-[10px]` was never a slot missing a role in the first place —
+// it sat on PanelBadge, a thin wrapper around the real Badge component, and Badge already
+// consumes a role here (`weight="regular"` ships `text-caption`, 12px). The override wasn't
+// filling a gap in the scale; it was a caller silently overriding a primitive's own role.
+// Checked sandbox/src/data/rail-sidebar.ts for a divergence row pinning the badge's font size —
+// none exists; L-6 (Badge neutral/info/dark-surface variants) covers only variant/tone/weight,
+// never font-size. Same shape as L-34's `leading-none`: a bidezine-introduced value with nothing
+// to preserve. FIXED by deleting the override rather than minting a 10px step for one consumer —
+// the badge now renders at Badge's own 12px `text-caption`, like every other Badge in the system.
+// No longer allow-listed in scripts/check-rules.mjs; the exception no longer exists.
 function PanelBadge({ label }: { label: string }) {
   return (
     <Badge
       variant="muted"
       weight="regular"
-      className="ml-2 shrink-0 px-1.5 py-0 text-[10px]"
+      className="ml-2 shrink-0 px-1.5 py-0"
     >
       {label}
     </Badge>

@@ -393,12 +393,6 @@ const TYPE_UTILITIES_ALLOWED = [
     reason:
       "CalendarDayButton — leading-none font-normal on a size inherited from the calendar root (via Button); no role can express a leading override on a size it doesn't own.",
   },
-  {
-    file: "src/ui/rail-sidebar.tsx",
-    match: "px-1.5 py-0 text-[10px]",
-    reason:
-      "PanelBadge — 10px is below the smallest step on the type scale (caption is 12px); minting a role for this one dense, frequently-repeated inline badge would legitimise a scale value the system does not otherwise have. See divergence row D-13 in rail-sidebar.tsx.",
-  },
 ]
 
 const FONT_SIZE_RE = /\btext-(?:xs|sm|base|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl|8xl|9xl)\b/
