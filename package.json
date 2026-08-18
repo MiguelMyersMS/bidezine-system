@@ -31,7 +31,8 @@
     "typecheck": "tsc --noEmit",
     "site:dev": "npm run build && npm --prefix site install && npm --prefix site run dev",
     "site:build": "npm run build && npm --prefix site install && npm --prefix site run build",
-    "check-shipped": "npm run build && node scripts/check-shipped-tokens.mjs"
+    "check-shipped": "npm run build && node scripts/check-shipped-tokens.mjs",
+    "check-type-slots": "npm run build && node scripts/check-type-slots.mjs"
   },
   "peerDependencies": {
     "react": "^19.0.0",

@@ -283,16 +283,10 @@ const TYPE_UTILITIES_ALLOWED = [
     reason: "Bubble content — deliberately loose (22.75px) chat prose; no role expresses text-sm leading-relaxed.",
   },
   {
-    file: "src/ui/dialog.tsx",
+    file: "src/ui/card.tsx",
     match: "leading-none font-semibold",
     reason:
-      "Dialog title — type-heading-sm carries letter-spacing:tight (-0.025em, from issue 04) but the shipped title has no tracking utility (normal/0em); rewiring would add real tracking, not preserve it. Reported in Issue 05, not forced.",
-  },
-  {
-    file: "src/ui/alert-dialog.tsx",
-    match: "text-lg font-semibold",
-    reason:
-      "AlertDialog title — same mismatch as Dialog title: type-heading-sm-loose carries letter-spacing:tight but the shipped title has none. Reported in Issue 05, not forced.",
+      "Card title — leading-none on a size inherited from the card; a role would have to set a size, which would change what the title renders at. Weight and leading override only.",
   },
 ]
 

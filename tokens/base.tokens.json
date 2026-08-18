@@ -77,24 +77,24 @@
   },
   "type-heading-sm": {
     "$type": "typography",
-    "$description": "Small heading — nested sections, sidebar group titles. Line height equals font size: it sits on a single tight line, not a flowing paragraph.",
+    "$description": "Small heading — nested sections, sidebar group titles. Line height equals font size: it sits on a single tight line, not a flowing paragraph. Tracking is normal because no src/ui title ships a tracking utility; the -0.025em on the unconsumed heading roles is the authored ideal, and collapsing the two is a deliberate change with its own commit.",
     "$value": {
       "fontFamily": "{font-sans}",
       "fontSize": "{font-size-18}",
       "lineHeight": { "value": 18, "unit": "px" },
       "fontWeight": "{font-weight-semibold}",
-      "letterSpacing": "{letter-spacing-tight}"
+      "letterSpacing": "{letter-spacing-normal}"
     }
   },
   "type-heading-sm-loose": {
     "$type": "typography",
-    "$description": "18px title on a normal line box — AlertDialog and Empty titles. type-heading-sm is the leading-none variant Dialog ships; these two are not the same value and are not being merged in this issue.",
+    "$description": "18px title on a normal line box — AlertDialog and Empty titles. type-heading-sm is the leading-none variant Dialog ships; these two are not the same value and are not being merged in this issue. Tracking is normal because no src/ui title ships a tracking utility; the -0.025em on the unconsumed heading roles is the authored ideal, and collapsing the two is a deliberate change with its own commit.",
     "$value": {
       "fontFamily": "{font-sans}",
       "fontSize": "{font-size-18}",
       "lineHeight": { "value": 28, "unit": "px" },
       "fontWeight": "{font-weight-semibold}",
-      "letterSpacing": "{letter-spacing-tight}"
+      "letterSpacing": "{letter-spacing-normal}"
     }
   },
   "type-body-lg": {
