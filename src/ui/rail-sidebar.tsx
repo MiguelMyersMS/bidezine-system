@@ -838,6 +838,12 @@ function RailIconButton({
 // different `variant` (e.g. `warning`/`info`) remains valid and available for a specific badge that
 // genuinely needs to stand out (an alert-level status, something explicitly requested), just not the
 // unexamined default for every new one.
+//
+// D-13 (Issue 06h): `text-[10px]` stays a raw arbitrary value, not a role. 10px sits below the
+// smallest step on the type scale (`text-caption` is 12px); minting a role for one consumer would
+// legitimise a value the system doesn't otherwise offer, and raising it to 12px would be a visual
+// change nobody asked for. Allow-listed in scripts/check-rules.mjs's TYPE_UTILITIES_ALLOWED
+// (match: "px-1.5 py-0 text-[10px]") rather than rewired, with this comment as the reason on record.
 function PanelBadge({ label }: { label: string }) {
   return (
     <Badge
@@ -924,7 +930,7 @@ function PanelTree({
                 // padding is identical to every other row, not just visually equivalent.
                 // DEPLOYMENT NOTE (see divergence rows F-5/F-6, log entry L-43): `h-8` (32px), not
                 // `h-9` (36px) — see the group-toggle row's own comment below for the full rationale.
-                className="flex h-8 items-center gap-1.5 rounded-md px-2 py-2 text-sm"
+                className="flex h-8 items-center gap-1.5 rounded-md px-2 py-2 text-body"
                 style={{ color: "var(--muted-foreground)", opacity: 0.5 }}
               >
                 <Icon className="size-4 shrink-0" />
@@ -953,7 +959,7 @@ function PanelTree({
               // `pathEmphasis(isSelected)` call — see checklist item 20 for why this must stay a
               // single shared mechanism rather than two independently-maintained conditionals.
               className={cn(
-                "h-8 w-full justify-start gap-1.5 rounded-md px-2 has-[>svg]:px-2 text-left text-sm hover:bg-accent",
+                "h-8 w-full justify-start gap-1.5 rounded-md px-2 has-[>svg]:px-2 text-left text-body hover:bg-accent",
                 emphasis.className
               )}
               style={{
@@ -1061,7 +1067,7 @@ function PanelTree({
                 // gap as the leaf Button above — repeating the override as a has-[>svg]: variant
                 // makes it actually win over Button's own default-size base recipe.
                 className={cn(
-                  "h-8 w-full justify-start gap-1.5 rounded-md px-2 has-[>svg]:px-2 text-left text-sm hover:bg-accent",
+                  "h-8 w-full justify-start gap-1.5 rounded-md px-2 has-[>svg]:px-2 text-left text-body hover:bg-accent",
                   emphasis.className
                 )}
                 style={{ color: "var(--foreground)" }}
@@ -2090,11 +2096,14 @@ export function FunctionalRailSidebar({
                         screenshot): the panel title is single-line, truncated with an ellipsis
                         (`whiteSpace: nowrap; textOverflow: ellipsis`) — `truncate` here is the exact
                         Tailwind equivalent. See divergence row D-11. */}
-                    {/* D-3 (panel/card title, text-base font-medium) and D-11's title half, which
+                    {/* D-3 (panel/card title, 16px/24px/500 — expressed via text-body-lg font-medium
+                        since Issue 06h; text-body-lg is 16/24/400, so the role supplies size/
+                        line-height and a bare font-medium overrides weight, same as R6's own rule
+                        for a weight-only override on a role's size) and D-11's title half, which
                         requires single-line truncation. One element, two rows — anchors name
                         elements, not divergences. */}
                     <span
-                      className="truncate text-base font-medium"
+                      className="truncate text-body-lg font-medium"
                       {...anchor("panel-title")}
                     >
                       {displaySection.label}
@@ -2186,7 +2195,7 @@ export function FunctionalRailSidebar({
                     this to 3 lines (not unbounded) so a very long subtitle can't make the fixed-
                     width panel header grow arbitrarily tall; `line-clamp-3` wraps up to 3 lines then
                     truncates the 3rd with an ellipsis. See divergence row D-11. */}
-                <p className="line-clamp-3 pl-[22px] text-xs text-muted-foreground" {...anchor("panel-subtitle")}>
+                <p className="line-clamp-3 pl-[22px] text-caption text-muted-foreground" {...anchor("panel-subtitle")}>
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit.
                 </p>
               </div>
@@ -2209,12 +2218,23 @@ export function FunctionalRailSidebar({
                       SearchInput primitive itself, so this sandbox reuses the SAME clear-button
                       behavior already validated for CommandInput/SearchInput rather than carrying
                       a locally-composed search row with no clear affordance. */}
+                  {/* Issue 06h, D-13 follow-up: `inputClassName` reaches SearchInput's inner
+                      InputGroupInput → Input, which ships its own responsive `text-body-lg
+                      md:text-body` (16px below the md breakpoint, 14px at/above it — sized up on
+                      narrow viewports to avoid the iOS auto-zoom-on-focus behavior a sub-16px input
+                      triggers). This search row deliberately overrides that: a dense rail panel has
+                      no room for a 16px row on narrow viewports, so `text-body` is forced at every
+                      breakpoint, same as the raw `text-sm` it replaces was already doing (Tailwind's
+                      `text-sm` is 14px/20px/400 — byte-for-byte what the `body` role compiles to).
+                      A real, live override (confirmed: without it the row visibly grows below md),
+                      not redundant with Input's own default, so it became a role rather than being
+                      deleted. */}
                   <SearchInput
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search"
-                    className="h-8 text-sm"
-                    inputClassName="text-sm"
+                    className="h-8 text-body"
+                    inputClassName="text-body"
                   />
                 </div>
               )}
@@ -2368,7 +2388,7 @@ export function FunctionalRailSidebar({
                       colors={colors}
                     />
                     {query.trim() && filteredNodes.length === 0 && (
-                      <p className="px-2 py-3 text-xs text-muted-foreground">No matches for “{query}”.</p>
+                      <p className="px-2 py-3 text-caption text-muted-foreground">No matches for “{query}”.</p>
                     )}
                   </PanelTreeScrollGutter>
                 </ScrollArea>

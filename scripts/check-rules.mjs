@@ -28,7 +28,9 @@ import { join, relative } from "node:path"
 import { REPO_ROOT } from "../verifier/lib/db.mjs"
 // Neutral parsing helper, not another gate — see scripts/lib/lexical-scan.mjs's own
 // header for why importing it here does not reopen the self-contained-gate question
-// R6 raised: R6 stays non-blocking regardless of where its literal/comment scan lives.
+// R6 raised when it was non-blocking. As of Issue 06h R6 is blocking, which removes
+// that question entirely rather than reopening it: the module has no opinion on which
+// of its importers gates the build, blocking or not.
 //
 // Issue 06d: classLiterals and stripComments both used to be independent — this file
 // defined its own stripComments (a bare `//`/`/* */` regex, no string awareness), and
@@ -39,6 +41,13 @@ import { REPO_ROOT } from "../verifier/lib/db.mjs"
 // the two apart. lexical-scan.mjs is that one scan; classLiterals and stripComments
 // below are both thin views over it, and neither keeps a private copy of either's logic.
 import { classLiterals, stripComments } from "./lib/lexical-scan.mjs"
+// Issue 06h: R6's own raw-utility scan used to test the class string directly, with no
+// variant scoping at all — so `file:text-sm` (an element-targeting variant, out of
+// scope per Issue 05c) was a violation here while Link A (check-type-slots.mjs) already
+// treated it as legal. Same literal, two answers. Both checks now share one answer —
+// see scripts/lib/variant-scope.mjs's own header.
+import { stripElementTargeting } from "./lib/variant-scope.mjs"
+
 
 const JSON_OUT = process.argv.includes("--json")
 const violations = []
@@ -326,13 +335,16 @@ async function ruleLeadingNoneTruncate(files) {
 // R1-R4 share (site/ and sandbox/ were never part of Issue 05's rewire and are not gated
 // here).
 //
-// This rule is deliberately NOT wired into a blocking `npm run *` script. The rewire table
-// in Issue 05 explicitly leaves ~90 raw-utility lines across ~25 files untouched by design
-// (every one is a real, working component slot the issue never asked to change) — wiring
-// this gate into `npm run tokens`/`build`/`check-shipped` would fail those builds on
-// pre-existing, intentionally-unrewired code the very same day this rule is introduced.
-// Run it explicitly (`node scripts/check-rules.mjs`) and read its R6 output; do not infer
-// that a clean `npm run build` means R6 passed, because R6 is not part of that chain.
+// Issue 06h: this rule blocks. It used to say it was deliberately NOT wired into a
+// blocking `npm run *` script, because Issue 05's rewire table left ~90 raw-utility
+// lines across ~25 files untouched by design and wiring this gate into the build would
+// have failed on that intentionally-unrewired code the same day the rule was
+// introduced. That reason is spent: every rewireable slot in src/ui/ has since been
+// rewired across Issues 05 and 06a-06h, this rule is wired into the same npm chain
+// check-type-slots is (see package.json), and it is no longer in NON_BLOCKING_RULES
+// below. A raw type utility in src/ui/ now fails the chain; the only way past it is an
+// entry in TYPE_UTILITIES_ALLOWED with a stated reason, same as any other exception in
+// this file.
 // ═══════════════════════════════════════════════════════════════════════════════════
 const TYPE_UTILITIES_ALLOWED = [
   {
@@ -350,12 +362,6 @@ const TYPE_UTILITIES_ALLOWED = [
     match: "leading-none font-semibold",
     reason:
       "Card title — leading-none on a size inherited from the card; a role would have to set a size, which would change what the title renders at. Weight and leading override only.",
-  },
-  {
-    file: "src/ui/command.tsx",
-    match: "[&_[cmdk-group-heading]]:text-xs",
-    reason:
-      "CommandGroup's heading is styled through a descendant selector ([&_[cmdk-group-heading]]:*), not on the element's own class string — 05c's variant-scoping rule treats descendant selectors as out of scope for role rewiring, since no role can reach through to a nested element it doesn't own. The alternative is giving the heading its own element (so its class string could carry a role directly), which is a structural change deferred to a later batch — not pursued in this commit.",
   },
   {
     file: "src/ui/field.tsx",
@@ -386,6 +392,12 @@ const TYPE_UTILITIES_ALLOWED = [
     match: "leading-none font-normal",
     reason:
       "CalendarDayButton — leading-none font-normal on a size inherited from the calendar root (via Button); no role can express a leading override on a size it doesn't own.",
+  },
+  {
+    file: "src/ui/rail-sidebar.tsx",
+    match: "px-1.5 py-0 text-[10px]",
+    reason:
+      "PanelBadge — 10px is below the smallest step on the type scale (caption is 12px); minting a role for this one dense, frequently-repeated inline badge would legitimise a scale value the system does not otherwise have. See divergence row D-13 in rail-sidebar.tsx.",
   },
 ]
 
@@ -422,8 +434,15 @@ async function ruleNoRawTypeUtility() {
         report("type.no-raw-utility", path, lineOf(source, index), `literal exceeds ${cls.length}+ chars — truncated before scanning, not fully checked`)
         continue
       }
+      // Issue 06h: scoped through the same stripElementTargeting Link A uses, before
+      // testing for a forbidden utility — a variant that targets a different element
+      // (file:, placeholder:, a [&_...]/[&>...] descendant selector) is out of THIS
+      // element's scope regardless of what utility it carries, the same rule 05c
+      // established for Link A. Reporting/allow-listing below still reads the ORIGINAL
+      // `cls`, matching Link A's own scoped-for-detection/whole-literal-for-identity split.
+      const scoped = stripElementTargeting(cls)
       const hit =
-        FONT_SIZE_RE.test(cls) || FONT_SIZE_ARBITRARY_RE.test(cls) || LEADING_RE.test(cls) || TRACKING_RE.test(cls)
+        FONT_SIZE_RE.test(scoped) || FONT_SIZE_ARBITRARY_RE.test(scoped) || LEADING_RE.test(scoped) || TRACKING_RE.test(scoped)
       if (!hit) continue
       if (isAllowed(path, cls)) {
         seenAllowed.add(`${path}::${cls}`)
@@ -463,16 +482,22 @@ if (JSON_OUT) {
   console.log("\n  R5 (origin quarantine) is owned by scripts/check-quarantine.mjs and not duplicated here.")
 }
 
-// Issue 06d: R6's own header (above, "no raw Tailwind type utility") already declares
+// Issue 06d: R6's own header (above, "no raw Tailwind type utility") used to declare
 // it "deliberately NOT wired into a blocking `npm run *` script" — that comment
-// describes intent this file's exit code never actually honored. `violations.length`
-// summed every rule together, so `node scripts/check-rules.mjs` run directly (exactly
-// how R6's header says to read its output) has exited 1 off R6's own findings since
-// before this issue, independent of whatever R4 or any other rule reports. That
-// mismatch, not R4's regression, is why the gate could not reach green by fixing R4
-// alone. Fixed here by aggregating exit status from the rules that are actually
-// blocking; R6's violations still print in full above, they just stop being read as a
-// gate failure — which is what "non-blocking" already meant.
-const NON_BLOCKING_RULES = new Set(["type.no-raw-utility"]) // R6 — see its header
+// described intent this file's exit code never actually honored at the time.
+// `violations.length` summed every rule together, so `node scripts/check-rules.mjs`
+// run directly (exactly how R6's header said to read its output) exited 1 off R6's own
+// findings, independent of whatever R4 or any other rule reported. That mismatch, not
+// R4's regression, was why the gate could not reach green by fixing R4 alone. Fixed
+// then by aggregating exit status from the rules that were actually blocking.
+//
+// Issue 06h: R6 itself is now blocking — NON_BLOCKING_RULES is empty. Every rewireable
+// slot in src/ui/ has been rewired (Issue 05, 06a-06h); a raw type utility is now a real
+// exit-1 failure, same as R1-R4, unless it carries a TYPE_UTILITIES_ALLOWED entry with
+// a stated reason. The Set (and the filter below) stay in place rather than being
+// deleted outright: a future rule that genuinely needs a grace period has one mechanism
+// to opt into, already proven not to hide a false-green exit code the way R6's own
+// header once did.
+const NON_BLOCKING_RULES = new Set()
 const blockingViolations = violations.filter((v) => !NON_BLOCKING_RULES.has(v.rule))
 if (blockingViolations.length) process.exitCode = 1

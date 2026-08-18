@@ -35,9 +35,10 @@ import { join } from "node:path"
 import { REPO_ROOT } from "../verifier/lib/db.mjs"
 // Neutral parsing helper, not another gate — see scripts/lib/lexical-scan.mjs's own
 // header. This is scripts/lib/dependencies.mjs's precedent (scan-dependencies.mjs
-// already imports it), not the R6-importing-into-a-blocking-script problem the
-// comment below used to guard against: R6 lives in check-rules.mjs and stays
-// non-blocking regardless of where the two gates' shared literal/comment scan lives.
+// already imports it): a shared scan/scope module has no opinion on which of its
+// importers is blocking. As of Issue 06h both this file and R6 (check-rules.mjs) are
+// wired into the blocking npm chain; sharing lexical-scan.mjs and variant-scope.mjs
+// between them is what keeps their two answers from drifting apart again.
 //
 // Issue 06d: classLiterals and stripComments used to be answered independently — this
 // file's own private stripComments (a bare `//`/`/* */` regex) and class-literals.mjs's
@@ -54,15 +55,18 @@ const SHIPPED_CSS = join(REPO_ROOT, "dist", "system.css")
 const lineOf = (source, index) => source.slice(0, index).split("\n").length
 
 // Issue 06c: this used to duplicate scripts/check-rules.mjs's R6 capture regex rather
-// than import it, on self-contained-gate grounds — R6 is explicitly non-blocking, and
-// a blocking script's exit code must never depend on a module that says it must stay
-// that way. That reasoning does not extend to scripts/lib/lexical-scan.mjs (see its
-// header and the import comment above): it is neutral parsing code, not R6 itself, and
-// this file and check-rules.mjs each import it independently without either depending
-// on the other. The duplicated regex is retired — it closed a double-quoted literal on
-// the FIRST embedded quote of ANY kind, silently truncating every menu-item class
-// string in src/ui/ at its `[class*='size-']` apostrophe (Issue 06c's finding); the
-// shared matcher closes only on the SAME quote character it opened with.
+// than import it, on self-contained-gate grounds — at the time, R6 was explicitly
+// non-blocking, and a blocking script's exit code was not to depend on a module that
+// said it must stay that way. As of Issue 06h R6 is blocking too, which removes that
+// specific objection, but these four regexes remain independently defined below rather
+// than newly shared — unlike scripts/lib/lexical-scan.mjs and scripts/lib/
+// variant-scope.mjs (both genuinely neutral parsing/scoping code with no rule-specific
+// content), FONT_SIZE_RE and friends ARE the rule's own definition of "forbidden," and
+// this file and check-rules.mjs each keep their own copy so that either can be read on
+// its own without cross-referencing the other for what it forbids. The duplicated
+// CAPTURE regex (a different thing — the one that used to close a double-quoted
+// literal on the FIRST embedded quote of ANY kind) is retired; the shared matcher in
+// lexical-scan.mjs closes only on the SAME quote character it opened with.
 const FONT_SIZE_RE = /\btext-(?:xs|sm|base|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl|8xl|9xl)\b/
 const FONT_SIZE_ARBITRARY_RE = /\btext-\[(?:length:[^\]]+|[\d.]+(?:px|rem|em))\]/
 const LEADING_RE = /\bleading-(?:none|tight|snug|normal|relaxed|loose|\d+|\[[^\]]+\])\b/
@@ -148,10 +152,15 @@ const SLOT_TABLE = [
   { file: "src/ui/avatar.tsx", slot: "AvatarGroupCount", role: "body", anchor: "text-body text-muted-foreground ring-2 ring-background group-has-data-[size=lg]/avatar-group:size-10" },
   { file: "src/ui/calendar.tsx", slot: "Calendar caption_label (label layout)", role: "body", anchor: "text-body", exact: true, note: "Issue 06g: bare ternary branch (captionLayout===\"label\" ? \"text-body\" : ...) is a strict substring of the nav-layout branch's longer literal — exact: true isolates it, same technique as 06f." },
   { file: "src/ui/calendar.tsx", slot: "Calendar caption_label (nav layout)", role: "body", anchor: "pr-1 pl-2 text-body [&>svg]:size-3.5" },
+  { file: "src/ui/rail-sidebar.tsx", slot: "Disabled leaf row", role: "body", anchor: "items-center gap-1.5 rounded-md px-2 py-2 text-body", note: "Issue 06h — see the QA finding at this element's site (divergence row L-13) for why py-2 was added; unrelated to this rewire." },
+  { file: "src/ui/rail-sidebar.tsx", slot: "Leaf/group row (Button-recipe parity)", role: "body", anchor: "justify-start gap-1.5 rounded-md px-2 has-[>svg]:px-2 text-left text-body hover:bg-accent", literals: 2, note: "Issue 06h: the leaf row and the group-toggle row above it (see the QA finding at 977-1014) carry a byte-identical recipe on purpose — one entry, two consumers, same convention as context-menu.tsx's CheckboxItem/RadioItem." },
+  { file: "src/ui/rail-sidebar.tsx", slot: "Panel search input (outer)", role: "body", anchor: "h-8 text-body" },
+  { file: "src/ui/rail-sidebar.tsx", slot: "Panel search input (inputClassName)", role: "body", anchor: "text-body", exact: true, note: "Issue 06h decision 2: inputClassName is a prop reaching SearchInput's inner Input, not this element's own className — see the comment at this call site for why it deliberately overrides Input's own responsive text-body-lg md:text-body rather than being redundant or deleted. Bare literal, a strict substring of every other text-body literal in this file; exact: true isolates it, same technique as 06f." },
 
   { file: "src/ui/input.tsx", slot: "Input (base breakpoint)", role: "body-lg", anchor: "px-3 py-1 text-body-lg" },
   { file: "src/ui/field.tsx", slot: "FieldLegend (variant=legend)", role: "body-lg", anchor: "data-[variant=legend]:text-body-lg" },
   { file: "src/ui/textarea.tsx", slot: "Textarea (base breakpoint)", role: "body-lg", anchor: "px-3 py-2 text-body-lg" },
+  { file: "src/ui/rail-sidebar.tsx", slot: "Panel title", role: "body-lg", anchor: "text-body-lg font-medium", note: "Issue 06h decision 1: 16px at weight 500 — no role is 16/24/500 (text-body-lg is weight 400), so this is the role plus a bare font-medium weight override, same pattern as empty.tsx's EmptyTitle." },
 
   { file: "src/ui/tooltip.tsx", slot: "TooltipContent", role: "caption", anchor: "bg-foreground px-3 py-1.5 text-caption" },
   { file: "src/ui/select.tsx", slot: "SelectLabel", role: "caption", anchor: "px-2 py-1.5 text-caption" },
@@ -167,6 +176,8 @@ const SLOT_TABLE = [
   { file: "src/ui/avatar.tsx", slot: "AvatarFallback (group-data-[size=sm] conditional)", role: "caption", anchor: "group-data-[size=sm]/avatar:text-caption", note: "Issue 06g decision 2: the condition-only group-data-[size=sm]/avatar:text-xs variant on the same literal as the body-role base is in scope and becomes its own verified role, not just a note — unlike the combobox precedent, which documents the conditional in a note without a second Link A/B entry." },
   { file: "src/ui/chart.tsx", slot: "ChartContainer", role: "caption", anchor: "aspect-video justify-center text-caption" },
   { file: "src/ui/chart.tsx", slot: "ChartTooltipContent", role: "caption", anchor: "px-2.5 py-1.5 text-caption shadow-xl" },
+  { file: "src/ui/rail-sidebar.tsx", slot: "Panel subtitle", role: "caption", anchor: "line-clamp-3 pl-[22px] text-caption text-muted-foreground" },
+  { file: "src/ui/rail-sidebar.tsx", slot: "Panel search empty state", role: "caption", anchor: "px-2 py-3 text-caption text-muted-foreground" },
 
   { file: "src/ui/kbd.tsx", slot: "Kbd", role: "control-sm", anchor: "bg-muted px-1 text-control-sm" },
   { file: "src/ui/sidebar.tsx", slot: "SidebarGroupLabel", role: "control-sm", anchor: "px-2 text-control-sm text-sidebar-foreground/70" },
@@ -224,66 +235,13 @@ function roleRegex(role) {
 }
 
 // ── Element-targeting vs condition-only variants ───────────────────────────────────
-// A slot check asks whether THIS element carries a raw type utility. A variant that
-// changes what gets styled — a pseudo-element or a descendant — takes the declaration
-// out of this element's scope entirely, so it is not this question's concern regardless
-// of what utility it carries. A variant that only changes the CONDITION under which
-// this same element is styled (a breakpoint, a state, a theme) leaves the element being
-// styled unchanged, so it stays in scope — `md:text-sm` on the slot itself is still the
-// slot at a different breakpoint, and must still be a role.
-//
-// Named element-targeting variants: pseudo-elements Tailwind ships variants for.
-const ELEMENT_TARGETING_NAMED = new Set([
-  "file",
-  "placeholder",
-  "before",
-  "after",
-  "marker",
-  "selection",
-  "first-line",
-  "first-letter",
-  "backdrop",
-])
-// Arbitrary descendant/child selectors: "[&_svg]" (space, encoded "_") or "[&>span]"
-// (direct child, ">") both select something other than the element the base utility
-// class lives on.
-const ELEMENT_TARGETING_ARBITRARY_RE = /^\[&[_>]/
-
-/** Splits a Tailwind utility token on ':' into its variant chain plus trailing utility,
- * ignoring colons that appear inside `[...]` (an arbitrary value like `text-[length:1rem]`
- * has a colon that is not a variant separator). Returns { variants, utility }. */
-function splitVariantChain(token) {
-  const parts = []
-  let depth = 0
-  let current = ""
-  for (const ch of token) {
-    if (ch === "[") depth++
-    if (ch === "]") depth--
-    if (ch === ":" && depth === 0) {
-      parts.push(current)
-      current = ""
-    } else {
-      current += ch
-    }
-  }
-  parts.push(current)
-  return { variants: parts.slice(0, -1), utility: parts[parts.length - 1] }
-}
-
-function isElementTargetingToken(token) {
-  const { variants } = splitVariantChain(token)
-  return variants.some((v) => ELEMENT_TARGETING_NAMED.has(v) || ELEMENT_TARGETING_ARBITRARY_RE.test(v))
-}
-
-/** Removes every whitespace-delimited utility token whose variant chain contains an
- * element-targeting variant, leaving condition-only-variant and bare tokens (including
- * the slot's own role utility) in place for the forbidden-utility scan. */
-function stripElementTargeting(cls) {
-  return cls
-    .split(/\s+/)
-    .filter((token) => token.length > 0 && !isElementTargetingToken(token))
-    .join(" ")
-}
+// Issue 06h: this used to be defined here only. R6 (scripts/check-rules.mjs) tested raw
+// class strings with no variant-scoping at all, so the same literal (input.tsx's
+// `file:text-sm`) was legal to this check and a violation to that one. Both checks now
+// import one shared answer from scripts/lib/variant-scope.mjs — see its header for the
+// element-targeting-vs-condition-only distinction itself; this file no longer keeps a
+// private copy.
+import { stripElementTargeting } from "./lib/variant-scope.mjs"
 
 async function checkLinkA(entry) {
   const abs = join(REPO_ROOT, entry.file)
