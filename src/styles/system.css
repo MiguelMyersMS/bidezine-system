@@ -178,6 +178,21 @@
   --text-shortcut--line-height: var(--type-shortcut-line-height);
   --text-shortcut--font-weight: var(--type-shortcut-font-weight);
   --text-shortcut--letter-spacing: var(--type-shortcut-letter-spacing);
+
+  /*
+   * Issue 07b — the line-height axis. Unlike a type role, each of these is a
+   * single Tailwind leading-* utility mapped straight from one unitless
+   * token; there is no font-size/weight/tracking to carry alongside it, and
+   * no separate "-line-height" suffix is needed because leading-* utilities
+   * are one CSS property. Same radius-sm precedent: the token is already
+   * named for its own namespace, so the mapping is a direct self-reference.
+   * See tokens/base.tokens.json's top $description for why this axis is
+   * authored unitless while type-* roles stay pinned to px.
+   */
+  --leading-flush: var(--leading-flush);
+  --leading-grouped: var(--leading-grouped);
+  --leading-clustered: var(--leading-clustered);
+  --leading-prose: var(--leading-prose);
 }
 
 /*

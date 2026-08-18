@@ -1,5 +1,5 @@
 {
-  "$description": "Mode-independent tokens, mirroring shadcn/ui's own theme. DTCG 2025.10. Source of truth — emits src/styles/tokens.css + src/tokens.ts via `npm run tokens`. Never hand-write a CSS variable.\n\nOnly what shadcn defines lives here. Inter is the system sans face; named type roles remain Tailwind utility mappings until the typography lab promotes them to authored tokens. Spacing, opacity, breakpoints and shadows are Tailwind defaults and need no token until something actually demands one. A type role consumed by a ported component holds shadcn's shipped value; a role nothing consumes yet holds the authored ideal. Changing a consumed value is a deliberate act that gets its own commit and its own screenshot diff — never a drive-by edit.",
+  "$description": "Mode-independent tokens, mirroring shadcn/ui's own theme. DTCG 2025.10. Source of truth — emits src/styles/tokens.css + src/tokens.ts via `npm run tokens`. Never hand-write a CSS variable.\n\nOnly what shadcn defines lives here. Inter is the system sans face; named type roles remain Tailwind utility mappings until the typography lab promotes them to authored tokens. Spacing, opacity, breakpoints and shadows are Tailwind defaults and need no token until something actually demands one. A type role consumed by a ported component holds shadcn's shipped value; a role nothing consumes yet holds the authored ideal. Changing a consumed value is a deliberate act that gets its own commit and its own screenshot diff — never a drive-by edit.\n\nEvery `lineHeight` inside a `type-*` typography composite is authored in px, never as a unitless ratio: a ratio has to be multiplied by a font size, and tooling reading the token has none in hand — the composite's own fontSize sub-property is a sibling value, not something a lineHeight entry can reach across and multiply. That rule governs roles, full stop, because a role is defined by setting its own font size.\n\nIssue 07b (line-height axis): the `leading-*` tokens below are the stated exception, not a repeal. They exist for elements that override line-height on a font size inherited from a parent — every one of src/ui's type roles sets a size, so none can express an override on a size it doesn't own. For exactly this case no font size is known at authoring time, so a unitless ratio is not a workaround, it is the only form the value can take at all. Each is named for the job it does (the same convention the type-* roles use), never for a position on a ladder, and is mapped straight into Tailwind's --leading-* namespace in src/styles/system.css — one utility, one token, the same shape --text-* gives the roles. A leading-* token with no consumer in src/ui is not added speculatively; see each token's own $description for its consumer(s).",
 
   "radius": {
     "$type": "dimension",
@@ -41,6 +41,27 @@
   "letter-spacing-normal": { "$type": "dimension", "$value": { "value": 0, "unit": "em" } },
   "letter-spacing-wider": { "$type": "dimension", "$value": { "value": 0.025, "unit": "em" } },
   "letter-spacing-widest": { "$type": "dimension", "$value": { "value": 0.1, "unit": "em" } },
+
+  "leading-flush": {
+    "$type": "number",
+    "$description": "1 — text sits flush against its box, no line-height slack. Consumers: card.tsx CardTitle, chart.tsx ChartTooltipContent row, calendar.tsx CalendarDayButton — a compact title, an inline tooltip row and a single-digit day cell, all on a size inherited from a parent.",
+    "$value": 1
+  },
+  "leading-grouped": {
+    "$type": "number",
+    "$description": "1.25 — snugs a short multi-line block so its lines read as one visual group. Consumer: attachment.tsx AttachmentContent, which stacks AttachmentTitle and AttachmentDescription on an inherited size.",
+    "$value": 1.25
+  },
+  "leading-clustered": {
+    "$type": "number",
+    "$description": "1.375 — keeps a field's own wrapped label or content lines clustered together, tighter than prose but not flush. Consumers: field.tsx FieldContent and FieldLabel, both on a size inherited from whatever renders inside them.",
+    "$value": 1.375
+  },
+  "leading-prose": {
+    "$type": "number",
+    "$description": "1.625 — comfortable reading rhythm for loose multi-line prose. Consumers: empty.tsx EmptyDescription and bubble.tsx BubbleContent, both paired with the text-body role rather than an inherited size — see each component for the role-plus-leading-override shape.",
+    "$value": 1.625
+  },
 
   "type-display": {
     "$type": "typography",

@@ -356,54 +356,12 @@ async function ruleLeadingNoneTruncate(files) {
 // entry in TYPE_UTILITIES_ALLOWED with a stated reason, same as any other exception in
 // this file.
 // ═══════════════════════════════════════════════════════════════════════════════════
-const TYPE_UTILITIES_ALLOWED = [
-  {
-    file: "src/ui/empty.tsx",
-    match: "text-sm/relaxed",
-    reason: "Empty description — deliberately loose (22.75px) zero-state prose; no role expresses text-sm/relaxed.",
-  },
-  {
-    file: "src/ui/bubble.tsx",
-    match: "leading-relaxed",
-    reason: "Bubble content — deliberately loose (22.75px) chat prose; no role expresses text-sm leading-relaxed.",
-  },
-  {
-    file: "src/ui/card.tsx",
-    match: "leading-none font-semibold",
-    reason:
-      "Card title — leading-none on a size inherited from the card; a role would have to set a size, which would change what the title renders at. Weight and leading override only.",
-  },
-  {
-    file: "src/ui/field.tsx",
-    match: "gap-1.5 leading-snug",
-    reason:
-      "FieldContent — leading-snug on a size inherited from whatever element renders inside it (FieldTitle/FieldDescription set their own size); no role can express a leading override with no size of its own to attach it to.",
-  },
-  {
-    file: "src/ui/field.tsx",
-    match: "gap-2 leading-snug",
-    reason:
-      "FieldLabel — same as FieldContent above: leading-snug overrides the line-height of whatever size the composed Label/content ends up rendering at, which is not this element's own size to name a role for.",
-  },
-  {
-    file: "src/ui/attachment.tsx",
-    match: "flex-1 leading-tight",
-    reason:
-      "AttachmentContent — leading-tight on a size inherited from the attachment root; no role can express a leading override on a size it doesn't own. Same pattern as card.tsx's title above.",
-  },
-  {
-    file: "src/ui/chart.tsx",
-    match: "justify-between leading-none",
-    reason:
-      "ChartTooltipContent row — leading-none on a size inherited from the tooltip container; no role can express a leading override on a size it doesn't own.",
-  },
-  {
-    file: "src/ui/calendar.tsx",
-    match: "leading-none font-normal",
-    reason:
-      "CalendarDayButton — leading-none font-normal on a size inherited from the calendar root (via Button); no role can express a leading override on a size it doesn't own.",
-  },
-]
+// Issue 07b: the eight entries this list used to carry for a raw leading-* utility on a
+// parent-inherited size (card.tsx, attachment.tsx, field.tsx x2, chart.tsx, calendar.tsx,
+// empty.tsx, bubble.tsx) are retired — each now consumes a named leading-<job> token from
+// the new line-height axis (tokens/base.tokens.json), which LEADING_RE does not match, so
+// none of the eight trips hasForbiddenTypeUtility any more and none needs an exception here.
+const TYPE_UTILITIES_ALLOWED = []
 
 function isAllowed(path, cls) {
   return TYPE_UTILITIES_ALLOWED.some((e) => e.file === path && cls.includes(e.match))

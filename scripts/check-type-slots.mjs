@@ -484,6 +484,119 @@ function checkLinkB(css, role) {
   }
 }
 
+// ── the leading-axis slot table (Issue 07b) ────────────────────────────────────────
+// SLOT_TABLE/EXPECTED/checkLinkA/checkLinkB above prove a ROLE: one utility that sets
+// four properties, traced through the four-property EXPECTED table. The leading-*
+// axis (tokens/base.tokens.json) is not that — each token sets exactly one CSS
+// property (line-height) for an element whose size is inherited, so a role can't name
+// it (every role sets its own size). Extending EXPECTED with three blank properties
+// per entry would weaken Link B's four-property assertion for every role sharing this
+// file, which the issue that added this axis explicitly ruled out. This is the
+// smaller change instead: a second, one-property table with its own two links, same
+// shape as Link A/Link B, never touching SLOT_TABLE, EXPECTED, checkLinkA or
+// checkLinkB.
+//
+// Six of the eight slots below carry ONLY a leading-* token — no role, because the
+// element's size still comes from its parent and was never claimed by a role.
+// EmptyDescription and BubbleContent are the two that pair a role (`role: "body"`)
+// with a leading-* override, the same role-plus-override shape rail-sidebar's Panel
+// title already uses for a weight override (SLOT_TABLE's own comment on Link A notes
+// font-weight isn't even in the forbidden-utility list for that reason). Where `role`
+// is set, Link A2 requires BOTH the role utility and the leading-* utility in the same
+// literal; text-body's own four properties are already proven by SLOT_TABLE/EXPECTED
+// (see the "body" role entries above) — Link A2/B2 exist to prove the ONE property
+// this axis owns, not to re-prove the role.
+const LEADING_EXPECTED = {
+  flush: "1",
+  grouped: "1.25",
+  clustered: "1.375",
+  prose: "1.625",
+}
+
+const LEADING_SLOT_TABLE = [
+  { file: "src/ui/card.tsx", slot: "CardTitle", leading: "flush", anchor: "leading-flush font-semibold" },
+  { file: "src/ui/attachment.tsx", slot: "AttachmentContent", leading: "grouped", anchor: "flex-1 leading-grouped" },
+  { file: "src/ui/field.tsx", slot: "FieldContent", leading: "clustered", anchor: "gap-1.5 leading-clustered" },
+  { file: "src/ui/field.tsx", slot: "FieldLabel", leading: "clustered", anchor: "gap-2 leading-clustered" },
+  { file: "src/ui/chart.tsx", slot: "ChartTooltipContent row", leading: "flush", anchor: "justify-between leading-flush" },
+  { file: "src/ui/calendar.tsx", slot: "CalendarDayButton", leading: "flush", anchor: "gap-1 leading-flush font-normal" },
+  { file: "src/ui/empty.tsx", slot: "EmptyDescription", leading: "prose", role: "body", anchor: "text-body leading-prose text-muted-foreground" },
+  { file: "src/ui/bubble.tsx", slot: "BubbleContent", leading: "prose", role: "body", anchor: "text-body leading-prose wrap-break-word" },
+]
+
+function leadingRegex(name) {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  return new RegExp(`\\bleading-${escaped}\\b`)
+}
+
+async function checkLinkA2(entry) {
+  const abs = join(REPO_ROOT, entry.file)
+  const raw = await readFile(abs, "utf8").catch(() => null)
+  if (raw === null) return { ok: false, detail: `file not found: ${entry.file}` }
+  const source = stripComments(raw)
+  const re = leadingRegex(entry.leading)
+  const roleRe = entry.role ? roleRegex(entry.role) : null
+
+  const matches = []
+  for (const { value: cls, index, truncated } of classLiterals(source)) {
+    if (truncated) {
+      return { ok: false, detail: `${entry.file}: a literal exceeds the ${cls.length}+ char cap and was truncated before it could be fully checked — see lexical-scan.mjs` }
+    }
+    if (!cls.includes(entry.anchor)) continue
+    if (!re.test(cls)) continue
+    if (roleRe && !roleRe.test(cls)) continue
+    matches.push({ cls, index })
+  }
+
+  if (matches.length === 0) {
+    return {
+      ok: false,
+      detail: entry.role
+        ? `no literal in ${entry.file} contains both text-${entry.role} and leading-${entry.leading} alongside the anchor "${entry.anchor}"`
+        : `no literal in ${entry.file} contains both leading-${entry.leading} and the anchor "${entry.anchor}"`,
+    }
+  }
+  if (matches.length > 1) {
+    return { ok: false, detail: `the anchor "${entry.anchor}" matches ${matches.length} literals in ${entry.file}; anchor is ambiguous` }
+  }
+
+  const { cls, index } = matches[0]
+  return { ok: true, detail: `${entry.file}:${lineOf(source, index)}  "${cls.slice(0, 120)}"` }
+}
+
+function checkLinkB2(css, leading) {
+  const expected = LEADING_EXPECTED[leading]
+  const escapedName = leading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  const body = css.match(new RegExp(`\\.leading-${escapedName}\\{([^}]*)\\}`))?.[1]
+  if (!body) return { ok: false, detail: `.leading-${leading}{…} not found in dist/system.css` }
+
+  const varMatch = body.match(/line-height:var\((--leading-[a-z0-9-]+)\)/)
+  if (!varMatch) return { ok: false, detail: `no var(--leading-${leading}) reference found in the compiled rule: ${body}` }
+
+  // The token's own custom property is declared twice in dist/system.css: once inside
+  // @theme's self-referencing mapping (`--leading-flush: var(--leading-flush);`, the
+  // same radius-sm precedent noted in system.css — a marker telling Tailwind the
+  // namespace key exists, not a real value) and once as the literal DTCG value
+  // (`--leading-flush: 1;`) carried in unlayered from tokens.css. Unlayered beats
+  // layered regardless of source order, so the literal is what a browser resolves —
+  // but resolveVar's plain first-match would find the self-referencing one first and
+  // report a token resolving to itself. Skip any declaration whose value is itself a
+  // var() reference and take the first literal one, exactly the value a browser uses.
+  const declRe = new RegExp(`${varMatch[1].replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}:([^;}]+)[;}]`, "g")
+  let value = null
+  let m
+  while ((m = declRe.exec(css))) {
+    const v = m[1].trim()
+    if (!v.startsWith("var(")) {
+      value = v
+      break
+    }
+  }
+  if (value === null) return { ok: false, detail: `${varMatch[1]} is referenced but never resolves to a literal value in dist/system.css` }
+  if (!sameCssNumber(value, expected)) return { ok: false, detail: `line-height: expected ${expected}, compiled value is ${value}` }
+  return { ok: true, detail: `line-height ${expected} (unitless, via var(${varMatch[1]}))` }
+}
+
 // ── run ─────────────────────────────────────────────────────────────────────────────
 let css
 try {
@@ -569,5 +682,49 @@ if (failures.length === 0) {
     if (!f.b.ok) console.log(`      Link B: ${f.b.detail}`)
   }
   console.log(`\n${SLOT_TABLE.length - failures.length}/${SLOT_TABLE.length} checks passed.`)
+  process.exitCode = 1
+}
+
+// ── the leading-axis slots (Issue 07b) ─────────────────────────────────────────────
+const leadingFailures = []
+let leadingLinksChecked = 0
+
+console.log(`\nchecking ${LEADING_SLOT_TABLE.length} leading-axis slot(s), 2 links each\n`)
+
+for (const entry of LEADING_SLOT_TABLE) {
+  const a = await checkLinkA2(entry)
+  leadingLinksChecked++
+  const b = checkLinkB2(css, entry.leading)
+  leadingLinksChecked++
+
+  const roleTag = entry.role ? ` + text-${entry.role}` : ""
+  const label = `${entry.slot} (${entry.file} → leading-${entry.leading}${roleTag})`
+  if (a.ok && b.ok) {
+    console.log(`  PASS  ${label}`)
+    console.log(`        A: ${a.detail}`)
+    console.log(`        B: ${b.detail}`)
+  } else {
+    console.log(`  FAIL  ${label}`)
+    console.log(`        A: ${a.ok ? "ok — " + a.detail : "FAIL — " + a.detail}`)
+    console.log(`        B: ${b.ok ? "ok — " + b.detail : "FAIL — " + b.detail}`)
+    leadingFailures.push({ entry, a, b })
+  }
+}
+
+console.log(
+  `\n${LEADING_SLOT_TABLE.length} slot(s), ${leadingLinksChecked} link(s) checked, ${new Set(LEADING_SLOT_TABLE.map((e) => e.leading)).size} distinct leading token(s)`,
+)
+
+if (leadingFailures.length === 0) {
+  console.log(`\n  PASS  all ${LEADING_SLOT_TABLE.length} leading-axis slots trace from source through to the compiled stylesheet`)
+  console.log(`\n${LEADING_SLOT_TABLE.length}/${LEADING_SLOT_TABLE.length} checks passed.`)
+} else {
+  console.log(`\n  FAIL  ${leadingFailures.length} of ${LEADING_SLOT_TABLE.length} leading-axis slot(s) did not verify:`)
+  for (const f of leadingFailures) {
+    console.log(`    ${f.entry.file} — ${f.entry.slot} (leading-${f.entry.leading})`)
+    if (!f.a.ok) console.log(`      Link A: ${f.a.detail}`)
+    if (!f.b.ok) console.log(`      Link B: ${f.b.detail}`)
+  }
+  console.log(`\n${LEADING_SLOT_TABLE.length - leadingFailures.length}/${LEADING_SLOT_TABLE.length} checks passed.`)
   process.exitCode = 1
 }
