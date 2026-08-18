@@ -128,7 +128,9 @@ const SLOT_TABLE = [
   { file: "src/ui/input-otp.tsx", slot: "InputOTPSlot", role: "body", anchor: "border-input text-body shadow-xs" },
   { file: "src/ui/native-select.tsx", slot: "NativeSelect", role: "body", anchor: "pr-9 text-body shadow-xs" },
   { file: "src/ui/textarea.tsx", slot: "Textarea (md breakpoint)", role: "body", anchor: "md:text-body" },
-  { file: "src/ui/sidebar.tsx", slot: "SidebarGroupContent / SidebarMenuButton base / SidebarMenuSubButton (size=md)", role: "body", anchor: "text-body", literals: 3, note: "Three literals genuinely contain the substring \"text-body\" with no way to separate them: SidebarMenuSubButton's isolated conditional literal is bare \"text-body\" (size===\"md\" && \"text-body\"), which is wholly contained in both SidebarGroupContent's \"w-full text-body\" and the menu-button cva base's much longer recipe — any anchor that matches the bare literal necessarily also matches the other two." },
+  { file: "src/ui/sidebar.tsx", slot: "SidebarGroupContent", role: "body", anchor: "w-full text-body" },
+  { file: "src/ui/sidebar.tsx", slot: "SidebarMenuButton base (cva)", role: "body", anchor: "text-left text-body ring-sidebar-ring" },
+  { file: "src/ui/sidebar.tsx", slot: "SidebarMenuSubButton (size=md)", role: "body", anchor: "text-body", exact: true, note: "Issue 06f: bare conditional literal (size===\"md\" && \"text-body\") is a strict substring of both SidebarGroupContent's and the menu-button cva base's literals — no substring anchor can isolate it. exact: true compares the whole literal instead, so the bare string addresses only itself." },
 
   { file: "src/ui/input.tsx", slot: "Input (base breakpoint)", role: "body-lg", anchor: "px-3 py-1 text-body-lg" },
   { file: "src/ui/field.tsx", slot: "FieldLegend (variant=legend)", role: "body-lg", anchor: "data-[variant=legend]:text-body-lg" },
@@ -140,7 +142,8 @@ const SLOT_TABLE = [
   { file: "src/ui/calendar.tsx", slot: "Calendar weekday", role: "caption", anchor: "flex-1 rounded-md text-caption", note: "absorbed slot — 12.8px → 12px line-height, deliberate." },
   { file: "src/ui/calendar.tsx", slot: "Calendar week number", role: "caption", anchor: "text-muted-foreground text-caption", note: "absorbed slot — 12.8px → 12px line-height, deliberate." },
   { file: "src/ui/combobox.tsx", slot: "Combobox group heading", role: "caption", anchor: "px-2 py-1.5 text-caption text-muted-foreground pointer-coarse:px-3", note: "condition-only pointer-coarse:text-sm variant is in scope per 05c and becomes pointer-coarse:text-body." },
-  { file: "src/ui/sidebar.tsx", slot: "SidebarMenuButton (size=sm) / SidebarMenuSubButton (size=sm)", role: "caption", anchor: "text-caption", literals: 2, note: "cva's sm-size variant literal \"h-7 text-caption\" and SidebarMenuSubButton's isolated conditional literal (size===\"sm\" && \"text-caption\") share the substring \"text-caption\" with no way to distinguish them — the shorter literal is wholly contained in the longer; combined per 06b's literals precedent." },
+  { file: "src/ui/sidebar.tsx", slot: "SidebarMenuButton (size=sm, cva)", role: "caption", anchor: "h-7 text-caption" },
+  { file: "src/ui/sidebar.tsx", slot: "SidebarMenuSubButton (size=sm)", role: "caption", anchor: "text-caption", exact: true, note: "Issue 06f: bare conditional literal (size===\"sm\" && \"text-caption\") is a strict substring of the cva sm-size variant's \"h-7 text-caption\" — no substring anchor can isolate it. exact: true compares the whole literal instead." },
 
   { file: "src/ui/kbd.tsx", slot: "Kbd", role: "control-sm", anchor: "bg-muted px-1 text-control-sm" },
   { file: "src/ui/sidebar.tsx", slot: "SidebarGroupLabel", role: "control-sm", anchor: "px-2 text-control-sm text-sidebar-foreground/70" },
@@ -274,13 +277,26 @@ async function checkLinkA(entry) {
   // slot" note was written about, went unchecked). An ambiguous anchor must fail loudly,
   // not silently pick one.
   //
-  // `literals` (default 1) exists for the case an anchor genuinely cannot separate: two
-  // elements sharing one byte-identical class string (Issue 06b: context-menu.tsx's
-  // CheckboxItem/RadioItem, menubar.tsx's same pair). The count is EXACT, not a floor —
-  // "at least N" would let a slot silently grow a third consumer that was never read
-  // against this table, and report PASS on two literals while a new, unexamined third
-  // one ships untouched. Every one of the `literals` matches is scanned; a violation in
-  // any of them fails the whole entry, and every line number is reported.
+  // `literals` (default 1) exists for exactly one case: several elements sharing one
+  // BYTE-IDENTICAL class string, one real recipe with several consumers (Issue 06b:
+  // context-menu.tsx's CheckboxItem/RadioItem, menubar.tsx's same pair). The count is
+  // EXACT, not a floor — "at least N" would let a slot silently grow a third consumer
+  // that was never read against this table, and report PASS on two literals while a
+  // new, unexamined third one ships untouched. Every one of the `literals` matches is
+  // scanned; a violation in any of them fails the whole entry, and every line number is
+  // reported. `checkTableIntegrity` below enforces that the matched literals really are
+  // byte-identical — `literals` is never a substitute for "an anchor I could not make
+  // unique"; that case is what `exact` (below) is for, or a more distinctive substring.
+  //
+  // `exact: true` compares the WHOLE literal against the anchor (`cls === entry.anchor`)
+  // instead of substring-containment. Issue 06f: a bare literal like a lone `"text-body"`
+  // conditional is a strict substring of every longer literal that also mentions the
+  // role, so no substring anchor can isolate it — folding it into a `literals`-counted
+  // entry with the containing literals was cheap but wrong: it turned the anchor into
+  // "every literal in this file that mentions this role" instead of one identified slot,
+  // which is exactly what anchors were introduced in 06a to stop being. `exact` addresses
+  // the bare literal as itself; it still fails loudly if a second literal is ever
+  // byte-identical to it, same as any other anchor collision.
   const matches = []
   for (const { value: cls, index, truncated } of classLiterals(source)) {
     if (truncated) {
@@ -290,7 +306,8 @@ async function checkLinkA(entry) {
       // matching (or missing a forbidden utility in) a value it never fully read.
       return { ok: false, detail: `${entry.file}: a literal exceeds the ${cls.length}+ char cap and was truncated before it could be fully checked — see lexical-scan.mjs` }
     }
-    if (re.test(cls) && cls.includes(entry.anchor)) matches.push({ cls, index })
+    const anchorHit = entry.exact ? cls === entry.anchor : cls.includes(entry.anchor)
+    if (re.test(cls) && anchorHit) matches.push({ cls, index })
   }
 
   if (matches.length === 0) {
@@ -321,7 +338,7 @@ async function checkLinkA(entry) {
 // checkLinkA above refuses to resolve silently — catching it here, against the table
 // itself, is cheaper than waiting for checkLinkA to fail per-slot and gives one place
 // that states the whole table's anchors are pairwise distinct.
-function checkTableIntegrity(table) {
+async function checkTableIntegrity(table) {
   const problems = []
 
   for (const entry of table) {
@@ -346,6 +363,42 @@ function checkTableIntegrity(table) {
     }
   }
 
+  // `literals` is for exactly one case — several elements sharing one byte-identical
+  // class string — never for "an anchor I couldn't make unique" (that's what `exact`
+  // above is for, or a better substring). This check makes the distinction enforced
+  // rather than a convention: for any entry declaring literals > 1, every literal the
+  // anchor matches must be byte-identical to the first. If they are not, the entry is
+  // masking distinct slots behind one row (exactly the Issue 06f abuse: two elements
+  // that merely share a substring, folded into one count so a swap between them would
+  // still pass) and it fails here, naming the differing literals, before checkLinkA
+  // ever gets to it.
+  const literalsProblems = []
+  const byteIdentical = new Map()
+  for (const entry of table) {
+    const expectedCount = entry.literals ?? 1
+    if (expectedCount <= 1) continue
+    const abs = join(REPO_ROOT, entry.file)
+    const raw = await readFile(abs, "utf8").catch(() => null)
+    if (raw === null) continue // checkLinkA reports the missing file; don't duplicate here
+    const source = stripComments(raw)
+    const re = roleRegex(entry.role)
+    const found = []
+    for (const { value: cls, truncated } of classLiterals(source)) {
+      if (truncated) continue // checkLinkA reports the truncation failure; don't duplicate here
+      const anchorHit = entry.exact ? cls === entry.anchor : cls.includes(entry.anchor)
+      if (re.test(cls) && anchorHit) found.push(cls)
+    }
+    if (found.length < 2) continue // checkLinkA reports the count mismatch; nothing to compare here
+    const distinct = [...new Set(found)]
+    byteIdentical.set(entry, { found, distinct })
+    if (distinct.length > 1) {
+      literalsProblems.push(
+        `${entry.file} — ${entry.slot}: literals: ${expectedCount} declares a shared recipe, but ${distinct.length} distinct literal(s) matched: ${distinct.map((d) => `"${d.slice(0, 120)}"`).join(" / ")}`,
+      )
+    }
+  }
+  problems.push(...literalsProblems)
+
   // Same-role entries in the same file are the exact condition that produced the
   // Calendar weekday false pass, and issue 06 is about to make it common (several
   // slots on text-body in one menu file) — called out separately even though it is
@@ -358,7 +411,7 @@ function checkTableIntegrity(table) {
   }
   const sameFileRole = [...byFileRole.entries()].filter(([, entries]) => entries.length > 1)
 
-  return { problems, sameFileRole }
+  return { problems, sameFileRole, byteIdentical }
 }
 
 // ── Link B ──────────────────────────────────────────────────────────────────────────
@@ -460,12 +513,22 @@ try {
 }
 
 console.log(`\ntable integrity — ${SLOT_TABLE.length} entries\n`)
-const integrity = checkTableIntegrity(SLOT_TABLE)
+const integrity = await checkTableIntegrity(SLOT_TABLE)
 if (integrity.problems.length === 0) {
   console.log(`  PASS  every entry has a non-empty anchor, and no two entries in the same file share one`)
 } else {
   console.log(`  FAIL  ${integrity.problems.length} table integrity problem(s):`)
   for (const p of integrity.problems) console.log(`    ${p}`)
+}
+if (integrity.byteIdentical.size === 0) {
+  console.log(`  (no entry currently declares literals > 1)`)
+} else {
+  console.log(`  ${integrity.byteIdentical.size} entr(y/ies) declaring literals > 1 — matched literals checked for byte-identity:`)
+  for (const [entry, { found, distinct }] of integrity.byteIdentical) {
+    const verdict = distinct.length === 1 ? "PASS byte-identical" : "FAIL distinct literals"
+    console.log(`    ${verdict}  ${entry.file} — ${entry.slot} (literals: ${entry.literals}, matched: ${found.length})`)
+    console.log(`        "${distinct[0].slice(0, 120)}"${distinct.length > 1 ? ` vs ${distinct.length - 1} other(s)` : ""}`)
+  }
 }
 if (integrity.sameFileRole.length === 0) {
   console.log(`  (no file currently holds more than one entry on the same role)`)
