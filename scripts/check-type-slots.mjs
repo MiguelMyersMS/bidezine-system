@@ -63,46 +63,57 @@ const TRACKING_RE = /\btracking-(?:tighter|tight|normal|wide|wider|widest|\[[^\]
 
 // ── the slot table ──────────────────────────────────────────────────────────────────
 // expected values are [font-size, line-height, font-weight, letter-spacing] literals.
+//
+// `anchor` is a required, distinctive substring of the slot's OWN class literal —
+// something structural (a utility combination, a data-attribute selector, a container
+// name), never a bare word likely to recur. Link A uses it to find that ONE literal
+// among possibly several in the same file that reference the same role utility; without
+// it, Link A silently matched the FIRST literal referencing the role, which is how the
+// Calendar weekday false pass (Issue 06a) happened — the table's own note described an
+// "absorbed slot" change on src/ui/calendar.tsx's week_number cell, but the entry's
+// literal match landed on the ALREADY-rewired weekday cell instead, so the check reported
+// PASS while week_number's arbitrary text-[0.8rem] shipped unexamined.
 const SLOT_TABLE = [
-  { file: "src/ui/button.tsx", slot: "Button label", role: "control" },
-  { file: "src/ui/button-group.tsx", slot: "ButtonGroup text", role: "control" },
-  { file: "src/ui/tabs.tsx", slot: "TabsTrigger label", role: "control" },
-  { file: "src/ui/toggle.tsx", slot: "Toggle label", role: "control" },
-  { file: "src/ui/accordion.tsx", slot: "AccordionTrigger label", role: "control" },
+  { file: "src/ui/button.tsx", slot: "Button label", role: "control", anchor: "justify-center gap-2 rounded-md text-control" },
+  { file: "src/ui/button-group.tsx", slot: "ButtonGroup text", role: "control", anchor: "rounded-md border bg-muted px-4 text-control" },
+  { file: "src/ui/tabs.tsx", slot: "TabsTrigger label", role: "control", anchor: "h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5" },
+  { file: "src/ui/toggle.tsx", slot: "Toggle label", role: "control", anchor: "rounded-md text-control whitespace-nowrap transition-[color,box-shadow]" },
+  { file: "src/ui/accordion.tsx", slot: "AccordionTrigger label", role: "control", anchor: "justify-between gap-4 rounded-md py-4 text-left text-control" },
 
-  { file: "src/ui/table.tsx", slot: "Table root text", role: "body" },
-  { file: "src/ui/dialog.tsx", slot: "DialogDescription", role: "body" },
-  { file: "src/ui/card.tsx", slot: "CardDescription", role: "body" },
-  { file: "src/ui/select.tsx", slot: "SelectItem", role: "body" },
-  { file: "src/ui/breadcrumb.tsx", slot: "Breadcrumb root text", role: "body" },
-  { file: "src/ui/item.tsx", slot: "ItemDescription", role: "body", note: "absorbed slot — 21px → 20px line-height, deliberate." },
+  { file: "src/ui/table.tsx", slot: "Table root text", role: "body", anchor: "caption-bottom text-body" },
+  { file: "src/ui/dialog.tsx", slot: "DialogDescription", role: "body", anchor: "text-body text-muted-foreground" },
+  { file: "src/ui/card.tsx", slot: "CardDescription", role: "body", anchor: "text-body text-muted-foreground" },
+  { file: "src/ui/select.tsx", slot: "SelectItem", role: "body", anchor: "pr-8 pl-2 text-body" },
+  { file: "src/ui/breadcrumb.tsx", slot: "Breadcrumb root text", role: "body", anchor: "flex-wrap items-center gap-1.5 text-body" },
+  { file: "src/ui/item.tsx", slot: "ItemDescription", role: "body", anchor: "line-clamp-2 text-body text-balance", note: "absorbed slot — 21px → 20px line-height, deliberate." },
 
-  { file: "src/ui/input.tsx", slot: "Input (base breakpoint)", role: "body-lg" },
+  { file: "src/ui/input.tsx", slot: "Input (base breakpoint)", role: "body-lg", anchor: "px-3 py-1 text-body-lg" },
 
-  { file: "src/ui/tooltip.tsx", slot: "TooltipContent", role: "caption" },
-  { file: "src/ui/select.tsx", slot: "SelectLabel", role: "caption" },
-  { file: "src/ui/badge.tsx", slot: "Badge regular", role: "caption" },
-  { file: "src/ui/calendar.tsx", slot: "Calendar weekday", role: "caption", note: "absorbed slot — 12.8px → 12px line-height, deliberate." },
+  { file: "src/ui/tooltip.tsx", slot: "TooltipContent", role: "caption", anchor: "bg-foreground px-3 py-1.5 text-caption" },
+  { file: "src/ui/select.tsx", slot: "SelectLabel", role: "caption", anchor: "px-2 py-1.5 text-caption" },
+  { file: "src/ui/badge.tsx", slot: "Badge regular", role: "caption", anchor: "text-caption" },
+  { file: "src/ui/calendar.tsx", slot: "Calendar weekday", role: "caption", anchor: "flex-1 rounded-md text-caption", note: "absorbed slot — 12.8px → 12px line-height, deliberate." },
+  { file: "src/ui/calendar.tsx", slot: "Calendar week number", role: "caption", anchor: "text-muted-foreground text-caption", note: "absorbed slot — 12.8px → 12px line-height, deliberate." },
 
-  { file: "src/ui/kbd.tsx", slot: "Kbd", role: "control-sm" },
-  { file: "src/ui/sidebar.tsx", slot: "SidebarGroupLabel", role: "control-sm" },
-  { file: "src/ui/message.tsx", slot: "Message author", role: "control-sm" },
-  { file: "src/ui/combobox.tsx", slot: "Combobox chip", role: "control-sm" },
-  { file: "src/ui/badge.tsx", slot: "Badge emphasis", role: "control-sm" },
+  { file: "src/ui/kbd.tsx", slot: "Kbd", role: "control-sm", anchor: "bg-muted px-1 text-control-sm" },
+  { file: "src/ui/sidebar.tsx", slot: "SidebarGroupLabel", role: "control-sm", anchor: "px-2 text-control-sm text-sidebar-foreground/70" },
+  { file: "src/ui/message.tsx", slot: "Message author", role: "control-sm", anchor: "px-3 text-control-sm text-muted-foreground" },
+  { file: "src/ui/combobox.tsx", slot: "Combobox chip", role: "control-sm", anchor: "bg-muted px-1.5 text-control-sm" },
+  { file: "src/ui/badge.tsx", slot: "Badge emphasis", role: "control-sm", anchor: "text-control-sm" },
 
-  { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenu shortcut", role: "shortcut" },
-  { file: "src/ui/context-menu.tsx", slot: "ContextMenu shortcut", role: "shortcut" },
-  { file: "src/ui/menubar.tsx", slot: "Menubar shortcut", role: "shortcut" },
-  { file: "src/ui/command.tsx", slot: "Command shortcut", role: "shortcut" },
+  { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenu shortcut", role: "shortcut", anchor: "ml-auto text-shortcut" },
+  { file: "src/ui/context-menu.tsx", slot: "ContextMenu shortcut", role: "shortcut", anchor: "ml-auto text-shortcut" },
+  { file: "src/ui/menubar.tsx", slot: "Menubar shortcut", role: "shortcut", anchor: "ml-auto text-shortcut" },
+  { file: "src/ui/command.tsx", slot: "Command shortcut", role: "shortcut", anchor: "ml-auto text-shortcut" },
 
-  { file: "src/ui/label.tsx", slot: "Label", role: "label" },
-  { file: "src/ui/item.tsx", slot: "ItemTitle", role: "label", note: "absorbed slot — 19.25px → 14px line-height, deliberate." },
-  { file: "src/ui/field.tsx", slot: "FieldTitle", role: "label", note: "absorbed slot — 19.25px → 14px line-height, deliberate." },
+  { file: "src/ui/label.tsx", slot: "Label", role: "label", anchor: "flex items-center gap-2 text-label" },
+  { file: "src/ui/item.tsx", slot: "ItemTitle", role: "label", anchor: "flex w-fit items-center gap-2 text-label", note: "absorbed slot — 19.25px → 14px line-height, deliberate." },
+  { file: "src/ui/field.tsx", slot: "FieldTitle", role: "label", anchor: "flex w-fit items-center gap-2 text-label", note: "absorbed slot — 19.25px → 14px line-height, deliberate." },
 
-  { file: "src/ui/dialog.tsx", slot: "DialogTitle", role: "heading-sm" },
+  { file: "src/ui/dialog.tsx", slot: "DialogTitle", role: "heading-sm", anchor: "text-heading-sm" },
 
-  { file: "src/ui/alert-dialog.tsx", slot: "AlertDialogTitle", role: "heading-sm-loose" },
-  { file: "src/ui/empty.tsx", slot: "EmptyTitle", role: "heading-sm-loose" },
+  { file: "src/ui/alert-dialog.tsx", slot: "AlertDialogTitle", role: "heading-sm-loose", anchor: "text-heading-sm-loose sm:group-data-[size=default]" },
+  { file: "src/ui/empty.tsx", slot: "EmptyTitle", role: "heading-sm-loose", anchor: "text-heading-sm-loose font-medium" },
 ]
 
 // Expected compiled values, keyed by role — the literal table from Issue 05b's spec.
@@ -205,18 +216,84 @@ async function checkLinkA(entry) {
   const source = stripComments(raw)
   const re = roleRegex(entry.role)
 
+  // Every literal in the file that carries BOTH the role utility and this slot's own
+  // anchor. Zero means the anchor doesn't identify this slot's literal (wrong anchor, or
+  // the rewire never happened); more than one means the anchor is ambiguous — a check
+  // that silently used the first match regardless is exactly the bug this file exists to
+  // fix (Issue 06a: the Calendar weekday entry matched the ALREADY-rewired weekday cell
+  // while the actually-unrewired week_number cell, the one the "absorbed slot" note was
+  // written about, went unchecked). An ambiguous anchor must fail loudly, not silently
+  // pick one.
+  const matches = []
   for (const m of source.matchAll(/["'`]([^"'`\n]{0,2000})["'`]/g)) {
     const cls = m[1]
-    if (!re.test(cls)) continue
-    const scoped = stripElementTargeting(cls)
-    const forbidden =
-      FONT_SIZE_RE.test(scoped) || FONT_SIZE_ARBITRARY_RE.test(scoped) || LEADING_RE.test(scoped) || TRACKING_RE.test(scoped)
-    if (forbidden) {
-      return { ok: false, detail: `${entry.file}:${lineOf(source, m.index)} carries a forbidden utility alongside text-${entry.role}: "${cls.slice(0, 120)}"` }
-    }
-    return { ok: true, detail: `${entry.file}:${lineOf(source, m.index)}  "${cls.slice(0, 120)}"` }
+    if (re.test(cls) && cls.includes(entry.anchor)) matches.push({ cls, index: m.index })
   }
-  return { ok: false, detail: `no class string in ${entry.file} references text-${entry.role}` }
+
+  if (matches.length === 0) {
+    return { ok: false, detail: `no literal in ${entry.file} contains both text-${entry.role} and the anchor "${entry.anchor}"` }
+  }
+  if (matches.length > 1) {
+    return {
+      ok: false,
+      detail: `the anchor "${entry.anchor}" matches ${matches.length} literals in ${entry.file}; it must identify exactly one`,
+    }
+  }
+
+  const { cls, index } = matches[0]
+  const scoped = stripElementTargeting(cls)
+  const forbidden =
+    FONT_SIZE_RE.test(scoped) || FONT_SIZE_ARBITRARY_RE.test(scoped) || LEADING_RE.test(scoped) || TRACKING_RE.test(scoped)
+  if (forbidden) {
+    return { ok: false, detail: `${entry.file}:${lineOf(source, index)} carries a forbidden utility alongside text-${entry.role}: "${cls.slice(0, 120)}"` }
+  }
+  return { ok: true, detail: `${entry.file}:${lineOf(source, index)}  "${cls.slice(0, 120)}"` }
+}
+
+// ── Table integrity ─────────────────────────────────────────────────────────────────
+// Checked once, before the per-slot loop, and reported in its own section. An anchor
+// that collides with another entry's anchor in the same file is exactly the ambiguity
+// checkLinkA above refuses to resolve silently — catching it here, against the table
+// itself, is cheaper than waiting for checkLinkA to fail per-slot and gives one place
+// that states the whole table's anchors are pairwise distinct.
+function checkTableIntegrity(table) {
+  const problems = []
+
+  for (const entry of table) {
+    if (!entry.anchor || entry.anchor.trim() === "") {
+      problems.push(`${entry.file} — ${entry.slot}: missing anchor`)
+    }
+  }
+
+  const byFile = new Map()
+  for (const entry of table) {
+    if (!byFile.has(entry.file)) byFile.set(entry.file, [])
+    byFile.get(entry.file).push(entry)
+  }
+
+  for (const [file, entries] of byFile) {
+    for (let i = 0; i < entries.length; i++) {
+      for (let j = i + 1; j < entries.length; j++) {
+        if (entries[i].anchor && entries[i].anchor === entries[j].anchor) {
+          problems.push(`${file}: "${entries[i].slot}" and "${entries[j].slot}" share the anchor "${entries[i].anchor}"`)
+        }
+      }
+    }
+  }
+
+  // Same-role entries in the same file are the exact condition that produced the
+  // Calendar weekday false pass, and issue 06 is about to make it common (several
+  // slots on text-body in one menu file) — called out separately even though it is
+  // already covered by the no-duplicate-anchor-per-file check above.
+  const byFileRole = new Map()
+  for (const entry of table) {
+    const key = `${entry.file}::${entry.role}`
+    if (!byFileRole.has(key)) byFileRole.set(key, [])
+    byFileRole.get(key).push(entry)
+  }
+  const sameFileRole = [...byFileRole.entries()].filter(([, entries]) => entries.length > 1)
+
+  return { problems, sameFileRole }
 }
 
 // ── Link B ──────────────────────────────────────────────────────────────────────────
@@ -314,6 +391,27 @@ try {
 } catch {
   console.error("\ndist/system.css is missing. Run `npm run build` first.")
   console.error("Refusing to report success against a build that does not exist.\n")
+  process.exit(1)
+}
+
+console.log(`\ntable integrity — ${SLOT_TABLE.length} entries\n`)
+const integrity = checkTableIntegrity(SLOT_TABLE)
+if (integrity.problems.length === 0) {
+  console.log(`  PASS  every entry has a non-empty anchor, and no two entries in the same file share one`)
+} else {
+  console.log(`  FAIL  ${integrity.problems.length} table integrity problem(s):`)
+  for (const p of integrity.problems) console.log(`    ${p}`)
+}
+if (integrity.sameFileRole.length === 0) {
+  console.log(`  (no file currently holds more than one entry on the same role)`)
+} else {
+  console.log(`  ${integrity.sameFileRole.length} file/role pair(s) with multiple entries — anchors distinct per the check above:`)
+  for (const [key, entries] of integrity.sameFileRole) {
+    console.log(`    ${key}: ${entries.map((e) => `"${e.slot}" (${e.anchor})`).join(", ")}`)
+  }
+}
+if (integrity.problems.length > 0) {
+  console.log(`\nRefusing to run per-slot checks against a table that failed its own integrity check.\n`)
   process.exit(1)
 }
 

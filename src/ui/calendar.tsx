@@ -100,7 +100,7 @@ function Calendar({
           defaultClassNames.week_number_header
         ),
         week_number: cn(
-          "text-[0.8rem] text-muted-foreground select-none",
+          "text-muted-foreground text-caption select-none",
           defaultClassNames.week_number
         ),
         day: cn(
