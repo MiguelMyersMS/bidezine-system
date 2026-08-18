@@ -33,6 +33,12 @@
 import { readFile, stat } from "node:fs/promises"
 import { join } from "node:path"
 import { REPO_ROOT } from "../verifier/lib/db.mjs"
+// Neutral parsing helper, not another gate — see scripts/lib/class-literals.mjs's own
+// header. This is scripts/lib/dependencies.mjs's precedent (scan-dependencies.mjs
+// already imports it), not the R6-importing-into-a-blocking-script problem the
+// comment below used to guard against: R6 lives in check-rules.mjs and stays
+// non-blocking regardless of where the two gates' shared literal-capture code lives.
+import { classLiterals } from "./lib/class-literals.mjs"
 
 const SHIPPED_CSS = join(REPO_ROOT, "dist", "system.css")
 
@@ -45,17 +51,16 @@ const stripComments = (source) =>
 
 const lineOf = (source, index) => source.slice(0, index).split("\n").length
 
-// Duplicated from scripts/check-rules.mjs's R6, not imported. check-shipped-tokens.mjs
-// already established the precedent of a self-contained gate script over an interdependent
-// one (it duplicates stripComments/walk rather than importing them), and R6 is explicitly
-// NOT wired into the npm chain this script IS wired into — importing from it would make
-// this script's exit code depend on a module whose own file says it must stay unblocking.
-//
-// The quoted-literal capture below uses a longer cap than R6's own `{0,600}` — src/ui/
-// tabs.tsx's TabsTrigger literal alone runs past 700 characters, and a cap shorter than
-// the literal it is meant to capture makes the regex fail to find the closing quote at
-// all (proven against this exact file while building this script). R6 carries the smaller
-// cap; that is R6's file to fix, not this one's to inherit silently.
+// Issue 06c: this used to duplicate scripts/check-rules.mjs's R6 capture regex rather
+// than import it, on self-contained-gate grounds — R6 is explicitly non-blocking, and
+// a blocking script's exit code must never depend on a module that says it must stay
+// that way. That reasoning does not extend to scripts/lib/class-literals.mjs (see its
+// header and the import comment above): it is neutral parsing code, not R6 itself, and
+// this file and check-rules.mjs each import it independently without either depending
+// on the other. The duplicated regex is retired — it closed a double-quoted literal on
+// the FIRST embedded quote of ANY kind, silently truncating every menu-item class
+// string in src/ui/ at its `[class*='size-']` apostrophe (Issue 06c's finding); the
+// shared matcher closes only on the SAME quote character it opened with.
 const FONT_SIZE_RE = /\btext-(?:xs|sm|base|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl|8xl|9xl)\b/
 const FONT_SIZE_ARBITRARY_RE = /\btext-\[(?:length:[^\]]+|[\d.]+(?:px|rem|em))\]/
 const LEADING_RE = /\bleading-(?:none|tight|snug|normal|relaxed|loose|\d+|\[[^\]]+\])\b/
@@ -97,8 +102,8 @@ const SLOT_TABLE = [
   { file: "src/ui/context-menu.tsx", slot: "ContextMenuCheckboxItem/RadioItem", role: "body", anchor: "py-1.5 pr-2 pl-8 text-body outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none", literals: 2, note: "CheckboxItem and RadioItem share one byte-identical recipe — two consumers, one entry." },
   { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuItem", role: "body", anchor: "active:bg-[var(--accent-pressed,var(--accent))]" },
   { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuCheckboxItem", role: "body", anchor: "data-[state=checked]:bg-accent/50" },
-  { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuRadioItem", role: "body", anchor: "focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0", note: "Anchor stops before the [class*='size-'] embedded single quote — the literal-capture regex treats an embedded ' as a closing quote, truncating cls there." },
-  { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuSubTrigger", role: "body", anchor: "data-[inset]:pl-8 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0", note: "Anchor stops before the [class*='size-'] embedded single quote — see DropdownMenuRadioItem note." },
+  { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuRadioItem", role: "body", anchor: "focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4" },
+  { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuSubTrigger", role: "body", anchor: "data-[inset]:pl-8 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4" },
   { file: "src/ui/menubar.tsx", slot: "MenubarItem", role: "body", anchor: "data-[variant=destructive]:text-destructive" },
   { file: "src/ui/menubar.tsx", slot: "MenubarCheckboxItem/RadioItem", role: "body", anchor: "rounded-xs py-1.5 pr-2 pl-8 text-body outline-hidden select-none", literals: 2, note: "CheckboxItem and RadioItem share one byte-identical recipe — two consumers, one entry." },
   { file: "src/ui/menubar.tsx", slot: "MenubarSubTrigger", role: "body", anchor: "data-[inset]:pl-8 data-[state=open]:bg-accent" },
@@ -258,9 +263,15 @@ async function checkLinkA(entry) {
   // one ships untouched. Every one of the `literals` matches is scanned; a violation in
   // any of them fails the whole entry, and every line number is reported.
   const matches = []
-  for (const m of source.matchAll(/["'`]([^"'`\n]{0,2000})["'`]/g)) {
-    const cls = m[1]
-    if (re.test(cls) && cls.includes(entry.anchor)) matches.push({ cls, index: m.index })
+  for (const { value: cls, index, truncated } of classLiterals(source)) {
+    if (truncated) {
+      // Not silently consumed as a partial value — see class-literals.mjs's cap
+      // comment. No literal in src/ui/ is anywhere near 2000 characters, so this is
+      // expected to never fire; if it does, this entry must fail rather than risk
+      // matching (or missing a forbidden utility in) a value it never fully read.
+      return { ok: false, detail: `${entry.file}: a literal exceeds the ${cls.length}+ char cap and was truncated before it could be fully checked — see class-literals.mjs` }
+    }
+    if (re.test(cls) && cls.includes(entry.anchor)) matches.push({ cls, index })
   }
 
   if (matches.length === 0) {

@@ -26,6 +26,10 @@
 import { readFile, readdir } from "node:fs/promises"
 import { join, relative } from "node:path"
 import { REPO_ROOT } from "../verifier/lib/db.mjs"
+// Neutral parsing helper, not another gate — see scripts/lib/class-literals.mjs's own
+// header for why importing it here does not reopen the self-contained-gate question
+// R6 raised: R6 stays non-blocking regardless of where its literal capture lives.
+import { classLiterals } from "./lib/class-literals.mjs"
 
 const JSON_OUT = process.argv.includes("--json")
 const violations = []
@@ -219,16 +223,29 @@ async function ruleIconMarker(files) {
 // a line box shrunk to exactly font-size clips descenders (g/y/p/q/j) the moment anything
 // clips overflow. It shipped, and looked like it "appeared and disappeared" depending on
 // which label happened to contain a descender.
+//
+// Issue 06c: the cap is now 2000, matching R6 and check-type-slots.mjs's Link A — the
+// same failure family as R6's old 600 (05c's finding: an undersized cap makes the
+// literal-capture regex find no closing quote and silently skip the WHOLE literal, not
+// truncate it), and this was the line already being edited to fix the quote-matching
+// bug, so it is sized correctly in the same commit rather than carried as a decision
+// for a later issue.
 // ═══════════════════════════════════════════════════════════════════════════════════
 async function ruleLeadingNoneTruncate(files) {
   for (const file of files) {
     const source = stripComments(await readFile(file, "utf8"))
     // Scans each quoted class string rather than each line: a className can span lines, and
     // two unrelated elements can share one.
-    for (const m of source.matchAll(/["'`]([^"'`\n]{0,400})["'`]/g)) {
-      const cls = m[1]
+    for (const { value: cls, index, truncated } of classLiterals(source)) {
+      if (truncated) {
+        // Not silently consumed as a partial value — see class-literals.mjs's cap
+        // comment. No literal in this codebase is anywhere near 2000 characters, so
+        // this is expected to never fire; if it does, the count above it is a floor.
+        report("text.leading-none-truncate", rel(file), lineOf(source, index), `literal exceeds ${cls.length}+ chars — truncated before scanning, not fully checked`)
+        continue
+      }
       if (/\bleading-none\b/.test(cls) && /\btruncate\b|\boverflow-hidden\b/.test(cls)) {
-        report("text.leading-none-truncate", rel(file), lineOf(source, m.index), `"${cls.slice(0, 90)}" — clips descenders`)
+        report("text.leading-none-truncate", rel(file), lineOf(source, index), `"${cls.slice(0, 90)}" — clips descenders`)
       }
     }
   }
@@ -305,26 +322,30 @@ function isAllowed(path, cls) {
   return TYPE_UTILITIES_ALLOWED.some((e) => e.file === path && cls.includes(e.match))
 }
 
-// The literal-capture cap below is 2000, matching scripts/check-type-slots.mjs. A cap
-// shorter than the literal it is meant to bound does NOT truncate-and-partially-match:
-// `["'`]([^"'`\n]{0,N})["'`]` requires the closing quote to fall within N characters, so
-// a literal longer than N finds no closing quote in range and the WHOLE match fails —
-// the literal is skipped entirely, not shortened. That makes an undersized cap silently
-// under-report: every forbidden utility inside a skipped literal goes unchecked, and the
-// violation count becomes a floor, not a real count. This was caught because a 600-char
-// cap here was missing src/ui/tabs.tsx's ~700+ char class literal outright.
-//
-// scripts/check-rules.mjs's R4 (ruleLeadingNoneTruncate, above) carries the same
-// structural issue at a 400-char cap. Left alone in this change — R4 is a different rule
-// with its own incident history — but flagged here for issue 06 to size correctly.
+// Issue 06c: the literal capture is now scripts/lib/class-literals.mjs's classLiterals,
+// not a `/["'`]([^"'`\n]{0,2000})["'`]/g` regex — that regex's character class excluded
+// ALL THREE quote characters, so it closed a double-quoted literal on the FIRST
+// embedded single quote (every menu-item class string in src/ui/ has one, from
+// `[class*='size-']`), silently hiding whatever forbidden utility sat after it and
+// making this count untrustworthy in both directions: real violations past the quote
+// were invisible, and the apostrophe-delimited fragments after the cut point could be
+// scanned as if they were literals of their own. See class-literals.mjs's header for
+// the fix and cap-2000/truncated details; R4 above carries the same cap now, for the
+// same reason.
 async function ruleNoRawTypeUtility() {
   const seenAllowed = new Set()
   const files = await walk(join(REPO_ROOT, "src", "ui"))
   for (const file of files) {
     const path = rel(file)
     const source = stripComments(await readFile(file, "utf8"))
-    for (const m of source.matchAll(/["'`]([^"'`\n]{0,2000})["'`]/g)) {
-      const cls = m[1]
+    for (const { value: cls, index, truncated } of classLiterals(source)) {
+      if (truncated) {
+        // Not silently consumed as a partial value — see class-literals.mjs's cap
+        // comment. No literal in src/ui/ is anywhere near 2000 characters, so this is
+        // expected to never fire; if it does, the count below it is a floor.
+        report("type.no-raw-utility", path, lineOf(source, index), `literal exceeds ${cls.length}+ chars — truncated before scanning, not fully checked`)
+        continue
+      }
       const hit =
         FONT_SIZE_RE.test(cls) || FONT_SIZE_ARBITRARY_RE.test(cls) || LEADING_RE.test(cls) || TRACKING_RE.test(cls)
       if (!hit) continue
@@ -332,7 +353,7 @@ async function ruleNoRawTypeUtility() {
         seenAllowed.add(`${path}::${cls}`)
         continue
       }
-      report("type.no-raw-utility", path, lineOf(source, m.index), `"${cls.slice(0, 100)}"`)
+      report("type.no-raw-utility", path, lineOf(source, index), `"${cls.slice(0, 100)}"`)
     }
   }
   for (const e of TYPE_UTILITIES_ALLOWED) {
