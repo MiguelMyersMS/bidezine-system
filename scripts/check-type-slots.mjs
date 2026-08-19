@@ -355,6 +355,32 @@ async function checkLinkA(entry) {
 // survive — BEFORE naming anything into a namespace. Verified safe by that probe so far:
 // leading-*, the density h-/w-/size-/px-/py- family, and (07m) duration-* and ease-*; the
 // two that were exposed, text-* and shadow-*, are the ones extendTailwindMerge now re-files.
+//
+// Issue 07n (state axis) ran the probe into two more namespaces and it fired, as expected:
+//   • ring-width is EXPOSED. Tailwind files a custom `ring-<name>` under its ring-COLOUR
+//     [isAny] group — the same catch-all that swallowed text-* — so a `ring-focus` collides
+//     with `ring-ring/50` and is silently deleted: cn("focus-visible:ring-focus
+//     focus-visible:ring-ring/50") keeps only ring-ring/50. (An arbitrary length is filed as
+//     a width, not a colour, which is why the shipping `ring-[3px] ring-ring/50` recipe does
+//     NOT collide — both survive — and every focus ring renders correctly today.) UNLIKE
+//     text-*/shadow-*, this exposure is recorded UNFIXED: 07n declined to name into ring, so
+//     no `ring-w` group extension was added. The focus ring's colour is already the `ring`
+//     token (it sets border-ring AND ring-ring/50); only its 3px width would be a new name,
+//     a recipe fragment, and the fix needs the derivation in build-tokens.mjs + a `ring-w`
+//     group here in tw-merge.mjs — both outside 07n's file scope. A future issue that does
+//     name a ring width must, in the same commit, extend the merge group the 07l way:
+//     classGroups: { "ring-w": [{ ring: [<derived names>] }] } — proven to restore survival
+//     in 07n's probe — and add Link C rows for the rewired slots, or the name deletes silently.
+//   • opacity-* is SAFE from the colour collision — cn("opacity-disabled bg-red-500") keeps
+//     both — but tailwind-merge also does not RECOGNISE a custom `opacity-<name>` AS opacity,
+//     so it will not merge against stock opacity-50/opacity-100: cn("opacity-disabled
+//     opacity-100") keeps BOTH. That is not a silent-deletion hazard, but it is a silent
+//     OVERRIDE hazard — rail-sidebar's B-9 disabled treatment (disabled:opacity-100 beating
+//     Button's disabled:opacity-50) works only because both land in one opacity group; a
+//     custom `opacity-disabled` would break that unless the `opacity` group is likewise
+//     extended. 07n named nothing into opacity either (0.5 is Tailwind's stock scale value
+//     serving two distinct jobs — disabled dimming and decorative de-emphasis), so this too
+//     is recorded, not fixed.
 const TEXT_NON_COLOUR = new Set([
   "left", "center", "right", "justify", "start", "end", // text-align
   "wrap", "nowrap", "balance", "pretty", // text-wrap
