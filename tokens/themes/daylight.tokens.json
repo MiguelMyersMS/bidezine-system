@@ -1,5 +1,5 @@
 {
-  "$description": "shadcn/ui's own 'Daylight' preset theme (new-york style), unmodified. Same token names as light.tokens.json/dark.tokens.json so it drops in as an alternate [data-theme] block. Sidebar tokens are not overridden by this preset upstream either, so they inherit the base theme's sidebar-* values.",
+  "$description": "shadcn/ui's own 'Daylight' preset theme (new-york style), unmodified. Overrides only the 24 classic shadcn theme-surface colour tokens (background/foreground, card, popover, primary, secondary, muted, accent and destructive — each with its -foreground — plus border, input, ring and chart-1..5), so it drops in as an alternate [data-theme] block. It does NOT override the system's other 79 base colour tokens, which inherit the base theme: the success/warning/info status families and their -soft variants, the sidebar-* and sidebar-rail-* tokens, surface-sunken, border-strong, surface-contrast, and the fixed-mode dark-*/light-* mirrors. Its light and dark blocks are identical, so the preset renders the same in both modes.",
 
   "light": {
     "background": { "$type": "color", "$value": "hsl(36 39% 88%)" },
