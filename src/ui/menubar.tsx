@@ -18,7 +18,7 @@ function Menubar({
         // Issue 07e: h-9 rewired to control-height-default (Finding 1,
         // the height ladder is already job-named). p-1 container padding
         // stays raw — out of scope.
-        "flex h-control-height-default items-center gap-1 rounded-md border bg-background p-1 shadow-xs",
+        "flex h-control-height-default items-center gap-1 rounded-md border bg-background p-1 shadow-elevation-xs",
         className
       )}
       {...props}

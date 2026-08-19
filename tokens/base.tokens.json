@@ -33,6 +33,13 @@
       { "offsetX": { "value": 0, "unit": "" }, "offsetY": { "value": 4, "unit": "px" }, "blur": { "value": 6, "unit": "px" }, "spread": { "value": -4, "unit": "px" }, "color": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0.1 } }
     ]
   },
+  "elevation-xs": {
+    "$type": "shadow",
+    "$description": "Tailwind's shadow-xs, the lowest input-control tier. Authored in its own family commit (deferred by Issue 07j, which named only elevation-md/lg): the xs value is the most-shared elevation in src/ui, on sixteen resting form controls — button-group, button (outline), calendar, checkbox, combobox, input-group, input-otp, input, menubar (root bar), native-select, radio-group, select, switch, textarea, toggle-group (outline+spacing), toggle (outline). Value byte-identical to Tailwind's own --shadow-xs (0 1px 2px 0, black at 0.05 alpha), a single layer, authored srgb with unitless zero offset/spread so the emitted string matches Tailwind's own source and flows through the identical minifier, converging to the same #0000000d compiled colour — no rendered pixel changes. Named for the tier, like elevation-md/lg, because the value is a shared resting-control elevation, not one widget's. Mapped in system.css to shadow-elevation-xs, a distinct utility that leaves Tailwind's stock .shadow-xs untouched for any out-of-scope consumer. Like elevation-md/lg it hardcodes the colour rather than keeping stock shadow-xs's var(--tw-shadow-color,#0000000d) substitution — identical render because no consumer pairs a shadow-<color> with it.",
+    "$value": [
+      { "offsetX": { "value": 0, "unit": "" }, "offsetY": { "value": 1, "unit": "px" }, "blur": { "value": 2, "unit": "px" }, "spread": { "value": 0, "unit": "" }, "color": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0.05 } }
+    ]
+  },
 
   "font-size-12": { "$type": "dimension", "$value": { "value": 12, "unit": "px" } },
   "font-size-14": { "$type": "dimension", "$value": { "value": 14, "unit": "px" } },

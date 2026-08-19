@@ -148,8 +148,8 @@ const SLOT_TABLE = [
   { file: "src/ui/field.tsx", slot: "FieldError", role: "body", anchor: "text-body text-destructive" },
   { file: "src/ui/input-group.tsx", slot: "InputGroupButton", role: "body", anchor: "gap-2 text-body shadow-none" },
   { file: "src/ui/input-group.tsx", slot: "InputGroupText", role: "body", anchor: "gap-2 text-body text-muted-foreground" },
-  { file: "src/ui/input-otp.tsx", slot: "InputOTPSlot", role: "body", anchor: "border-input text-body shadow-xs" },
-  { file: "src/ui/native-select.tsx", slot: "NativeSelect", role: "body", anchor: "pr-9 text-body shadow-xs" },
+  { file: "src/ui/input-otp.tsx", slot: "InputOTPSlot", role: "body", anchor: "border-y border-r border-input text-body", note: "Issue 07(xs): anchor dropped its trailing shadow-xs substring when that utility rewired to shadow-elevation-xs — structural border-y border-r prefix isolates the same literal without quoting the rewired utility." },
+  { file: "src/ui/native-select.tsx", slot: "NativeSelect", role: "body", anchor: "pr-9 text-body", note: "Issue 07(xs): anchor dropped its trailing shadow-xs substring when that utility rewired to shadow-elevation-xs — pr-9 (the chevron gutter) is unique to this literal and needs no shadow quote." },
   { file: "src/ui/textarea.tsx", slot: "Textarea (md breakpoint)", role: "body", anchor: "md:text-body" },
   { file: "src/ui/sidebar.tsx", slot: "SidebarGroupContent", role: "body", anchor: "w-full text-body" },
   { file: "src/ui/sidebar.tsx", slot: "SidebarMenuButton base (cva)", role: "body", anchor: "text-left text-body ring-sidebar-ring" },
@@ -1336,10 +1336,19 @@ if (densityFailures.length === 0) {
 // keep Tailwind's stock shadow-md/shadow-lg until their own file-scope commits.
 //
 // Expected literals are transcribed from Tailwind's own theme.css (--shadow-md,
-// --shadow-lg), with its source colour rgb(0 0 0 / 0.1) written in the #0000001a
-// hex-alpha form the same minifier compiles it to — an independent source, never read
-// back out of dist/system.css.
+// --shadow-lg, --shadow-xs), with its source colour written in the hex-alpha form the
+// same minifier compiles it to (rgb(0 0 0 / 0.1) → #0000001a, rgb(0 0 0 / 0.05) →
+// #0000000d) — an independent source, never read back out of dist/system.css.
+//
+// Issue 07(xs): elevation-xs is the sixteen-file family 07j deferred — button-group,
+// button, calendar, checkbox, combobox, input-group, input-otp, input, menubar,
+// native-select, radio-group, select, switch, textarea, toggle-group, toggle. Named by
+// tier and byte-identical to Tailwind's --shadow-xs, so all sixteen render exactly what
+// stock shadow-xs rendered before. None of the sixteen applies a shadow-<colour>, so the
+// var()-hop form (--tw-shadow:var(--elevation-xs), colour hard-coded) and stock's
+// substitutable-colour form resolve to the same pixels — the accepted 07j tradeoff.
 const ELEVATION_EXPECTED = {
+  "elevation-xs": "0 1px 2px 0 #0000000d",
   "elevation-md": "0 4px 6px -1px #0000001a, 0 2px 4px -2px #0000001a",
   "elevation-lg": "0 10px 15px -3px #0000001a, 0 4px 6px -4px #0000001a",
 }
@@ -1380,6 +1389,104 @@ const ELEVATION_SLOT_TABLE = [
     slot: "ContextMenuSubContent",
     anchor: "origin-(--radix-context-menu-content-transform-origin) overflow-hidden",
     token: "elevation-lg",
+  },
+  // elevation-xs — the sixteen-file family (07j deferral). Anchors are structural
+  // fragments of each slot's own literal, never the shadow utility being rewired.
+  {
+    file: "src/ui/button-group.tsx",
+    slot: "ButtonGroup (root)",
+    anchor: "bg-muted px-4 text-control",
+    token: "elevation-xs",
+  },
+  {
+    file: "src/ui/button.tsx",
+    slot: "buttonVariants outline",
+    anchor: "dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+    token: "elevation-xs",
+  },
+  {
+    file: "src/ui/calendar.tsx",
+    slot: "dropdown_root",
+    anchor: "has-focus:border-ring has-focus:ring-[3px]",
+    token: "elevation-xs",
+  },
+  {
+    file: "src/ui/checkbox.tsx",
+    slot: "CheckboxPrimitive.Root",
+    anchor: "peer size-4 shrink-0 rounded-[4px]",
+    token: "elevation-xs",
+  },
+  {
+    file: "src/ui/combobox.tsx",
+    slot: "ComboboxAnchor (trigger)",
+    anchor: "bg-clip-padding px-2.5 py-1.5",
+    token: "elevation-xs",
+  },
+  {
+    file: "src/ui/input-group.tsx",
+    slot: "InputGroup (root)",
+    anchor: "group/input-group relative flex w-full items-center",
+    token: "elevation-xs",
+  },
+  {
+    file: "src/ui/input-otp.tsx",
+    slot: "InputOTPSlot",
+    anchor: "first:rounded-l-md first:border-l last:rounded-r-md",
+    token: "elevation-xs",
+  },
+  {
+    file: "src/ui/input.tsx",
+    slot: "Input (root)",
+    anchor: "px-input-padding-x py-input-padding-y",
+    token: "elevation-xs",
+  },
+  {
+    file: "src/ui/menubar.tsx",
+    slot: "MenubarMenu (root bar)",
+    anchor: "gap-1 rounded-md border bg-background p-1",
+    token: "elevation-xs",
+  },
+  {
+    file: "src/ui/native-select.tsx",
+    slot: "NativeSelect (root)",
+    anchor: "appearance-none rounded-md border border-input",
+    token: "elevation-xs",
+  },
+  {
+    file: "src/ui/radio-group.tsx",
+    slot: "RadioGroupItem",
+    anchor: "aspect-square size-4 shrink-0 rounded-full",
+    token: "elevation-xs",
+  },
+  {
+    file: "src/ui/select.tsx",
+    slot: "SelectTrigger",
+    anchor: "w-fit items-center justify-between gap-2",
+    token: "elevation-xs",
+  },
+  {
+    file: "src/ui/switch.tsx",
+    slot: "Switch (root)",
+    anchor: "group/switch inline-flex shrink-0",
+    token: "elevation-xs",
+  },
+  {
+    file: "src/ui/textarea.tsx",
+    slot: "Textarea (root)",
+    anchor: "field-sizing-content min-h-16",
+    token: "elevation-xs",
+  },
+  {
+    file: "src/ui/toggle-group.tsx",
+    slot: "ToggleGroup (root)",
+    anchor: "gap-[--spacing(var(--gap))]",
+    token: "elevation-xs",
+  },
+  {
+    file: "src/ui/toggle.tsx",
+    slot: "toggleVariants outline",
+    anchor: "border border-input bg-transparent",
+    token: "elevation-xs",
   },
 ]
 

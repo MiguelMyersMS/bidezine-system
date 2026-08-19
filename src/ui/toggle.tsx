@@ -14,7 +14,7 @@ const toggleVariants = cva(
       variant: {
         default: "bg-transparent",
         outline:
-          "border border-input bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground",
+          "border border-input bg-transparent shadow-elevation-xs hover:bg-accent hover:text-accent-foreground",
       },
       size: {
         // Issue 07e: height/min-w rewired to the shared control-height-*
