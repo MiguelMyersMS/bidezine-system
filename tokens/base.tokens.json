@@ -40,6 +40,14 @@
       { "offsetX": { "value": 0, "unit": "" }, "offsetY": { "value": 1, "unit": "px" }, "blur": { "value": 2, "unit": "px" }, "spread": { "value": 0, "unit": "" }, "color": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0.05 } }
     ]
   },
+  "elevation-sm": {
+    "$type": "shadow",
+    "$description": "Tailwind's shadow-sm, the resting tier one step above elevation-xs. Authored in its own family commit (deferred alongside xs by Issue 07j, which named only elevation-md/lg): five consumers across four files — card (root), slider (thumb), tabs (active trigger, default variant) and sidebar's two structural variants (floating panel + inset frame). Excluding sidebar's variants the count is still three genuinely distinct files (card, slider, tabs), clearing the three-consumer line; the tabs consumer was not in the queue's own file list (which named card/slider/sidebar) and is included because tabs.tsx's active-trigger data-[state=active]:shadow-sm is a real resting-elevation job, not a reset — the shadow-none on the same line is the line-variant reset and is left raw. Value byte-identical to Tailwind's own --shadow-sm (0 1px 3px 0 / 0 1px 2px -1px, black at 0.1 alpha), two layers, authored srgb with unitless zero offsets so the emitted string matches Tailwind's own source and flows through the identical minifier, converging to the same #0000001a compiled colour — no rendered pixel changes. Named for the tier, like elevation-xs/md/lg. Mapped in system.css to shadow-elevation-sm, a distinct utility that leaves Tailwind's stock .shadow-sm untouched for any out-of-scope consumer. Like the other tiers it hardcodes the colour rather than keeping stock's var(--tw-shadow-color) substitution — identical render because no consumer pairs a shadow-<color> with it.",
+    "$value": [
+      { "offsetX": { "value": 0, "unit": "" }, "offsetY": { "value": 1, "unit": "px" }, "blur": { "value": 3, "unit": "px" }, "spread": { "value": 0, "unit": "" }, "color": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0.1 } },
+      { "offsetX": { "value": 0, "unit": "" }, "offsetY": { "value": 1, "unit": "px" }, "blur": { "value": 2, "unit": "px" }, "spread": { "value": -1, "unit": "px" }, "color": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0.1 } }
+    ]
+  },
 
   "font-size-12": { "$type": "dimension", "$value": { "value": 12, "unit": "px" } },
   "font-size-14": { "$type": "dimension", "$value": { "value": 14, "unit": "px" } },

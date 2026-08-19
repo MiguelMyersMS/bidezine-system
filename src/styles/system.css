@@ -268,13 +268,14 @@
    * families — and upstream shadcn — agree: root=md, sub=lg, no inversion
    * (context-menu merely declares SubContent before Content in source).
    * Values are byte-identical to Tailwind's --shadow-md/lg; see
-   * tokens/base.tokens.json's Issue 07j paragraph. xs is tokenised in its own
-   * family commit (elevation-xs below); sm is deferred to its own; xl stays
+   * tokens/base.tokens.json's Issue 07j paragraph. xs and sm are tokenised in
+   * their own family commits (elevation-xs / elevation-sm below); xl stays
    * single-consumer (chart.tsx's tooltip) and shadow-none stays a reset.
    */
   --shadow-elevation-md: var(--elevation-md);
   --shadow-elevation-lg: var(--elevation-lg);
   --shadow-elevation-xs: var(--elevation-xs);
+  --shadow-elevation-sm: var(--elevation-sm);
 }
 
 /*

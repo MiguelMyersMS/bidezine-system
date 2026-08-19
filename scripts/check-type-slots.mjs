@@ -1336,9 +1336,10 @@ if (densityFailures.length === 0) {
 // keep Tailwind's stock shadow-md/shadow-lg until their own file-scope commits.
 //
 // Expected literals are transcribed from Tailwind's own theme.css (--shadow-md,
-// --shadow-lg, --shadow-xs), with its source colour written in the hex-alpha form the
-// same minifier compiles it to (rgb(0 0 0 / 0.1) → #0000001a, rgb(0 0 0 / 0.05) →
-// #0000000d) — an independent source, never read back out of dist/system.css.
+// --shadow-lg, --shadow-xs, --shadow-sm), with its source colour written in the
+// hex-alpha form the same minifier compiles it to (rgb(0 0 0 / 0.1) → #0000001a,
+// rgb(0 0 0 / 0.05) → #0000000d) — an independent source, never read back out of
+// dist/system.css.
 //
 // Issue 07(xs): elevation-xs is the sixteen-file family 07j deferred — button-group,
 // button, calendar, checkbox, combobox, input-group, input-otp, input, menubar,
@@ -1347,8 +1348,17 @@ if (densityFailures.length === 0) {
 // stock shadow-xs rendered before. None of the sixteen applies a shadow-<colour>, so the
 // var()-hop form (--tw-shadow:var(--elevation-xs), colour hard-coded) and stock's
 // substitutable-colour form resolve to the same pixels — the accepted 07j tradeoff.
+//
+// Issue 07(sm): elevation-sm is the five-consumer / four-file family also deferred by
+// 07j — card (root), slider (thumb), tabs (active trigger, default variant) and sidebar's
+// floating + inset variants. Excluding sidebar's two variants the count is three distinct
+// files (card, slider, tabs), clearing the three-consumer line. Byte-identical to
+// Tailwind's --shadow-sm (two layers), same var()-hop / same-pixels tradeoff. tabs.tsx's
+// literal carries shadow-none beside its shadow-elevation-sm (the line-variant reset,
+// left raw) — Link A4 matches on shadow-elevation-sm regardless.
 const ELEVATION_EXPECTED = {
   "elevation-xs": "0 1px 2px 0 #0000000d",
+  "elevation-sm": "0 1px 3px 0 #0000001a, 0 1px 2px -1px #0000001a",
   "elevation-md": "0 4px 6px -1px #0000001a, 0 2px 4px -2px #0000001a",
   "elevation-lg": "0 10px 15px -3px #0000001a, 0 4px 6px -4px #0000001a",
 }
@@ -1487,6 +1497,38 @@ const ELEVATION_SLOT_TABLE = [
     slot: "toggleVariants outline",
     anchor: "border border-input bg-transparent",
     token: "elevation-xs",
+  },
+  // elevation-sm — the five-consumer / four-file family (07j deferral). Structural
+  // anchors, never the shadow utility. sidebar contributes two variant slots.
+  {
+    file: "src/ui/card.tsx",
+    slot: "Card (root)",
+    anchor: "rounded-xl border bg-card py-6",
+    token: "elevation-sm",
+  },
+  {
+    file: "src/ui/sidebar.tsx",
+    slot: "Sidebar floating variant",
+    anchor: "group-data-[variant=floating]:border-sidebar-border",
+    token: "elevation-sm",
+  },
+  {
+    file: "src/ui/sidebar.tsx",
+    slot: "Sidebar inset variant",
+    anchor: "md:peer-data-[variant=inset]:rounded-xl",
+    token: "elevation-sm",
+  },
+  {
+    file: "src/ui/slider.tsx",
+    slot: "SliderThumb",
+    anchor: "rounded-full border border-primary bg-white",
+    token: "elevation-sm",
+  },
+  {
+    file: "src/ui/tabs.tsx",
+    slot: "TabsTrigger (active, default variant)",
+    anchor: "h-[calc(100%-1px)] flex-1",
+    token: "elevation-sm",
   },
 ]
 
