@@ -157,7 +157,7 @@ const SLOT_TABLE = [
   { file: "src/ui/rail-sidebar.tsx", slot: "Panel search input (outer)", role: "body", anchor: "h-8 text-body" },
   { file: "src/ui/rail-sidebar.tsx", slot: "Panel search input (inputClassName)", role: "body", anchor: "text-body", exact: true, note: "Issue 06h decision 2: inputClassName is a prop reaching SearchInput's inner Input, not this element's own className — see the comment at this call site for why it deliberately overrides Input's own responsive text-body-lg md:text-body rather than being redundant or deleted. Bare literal, a strict substring of every other text-body literal in this file; exact: true isolates it, same technique as 06f." },
 
-  { file: "src/ui/input.tsx", slot: "Input (base breakpoint)", role: "body-lg", anchor: "px-3 py-1 text-body-lg" },
+  { file: "src/ui/input.tsx", slot: "Input (base breakpoint)", role: "body-lg", anchor: "py-control-padding-y-compact text-body-lg" },
   { file: "src/ui/field.tsx", slot: "FieldLegend (variant=legend)", role: "body-lg", anchor: "data-[variant=legend]:text-body-lg" },
   { file: "src/ui/textarea.tsx", slot: "Textarea (base breakpoint)", role: "body-lg", anchor: "px-3 py-2 text-body-lg" },
   { file: "src/ui/rail-sidebar.tsx", slot: "Panel title", role: "body-lg", anchor: "text-body-lg font-medium", note: "Issue 06h decision 1: 16px at weight 500 — no role is 16/24/500 (text-body-lg is weight 400), so this is the role plus a bare font-medium weight override, same pattern as empty.tsx's EmptyTitle." },
@@ -186,7 +186,7 @@ const SLOT_TABLE = [
   { file: "src/ui/message.tsx", slot: "MessageFooter", role: "control-sm", anchor: "group-data-[align=end]/message:justify-end", note: "Issue 06g decision 1: a genuinely distinct, previously-unverified slot — shipped text-xs font-medium (collapses to text-control-sm; font-medium dropped) until this rewire, separate from MessageHeader above." },
   { file: "src/ui/combobox.tsx", slot: "Combobox chip", role: "control-sm", anchor: "bg-muted px-1.5 text-control-sm" },
   { file: "src/ui/badge.tsx", slot: "Badge emphasis", role: "control-sm", anchor: "text-control-sm" },
-  { file: "src/ui/button.tsx", slot: "Button size=xs (cva)", role: "control-sm", anchor: "h-6 gap-1 rounded-md px-2 text-control-sm has-[>svg]:px-1.5", note: "Issue 06g: base cva already supplies text-control unconditionally; size=xs previously overrode only the raw text-xs size utility, relying on the base's weight/tracking to still cascade. Replacing it with text-control-sm makes the recipe self-contained." },
+  { file: "src/ui/button.tsx", slot: "Button size=xs (cva)", role: "control-sm", anchor: "rounded-md px-control-padding-x-xs text-control-sm", note: "Issue 06g: base cva already supplies text-control unconditionally; size=xs previously overrode only the raw text-xs size utility, relying on the base's weight/tracking to still cascade. Replacing it with text-control-sm makes the recipe self-contained. Issue 07c: anchor updated from the raw \"h-6 gap-1 rounded-md px-2\" substring, since Issue 07c's density rewire replaced those raw utilities with named control-height-xs/control-padding-x-xs tokens — the role check below is unaffected, only the source anchor moved." },
 
   { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenu shortcut", role: "shortcut", anchor: "ml-auto text-shortcut" },
   { file: "src/ui/context-menu.tsx", slot: "ContextMenu shortcut", role: "shortcut", anchor: "ml-auto text-shortcut" },
@@ -597,6 +597,211 @@ function checkLinkB2(css, leading) {
   return { ok: true, detail: `line-height ${expected} (unitless, via var(${varMatch[1]}))` }
 }
 
+// ── the density slot table (Issue 07c) ─────────────────────────────────────────────
+// Neither the role table above nor the leading-axis table fits this axis. A role is
+// one utility setting four properties; leading-* is one token setting one property.
+// Density is neither: each rewired slot mixes several DIFFERENT CSS properties
+// (height, padding-inline, padding-block), each traced to its OWN token, and one
+// height token (`control-height-*`) is consumed by two different Tailwind utility
+// namespaces at once — `h-<name>` on a control with content, `size-<name>` on an
+// icon-only one, both compiling to the same custom property. So a slot here is a
+// small list of (utility, token) pairs, not a fixed four-property shape — extending
+// EXPECTED/SLOT_TABLE would force every role's four-property check to grow columns
+// it doesn't have, and reusing LEADING_SLOT_TABLE's one-token-one-property shape
+// would silently drop everything but one of a slot's several properties. A third,
+// small parallel table with its own two links, same as 07b did for leading-*.
+//
+// Only button.tsx and input.tsx are rewired this issue (Issue 07c scope), so this
+// table proves exactly those two files' slots — one entry per CVA size variant plus
+// one for Input, never a role, since none of these elements' sizes were ever claimed
+// by a role in the first place (that is the whole reason this axis exists).
+const DENSITY_EXPECTED = {
+  "control-height-xs": "1.5rem",
+  "control-height-sm": "2rem",
+  "control-height-default": "2.25rem",
+  "control-height-lg": "2.5rem",
+  "control-padding-x-icon-xs": ".375rem",
+  "control-padding-x-xs": ".5rem",
+  "control-padding-x-icon-sm": ".625rem",
+  "control-padding-x-sm": ".75rem",
+  "control-padding-x-default": "1rem",
+  "control-padding-y-compact": ".25rem",
+  "control-padding-y-default": ".5rem",
+}
+
+const DENSITY_SLOT_TABLE = [
+  {
+    file: "src/ui/button.tsx",
+    slot: 'Button size="default"',
+    anchor: "control-padding-y-default",
+    props: [
+      { util: "h", token: "control-height-default" },
+      { util: "px", token: "control-padding-x-default" },
+      { util: "py", token: "control-padding-y-default" },
+      { util: "px", token: "control-padding-x-sm", compound: true },
+    ],
+  },
+  {
+    file: "src/ui/button.tsx",
+    slot: 'Button size="xs"',
+    anchor: "text-control-sm",
+    props: [
+      { util: "h", token: "control-height-xs" },
+      { util: "px", token: "control-padding-x-xs" },
+      { util: "px", token: "control-padding-x-icon-xs", compound: true },
+    ],
+  },
+  {
+    file: "src/ui/button.tsx",
+    slot: 'Button size="sm"',
+    anchor: "gap-1.5 rounded-md",
+    props: [
+      { util: "h", token: "control-height-sm" },
+      { util: "px", token: "control-padding-x-sm" },
+      { util: "px", token: "control-padding-x-icon-sm", compound: true },
+    ],
+  },
+  {
+    file: "src/ui/button.tsx",
+    slot: 'Button size="lg"',
+    anchor: "rounded-md px-6",
+    props: [
+      { util: "h", token: "control-height-lg" },
+      { util: "px", token: "control-padding-x-default", compound: true },
+    ],
+  },
+  {
+    file: "src/ui/button.tsx",
+    slot: 'Button size="icon"',
+    anchor: "size-control-height-default",
+    exact: true,
+    props: [{ util: "size", token: "control-height-default" }],
+  },
+  {
+    file: "src/ui/button.tsx",
+    slot: 'Button size="icon-xs"',
+    anchor: "size-control-height-xs rounded-md",
+    props: [{ util: "size", token: "control-height-xs" }],
+  },
+  {
+    file: "src/ui/button.tsx",
+    slot: 'Button size="icon-sm"',
+    anchor: "size-control-height-sm",
+    exact: true,
+    props: [{ util: "size", token: "control-height-sm" }],
+  },
+  {
+    file: "src/ui/button.tsx",
+    slot: 'Button size="icon-lg"',
+    anchor: "size-control-height-lg",
+    exact: true,
+    props: [{ util: "size", token: "control-height-lg" }],
+  },
+  {
+    file: "src/ui/input.tsx",
+    slot: "Input",
+    anchor: "control-padding-y-compact",
+    props: [
+      { util: "h", token: "control-height-default" },
+      { util: "px", token: "control-padding-x-sm" },
+      { util: "py", token: "control-padding-y-compact" },
+    ],
+  },
+]
+
+function densityClass(prop) {
+  return `${prop.compound ? "has-[>svg]:" : ""}${prop.util}-${prop.token}`
+}
+
+async function checkLinkA3(entry) {
+  const abs = join(REPO_ROOT, entry.file)
+  const raw = await readFile(abs, "utf8").catch(() => null)
+  if (raw === null) return { ok: false, detail: `file not found: ${entry.file}` }
+  const source = stripComments(raw)
+
+  const matches = []
+  for (const { value: cls, index, truncated } of classLiterals(source)) {
+    if (truncated) {
+      return { ok: false, detail: `${entry.file}: a literal exceeds the ${cls.length}+ char cap and was truncated before it could be fully checked — see lexical-scan.mjs` }
+    }
+    const anchorHit = entry.exact ? cls === entry.anchor : cls.includes(entry.anchor)
+    if (!anchorHit) continue
+    matches.push({ cls, index })
+  }
+
+  if (matches.length === 0) {
+    return { ok: false, detail: `no literal in ${entry.file} contains the anchor "${entry.anchor}"` }
+  }
+  if (matches.length > 1) {
+    return { ok: false, detail: `the anchor "${entry.anchor}" matches ${matches.length} literals in ${entry.file}; anchor is ambiguous` }
+  }
+
+  const { cls, index } = matches[0]
+  const missing = entry.props.map(densityClass).filter((c) => !cls.includes(c))
+  if (missing.length > 0) {
+    return { ok: false, detail: `literal at ${entry.file}:${lineOf(source, index)} is missing: ${missing.join(", ")}` }
+  }
+  return { ok: true, detail: `${entry.file}:${lineOf(source, index)}  "${cls.slice(0, 140)}"` }
+}
+
+// Same skip-to-literal reasoning as checkLinkB2: the token's custom property is
+// declared twice (the @theme self-reference marker, and the literal DTCG value
+// carried in unlayered from tokens.css); unlayered wins regardless of source order,
+// so the first declaration whose value is not itself a var() is what a browser uses.
+function resolveDensityVar(css, varName) {
+  const escaped = varName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  const declRe = new RegExp(`${escaped}:([^;}]+)[;}]`, "g")
+  let value = null
+  let m
+  while ((m = declRe.exec(css))) {
+    const v = m[1].trim()
+    if (!v.startsWith("var(")) {
+      value = v
+      break
+    }
+  }
+  return value
+}
+
+function checkLinkB3(css, prop) {
+  const expected = DENSITY_EXPECTED[prop.token]
+  const escapedToken = prop.token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  const cls = densityClass(prop)
+
+  // Tailwind escapes each special character in a compound variant's own class name
+  // ([, ], :, >) but leaves the real, following pseudo-class (`:has(>svg)`) alone —
+  // confirmed against dist/system.css's own compiled output before this literal was
+  // written, not assumed from the plain utility's escaping scheme.
+  const selectorLiteral = prop.compound
+    ? `.has-\\[\\>svg\\]\\:${prop.util}-${escapedToken}:has(>svg){`
+    : `.${prop.util}-${escapedToken}{`
+  const selectorRe = new RegExp(selectorLiteral.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "([^}]*)}")
+  const m = css.match(selectorRe)
+  if (!m) return { ok: false, detail: `.${cls}{…} not found in dist/system.css` }
+  const body = m[1]
+
+  if (prop.util === "size") {
+    const widthMatch = body.match(/width:var\((--control-[a-z0-9-]+)\)/)
+    const heightMatch = body.match(/height:var\((--control-[a-z0-9-]+)\)/)
+    if (!widthMatch || !heightMatch) return { ok: false, detail: `size-${prop.token} did not compile both width and height: ${body}` }
+    if (widthMatch[1] !== heightMatch[1]) {
+      return { ok: false, detail: `size-${prop.token} compiled width (${widthMatch[1]}) and height (${heightMatch[1]}) reference different custom properties` }
+    }
+    const value = resolveDensityVar(css, widthMatch[1])
+    if (value === null) return { ok: false, detail: `${widthMatch[1]} is referenced but never resolves to a literal value in dist/system.css` }
+    if (!sameCssNumber(value, expected)) return { ok: false, detail: `size-${prop.token}: expected ${expected}, compiled value is ${value}` }
+    return { ok: true, detail: `size-${prop.token} → width/height ${expected} (both, via var(${widthMatch[1]}))` }
+  }
+
+  const cssProp = prop.util === "px" ? "padding-inline" : prop.util === "py" ? "padding-block" : "height"
+  const varMatch = body.match(new RegExp(`${cssProp}:var\\((--control-[a-z0-9-]+)\\)`))
+  if (!varMatch) return { ok: false, detail: `no ${cssProp}:var(--control-${prop.token}) reference found in the compiled rule: ${body}` }
+  const value = resolveDensityVar(css, varMatch[1])
+  if (value === null) return { ok: false, detail: `${varMatch[1]} is referenced but never resolves to a literal value in dist/system.css` }
+  if (!sameCssNumber(value, expected)) return { ok: false, detail: `${cssProp}: expected ${expected}, compiled value is ${value}` }
+  return { ok: true, detail: `${cssProp} ${expected} (via var(${varMatch[1]}))` }
+}
+
 // ── run ─────────────────────────────────────────────────────────────────────────────
 let css
 try {
@@ -726,5 +931,55 @@ if (leadingFailures.length === 0) {
     if (!f.b.ok) console.log(`      Link B: ${f.b.detail}`)
   }
   console.log(`\n${LEADING_SLOT_TABLE.length - leadingFailures.length}/${LEADING_SLOT_TABLE.length} checks passed.`)
+  process.exitCode = 1
+}
+
+// ── the density slots (Issue 07c) ──────────────────────────────────────────────────
+const densityFailures = []
+let densityLinksChecked = 0
+let densityPropsChecked = 0
+
+console.log(`\nchecking ${DENSITY_SLOT_TABLE.length} density slot(s), 2 links each\n`)
+
+for (const entry of DENSITY_SLOT_TABLE) {
+  const a = await checkLinkA3(entry)
+  densityLinksChecked++
+  const bResults = entry.props.map((prop) => ({ prop, result: checkLinkB3(css, prop) }))
+  densityLinksChecked++
+  densityPropsChecked += entry.props.length
+  const bOk = bResults.every((r) => r.result.ok)
+
+  const label = `${entry.slot} (${entry.file} → ${entry.props.map(densityClass).join(", ")})`
+  if (a.ok && bOk) {
+    console.log(`  PASS  ${label}`)
+    console.log(`        A: ${a.detail}`)
+    for (const { prop, result } of bResults) console.log(`        B (${densityClass(prop)}): ${result.detail}`)
+  } else {
+    console.log(`  FAIL  ${label}`)
+    console.log(`        A: ${a.ok ? "ok — " + a.detail : "FAIL — " + a.detail}`)
+    for (const { prop, result } of bResults) {
+      console.log(`        B (${densityClass(prop)}): ${result.ok ? "ok — " + result.detail : "FAIL — " + result.detail}`)
+    }
+    densityFailures.push({ entry, a, bResults })
+  }
+}
+
+console.log(
+  `\n${DENSITY_SLOT_TABLE.length} slot(s), ${densityLinksChecked} link(s) (${densityPropsChecked} propert(y/ies) via Link B) checked, ${new Set(DENSITY_SLOT_TABLE.flatMap((e) => e.props.map((p) => p.token))).size} distinct density token(s)`,
+)
+
+if (densityFailures.length === 0) {
+  console.log(`\n  PASS  all ${DENSITY_SLOT_TABLE.length} density slots trace from source through to the compiled stylesheet`)
+  console.log(`\n${DENSITY_SLOT_TABLE.length}/${DENSITY_SLOT_TABLE.length} checks passed.`)
+} else {
+  console.log(`\n  FAIL  ${densityFailures.length} of ${DENSITY_SLOT_TABLE.length} density slot(s) did not verify:`)
+  for (const f of densityFailures) {
+    console.log(`    ${f.entry.file} — ${f.entry.slot}`)
+    if (!f.a.ok) console.log(`      Link A: ${f.a.detail}`)
+    for (const { prop, result } of f.bResults) {
+      if (!result.ok) console.log(`      Link B (${densityClass(prop)}): ${result.detail}`)
+    }
+  }
+  console.log(`\n${DENSITY_SLOT_TABLE.length - densityFailures.length}/${DENSITY_SLOT_TABLE.length} checks passed.`)
   process.exitCode = 1
 }

@@ -193,6 +193,30 @@
   --leading-grouped: var(--leading-grouped);
   --leading-clustered: var(--leading-clustered);
   --leading-prose: var(--leading-prose);
+
+  /*
+   * Issue 07c — the density axis, authored and proved on Button and Input
+   * only. Tailwind v4's --spacing-<name> theme key is confirmed (against
+   * the installed package's own compiled output, not documentation) to
+   * generate a named utility in every spacing-derived namespace at once —
+   * h-<name>, size-<name>, w-<name>, px-<name>, py-<name> and their
+   * has-[>svg]: compounds — so one token backs a control's fixed height and
+   * its icon-only square simultaneously. Unlike --leading-*, the token name
+   * itself is not the theme key; it is prefixed with --spacing- so Tailwind
+   * recognizes the namespace, then re-referenced from the token's own
+   * variable, same radius-sm/leading-* self-reference shape.
+   */
+  --spacing-control-height-xs: var(--control-height-xs);
+  --spacing-control-height-sm: var(--control-height-sm);
+  --spacing-control-height-default: var(--control-height-default);
+  --spacing-control-height-lg: var(--control-height-lg);
+  --spacing-control-padding-x-icon-xs: var(--control-padding-x-icon-xs);
+  --spacing-control-padding-x-xs: var(--control-padding-x-xs);
+  --spacing-control-padding-x-icon-sm: var(--control-padding-x-icon-sm);
+  --spacing-control-padding-x-sm: var(--control-padding-x-sm);
+  --spacing-control-padding-x-default: var(--control-padding-x-default);
+  --spacing-control-padding-y-compact: var(--control-padding-y-compact);
+  --spacing-control-padding-y-default: var(--control-padding-y-default);
 }
 
 /*
