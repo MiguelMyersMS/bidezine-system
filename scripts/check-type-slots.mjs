@@ -381,6 +381,32 @@ async function checkLinkA(entry) {
 //     extended. 07n named nothing into opacity either (0.5 is Tailwind's stock scale value
 //     serving two distinct jobs — disabled dimming and decorative de-emphasis), so this too
 //     is recorded, not fixed.
+//
+// Issue 07(item 6) extended this record to the axes that could take an elevation-style
+// Link C row, and to a real re-probe of leading and density rather than trusting the note
+// above. All four cn() calls below are real (src/lib/tw-merge.mjs, the module Link C uses):
+//   • ELEVATION — the merge config 07l added is SOUND: cn("shadow-elevation-md
+//     shadow-black/20") keeps BOTH (name and colour are different groups now), and
+//     cn("shadow-elevation-md shadow-lg") keeps only shadow-lg (proving the tier IS
+//     recognised as a box-shadow, so two tiers collapse last-wins). That is exactly what an
+//     elevation Link C row would assert. But it is NOT added: a scan of all 27 elevation
+//     consumers (build-time and by hand) finds ZERO literals carrying a shadow-<colour>
+//     beside a shadow-elevation-* tier — every site is a bare tier (+ tabs.tsx's shadow-none
+//     reset). With no qualifying literal a Link C4 would qualify 0 of 27 and assert nothing,
+//     the same empty guard 07n declined for ring. It becomes a real row the day a component
+//     stacks a shadow colour on an elevation tier; until then the collision cannot occur.
+//   • LEADING is SAFE from the deletion hazard: cn("leading-flush text-red-500 bg-blue-500")
+//     keeps all three — no colour [isAny] catch-all claims a leading-* name. (Two leadings,
+//     cn("leading-flush leading-6"), BOTH survive — tw-merge does not recognise the custom
+//     names AS line-height, an override hazard like opacity, never a deletion; and no recipe
+//     stacks two leadings, while Link A/B already prove each slot compiles.) Nothing added.
+//   • DENSITY is SAFE from the deletion hazard: cn("h-control-height-default text-red-500")
+//     and cn("size-control-height-default bg-red-500") each keep both — no colour catch-all
+//     claims h-/size-/px-. (custom-vs-stock h-/size- both survive, the same unrecognised-as-
+//     kind override nuance as leading; not a deletion, and no recipe stacks two heights.)
+//     Nothing added. Type Link C coverage is unchanged at 38 of 108 — no new rows exist to
+//     prove-fail, because manufacturing one where no literal collides is the empty guard this
+//     record exists to refuse.
 const TEXT_NON_COLOUR = new Set([
   "left", "center", "right", "justify", "start", "end", // text-align
   "wrap", "nowrap", "balance", "pretty", // text-wrap
