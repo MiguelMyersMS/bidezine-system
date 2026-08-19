@@ -213,6 +213,19 @@
    * Tailwind mapping and is only ever reached through a type-* role.
    * control-height-* is unchanged from 07c — the height ladder was never
    * the problem.
+   *
+   * Issue 07e — two families rewired (badge/toggle/kbd, dropdown-menu/
+   * context-menu/menubar) to settle per-component vs per-job naming; see
+   * tokens/base.tokens.json's own Issue 07e paragraph for the full finding.
+   * min-w-<name> was the one utility in the --spacing-<name> namespace this
+   * repo had not yet exercised (toggle.tsx pairs min-w- with h- to keep an
+   * icon-only toggle square) — confirmed generated in dist/system.css
+   * alongside h-/px-/py- before this comment was written, not assumed.
+   * Three new semantics: menu-item-padding-y (the menu row's own vertical
+   * padding, shared identically across all three menu files — a genuine
+   * job, not three components landing on the same number by coincidence),
+   * toggle-padding-x-lg and kbd-padding-x. All three point at an existing
+   * padding-* primitive; no new primitive was authored this issue.
    */
   --spacing-control-height-xs: var(--control-height-xs);
   --spacing-control-height-sm: var(--control-height-sm);
@@ -226,6 +239,9 @@
   --spacing-button-padding-y-default: var(--button-padding-y-default);
   --spacing-input-padding-x: var(--input-padding-x);
   --spacing-input-padding-y: var(--input-padding-y);
+  --spacing-menu-item-padding-y: var(--menu-item-padding-y);
+  --spacing-toggle-padding-x-lg: var(--toggle-padding-x-lg);
+  --spacing-kbd-padding-x: var(--kbd-padding-x);
 }
 
 /*

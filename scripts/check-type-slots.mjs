@@ -108,13 +108,13 @@ const SLOT_TABLE = [
   { file: "src/ui/item.tsx", slot: "ItemDescription", role: "body", anchor: "line-clamp-2 text-body text-balance", note: "absorbed slot — 21px → 20px line-height, deliberate." },
   { file: "src/ui/context-menu.tsx", slot: "ContextMenuSubTrigger", role: "body", anchor: "select-none focus:bg-accent focus:text-accent-foreground data-[inset]:pl-8 data-[state=open]:bg-accent" },
   { file: "src/ui/context-menu.tsx", slot: "ContextMenuItem", role: "body", anchor: "data-[variant=destructive]:text-destructive" },
-  { file: "src/ui/context-menu.tsx", slot: "ContextMenuCheckboxItem/RadioItem", role: "body", anchor: "py-1.5 pr-2 pl-8 text-body outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none", literals: 2, note: "CheckboxItem and RadioItem share one byte-identical recipe — two consumers, one entry." },
+  { file: "src/ui/context-menu.tsx", slot: "ContextMenuCheckboxItem/RadioItem", role: "body", anchor: "pr-2 pl-8 text-body outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none", literals: 2, note: "CheckboxItem and RadioItem share one byte-identical recipe — two consumers, one entry. Anchor repaired in Issue 07e after the rewire removed the py-1.5 substring this anchor used to quote (see docs on preferring a structural anchor over one that quotes a utility)." },
   { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuItem", role: "body", anchor: "active:bg-[var(--accent-pressed,var(--accent))]" },
   { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuCheckboxItem", role: "body", anchor: "data-[state=checked]:bg-accent/50" },
   { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuRadioItem", role: "body", anchor: "focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4" },
   { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuSubTrigger", role: "body", anchor: "data-[inset]:pl-8 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4" },
   { file: "src/ui/menubar.tsx", slot: "MenubarItem", role: "body", anchor: "data-[variant=destructive]:text-destructive" },
-  { file: "src/ui/menubar.tsx", slot: "MenubarCheckboxItem/RadioItem", role: "body", anchor: "rounded-xs py-1.5 pr-2 pl-8 text-body outline-hidden select-none", literals: 2, note: "CheckboxItem and RadioItem share one byte-identical recipe — two consumers, one entry." },
+  { file: "src/ui/menubar.tsx", slot: "MenubarCheckboxItem/RadioItem", role: "body", anchor: "pr-2 pl-8 text-body outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none", literals: 2, note: "CheckboxItem and RadioItem share one byte-identical recipe — two consumers, one entry. Anchor repaired in Issue 07e after the rewire removed the py-1.5 substring this anchor used to quote." },
   { file: "src/ui/menubar.tsx", slot: "MenubarSubTrigger", role: "body", anchor: "data-[inset]:pl-8 data-[state=open]:bg-accent" },
   { file: "src/ui/command.tsx", slot: "CommandInput", role: "body", anchor: "h-10 w-full rounded-md bg-transparent py-3 text-body outline-hidden placeholder:text-muted-foreground" },
   { file: "src/ui/command.tsx", slot: "CommandEmpty", role: "body", anchor: "py-6 text-center text-body" },
@@ -179,7 +179,7 @@ const SLOT_TABLE = [
   { file: "src/ui/rail-sidebar.tsx", slot: "Panel subtitle", role: "caption", anchor: "line-clamp-3 pl-[22px] text-caption text-muted-foreground" },
   { file: "src/ui/rail-sidebar.tsx", slot: "Panel search empty state", role: "caption", anchor: "px-2 py-3 text-caption text-muted-foreground" },
 
-  { file: "src/ui/kbd.tsx", slot: "Kbd", role: "control-sm", anchor: "bg-muted px-1 text-control-sm" },
+  { file: "src/ui/kbd.tsx", slot: "Kbd", role: "control-sm", anchor: "text-control-sm text-muted-foreground" },
   { file: "src/ui/sidebar.tsx", slot: "SidebarGroupLabel", role: "control-sm", anchor: "px-2 text-control-sm text-sidebar-foreground/70" },
   { file: "src/ui/sidebar.tsx", slot: "SidebarMenuBadge", role: "control-sm", anchor: "text-control-sm text-sidebar-foreground tabular-nums", note: "text-xs font-medium collapses to text-control-sm; font-medium dropped, tabular-nums kept." },
   { file: "src/ui/message.tsx", slot: "MessageHeader", role: "control-sm", anchor: "flex max-w-full min-w-0 items-center px-3 text-control-sm text-muted-foreground group-has-data-[variant=ghost]/message:px-0", exact: true, note: "Issue 06g decision 1: renamed from \"Message author\" — the data-slot is literally message-header, there is no message-author element. Rewiring MessageFooter (line 77) made this entry's old substring anchor (\"px-3 text-control-sm text-muted-foreground\") ambiguous, since MessageHeader's full literal is itself a strict prefix of MessageFooter's new literal (Footer = Header + \" group-data-[align=end]/message:justify-end\"). exact: true over the full literal isolates Header again; this is not a false pass — the entry always correctly matched MessageHeader, which already shipped text-control-sm with no weight utility." },
@@ -624,6 +624,10 @@ function checkLinkB2(css, leading) {
 // Issue 07d comment) — so DENSITY_EXPECTED below still keys by the name a class
 // string actually uses; only the names themselves changed, not the shape of the
 // check. control-height-* is untouched from 07c.
+//
+// Issue 07e added three more semantics from rewiring badge/toggle/kbd and
+// dropdown-menu/context-menu/menubar — menu-item-padding-y (shared, multi-file),
+// toggle-padding-x-lg and kbd-padding-x — and no new primitive.
 const DENSITY_EXPECTED = {
   "control-height-xs": "1.5rem",
   "control-height-sm": "2rem",
@@ -637,6 +641,9 @@ const DENSITY_EXPECTED = {
   "button-padding-y-default": ".5rem",
   "input-padding-x": ".75rem",
   "input-padding-y": ".25rem",
+  "menu-item-padding-y": ".375rem",
+  "toggle-padding-x-lg": ".625rem",
+  "kbd-padding-x": ".25rem",
 }
 
 const DENSITY_SLOT_TABLE = [
@@ -716,6 +723,136 @@ const DENSITY_SLOT_TABLE = [
       { util: "px", token: "input-padding-x" },
       { util: "py", token: "input-padding-y" },
     ],
+  },
+  // Issue 07e — toggle.tsx: heights are Finding 1 (control-height-* ladder,
+  // already job-named). lg's own padding is Finding 2 (toggle-padding-x-lg,
+  // a genuine second job on padding-10). default/sm's own padding stays raw
+  // — both landed on primitives already at their two-semantic cap.
+  {
+    file: "src/ui/toggle.tsx",
+    slot: 'Toggle size="default"',
+    anchor: "h-control-height-default",
+    props: [
+      { util: "h", token: "control-height-default" },
+      { util: "min-w", token: "control-height-default" },
+    ],
+  },
+  {
+    file: "src/ui/toggle.tsx",
+    slot: 'Toggle size="sm"',
+    anchor: "h-control-height-sm",
+    props: [
+      { util: "h", token: "control-height-sm" },
+      { util: "min-w", token: "control-height-sm" },
+    ],
+  },
+  {
+    file: "src/ui/toggle.tsx",
+    slot: 'Toggle size="lg"',
+    anchor: "h-control-height-lg",
+    props: [
+      { util: "h", token: "control-height-lg" },
+      { util: "min-w", token: "control-height-lg" },
+      { util: "px", token: "toggle-padding-x-lg" },
+    ],
+  },
+  // Issue 07e — kbd.tsx: px-1 is Finding 2 (kbd-padding-x, a horizontal job
+  // distinct from input-padding-y's vertical one). h-5/min-w-5 (20px) stay
+  // raw — no ladder rung matches, single consumer.
+  {
+    file: "src/ui/kbd.tsx",
+    slot: "Kbd",
+    anchor: "text-control-sm",
+    props: [{ util: "px", token: "kbd-padding-x" }],
+  },
+  // Issue 07e — menubar.tsx: root height is Finding 1 (control-height-
+  // default). Item/Label/SubTrigger's own vertical padding is Finding 1
+  // against menu-item-padding-y, shared identically with dropdown-menu.tsx
+  // and context-menu.tsx's own Item/Label/SubTrigger. CheckboxItem and
+  // RadioItem are rewired in source too but share one byte-identical
+  // literal each with the other, so no anchor can distinguish them for
+  // this table — see the file's own comment; proven only via Item/Label/
+  // SubTrigger, which is enough to prove the shared token compiles.
+  {
+    file: "src/ui/menubar.tsx",
+    slot: "Menubar root",
+    anchor: "border bg-background",
+    props: [{ util: "h", token: "control-height-default" }],
+  },
+  {
+    file: "src/ui/menubar.tsx",
+    slot: "MenubarItem",
+    anchor: "dark:data-[variant=destructive]:focus:bg-destructive/20",
+    props: [{ util: "py", token: "menu-item-padding-y" }],
+  },
+  {
+    file: "src/ui/menubar.tsx",
+    slot: "MenubarLabel",
+    anchor: "text-control data-[inset]:pl-8",
+    props: [{ util: "py", token: "menu-item-padding-y" }],
+  },
+  {
+    file: "src/ui/menubar.tsx",
+    slot: "MenubarSubTrigger",
+    anchor: "outline-none",
+    props: [{ util: "py", token: "menu-item-padding-y" }],
+  },
+  // Issue 07e — dropdown-menu.tsx: Item/CheckboxItem/RadioItem/Label/
+  // SubTrigger's own vertical padding is Finding 1 against menu-item-
+  // padding-y, shared identically with context-menu.tsx and menubar.tsx's
+  // own equivalents.
+  {
+    file: "src/ui/dropdown-menu.tsx",
+    slot: "DropdownMenuItem",
+    anchor: "data-[active=true]:font-medium",
+    props: [{ util: "py", token: "menu-item-padding-y" }],
+  },
+  {
+    file: "src/ui/dropdown-menu.tsx",
+    slot: "DropdownMenuCheckboxItem",
+    anchor: "data-[state=checked]:bg-accent/50",
+    props: [{ util: "py", token: "menu-item-padding-y" }],
+  },
+  {
+    file: "src/ui/dropdown-menu.tsx",
+    slot: "DropdownMenuRadioItem",
+    anchor: "focus:text-accent-foreground data-[disabled]:pointer-events-none",
+    props: [{ util: "py", token: "menu-item-padding-y" }],
+  },
+  {
+    file: "src/ui/dropdown-menu.tsx",
+    slot: "DropdownMenuLabel",
+    anchor: "text-control data-[inset]:pl-8",
+    props: [{ util: "py", token: "menu-item-padding-y" }],
+  },
+  {
+    file: "src/ui/dropdown-menu.tsx",
+    slot: "DropdownMenuSubTrigger",
+    anchor: "dm-subicon-fg",
+    props: [{ util: "py", token: "menu-item-padding-y" }],
+  },
+  // Issue 07e — context-menu.tsx: Item/Label/SubTrigger's own vertical
+  // padding is Finding 1 against menu-item-padding-y. CheckboxItem and
+  // RadioItem are rewired in source too but share one byte-identical
+  // literal each with the other — same mechanism limitation as menubar.tsx,
+  // not proven individually here.
+  {
+    file: "src/ui/context-menu.tsx",
+    slot: "ContextMenuSubTrigger",
+    anchor: "data-[state=open]:bg-accent",
+    props: [{ util: "py", token: "menu-item-padding-y" }],
+  },
+  {
+    file: "src/ui/context-menu.tsx",
+    slot: "ContextMenuItem",
+    anchor: "dark:data-[variant=destructive]:focus:bg-destructive/20",
+    props: [{ util: "py", token: "menu-item-padding-y" }],
+  },
+  {
+    file: "src/ui/context-menu.tsx",
+    slot: "ContextMenuLabel",
+    anchor: "text-control text-foreground",
+    props: [{ util: "py", token: "menu-item-padding-y" }],
   },
 ]
 
@@ -803,7 +940,18 @@ function checkLinkB3(css, prop) {
     return { ok: true, detail: `size-${prop.token} → width/height ${expected} (both, via var(${widthMatch[1]}))` }
   }
 
-  const cssProp = prop.util === "px" ? "padding-inline" : prop.util === "py" ? "padding-block" : "height"
+  // Issue 07e: toggle.tsx pairs min-w-<name> with h-<name> to keep an
+  // icon-only toggle square, the first min-w- consumer this table has
+  // ever needed — added alongside height/padding, not folded into the
+  // catch-all "else" that used to mean only height.
+  const cssProp =
+    prop.util === "px"
+      ? "padding-inline"
+      : prop.util === "py"
+        ? "padding-block"
+        : prop.util === "min-w"
+          ? "min-width"
+          : "height"
   const varMatch = body.match(new RegExp(`${cssProp}:var\\((--[a-z0-9-]+)\\)`))
   if (!varMatch) return { ok: false, detail: `no ${cssProp}:var(--${prop.token}) reference found in the compiled rule: ${body}` }
   const value = resolveDensityVar(css, varMatch[1])

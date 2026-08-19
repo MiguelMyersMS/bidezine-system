@@ -17,9 +17,16 @@ const toggleVariants = cva(
           "border border-input bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground",
       },
       size: {
-        default: "h-9 min-w-9 px-2",
-        sm: "h-8 min-w-8 px-1.5",
-        lg: "h-10 min-w-10 px-2.5",
+        // Issue 07e: height/min-w rewired to the shared control-height-*
+        // ladder (Finding 1, no new semantic — the ladder was already
+        // named for the job). default/sm's own horizontal padding stays
+        // raw — both landed on padding-8/padding-6 primitives already at
+        // their two-semantic cap; see tokens/base.tokens.json. lg's own
+        // padding is a genuine second job on padding-10 (Finding 2), now
+        // toggle-padding-x-lg.
+        default: "h-control-height-default min-w-control-height-default px-2",
+        sm: "h-control-height-sm min-w-control-height-sm px-1.5",
+        lg: "h-control-height-lg min-w-control-height-lg px-toggle-padding-x-lg",
       },
     },
     defaultVariants: {
