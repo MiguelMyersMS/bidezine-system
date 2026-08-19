@@ -15,12 +15,21 @@
 // reasoning; this module only holds the mechanism, not the policy narrative.
 // ═══════════════════════════════════════════════════════════════════════════════════
 
-import { stripElementTargeting } from "./variant-scope.mjs"
+import { stripElementTargeting, isElementTargetingToken } from "./variant-scope.mjs"
 
 export const FONT_SIZE_RE = /\btext-(?:xs|sm|base|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl|8xl|9xl)\b/
 export const FONT_SIZE_ARBITRARY_RE = /\btext-\[(?:length:[^\]]+|[\d.]+(?:px|rem|em))\]/
 export const LEADING_RE = /\bleading-(?:none|tight|snug|normal|relaxed|loose|\d+|\[[^\]]+\])\b/
 export const TRACKING_RE = /\btracking-(?:tighter|tight|normal|wide|wider|widest|\[[^\]]+\])\b/
+
+/** True if the utility portion of a single token is a forbidden size/leading/tracking
+ * utility. Tests the whole token (variant chain included) — the forbidden regexes all
+ * carry `\b` anchors, so `[&>span]:text-xs` and `file:text-sm` match on their `text-*`
+ * tail while the `[&>span]`/`file` prefix and any descendant-selector name inside it
+ * (e.g. `cmdk-group-heading`) never trip a size/leading/tracking alternation. */
+function tokenCarriesForbiddenType(token) {
+  return FONT_SIZE_RE.test(token) || FONT_SIZE_ARBITRARY_RE.test(token) || LEADING_RE.test(token) || TRACKING_RE.test(token)
+}
 
 /** True if `cls`, after stripping element-targeting variants (file:, placeholder:, a
  * [&_...]/[&>...] descendant selector — out of THIS element's scope regardless of what
@@ -29,4 +38,17 @@ export const TRACKING_RE = /\btracking-(?:tighter|tight|normal|wide|wider|widest
 export function hasForbiddenTypeUtility(cls) {
   const scoped = stripElementTargeting(cls)
   return FONT_SIZE_RE.test(scoped) || FONT_SIZE_ARBITRARY_RE.test(scoped) || LEADING_RE.test(scoped) || TRACKING_RE.test(scoped)
+}
+
+/** The inverse view of hasForbiddenTypeUtility's strip: the element-targeting tokens
+ * (file:, placeholder:, [&_...]/[&>...] descendant selectors) that carry a raw size/
+ * leading/tracking utility — exactly the tokens hasForbiddenTypeUtility discards before
+ * it tests. hasForbiddenTypeUtility answers "does THIS element carry a raw utility" and
+ * must strip these; this returns them so a caller can COUNT what that strip removed,
+ * rather than let "zero on the element" read as "zero anywhere" (Issue 07h). Returns the
+ * offending tokens verbatim so a report can cite them; empty when there are none. */
+export function elementTargetingTypeUtilities(cls) {
+  return cls
+    .split(/\s+/)
+    .filter((token) => token.length > 0 && isElementTargetingToken(token) && tokenCarriesForbiddenType(token))
 }

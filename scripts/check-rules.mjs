@@ -52,7 +52,7 @@ import { classLiterals, stripComments } from "./lib/lexical-scan.mjs"
 // only inline in R6 below. R7 needs the identical test — same regexes, same
 // stripElementTargeting scoping — so it moved here rather than being copied a second
 // time. See type-utility.mjs's own header.
-import { hasForbiddenTypeUtility } from "./lib/type-utility.mjs"
+import { hasForbiddenTypeUtility, elementTargetingTypeUtilities } from "./lib/type-utility.mjs"
 // Issue 07a: R7 asks a different question than R6's whole-file scan can answer outside
 // src/ui/ — see componentClassLiterals's own header for why a caller-side scan needs to
 // first find which literals reach a component's className-shaped prop at all.
@@ -419,6 +419,46 @@ async function ruleNoRawTypeUtility() {
   }
 }
 
+// R6b — descendant/pseudo-element raw type utilities in src/ui/ (Issue 07h), reported, not
+// blocked.
+//
+// R6 above asks "does THIS element's own class string carry a raw size/leading/tracking
+// utility", and by design strips element-targeting variants (file:, placeholder:, a
+// [&_...]/[&>...] descendant selector) before it looks — a variant that styles a DIFFERENT
+// element than the one the class sits on is out of that question's scope, the rule 05c/06h
+// established and R6/R7/Link A all share. That strip is correct and stays.
+//
+// What was wrong was the claim built on top of it. R6 reporting zero, and the token file
+// recording the type layer as having "zero exceptions", read as "zero raw type utilities
+// anywhere in src/ui/". It was only ever zero on each element's OWN string; the strip
+// removed an uncounted number of raw utilities riding on descendant/pseudo-element slots,
+// and emptying a count by narrowing what the rule looks at is precisely the failure mode
+// R6 exists to prevent — turned, unnoticed, on R6's own blind spot. This rule makes that
+// bound a reported count instead of an unstated one.
+//
+// Non-blocking, and deliberately so: a descendant slot's size is genuinely out of an
+// element role's reach — a role sets the element it is on, not a child two selectors down —
+// so several of these cannot become a role at all, and forcing the count to zero would be
+// the exception-hiding move, not the fix. What the count buys is that each one is visible
+// and re-adjudicated on sight rather than silently absent. Same src/ui/ scope as R6, same
+// classLiterals/stripComments lexical pipeline, and the offending tokens come from
+// elementTargetingTypeUtilities — the exact inverse of the strip hasForbiddenTypeUtility
+// applies — so this count and R6's own-element count are two halves of one scan, not two
+// scans that can drift.
+async function ruleDescendantScopedType() {
+  const files = await walk(join(REPO_ROOT, "src", "ui"))
+  for (const file of files) {
+    const path = rel(file)
+    const source = stripComments(await readFile(file, "utf8"))
+    for (const { value: cls, index, truncated } of classLiterals(source)) {
+      if (truncated) continue
+      for (const token of elementTargetingTypeUtilities(cls)) {
+        report("type.descendant-scoped", path, lineOf(source, index), `${token} — descendant/pseudo-element slot, outside R6's own-element scope; a role cannot reach it unless the child is a component`)
+      }
+    }
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════════
 // R7 — no caller override of a role-bearing component's type
 //
@@ -635,6 +675,29 @@ async function ruleShared3FilePadding() {
   }
 }
 
+// Issue 06d: R6's own header (above, "no raw Tailwind type utility") used to declare
+// it "deliberately NOT wired into a blocking `npm run *` script" — that comment
+// described intent this file's exit code never actually honored at the time.
+// `violations.length` summed every rule together, so `node scripts/check-rules.mjs`
+// run directly (exactly how R6's header said to read its output) exited 1 off R6's own
+// findings, independent of whatever R4 or any other rule reported. That mismatch, not
+// R4's regression, was why the gate could not reach green by fixing R4 alone. Fixed
+// then by aggregating exit status from the rules that were actually blocking.
+//
+// Issue 06h: R6 itself became blocking and this Set went empty. Every rewireable slot in
+// src/ui/ had been rewired (Issue 05, 06a-06h); a raw type utility on an element's own
+// string is a real exit-1 failure, same as R1-R4, unless it carries a
+// TYPE_UTILITIES_ALLOWED entry with a stated reason.
+//
+// Issue 07h: R6b (type.descendant-scoped) is the one non-blocking member — see its header
+// above. It is non-blocking by design, not as a grace period: a raw size on a descendant/
+// pseudo-element slot is out of an element role's reach, so its count is a reported fact to
+// be re-adjudicated on sight, not a build failure to be forced to zero. Blocking R6 and
+// non-blocking R6b are two halves of one scan; keeping R6b out of the exit code is what
+// stops it from re-hiding, as an exit-1 pressure to empty it, exactly what it exists to
+// surface.
+const NON_BLOCKING_RULES = new Set(["type.descendant-scoped"])
+
 // ── run ─────────────────────────────────────────────────────────────────────────────
 const SHIPPED = [join(REPO_ROOT, "src"), join(REPO_ROOT, "site", "src"), join(REPO_ROOT, "sandbox", "src")]
 const files = (await Promise.all(SHIPPED.map((d) => walk(d)))).flat()
@@ -644,6 +707,7 @@ await ruleNoRawScroll()
 await ruleIconMarker(files)
 await ruleLeadingNoneTruncate(files)
 await ruleNoRawTypeUtility()
+await ruleDescendantScopedType()
 await ruleNoCallerTypeOverride()
 await ruleShared3FilePadding()
 
@@ -655,29 +719,13 @@ if (JSON_OUT) {
   const byRule = new Map()
   for (const v of violations) byRule.set(v.rule, [...(byRule.get(v.rule) ?? []), v])
   for (const [rule, list] of byRule) {
-    console.log(`  ${rule} — ${list.length} violation(s)`)
+    const tag = NON_BLOCKING_RULES.has(rule) ? " (non-blocking)" : ""
+    console.log(`  ${rule} — ${list.length} violation(s)${tag}`)
     for (const v of list) console.log(`      ${v.file}:${v.line}  ${v.detail}`)
   }
   for (const n of notes) console.log(`\n  NOTE  ${n}`)
   console.log("\n  R5 (origin quarantine) is owned by scripts/check-quarantine.mjs and not duplicated here.")
 }
 
-// Issue 06d: R6's own header (above, "no raw Tailwind type utility") used to declare
-// it "deliberately NOT wired into a blocking `npm run *` script" — that comment
-// described intent this file's exit code never actually honored at the time.
-// `violations.length` summed every rule together, so `node scripts/check-rules.mjs`
-// run directly (exactly how R6's header said to read its output) exited 1 off R6's own
-// findings, independent of whatever R4 or any other rule reported. That mismatch, not
-// R4's regression, was why the gate could not reach green by fixing R4 alone. Fixed
-// then by aggregating exit status from the rules that were actually blocking.
-//
-// Issue 06h: R6 itself is now blocking — NON_BLOCKING_RULES is empty. Every rewireable
-// slot in src/ui/ has been rewired (Issue 05, 06a-06h); a raw type utility is now a real
-// exit-1 failure, same as R1-R4, unless it carries a TYPE_UTILITIES_ALLOWED entry with
-// a stated reason. The Set (and the filter below) stay in place rather than being
-// deleted outright: a future rule that genuinely needs a grace period has one mechanism
-// to opt into, already proven not to hide a false-green exit code the way R6's own
-// header once did.
-const NON_BLOCKING_RULES = new Set()
 const blockingViolations = violations.filter((v) => !NON_BLOCKING_RULES.has(v.rule))
 if (blockingViolations.length) process.exitCode = 1
