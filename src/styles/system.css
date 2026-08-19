@@ -205,18 +205,27 @@
    * itself is not the theme key; it is prefixed with --spacing- so Tailwind
    * recognizes the namespace, then re-referenced from the token's own
    * variable, same radius-sm/leading-* self-reference shape.
+   *
+   * Issue 07d — only a semantic gets a --spacing- mapping, never a
+   * primitive. padding-4/6/8/10/12/16 in tokens/base.tokens.json hold no
+   * utility of their own; they exist to be pointed at by button-padding-
+   * and input-padding- semantics, the same way font-size-14 has no
+   * Tailwind mapping and is only ever reached through a type-* role.
+   * control-height-* is unchanged from 07c — the height ladder was never
+   * the problem.
    */
   --spacing-control-height-xs: var(--control-height-xs);
   --spacing-control-height-sm: var(--control-height-sm);
   --spacing-control-height-default: var(--control-height-default);
   --spacing-control-height-lg: var(--control-height-lg);
-  --spacing-control-padding-x-icon-xs: var(--control-padding-x-icon-xs);
-  --spacing-control-padding-x-xs: var(--control-padding-x-xs);
-  --spacing-control-padding-x-icon-sm: var(--control-padding-x-icon-sm);
-  --spacing-control-padding-x-sm: var(--control-padding-x-sm);
-  --spacing-control-padding-x-default: var(--control-padding-x-default);
-  --spacing-control-padding-y-compact: var(--control-padding-y-compact);
-  --spacing-control-padding-y-default: var(--control-padding-y-default);
+  --spacing-button-padding-x-icon-xs: var(--button-padding-x-icon-xs);
+  --spacing-button-padding-x-xs: var(--button-padding-x-xs);
+  --spacing-button-padding-x-icon-sm: var(--button-padding-x-icon-sm);
+  --spacing-button-padding-x-sm: var(--button-padding-x-sm);
+  --spacing-button-padding-x-default: var(--button-padding-x-default);
+  --spacing-button-padding-y-default: var(--button-padding-y-default);
+  --spacing-input-padding-x: var(--input-padding-x);
+  --spacing-input-padding-y: var(--input-padding-y);
 }
 
 /*

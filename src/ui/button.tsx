@@ -37,10 +37,10 @@ const buttonVariants = cva(
       },
       size: {
         default:
-          "h-control-height-default px-control-padding-x-default py-control-padding-y-default has-[>svg]:px-control-padding-x-sm",
-        xs: "h-control-height-xs gap-1 rounded-md px-control-padding-x-xs text-control-sm has-[>svg]:px-control-padding-x-icon-xs [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-control-height-sm gap-1.5 rounded-md px-control-padding-x-sm has-[>svg]:px-control-padding-x-icon-sm",
-        lg: "h-control-height-lg rounded-md px-6 has-[>svg]:px-control-padding-x-default",
+          "h-control-height-default px-button-padding-x-default py-button-padding-y-default has-[>svg]:px-button-padding-x-sm",
+        xs: "h-control-height-xs gap-1 rounded-md px-button-padding-x-xs text-control-sm has-[>svg]:px-button-padding-x-icon-xs [&_svg:not([class*='size-'])]:size-3",
+        sm: "h-control-height-sm gap-1.5 rounded-md px-button-padding-x-sm has-[>svg]:px-button-padding-x-icon-sm",
+        lg: "h-control-height-lg rounded-md px-6 has-[>svg]:px-button-padding-x-default",
         icon: "size-control-height-default",
         "icon-xs":
           "size-control-height-xs rounded-md [&_svg:not([class*='size-'])]:size-3",

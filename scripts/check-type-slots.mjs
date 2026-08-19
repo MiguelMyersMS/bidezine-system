@@ -157,7 +157,7 @@ const SLOT_TABLE = [
   { file: "src/ui/rail-sidebar.tsx", slot: "Panel search input (outer)", role: "body", anchor: "h-8 text-body" },
   { file: "src/ui/rail-sidebar.tsx", slot: "Panel search input (inputClassName)", role: "body", anchor: "text-body", exact: true, note: "Issue 06h decision 2: inputClassName is a prop reaching SearchInput's inner Input, not this element's own className — see the comment at this call site for why it deliberately overrides Input's own responsive text-body-lg md:text-body rather than being redundant or deleted. Bare literal, a strict substring of every other text-body literal in this file; exact: true isolates it, same technique as 06f." },
 
-  { file: "src/ui/input.tsx", slot: "Input (base breakpoint)", role: "body-lg", anchor: "py-control-padding-y-compact text-body-lg" },
+  { file: "src/ui/input.tsx", slot: "Input (base breakpoint)", role: "body-lg", anchor: "py-input-padding-y text-body-lg" },
   { file: "src/ui/field.tsx", slot: "FieldLegend (variant=legend)", role: "body-lg", anchor: "data-[variant=legend]:text-body-lg" },
   { file: "src/ui/textarea.tsx", slot: "Textarea (base breakpoint)", role: "body-lg", anchor: "px-3 py-2 text-body-lg" },
   { file: "src/ui/rail-sidebar.tsx", slot: "Panel title", role: "body-lg", anchor: "text-body-lg font-medium", note: "Issue 06h decision 1: 16px at weight 500 — no role is 16/24/500 (text-body-lg is weight 400), so this is the role plus a bare font-medium weight override, same pattern as empty.tsx's EmptyTitle." },
@@ -186,7 +186,7 @@ const SLOT_TABLE = [
   { file: "src/ui/message.tsx", slot: "MessageFooter", role: "control-sm", anchor: "group-data-[align=end]/message:justify-end", note: "Issue 06g decision 1: a genuinely distinct, previously-unverified slot — shipped text-xs font-medium (collapses to text-control-sm; font-medium dropped) until this rewire, separate from MessageHeader above." },
   { file: "src/ui/combobox.tsx", slot: "Combobox chip", role: "control-sm", anchor: "bg-muted px-1.5 text-control-sm" },
   { file: "src/ui/badge.tsx", slot: "Badge emphasis", role: "control-sm", anchor: "text-control-sm" },
-  { file: "src/ui/button.tsx", slot: "Button size=xs (cva)", role: "control-sm", anchor: "rounded-md px-control-padding-x-xs text-control-sm", note: "Issue 06g: base cva already supplies text-control unconditionally; size=xs previously overrode only the raw text-xs size utility, relying on the base's weight/tracking to still cascade. Replacing it with text-control-sm makes the recipe self-contained. Issue 07c: anchor updated from the raw \"h-6 gap-1 rounded-md px-2\" substring, since Issue 07c's density rewire replaced those raw utilities with named control-height-xs/control-padding-x-xs tokens — the role check below is unaffected, only the source anchor moved." },
+  { file: "src/ui/button.tsx", slot: "Button size=xs (cva)", role: "control-sm", anchor: "rounded-md px-button-padding-x-xs text-control-sm", note: "Issue 06g: base cva already supplies text-control unconditionally; size=xs previously overrode only the raw text-xs size utility, relying on the base's weight/tracking to still cascade. Replacing it with text-control-sm makes the recipe self-contained. Issue 07c/07d: anchor updated across two density rewires — first from the raw \"h-6 gap-1 rounded-md px-2\" substring to the now-retired control-padding-x-xs token, then to button-padding-x-xs when 07d split density into primitives and per-component semantics — the role check below is unaffected, only the source anchor moved." },
 
   { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenu shortcut", role: "shortcut", anchor: "ml-auto text-shortcut" },
   { file: "src/ui/context-menu.tsx", slot: "ContextMenu shortcut", role: "shortcut", anchor: "ml-auto text-shortcut" },
@@ -597,7 +597,7 @@ function checkLinkB2(css, leading) {
   return { ok: true, detail: `line-height ${expected} (unitless, via var(${varMatch[1]}))` }
 }
 
-// ── the density slot table (Issue 07c) ─────────────────────────────────────────────
+// ── the density slot table (Issue 07c, renamed by Issue 07d) ───────────────────────
 // Neither the role table above nor the leading-axis table fits this axis. A role is
 // one utility setting four properties; leading-* is one token setting one property.
 // Density is neither: each rewired slot mixes several DIFFERENT CSS properties
@@ -615,30 +615,40 @@ function checkLinkB2(css, leading) {
 // table proves exactly those two files' slots — one entry per CVA size variant plus
 // one for Input, never a role, since none of these elements' sizes were ever claimed
 // by a role in the first place (that is the whole reason this axis exists).
+//
+// Issue 07d split the padding tokens into two layers: padding-{4,6,8,10,12,16}
+// primitives (named for their value, consumed by nothing outside tokens/base.
+// tokens.json) and button-padding-*/input-padding-* semantics (named for the job,
+// the only thing a class string ever spells). This table only ever checks semantic
+// names — a primitive has no utility mapping of its own to check (see system.css's
+// Issue 07d comment) — so DENSITY_EXPECTED below still keys by the name a class
+// string actually uses; only the names themselves changed, not the shape of the
+// check. control-height-* is untouched from 07c.
 const DENSITY_EXPECTED = {
   "control-height-xs": "1.5rem",
   "control-height-sm": "2rem",
   "control-height-default": "2.25rem",
   "control-height-lg": "2.5rem",
-  "control-padding-x-icon-xs": ".375rem",
-  "control-padding-x-xs": ".5rem",
-  "control-padding-x-icon-sm": ".625rem",
-  "control-padding-x-sm": ".75rem",
-  "control-padding-x-default": "1rem",
-  "control-padding-y-compact": ".25rem",
-  "control-padding-y-default": ".5rem",
+  "button-padding-x-icon-xs": ".375rem",
+  "button-padding-x-xs": ".5rem",
+  "button-padding-x-icon-sm": ".625rem",
+  "button-padding-x-sm": ".75rem",
+  "button-padding-x-default": "1rem",
+  "button-padding-y-default": ".5rem",
+  "input-padding-x": ".75rem",
+  "input-padding-y": ".25rem",
 }
 
 const DENSITY_SLOT_TABLE = [
   {
     file: "src/ui/button.tsx",
     slot: 'Button size="default"',
-    anchor: "control-padding-y-default",
+    anchor: "button-padding-y-default",
     props: [
       { util: "h", token: "control-height-default" },
-      { util: "px", token: "control-padding-x-default" },
-      { util: "py", token: "control-padding-y-default" },
-      { util: "px", token: "control-padding-x-sm", compound: true },
+      { util: "px", token: "button-padding-x-default" },
+      { util: "py", token: "button-padding-y-default" },
+      { util: "px", token: "button-padding-x-sm", compound: true },
     ],
   },
   {
@@ -647,8 +657,8 @@ const DENSITY_SLOT_TABLE = [
     anchor: "text-control-sm",
     props: [
       { util: "h", token: "control-height-xs" },
-      { util: "px", token: "control-padding-x-xs" },
-      { util: "px", token: "control-padding-x-icon-xs", compound: true },
+      { util: "px", token: "button-padding-x-xs" },
+      { util: "px", token: "button-padding-x-icon-xs", compound: true },
     ],
   },
   {
@@ -657,8 +667,8 @@ const DENSITY_SLOT_TABLE = [
     anchor: "gap-1.5 rounded-md",
     props: [
       { util: "h", token: "control-height-sm" },
-      { util: "px", token: "control-padding-x-sm" },
-      { util: "px", token: "control-padding-x-icon-sm", compound: true },
+      { util: "px", token: "button-padding-x-sm" },
+      { util: "px", token: "button-padding-x-icon-sm", compound: true },
     ],
   },
   {
@@ -667,7 +677,7 @@ const DENSITY_SLOT_TABLE = [
     anchor: "rounded-md px-6",
     props: [
       { util: "h", token: "control-height-lg" },
-      { util: "px", token: "control-padding-x-default", compound: true },
+      { util: "px", token: "button-padding-x-default", compound: true },
     ],
   },
   {
@@ -700,11 +710,11 @@ const DENSITY_SLOT_TABLE = [
   {
     file: "src/ui/input.tsx",
     slot: "Input",
-    anchor: "control-padding-y-compact",
+    anchor: "input-padding-y",
     props: [
       { util: "h", token: "control-height-default" },
-      { util: "px", token: "control-padding-x-sm" },
-      { util: "py", token: "control-padding-y-compact" },
+      { util: "px", token: "input-padding-x" },
+      { util: "py", token: "input-padding-y" },
     ],
   },
 ]
@@ -781,8 +791,8 @@ function checkLinkB3(css, prop) {
   const body = m[1]
 
   if (prop.util === "size") {
-    const widthMatch = body.match(/width:var\((--control-[a-z0-9-]+)\)/)
-    const heightMatch = body.match(/height:var\((--control-[a-z0-9-]+)\)/)
+    const widthMatch = body.match(/width:var\((--[a-z0-9-]+)\)/)
+    const heightMatch = body.match(/height:var\((--[a-z0-9-]+)\)/)
     if (!widthMatch || !heightMatch) return { ok: false, detail: `size-${prop.token} did not compile both width and height: ${body}` }
     if (widthMatch[1] !== heightMatch[1]) {
       return { ok: false, detail: `size-${prop.token} compiled width (${widthMatch[1]}) and height (${heightMatch[1]}) reference different custom properties` }
@@ -794,8 +804,8 @@ function checkLinkB3(css, prop) {
   }
 
   const cssProp = prop.util === "px" ? "padding-inline" : prop.util === "py" ? "padding-block" : "height"
-  const varMatch = body.match(new RegExp(`${cssProp}:var\\((--control-[a-z0-9-]+)\\)`))
-  if (!varMatch) return { ok: false, detail: `no ${cssProp}:var(--control-${prop.token}) reference found in the compiled rule: ${body}` }
+  const varMatch = body.match(new RegExp(`${cssProp}:var\\((--[a-z0-9-]+)\\)`))
+  if (!varMatch) return { ok: false, detail: `no ${cssProp}:var(--${prop.token}) reference found in the compiled rule: ${body}` }
   const value = resolveDensityVar(css, varMatch[1])
   if (value === null) return { ok: false, detail: `${varMatch[1]} is referenced but never resolves to a literal value in dist/system.css` }
   if (!sameCssNumber(value, expected)) return { ok: false, detail: `${cssProp}: expected ${expected}, compiled value is ${value}` }

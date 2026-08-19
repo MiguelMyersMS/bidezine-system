@@ -1,5 +1,5 @@
 {
-  "$description": "Mode-independent tokens, mirroring shadcn/ui's own theme. DTCG 2025.10. Source of truth — emits src/styles/tokens.css + src/tokens.ts via `npm run tokens`. Never hand-write a CSS variable.\n\nOnly what shadcn defines lives here. Inter is the system sans face; named type roles remain Tailwind utility mappings until the typography lab promotes them to authored tokens. Spacing, opacity, breakpoints and shadows are Tailwind defaults and need no token until something actually demands one. A type role consumed by a ported component holds shadcn's shipped value; a role nothing consumes yet holds the authored ideal. Changing a consumed value is a deliberate act that gets its own commit and its own screenshot diff — never a drive-by edit.\n\nEvery `lineHeight` inside a `type-*` typography composite is authored in px, never as a unitless ratio: a ratio has to be multiplied by a font size, and tooling reading the token has none in hand — the composite's own fontSize sub-property is a sibling value, not something a lineHeight entry can reach across and multiply. That rule governs roles, full stop, because a role is defined by setting its own font size.\n\nIssue 07b (line-height axis): the `leading-*` tokens below are the stated exception, not a repeal. They exist for elements that override line-height on a font size inherited from a parent — every one of src/ui's type roles sets a size, so none can express an override on a size it doesn't own. For exactly this case no font size is known at authoring time, so a unitless ratio is not a workaround, it is the only form the value can take at all. Each is named for the job it does (the same convention the type-* roles use), never for a position on a ladder, and is mapped straight into Tailwind's --leading-* namespace in src/styles/system.css — one utility, one token, the same shape --text-* gives the roles. A leading-* token with no consumer in src/ui is not added speculatively; see each token's own $description for its consumer(s).\n\nIssue 07c (density — authored, not yet rewired): `control-height-*` and `control-padding-{x,y}-*` are Button's own size ladder (xs/sm/default/lg), confirmed against Tailwind 4's installed `--spacing-<name>` mechanism rather than assumed from memory — a named key in that namespace generates `h-<name>`, `size-<name>`, `px-<name>`, `py-<name>` and their `has-[>svg]:` compounds alike, so one token backs a control's height and its icon-only square at once. This batch authors the full ladder and rewires exactly Button and Input, the two clearest consumers; the rest of src/ui keeps its raw utilities at the same pixel values until rewired component-by-component, the way the type roles were. Container padding and the 9-step gap scale surveyed alongside this ladder are deliberately left untokenized — they are Tailwind's own scale showing through, not a naming job, and a token authored with no wired consumer this commit is not added speculatively.",
+  "$description": "Mode-independent tokens, mirroring shadcn/ui's own theme. DTCG 2025.10. Source of truth — emits src/styles/tokens.css + src/tokens.ts via `npm run tokens`. Never hand-write a CSS variable.\n\nOnly what shadcn defines lives here. Inter is the system sans face; named type roles remain Tailwind utility mappings until the typography lab promotes them to authored tokens. Spacing, opacity, breakpoints and shadows are Tailwind defaults and need no token until something actually demands one. A type role consumed by a ported component holds shadcn's shipped value; a role nothing consumes yet holds the authored ideal. Changing a consumed value is a deliberate act that gets its own commit and its own screenshot diff — never a drive-by edit.\n\nEvery `lineHeight` inside a `type-*` typography composite is authored in px, never as a unitless ratio: a ratio has to be multiplied by a font size, and tooling reading the token has none in hand — the composite's own fontSize sub-property is a sibling value, not something a lineHeight entry can reach across and multiply. That rule governs roles, full stop, because a role is defined by setting its own font size.\n\nIssue 07b (line-height axis): the `leading-*` tokens below are the stated exception, not a repeal. They exist for elements that override line-height on a font size inherited from a parent — every one of src/ui's type roles sets a size, so none can express an override on a size it doesn't own. For exactly this case no font size is known at authoring time, so a unitless ratio is not a workaround, it is the only form the value can take at all. Each is named for the job it does (the same convention the type-* roles use), never for a position on a ladder, and is mapped straight into Tailwind's --leading-* namespace in src/styles/system.css — one utility, one token, the same shape --text-* gives the roles. A leading-* token with no consumer in src/ui is not added speculatively; see each token's own $description for its consumer(s).\n\nIssue 07c (density — authored, not yet rewired): `control-height-*` is Button's own height ladder (xs/sm/default/lg), confirmed against Tailwind 4's installed `--spacing-<name>` mechanism rather than assumed from memory — a named key in that namespace generates `h-<name>`, `size-<name>`, `px-<name>`, `py-<name>` and their `has-[>svg]:` compounds alike, so one token backs a control's height and its icon-only square at once. This batch authors the full ladder and rewires exactly Button and Input, the two clearest consumers; the rest of src/ui keeps its raw utilities at the same pixel values until rewired component-by-component, the way the type roles were. Container padding and the 9-step gap scale surveyed alongside this ladder are deliberately left untokenized — they are Tailwind's own scale showing through, not a naming job, and a token authored with no wired consumer this commit is not added speculatively. `control-height-*` genuinely is the shared job \"be an N-height box\" everywhere it recurs (see the survey note on each height token), so a single name serving many components is correct there.\n\nIssue 07d (density — two layers, replacing 07c's single-layer padding names): 07c named its padding tokens after Button's own variant slots (`control-padding-x-xs`, etc.) and then listed foreign, unrewired consumers — toggle.tsx, badge.tsx, command.tsx and others — in the same token's own $description. That is the defect the type axis already solved by splitting into two layers: a `font-size-*` primitive named for its raw value, referenced from nowhere but this file, and a `type-*` role named for its job, the only thing a component consumes. Density's padding values get the identical split. `padding-{4,6,8,10,12,16}` below are primitives, named for their px value the way `font-size-14` is, holding no opinion about who uses them and consumed by nothing outside this file. `button-padding-*` and `input-padding-*` are the semantics — one per real job in Button's own recipe and Input's own recipe respectively — each pointing at a primitive via a `{name}` alias. Button's sm slot and Input's own horizontal padding happen to share the 12px primitive today; they are still two separate semantics, because they are two different jobs that may diverge, the same reason `type-body-strong` and `type-control` stay separate despite being the same four values. When a future issue rewires another component (toggle.tsx, badge.tsx, ...), it gets a semantic naming *that* component's job — reusing an existing primitive if the number matches, never reusing another component's semantic just because the number is convenient. The foreign-file survey that 07c's token descriptions used to carry is recorded below, against each primitive, as a survey note rather than as a description of any one semantic's job — useful for the next rewire to know which primitive already has the right number, not a claim that those files are wired today.\n\nSurvey notes, primitive by value (none of the following files are wired to a token this commit): 6px also appears in toggle.tsx (sm), attachment.tsx, bubble.tsx, combobox.tsx, rail-sidebar.tsx. 8px also appears in badge.tsx, command.tsx, menubar.tsx, sidebar.tsx, tabs.tsx (18 files total — the most-repeated horizontal control padding in src/ui) and, on the vertical axis, is not otherwise surveyed beyond Button's own default. 10px also appears in toggle.tsx (lg), attachment.tsx, chart.tsx, input-group.tsx, pagination.tsx, sidebar.tsx. 12px also appears in command.tsx, native-select.tsx, select.tsx, textarea.tsx, tooltip.tsx. 16px also appears in button-group.tsx, item.tsx, navigation-menu.tsx (trigger — an exact height+padding match for Button's default recipe). 4px also appears widely as a menu/list item's own vertical padding (context-menu.tsx, dropdown-menu.tsx, menubar.tsx, select.tsx, native-select.tsx data-[size=sm]).",
 
   "radius": {
     "$type": "dimension",
@@ -84,41 +84,77 @@
     "$value": { "value": 2.5, "unit": "rem" }
   },
 
-  "control-padding-x-icon-xs": {
+  "padding-4": {
     "$type": "dimension",
-    "$description": "6px — horizontal padding an xs control shrinks to once it carries a leading icon (Button size=\"xs\" has-[>svg]:). Also toggle.tsx sm, attachment.tsx, bubble.tsx, combobox.tsx, rail-sidebar.tsx.",
+    "$description": "4px. A primitive — named for its value, referenced only by the semantics below. Holds no opinion about who uses it; see the top-level $description's Issue 07d survey note for where 4px recurs unwired.",
+    "$value": { "value": 0.25, "unit": "rem" }
+  },
+  "padding-6": {
+    "$type": "dimension",
+    "$description": "6px. A primitive — named for its value, referenced only by the semantics below. Holds no opinion about who uses it; see the top-level $description's Issue 07d survey note for where 6px recurs unwired.",
     "$value": { "value": 0.375, "unit": "rem" }
   },
-  "control-padding-x-xs": {
+  "padding-8": {
     "$type": "dimension",
-    "$description": "8px — the xs control's own horizontal padding with no icon (Button size=\"xs\"). One of the most repeated horizontal control paddings in src/ui — 18 files including badge.tsx, command.tsx, menubar.tsx, sidebar.tsx, tabs.tsx.",
+    "$description": "8px. A primitive — named for its value, referenced only by the semantics below. Holds no opinion about who uses it; see the top-level $description's Issue 07d survey note for where 8px recurs unwired.",
     "$value": { "value": 0.5, "unit": "rem" }
   },
-  "control-padding-x-icon-sm": {
+  "padding-10": {
     "$type": "dimension",
-    "$description": "10px — horizontal padding an sm control shrinks to once it carries a leading icon (Button size=\"sm\" has-[>svg]:). Also toggle.tsx lg, attachment.tsx, chart.tsx, input-group.tsx, pagination.tsx, sidebar.tsx.",
+    "$description": "10px. A primitive — named for its value, referenced only by the semantics below. Holds no opinion about who uses it; see the top-level $description's Issue 07d survey note for where 10px recurs unwired.",
     "$value": { "value": 0.625, "unit": "rem" }
   },
-  "control-padding-x-sm": {
+  "padding-12": {
     "$type": "dimension",
-    "$description": "12px — the sm control's own horizontal padding with no icon (Button size=\"sm\"), and Input's own horizontal padding. Also command.tsx, native-select.tsx, select.tsx, textarea.tsx, tooltip.tsx.",
+    "$description": "12px. A primitive — named for its value, referenced only by the semantics below. Holds no opinion about who uses it; see the top-level $description's Issue 07d survey note for where 12px recurs unwired.",
     "$value": { "value": 0.75, "unit": "rem" }
   },
-  "control-padding-x-default": {
+  "padding-16": {
     "$type": "dimension",
-    "$description": "16px — the default control's own horizontal padding with no icon, and what an lg control shrinks to once it carries a leading icon (Button size=\"default\", and size=\"lg\" has-[>svg]:). Also button-group.tsx, item.tsx, navigation-menu.tsx trigger — the last an exact height+padding match for Button's default recipe.",
+    "$description": "16px. A primitive — named for its value, referenced only by the semantics below. Holds no opinion about who uses it; see the top-level $description's Issue 07d survey note for where 16px recurs unwired.",
     "$value": { "value": 1, "unit": "rem" }
   },
 
-  "control-padding-y-compact": {
+  "button-padding-x-icon-xs": {
     "$type": "dimension",
-    "$description": "4px — Input's own vertical padding, tighter than a flex-centered control needs because Input centers text by line-height, not flex. Same value recurs widely as a menu/list item's own vertical padding (context-menu.tsx, dropdown-menu.tsx, menubar.tsx, select.tsx, native-select.tsx data-[size=sm]).",
-    "$value": { "value": 0.25, "unit": "rem" }
+    "$description": "Button's own horizontal padding at size=\"xs\" once it carries a leading icon (has-[>svg]:). Points at padding-6 (6px). Consumer: button.tsx size=\"xs\".",
+    "$value": "{padding-6}"
   },
-  "control-padding-y-default": {
+  "button-padding-x-xs": {
     "$type": "dimension",
-    "$description": "8px — the default control's own vertical padding (Button size=\"default\"). Also navigation-menu.tsx trigger and native-select.tsx's own default vertical padding.",
-    "$value": { "value": 0.5, "unit": "rem" }
+    "$description": "Button's own horizontal padding at size=\"xs\" with no icon. Points at padding-8 (8px). Consumer: button.tsx size=\"xs\".",
+    "$value": "{padding-8}"
+  },
+  "button-padding-x-icon-sm": {
+    "$type": "dimension",
+    "$description": "Button's own horizontal padding at size=\"sm\" once it carries a leading icon (has-[>svg]:). Points at padding-10 (10px). Consumer: button.tsx size=\"sm\".",
+    "$value": "{padding-10}"
+  },
+  "button-padding-x-sm": {
+    "$type": "dimension",
+    "$description": "Button's own horizontal padding at size=\"sm\" with no icon. Points at padding-12 (12px) — the same primitive as input-padding-x, because the two jobs happen to share a value today, not because they are the same job. Consumer: button.tsx size=\"sm\".",
+    "$value": "{padding-12}"
+  },
+  "button-padding-x-default": {
+    "$type": "dimension",
+    "$description": "Button's own horizontal padding at size=\"default\" with no icon, and at size=\"lg\" once it carries a leading icon — the same 16px slot in Button's own ladder, used by two of Button's own variants, not by a foreign component. Points at padding-16 (16px). Consumers: button.tsx size=\"default\" and size=\"lg\" has-[>svg]:.",
+    "$value": "{padding-16}"
+  },
+  "button-padding-y-default": {
+    "$type": "dimension",
+    "$description": "Button's own vertical padding at size=\"default\". Points at padding-8 (8px). Consumer: button.tsx size=\"default\".",
+    "$value": "{padding-8}"
+  },
+
+  "input-padding-x": {
+    "$type": "dimension",
+    "$description": "Input's own horizontal padding — a different job from Button's sm slot even though it points at the same padding-12 primitive (12px) today. Consumer: input.tsx.",
+    "$value": "{padding-12}"
+  },
+  "input-padding-y": {
+    "$type": "dimension",
+    "$description": "Input's own vertical padding, tighter than a flex-centered control needs because Input centers text by line-height, not flex. Points at padding-4 (4px). Consumer: input.tsx.",
+    "$value": "{padding-4}"
   },
 
   "type-display": {
