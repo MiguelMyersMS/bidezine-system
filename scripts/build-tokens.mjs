@@ -301,6 +301,23 @@ if (literalsInLight.length || literalsInDark.length) {
 // "light"/"dark" keys (unlike base/light/dark.tokens.json, which are flat) so
 // one file can hold a whole preset. Selected via <html data-theme="name">,
 // composed with the existing .dark class for the dark variant.
+//
+// A preset is a PARTIAL override: it re-points a subset of the default theme's
+// tokens and INHERITS the rest, because a [data-theme] block only overrides the
+// names it declares and the :root defaults show through for the others. So the
+// gate below is two assertions, not one:
+//
+//   1. Per-preset light/dark parity — a name overridden in one mode but not the
+//      other would render "unset" there and fall back to :root, defeating the
+//      override in exactly one mode. (This is the only thing the gate used to
+//      check, and its NAME — "parity" — hid that it never looked at base at all.)
+//   2. Subset-of-base — every name a preset declares must exist in the default
+//      theme (light/dark.tokens.json). A preset name absent from base overrides
+//      nothing: it is a typo or an orphan that ships a dead custom property. This
+//      is the assertion whose absence let the preset $descriptions claim base's
+//      token names, for however long they claimed them, with a green build the
+//      whole time (Issue 07k, finding ONE; 07i fixed the descriptions, not the
+//      gate that let them lie). The inherited count is REPORTED, never assumed.
 let themeFileNames = []
 try {
   themeFileNames = readdirSync(join(root, "tokens", "themes"))
@@ -317,6 +334,8 @@ const themes = themeFileNames.map((name) => {
   )
   const themeLightNames = Object.keys(doc.light)
   const themeDarkNames = Object.keys(doc.dark)
+
+  // 1. Per-preset light/dark parity.
   const missingD = themeLightNames.filter((n) => !themeDarkNames.includes(n))
   const missingL = themeDarkNames.filter((n) => !themeLightNames.includes(n))
   if (missingD.length || missingL.length) {
@@ -328,7 +347,31 @@ const themes = themeFileNames.map((name) => {
     console.error(lines.join("\n"))
     process.exit(1)
   }
-  return { name, light: doc.light, dark: doc.dark }
+
+  // 2. Subset-of-base — a preset may only override names the default theme defines.
+  const notInBaseLight = themeLightNames.filter((n) => !lightNames.includes(n))
+  const notInBaseDark = themeDarkNames.filter((n) => !darkNames.includes(n))
+  if (notInBaseLight.length || notInBaseDark.length) {
+    const lines = [
+      `Theme "${name}" base-subset check FAILED — a preset may only override tokens the`,
+      `default theme (light/dark.tokens.json) defines; these names exist in no base mode`,
+      `and would ship a dead custom property that overrides nothing:`,
+      ...notInBaseLight.map((n) => `  in light, absent from base light: ${n}`),
+      ...notInBaseDark.map((n) => `  in dark,  absent from base dark:  ${n}`),
+    ]
+    console.error(lines.join("\n"))
+    process.exit(1)
+  }
+
+  return {
+    name,
+    light: doc.light,
+    dark: doc.dark,
+    counts: {
+      light: { overrides: themeLightNames.length, inherits: lightNames.length - themeLightNames.length },
+      dark: { overrides: themeDarkNames.length, inherits: darkNames.length - themeDarkNames.length },
+    },
+  }
 })
 
 const themeVarBlock = (tokens) =>
@@ -415,3 +458,18 @@ writeFileSync(join(root, "src", "tokens.ts"), ts)
 console.log(
   `tokens: ${allNames.length} emitted → src/styles/tokens.css, src/tokens.ts (light/dark parity OK)`
 )
+
+// Per-preset override/inherit counts — reported, not assumed. `overrides` is what the
+// preset declares and re-points; `inherits` is base's token count minus that, the tokens
+// that show through from :root unchanged. Both are asserted to exist in base above.
+if (themes.length) {
+  const baseCount = lightNames.length
+  console.log(`presets: ${themes.length} against a ${baseCount}-token base theme`)
+  for (const t of themes) {
+    console.log(
+      `  ${t.name}: light ${t.counts.light.overrides} override / ${t.counts.light.inherits} inherit` +
+        ` · dark ${t.counts.dark.overrides} override / ${t.counts.dark.inherits} inherit` +
+        ` (all ⊆ base)`
+    )
+  }
+}

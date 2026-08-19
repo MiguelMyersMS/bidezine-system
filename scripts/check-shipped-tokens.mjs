@@ -23,11 +23,21 @@
 //
 // A reference WITH a fallback -- `var(--x, red)` -- degrades to something visible rather than
 // vanishing, so it is reported but does not fail. A reference without one is a hard failure.
+//
+// ── What this does NOT cover (Issue 07k, finding TWO) ───────────────────────────────
+// It sees only values reached THROUGH `var(--x)`. A hard-coded literal — a raw `#0a0a0a`,
+// an `oklch(…)`, a bare pixel — references no variable, so this check is structurally
+// blind to it. That is the class round one spent five findings on; it is out of scope here
+// by construction, not by omission, and would need a rule of its own (see 07k report).
 // ═══════════════════════════════════════════════════════════════════════════════════
 
-import { readFile, readdir, stat } from "node:fs/promises"
+import { readFile, readdir } from "node:fs/promises"
 import { join, relative } from "node:path"
 import { fileURLToPath } from "node:url"
+// Issue 07k: loading dist/system.css — and distinguishing "the build has not run" from a
+// real failure — is shared with check-type-slots.mjs. See scripts/lib/shipped-css.mjs's
+// own header for the concurrent-build race this closes. Neutral loader, not a gate.
+import { readShippedCss } from "./lib/shipped-css.mjs"
 
 const REPO_ROOT = join(fileURLToPath(new URL(".", import.meta.url)), "..")
 const SHIPPED_CSS = join(REPO_ROOT, "dist", "system.css")
@@ -69,15 +79,7 @@ async function walk(dir, out = []) {
   return out
 }
 
-let css
-try {
-  await stat(SHIPPED_CSS)
-  css = await readFile(SHIPPED_CSS, "utf8")
-} catch {
-  console.error("\ndist/system.css is missing. Run `npm run build` first.")
-  console.error("Refusing to report success against a build that does not exist.\n")
-  process.exit(1)
-}
+const css = await readShippedCss(SHIPPED_CSS)
 
 // Every custom property the shipped stylesheet DEFINES (`--name:`), as opposed to references it
 // merely makes. The colon is what separates a declaration from a `var()` use.

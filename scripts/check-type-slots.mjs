@@ -30,9 +30,15 @@
 // Exit 1 on any violation.
 // ═══════════════════════════════════════════════════════════════════════════════════
 
-import { readFile, stat } from "node:fs/promises"
+import { readFile } from "node:fs/promises"
 import { join } from "node:path"
 import { REPO_ROOT } from "../verifier/lib/db.mjs"
+// Issue 07k: loading dist/system.css — and telling "the build has not run" apart from
+// "a slot did not verify" — is shared with check-shipped-tokens.mjs. A missing or
+// mid-build (empty) artifact used to fall through the local ENOENT guard and surface as
+// N slots that "did not verify"; readShippedCss reports the real cause instead. Neutral
+// loader, not a gate — see scripts/lib/shipped-css.mjs's own header.
+import { readShippedCss } from "./lib/shipped-css.mjs"
 // Neutral parsing helper, not another gate — see scripts/lib/lexical-scan.mjs's own
 // header. This is scripts/lib/dependencies.mjs's precedent (scan-dependencies.mjs
 // already imports it): a shared scan/scope module has no opinion on which of its
@@ -1017,15 +1023,10 @@ function checkLinkB3(css, prop) {
 }
 
 // ── run ─────────────────────────────────────────────────────────────────────────────
-let css
-try {
-  await stat(SHIPPED_CSS)
-  css = await readFile(SHIPPED_CSS, "utf8")
-} catch {
-  console.error("\ndist/system.css is missing. Run `npm run build` first.")
-  console.error("Refusing to report success against a build that does not exist.\n")
-  process.exit(1)
-}
+// readShippedCss exits with an honest "the build has not run / is incomplete" message if
+// dist/system.css is absent or mid-build, so nothing below can mistake a missing input
+// for a failed slot assertion (Issue 07k, finding THREE).
+const css = await readShippedCss(SHIPPED_CSS)
 
 console.log(`\ntable integrity — ${SLOT_TABLE.length} entries\n`)
 const integrity = await checkTableIntegrity(SLOT_TABLE)
