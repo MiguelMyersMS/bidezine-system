@@ -344,6 +344,17 @@ async function checkLinkA(entry) {
 // literal (that isn't a font-size role) is a colour whose survival Link C asserts. This
 // list is small and closed — Tailwind has no [isAny] catch-all minting new non-colour
 // text-* names — so it does not drift the way a colour allow-list would.
+//
+// The general test — for a future axis naming a new utility family (recorded Issue 07m):
+// a family is EXPOSED to silent runtime deletion by cn() when its Tailwind namespace has
+// an [isAny] catch-all sibling that will claim its custom names as that catch-all's kind
+// (text-* → the colour group; shadow-* → the shadow-colour group — both fixed in 07l). A
+// family is SAFE when its namespace has no such sibling: an unrecognised custom name then
+// matches no group and tailwind-merge leaves it untouched. Run this test — a real twMerge
+// call, `twMerge("<your-custom-name> <a-real-sibling-colour>")`, and see whether both
+// survive — BEFORE naming anything into a namespace. Verified safe by that probe so far:
+// leading-*, the density h-/w-/size-/px-/py- family, and (07m) duration-* and ease-*; the
+// two that were exposed, text-* and shadow-*, are the ones extendTailwindMerge now re-files.
 const TEXT_NON_COLOUR = new Set([
   "left", "center", "right", "justify", "start", "end", // text-align
   "wrap", "nowrap", "balance", "pretty", // text-wrap
