@@ -445,6 +445,24 @@ async function ruleNoRawTypeUtility() {
 // elementTargetingTypeUtilities — the exact inverse of the strip hasForbiddenTypeUtility
 // applies — so this count and R6's own-element count are two halves of one scan, not two
 // scans that can drift.
+// Issue 07(R6b-clear) — each slot in this count re-examined for whether a role can express
+// it (Item 3), and the precise finding recorded so the count carries WHY, not just WHAT.
+// Both genuinely cannot become a role, and the reason is not a matter of taste: raw
+// text-xs/text-sm set font-size and a stock line-height ONLY, whereas every text-<role> in
+// this system is a four-axis composite (font-size + line-height + letter-spacing +
+// font-weight — read straight out of dist/system.css). A role therefore cannot reproduce a
+// raw size's size-and-leading-only render on a slot that wants nothing but the size; it
+// would impose two or three extra axes the slot does not currently carry. Keyed on the
+// verbatim token (distinct per slot, stable across line drift); any NEW descendant slot
+// falls through to the generic reason so the scan keeps catching the unexamined ones. This
+// enriches the reason only — the token still appears in the count, still non-blocking, exit
+// code unchanged; forcing the count to zero is the exact defect R6b exists to prevent.
+const R6B_ADJUDICATED = {
+  "[&>span]:text-xs":
+    "react-day-picker renders these secondary <span>s inside the day cell, so the span is not a bidezine component and cannot carry a role; it sits at 12px beside the day number (a direct text node in the same button at the button's own inherited size), so giving the button a role would resize the number too; and any 12px role (caption/control-sm/shortcut) is a four-axis composite that would additionally impose its letter-spacing, font-weight and line-height on the span — no value-unchanged rewire exists",
+  "file:text-sm":
+    "::file-selector-button is a browser pseudo-element, never a DOM node we render, so it can only be reached via the file: variant and can never carry a role; any 14px role (body/control/label) is a four-axis composite that would impose its letter-spacing and line-height on the button (font-weight is already pinned by the adjacent file:font-medium) — no value-unchanged rewire exists",
+}
 async function ruleDescendantScopedType() {
   const files = await walk(join(REPO_ROOT, "src", "ui"))
   for (const file of files) {
@@ -453,7 +471,8 @@ async function ruleDescendantScopedType() {
     for (const { value: cls, index, truncated } of classLiterals(source)) {
       if (truncated) continue
       for (const token of elementTargetingTypeUtilities(cls)) {
-        report("type.descendant-scoped", path, lineOf(source, index), `${token} — descendant/pseudo-element slot, outside R6's own-element scope; a role cannot reach it unless the child is a component`)
+        const reason = R6B_ADJUDICATED[token] ?? "descendant/pseudo-element slot, outside R6's own-element scope; a role cannot reach it unless the child is a component"
+        report("type.descendant-scoped", path, lineOf(source, index), `${token} — ${reason}`)
       }
     }
   }
