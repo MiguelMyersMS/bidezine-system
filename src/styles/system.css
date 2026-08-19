@@ -254,6 +254,26 @@
   --spacing-toggle-padding-x-lg: var(--toggle-padding-x-lg);
   --spacing-kbd-padding-x: var(--kbd-padding-x);
   --spacing-menu-item-padding-x: var(--menu-item-padding-x);
+
+  /*
+   * Issue 07j — elevation (the shadow axis). Two depth tiers, mapped into
+   * Tailwind's own --shadow-* namespace so a named `shadow-elevation-md` /
+   * `shadow-elevation-lg` utility is generated alongside Tailwind's stock
+   * `shadow-md` / `shadow-lg` — distinct utilities, no override, so the many
+   * out-of-scope md/lg consumers (popover, dialog, card, …) keep Tailwind's
+   * own scale untouched. Named for the tier, not a menu role, because md and
+   * lg are each shared beyond menus (md: popover, hover-card, select, … + the
+   * three menu roots; lg: dialog, sheet, alert-dialog + the three submenus),
+   * so a role name would mislabel the non-menu consumers. All three menu
+   * families — and upstream shadcn — agree: root=md, sub=lg, no inversion
+   * (context-menu merely declares SubContent before Content in source).
+   * Values are byte-identical to Tailwind's --shadow-md/lg; see
+   * tokens/base.tokens.json's Issue 07j paragraph. xs/sm/xl are not tokenised
+   * this commit — reported, deferred to family commits, or single-consumer
+   * (chart.tsx's tooltip xl).
+   */
+  --shadow-elevation-md: var(--elevation-md);
+  --shadow-elevation-lg: var(--elevation-lg);
 }
 
 /*

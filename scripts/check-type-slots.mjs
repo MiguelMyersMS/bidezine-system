@@ -1197,3 +1197,184 @@ if (densityFailures.length === 0) {
   console.log(`\n${DENSITY_SLOT_TABLE.length - densityFailures.length}/${DENSITY_SLOT_TABLE.length} checks passed.`)
   process.exitCode = 1
 }
+
+// ── the elevation slots (Issue 07j) ────────────────────────────────────────────────
+// The shadow axis. Six menu surfaces across three families, each either a menu root
+// (shadow-elevation-md) or a submenu that opens from one (shadow-elevation-lg).
+//
+// The premise this issue opened with — that the three families disagree about
+// root-vs-submenu elevation, one of them inverted — did not survive re-derivation.
+// Mapping the shadow value to component IDENTITY rather than source-line order, all
+// three ship root=md, sub=lg, and so does upstream new-york-v4; context-menu.tsx only
+// reads "inverted" because it declares SubContent (line 129) above Content (line 153).
+// No pixel moved this commit: elevation-md and elevation-lg carry Tailwind's own
+// shadow-md/shadow-lg values unchanged, so the six rewired surfaces render byte-for-
+// byte what shadow-md/shadow-lg rendered before.
+//
+// The names are tier-based, not widget-based, because each tier is genuinely shared
+// beyond the menus (md by popover / hover-card / select / …; lg by dialog / sheet /
+// alert-dialog) — a "menu-surface" name would mislabel every non-menu consumer. Only
+// the three in-scope menu families are rewired and checked here; the other consumers
+// keep Tailwind's stock shadow-md/shadow-lg until their own file-scope commits.
+//
+// Expected literals are transcribed from Tailwind's own theme.css (--shadow-md,
+// --shadow-lg), with its source colour rgb(0 0 0 / 0.1) written in the #0000001a
+// hex-alpha form the same minifier compiles it to — an independent source, never read
+// back out of dist/system.css.
+const ELEVATION_EXPECTED = {
+  "elevation-md": "0 4px 6px -1px #0000001a, 0 2px 4px -2px #0000001a",
+  "elevation-lg": "0 10px 15px -3px #0000001a, 0 4px 6px -4px #0000001a",
+}
+
+const ELEVATION_SLOT_TABLE = [
+  {
+    file: "src/ui/dropdown-menu.tsx",
+    slot: "DropdownMenuContent (root)",
+    anchor: "max-h-(--radix-dropdown-menu-content-available-height)",
+    token: "elevation-md",
+  },
+  {
+    file: "src/ui/dropdown-menu.tsx",
+    slot: "DropdownMenuSubContent",
+    anchor: "origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden",
+    token: "elevation-lg",
+  },
+  {
+    file: "src/ui/menubar.tsx",
+    slot: "MenubarContent (root)",
+    anchor: "min-w-[12rem]",
+    token: "elevation-md",
+  },
+  {
+    file: "src/ui/menubar.tsx",
+    slot: "MenubarSubContent",
+    anchor: "min-w-[8rem] origin-(--radix-menubar-content-transform-origin)",
+    token: "elevation-lg",
+  },
+  {
+    file: "src/ui/context-menu.tsx",
+    slot: "ContextMenuContent (root)",
+    anchor: "max-h-(--radix-context-menu-content-available-height)",
+    token: "elevation-md",
+  },
+  {
+    file: "src/ui/context-menu.tsx",
+    slot: "ContextMenuSubContent",
+    anchor: "origin-(--radix-context-menu-content-transform-origin) overflow-hidden",
+    token: "elevation-lg",
+  },
+]
+
+const elevationClass = (entry) => `shadow-${entry.token}`
+
+async function checkLinkA4(entry) {
+  const abs = join(REPO_ROOT, entry.file)
+  const raw = await readFile(abs, "utf8").catch(() => null)
+  if (raw === null) return { ok: false, detail: `file not found: ${entry.file}` }
+  const source = stripComments(raw)
+
+  const matches = []
+  for (const { value: cls, index, truncated } of classLiterals(source)) {
+    if (truncated) {
+      return { ok: false, detail: `${entry.file}: a literal exceeds the ${cls.length}+ char cap and was truncated before it could be fully checked — see lexical-scan.mjs` }
+    }
+    if (!cls.includes(entry.anchor)) continue
+    matches.push({ cls, index })
+  }
+
+  if (matches.length === 0) {
+    return { ok: false, detail: `no literal in ${entry.file} contains the anchor "${entry.anchor}"` }
+  }
+  if (matches.length > 1) {
+    return { ok: false, detail: `the anchor "${entry.anchor}" matches ${matches.length} literals in ${entry.file}; anchor is ambiguous` }
+  }
+
+  const { cls, index } = matches[0]
+  const wanted = elevationClass(entry)
+  if (!cls.includes(wanted)) {
+    return { ok: false, detail: `literal at ${entry.file}:${lineOf(source, index)} is missing: ${wanted}` }
+  }
+  return { ok: true, detail: `${entry.file}:${lineOf(source, index)}  asks for ${wanted}` }
+}
+
+// Same skip-to-literal reasoning as resolveDensityVar, kept independent so the
+// elevation proof owns its own resolver: follow .shadow-elevation-*'s --tw-shadow hop
+// to the --elevation-* custom property, then take that property's first non-var()
+// declaration — the literal a browser resolves to.
+function resolveElevationVar(css, varName) {
+  const escaped = varName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  const declRe = new RegExp(`${escaped}:([^;}]+)[;}]`, "g")
+  let value = null
+  let m
+  while ((m = declRe.exec(css))) {
+    const v = m[1].trim()
+    if (!v.startsWith("var(")) {
+      value = v
+      break
+    }
+  }
+  return value
+}
+
+const normalizeShadow = (s) => s.replace(/\s+/g, " ").trim()
+
+function checkLinkB4(css, entry) {
+  const expected = ELEVATION_EXPECTED[entry.token]
+  const cls = elevationClass(entry)
+  const escapedCls = cls.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  const selectorRe = new RegExp(`\\.${escapedCls}\\{([^}]*)\\}`)
+  const m = css.match(selectorRe)
+  if (!m) return { ok: false, detail: `.${cls}{…} not found in dist/system.css` }
+  const body = m[1]
+
+  const varMatch = body.match(/--tw-shadow:var\((--[a-z0-9-]+)\)/)
+  if (!varMatch) return { ok: false, detail: `.${cls} did not compile a --tw-shadow:var(--…) hop: ${body}` }
+  const value = resolveElevationVar(css, varMatch[1])
+  if (value === null) return { ok: false, detail: `${varMatch[1]} is referenced but never resolves to a literal value in dist/system.css` }
+  if (normalizeShadow(value) !== normalizeShadow(expected)) {
+    return { ok: false, detail: `.${cls}: expected "${expected}", compiled value is "${value}"` }
+  }
+  return { ok: true, detail: `box-shadow ${expected} (via --tw-shadow → var(${varMatch[1]}))` }
+}
+
+const elevationFailures = []
+let elevationLinksChecked = 0
+
+console.log(`\nchecking ${ELEVATION_SLOT_TABLE.length} elevation slot(s), 2 links each\n`)
+
+for (const entry of ELEVATION_SLOT_TABLE) {
+  const a = await checkLinkA4(entry)
+  elevationLinksChecked++
+  const b = checkLinkB4(css, entry)
+  elevationLinksChecked++
+
+  const label = `${entry.slot} (${entry.file} → ${elevationClass(entry)})`
+  if (a.ok && b.ok) {
+    console.log(`  PASS  ${label}`)
+    console.log(`        A: ${a.detail}`)
+    console.log(`        B: ${b.detail}`)
+  } else {
+    console.log(`  FAIL  ${label}`)
+    console.log(`        A: ${a.ok ? "ok — " + a.detail : "FAIL — " + a.detail}`)
+    console.log(`        B: ${b.ok ? "ok — " + b.detail : "FAIL — " + b.detail}`)
+    elevationFailures.push({ entry, a, b })
+  }
+}
+
+console.log(
+  `\n${ELEVATION_SLOT_TABLE.length} slot(s), ${elevationLinksChecked} link(s) checked, ${new Set(ELEVATION_SLOT_TABLE.map((e) => e.token)).size} distinct elevation token(s)`,
+)
+
+if (elevationFailures.length === 0) {
+  console.log(`\n  PASS  all ${ELEVATION_SLOT_TABLE.length} elevation slots trace from source through to the compiled stylesheet`)
+  console.log(`\n${ELEVATION_SLOT_TABLE.length}/${ELEVATION_SLOT_TABLE.length} checks passed.`)
+} else {
+  console.log(`\n  FAIL  ${elevationFailures.length} of ${ELEVATION_SLOT_TABLE.length} elevation slot(s) did not verify:`)
+  for (const f of elevationFailures) {
+    console.log(`    ${f.entry.file} — ${f.entry.slot}`)
+    if (!f.a.ok) console.log(`      Link A: ${f.a.detail}`)
+    if (!f.b.ok) console.log(`      Link B: ${f.b.detail}`)
+  }
+  console.log(`\n${ELEVATION_SLOT_TABLE.length - elevationFailures.length}/${ELEVATION_SLOT_TABLE.length} checks passed.`)
+  process.exitCode = 1
+}
