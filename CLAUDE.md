@@ -29,8 +29,12 @@ What remains for a composition is what no machine can check: does it look right.
 ### The composition contract — all of it
 
 1. **Build from real primitives and real tokens.** No hand-rolled markup, no raw hex, no magic numbers.
-2. **`npm run check-shipped` passes**, plus `npx tsc --noEmit` and `node scripts/check-rules.mjs` clean.
-   `check-shipped` builds and then verifies the BUILT stylesheet: every `var(--token)` a component
+2. **`npm run check-all` passes** — it builds once, then runs `check-shipped`, `check-type-slots`,
+   `npx tsc --noEmit` and `node scripts/check-rules.mjs` in sequence. The build-dependent checks now
+   read `dist/` from a prior build instead of each embedding their own `vite build` (two concurrent
+   embedded builds raced over one `dist/`, so a check could read a half-written stylesheet); run
+   `npm run build` first if you invoke `check-shipped`/`check-type-slots` on their own — they refuse
+   honestly rather than build. `check-shipped` verifies the BUILT stylesheet: every `var(--token)` a component
    references must exist in `dist/system.css`. An undefined custom property renders nothing, silently,
    and this shipped once -- the rail was a transparent box while three other checks reported success,
    because each was measuring the source or the database rather than the artifact a consumer installs.
