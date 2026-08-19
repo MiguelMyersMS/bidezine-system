@@ -108,7 +108,7 @@ const SLOT_TABLE = [
   { file: "src/ui/item.tsx", slot: "ItemDescription", role: "body", anchor: "line-clamp-2 text-body text-balance", note: "absorbed slot — 21px → 20px line-height, deliberate." },
   { file: "src/ui/context-menu.tsx", slot: "ContextMenuSubTrigger", role: "body", anchor: "select-none focus:bg-accent focus:text-accent-foreground data-[inset]:pl-8 data-[state=open]:bg-accent" },
   { file: "src/ui/context-menu.tsx", slot: "ContextMenuItem", role: "body", anchor: "data-[variant=destructive]:text-destructive" },
-  { file: "src/ui/context-menu.tsx", slot: "ContextMenuCheckboxItem/RadioItem", role: "body", anchor: "pr-2 pl-8 text-body outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none", literals: 2, note: "CheckboxItem and RadioItem share one byte-identical recipe — two consumers, one entry. Anchor repaired in Issue 07e after the rewire removed the py-1.5 substring this anchor used to quote (see docs on preferring a structural anchor over one that quotes a utility)." },
+  { file: "src/ui/context-menu.tsx", slot: "ContextMenuCheckboxItem/RadioItem", role: "body", anchor: "pl-8 text-body outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none", literals: 2, note: "CheckboxItem and RadioItem share one byte-identical recipe — two consumers, one entry. Anchor repaired in Issue 07e after the rewire removed the py-1.5 substring this anchor used to quote, and again in Issue 07g after pr-2 was rewired to pr-menu-item-padding-x — dropped the pr-2 substring entirely rather than repeat that failure mode (see docs on preferring a structural anchor over one that quotes a utility)." },
   { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuItem", role: "body", anchor: "active:bg-[var(--accent-pressed,var(--accent))]" },
   { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuCheckboxItem", role: "body", anchor: "data-[state=checked]:bg-accent/50" },
   { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuRadioItem", role: "body", anchor: "focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4" },
@@ -820,59 +820,90 @@ const DENSITY_SLOT_TABLE = [
   // Issue 07e — dropdown-menu.tsx: Item/CheckboxItem/RadioItem/Label/
   // SubTrigger's own vertical padding is Finding 1 against menu-item-
   // padding-y, shared identically with context-menu.tsx and menubar.tsx's
-  // own equivalents.
+  // own equivalents. Issue 07g — their horizontal inset (px-2 on Item/
+  // Label/SubTrigger, pr-2 on CheckboxItem/RadioItem) is now wired to
+  // menu-item-padding-x, the third file that token's job description
+  // already claimed; the px/pr props below prove that rewire compiles.
   {
     file: "src/ui/dropdown-menu.tsx",
     slot: "DropdownMenuItem",
     anchor: "data-[active=true]:font-medium",
-    props: [{ util: "py", token: "menu-item-padding-y" }],
+    props: [
+      { util: "py", token: "menu-item-padding-y" },
+      { util: "px", token: "menu-item-padding-x" },
+    ],
   },
   {
     file: "src/ui/dropdown-menu.tsx",
     slot: "DropdownMenuCheckboxItem",
     anchor: "data-[state=checked]:bg-accent/50",
-    props: [{ util: "py", token: "menu-item-padding-y" }],
+    props: [
+      { util: "py", token: "menu-item-padding-y" },
+      { util: "pr", token: "menu-item-padding-x" },
+    ],
   },
   {
     file: "src/ui/dropdown-menu.tsx",
     slot: "DropdownMenuRadioItem",
     anchor: "focus:text-accent-foreground data-[disabled]:pointer-events-none",
-    props: [{ util: "py", token: "menu-item-padding-y" }],
+    props: [
+      { util: "py", token: "menu-item-padding-y" },
+      { util: "pr", token: "menu-item-padding-x" },
+    ],
   },
   {
     file: "src/ui/dropdown-menu.tsx",
     slot: "DropdownMenuLabel",
     anchor: "text-control data-[inset]:pl-8",
-    props: [{ util: "py", token: "menu-item-padding-y" }],
+    props: [
+      { util: "py", token: "menu-item-padding-y" },
+      { util: "px", token: "menu-item-padding-x" },
+    ],
   },
   {
     file: "src/ui/dropdown-menu.tsx",
     slot: "DropdownMenuSubTrigger",
     anchor: "dm-subicon-fg",
-    props: [{ util: "py", token: "menu-item-padding-y" }],
+    props: [
+      { util: "py", token: "menu-item-padding-y" },
+      { util: "px", token: "menu-item-padding-x" },
+    ],
   },
   // Issue 07e — context-menu.tsx: Item/Label/SubTrigger's own vertical
   // padding is Finding 1 against menu-item-padding-y. CheckboxItem and
   // RadioItem are rewired in source too but share one byte-identical
   // literal each with the other — same mechanism limitation as menubar.tsx,
-  // not proven individually here.
+  // not proven individually here. Issue 07g — Item/Label/SubTrigger's
+  // horizontal inset (px-2) is now wired to menu-item-padding-x; the px
+  // props below prove it. CheckboxItem/RadioItem's pr-2→pr-menu-item-
+  // padding-x rewrite is proven by dropdown-menu.tsx's pr props above,
+  // which compile the same .pr-menu-item-padding-x selector.
   {
     file: "src/ui/context-menu.tsx",
     slot: "ContextMenuSubTrigger",
     anchor: "data-[state=open]:bg-accent",
-    props: [{ util: "py", token: "menu-item-padding-y" }],
+    props: [
+      { util: "py", token: "menu-item-padding-y" },
+      { util: "px", token: "menu-item-padding-x" },
+    ],
   },
   {
     file: "src/ui/context-menu.tsx",
     slot: "ContextMenuItem",
     anchor: "dark:data-[variant=destructive]:focus:bg-destructive/20",
-    props: [{ util: "py", token: "menu-item-padding-y" }],
+    props: [
+      { util: "py", token: "menu-item-padding-y" },
+      { util: "px", token: "menu-item-padding-x" },
+    ],
   },
   {
     file: "src/ui/context-menu.tsx",
     slot: "ContextMenuLabel",
     anchor: "text-control text-foreground",
-    props: [{ util: "py", token: "menu-item-padding-y" }],
+    props: [
+      { util: "py", token: "menu-item-padding-y" },
+      { util: "px", token: "menu-item-padding-x" },
+    ],
   },
 ]
 
@@ -963,15 +994,20 @@ function checkLinkB3(css, prop) {
   // Issue 07e: toggle.tsx pairs min-w-<name> with h-<name> to keep an
   // icon-only toggle square, the first min-w- consumer this table has
   // ever needed — added alongside height/padding, not folded into the
-  // catch-all "else" that used to mean only height.
+  // catch-all "else" that used to mean only height. Issue 07g: pr-<name>
+  // added for CheckboxItem/RadioItem, whose leading checkmark gutter makes
+  // their horizontal inset right-only (pr-menu-item-padding-x) — Tailwind
+  // compiles it to padding-right, not the padding-inline that px- emits.
   const cssProp =
     prop.util === "px"
       ? "padding-inline"
       : prop.util === "py"
         ? "padding-block"
-        : prop.util === "min-w"
-          ? "min-width"
-          : "height"
+        : prop.util === "pr"
+          ? "padding-right"
+          : prop.util === "min-w"
+            ? "min-width"
+            : "height"
   const varMatch = body.match(new RegExp(`${cssProp}:var\\((--[a-z0-9-]+)\\)`))
   if (!varMatch) return { ok: false, detail: `no ${cssProp}:var(--${prop.token}) reference found in the compiled rule: ${body}` }
   const value = resolveDensityVar(css, varMatch[1])

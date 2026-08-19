@@ -57,6 +57,12 @@ import { hasForbiddenTypeUtility } from "./lib/type-utility.mjs"
 // src/ui/ — see componentClassLiterals's own header for why a caller-side scan needs to
 // first find which literals reach a component's className-shaped prop at all.
 import { componentClassLiterals } from "./lib/component-class-scope.mjs"
+// Issue 07g: R8 (the ≥3-file padding tripwire) asks "which box-padding values recur
+// across enough files to deserve a decision on record" — the box-vs-single-edge scope
+// and the offset exclusion that answer defensibly live in lib/padding-scan.mjs, not
+// inline here, so a future consumer reads one scope decision rather than copying a
+// second regex. See that module's header for why single-edge padding is out of scope.
+import { boxPaddingUtilities } from "./lib/padding-scan.mjs"
 
 
 const JSON_OUT = process.argv.includes("--json")
@@ -516,6 +522,119 @@ async function ruleNoCallerTypeOverride() {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════════
+// R8 — a box-padding value used across ≥3 files in src/ui/ must be a decision on record.
+//
+// Issue 07g. Density's height axis tokenised cleanly because "be an N-height box" is one
+// job in every component that has it; its padding axis did not, and 07e–07f established
+// why: a shared raw pixel value is NOT evidence of a shared job. The most-reused inline
+// paddings host the MOST distinct jobs — px-2 lands on a badge pill, a toggle inset, a
+// tab trigger and eleven other unrelated controls — so "same value, N files" cannot, by
+// itself, mean "same job." Structural sameness (icon-conditionality, height-pairing,
+// fixed-vs-content sizing) is what decides, and that is not computable from a class string.
+//
+// So this rule does NOT assert "≥3 files ⇒ must be tokenised." That assertion is false
+// here and would flag fourteen combos that 07e–07f already adjudicated as either container
+// padding (permanently raw) or one value hosting many jobs — reproducing R6's original
+// mistake (hundreds of violations nobody clears) in miniature. What the evidence DOES
+// support is narrower and true: once a box-padding value recurs across three or more files
+// it is common enough that a new adopter deserves a moment's adjudication, because the two
+// genuine shared padding jobs this project found — menu-item-padding-y and -x — were BOTH
+// found at exactly three files. Three files is therefore the notify threshold, not a
+// tokenise mandate: at 3+ a combo must be a decision ON RECORD — tokenised (a named job)
+// OR listed in PADDING_ADJUDICATED below with its category and reason. A 3+ combo that is
+// NEITHER is the violation: an unadjudicated recurrence, which is exactly the moment a
+// future shared job would first look like every other coincidence and slip through.
+//
+// Why not a file-count number that separates signal from coincidence? There isn't one.
+// The two real jobs sit at 3 files; container padding reaches 3–7 (p-1 at 7, p-4 at 6);
+// pure coincidence reaches 3–13 (px-2 at 13). The three populations overlap completely
+// across the whole 3+ range, so no threshold partitions them — the separator is
+// structural, not numeric, and a class-string scan cannot see it. The rule buys a human
+// look at each recurrence; it does not pretend to judge the job itself.
+//
+// ── Scope: box padding only; offsets excluded ───────────────────────────────────────
+// Only p-/px-/py- (nonzero) are scanned — see lib/padding-scan.mjs's header. Single-edge
+// pt-/pr-/pb-/pl- are out of scope because a single-edge padding job (pr-… keeping content
+// off an edge) and a positional offset (pl-8, the fixed indicator gutter clearing an
+// absolutely-positioned check) are the same shape in the class string and separable only
+// by inspecting a sibling's position, which a lexical scan cannot do. Two single-edge
+// combos reach 3 files today and are deliberately NOT flagged: pl-2 (calendar/combobox/
+// select) and pl-8 (context-menu/dropdown-menu/menubar, the canonical indicator gutter).
+//
+// Each PADDING_ADJUDICATED entry cites a category, same discipline as every allow-list in
+// this file: "container" = the box's own inset on a surface/container, decided permanently
+// raw in 07g (tokenising container padding and gaps is explicitly out of scope); "coincidence"
+// = a common control inline/block value carrying distinct jobs per 07e's method, where a
+// name would lengthen the value without describing a job. An entry that stops reaching 3
+// files self-reports below so it can be removed.
+// ═══════════════════════════════════════════════════════════════════════════════════
+const PADDING_MIN_FILES = 3
+
+const PADDING_ADJUDICATED = [
+  // Container / surface padding — the box's OWN inner inset on a floating surface or a
+  // layout container. Out of scope for tokenisation in 07g (container padding and gaps
+  // stay raw). Reported so the owner can see which container paddings recur widely.
+  { combo: "p-1", category: "container", reason: "menu/listbox/command surface inner inset (dropdown/context/menubar/command/combobox/select) + attachment media box" },
+  { combo: "p-4", category: "container", reason: "floating-surface body padding (drawer/hover-card/popover/sheet) + item/rail container" },
+  { combo: "p-2", category: "container", reason: "container inset (navigation-menu/sidebar/table/rail) + attachment media box" },
+  { combo: "p-6", category: "container", reason: "large dialog-surface body padding (alert-dialog/dialog/empty)" },
+  // Coincidence — a common control inline/block padding value that lands on structurally
+  // distinct jobs across its files (07e: a shared value is not a shared job). Naming it
+  // would produce a value with a longer name, not a job description. Kept raw.
+  { combo: "px-2", category: "coincidence", reason: "8px inline inset across distinct controls (badge pill, toggle, tab/select triggers, table cell, field, command/combobox, menubar trigger, …)" },
+  { combo: "px-3", category: "coincidence", reason: "12px inline inset across distinct controls (input/textarea/select/native-select, bubble, message, tooltip, toggle-group)" },
+  { combo: "py-2", category: "coincidence", reason: "8px block inset across distinct controls (bubble, native-select, navigation-menu, select, textarea, combobox, rail)" },
+  { combo: "py-1.5", category: "coincidence", reason: "6px block inset across distinct controls (chart, combobox, command, input-group, select, tooltip)" },
+  { combo: "px-2.5", category: "coincidence", reason: "10px inline inset across distinct controls (chart, combobox, input-group, pagination, sidebar, attachment)" },
+  { combo: "px-1.5", category: "coincidence", reason: "6px inline inset across distinct controls (bubble, combobox, toggle, rail, attachment)" },
+  { combo: "py-1", category: "coincidence", reason: "4px block inset across distinct controls (menubar, native-select, select, tabs, attachment)" },
+  { combo: "py-3", category: "coincidence", reason: "12px block inset across distinct controls (command, input-group, item, rail)" },
+  { combo: "px-4", category: "coincidence", reason: "16px inline inset across distinct controls (button-group, item, navigation-menu)" },
+  { combo: "py-0.5", category: "coincidence", reason: "2px block inset across distinct controls (badge pill, bubble, sidebar) — 07f Finding 3, single-consumer-per-job" },
+]
+
+async function ruleShared3FilePadding() {
+  const uiFiles = await walk(join(REPO_ROOT, "src", "ui"))
+  // combo -> { files:Set, first:{path,line} } — the first occurrence anchors the report,
+  // since a cross-file combo has no single site.
+  const combos = new Map()
+  for (const file of uiFiles) {
+    const path = rel(file)
+    const source = stripComments(await readFile(file, "utf8"))
+    for (const { value: cls, index } of classLiterals(source)) {
+      for (const { combo } of boxPaddingUtilities(cls)) {
+        if (!combos.has(combo)) combos.set(combo, { files: new Set(), first: null })
+        const rec = combos.get(combo)
+        rec.files.add(path)
+        if (rec.first === null) rec.first = { path, line: lineOf(source, index) }
+      }
+    }
+  }
+  const adjudicated = new Set(PADDING_ADJUDICATED.map((e) => e.combo))
+  const seenAdjudicated = new Set()
+  for (const [combo, rec] of combos) {
+    if (rec.files.size < PADDING_MIN_FILES) continue
+    if (adjudicated.has(combo)) {
+      seenAdjudicated.add(combo)
+      continue
+    }
+    const list = [...rec.files].sort().join(", ")
+    report(
+      "padding.shared-3-file",
+      rec.first.path,
+      rec.first.line,
+      `${combo} is used in ${rec.files.size} files (${list}) but is neither tokenised nor adjudicated — name a semantic if it is one shared job, or record it in PADDING_ADJUDICATED with its category`,
+    )
+  }
+  // An adjudication that no longer reaches the threshold is one nobody will notice is stale.
+  for (const e of PADDING_ADJUDICATED) {
+    if (!seenAdjudicated.has(e.combo)) {
+      notes.push(`R8 adjudication for ${e.combo} (${e.category}) no longer reaches ${PADDING_MIN_FILES} files — the entry can go`)
+    }
+  }
+}
+
 // ── run ─────────────────────────────────────────────────────────────────────────────
 const SHIPPED = [join(REPO_ROOT, "src"), join(REPO_ROOT, "site", "src"), join(REPO_ROOT, "sandbox", "src")]
 const files = (await Promise.all(SHIPPED.map((d) => walk(d)))).flat()
@@ -526,6 +645,7 @@ await ruleIconMarker(files)
 await ruleLeadingNoneTruncate(files)
 await ruleNoRawTypeUtility()
 await ruleNoCallerTypeOverride()
+await ruleShared3FilePadding()
 
 if (JSON_OUT) {
   console.log(JSON.stringify({ violations, notes }, null, 2))
