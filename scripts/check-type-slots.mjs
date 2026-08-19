@@ -21,6 +21,18 @@
 //   check-shipped-tokens.mjs is built on, and for the same reason: a source file or a
 //   database row can say anything; only the shipped CSS says what ships.
 //
+//   Link C — RUNTIME (Issue 07l): Link A and Link B are both honest and both blind to the
+//   one thing between them — cn() (tailwind-merge) runs at render time and can DELETE the
+//   role utility Link A proved is in the source before it ever reaches the DOM Link B's CSS
+//   would style. It did exactly that: tailwind-merge's default catch-all colour group
+//   claimed every `text-<role>` as a colour, so a role and a colour in one class string
+//   collided and the role was dropped, with no visual symptom. Link C runs the REAL cn
+//   (imported from ../src/lib/tw-merge.mjs — the same function that ships, never a
+//   reimplementation) over each slot's actual source literal and asserts that every slot
+//   carrying BOTH a role and a colour keeps both. A slot with no colour beside its role
+//   can't exhibit the collision and is reported as not-covered rather than passed.
+
+//
 // The expected values below are LITERALS, copied from Issue 05b's shipped-value table.
 // They are never read back out of the current build. A check whose expectation is
 // derived from the thing it is checking passes by construction and proves nothing — if
@@ -248,6 +260,12 @@ function roleRegex(role) {
 // element-targeting-vs-condition-only distinction itself; this file no longer keeps a
 // private copy.
 import { stripElementTargeting } from "./lib/variant-scope.mjs"
+// Link C (Issue 07l) — the REAL configured merge and the derived font-size role list,
+// both imported so this check can never hold a different idea of the merge than the code
+// that ships. fontSizeRoles is what tells a `text-<x>` in a literal apart from a colour:
+// any text-<name> whose <name> is a role is font-size, not a colour to assert survival of.
+import { cn } from "../src/lib/tw-merge.mjs"
+import { fontSizeRoles } from "../src/tw-merge-groups.js"
 
 async function checkLinkA(entry) {
   const abs = join(REPO_ROOT, entry.file)
@@ -318,7 +336,55 @@ async function checkLinkA(entry) {
       return { ok: false, detail: `${entry.file}:${lineOf(source, index)} carries a forbidden utility alongside text-${entry.role}: "${cls.slice(0, 120)}"` }
     }
   }
-  return { ok: true, detail: `${entry.file}:${lines.join(",")}  "${matches[0].cls.slice(0, 120)}"` }
+  return { ok: true, detail: `${entry.file}:${lines.join(",")}  "${matches[0].cls.slice(0, 120)}"`, matched: matches.map((m) => m.cls) }
+}
+
+// ── Link C ──────────────────────────────────────────────────────────────────────────
+// Tailwind's own text-* utilities that are NOT colours. Everything else `text-<x>` in a
+// literal (that isn't a font-size role) is a colour whose survival Link C asserts. This
+// list is small and closed — Tailwind has no [isAny] catch-all minting new non-colour
+// text-* names — so it does not drift the way a colour allow-list would.
+const TEXT_NON_COLOUR = new Set([
+  "left", "center", "right", "justify", "start", "end", // text-align
+  "wrap", "nowrap", "balance", "pretty", // text-wrap
+  "clip", "ellipsis", // text-overflow
+])
+const FONT_SIZE_ROLES = new Set(fontSizeRoles)
+
+// A slot QUALIFIES for Link C when its source literal carries the role utility AND at
+// least one colour utility at the SAME (unprefixed) variant scope — the only shape the
+// merge collision can occur in. For such a slot, run the real cn() over the whole literal
+// and assert both the role and every colour token are still present in the output. A slot
+// with no unprefixed colour beside its role cannot collide and is returned qualified:false
+// (reported as covered-count, not as a pass it didn't earn).
+function checkLinkC(entry, literals) {
+  const roleTok = `text-${entry.role}`
+  const problems = []
+  let qualified = false
+  let sample = null
+  for (const lit of literals) {
+    const plain = lit
+      .split(/\s+/)
+      .filter(Boolean)
+      .filter((t) => !t.includes(":") && !t.startsWith("[")) // unprefixed, same variant scope
+    if (!plain.includes(roleTok)) continue
+    const colours = plain.filter((t) => {
+      if (!t.startsWith("text-") || t === roleTok) return false
+      const name = t.slice("text-".length).split("/")[0] // drop /opacity
+      if (FONT_SIZE_ROLES.has(name)) return false // another role = font-size, not a colour
+      if (TEXT_NON_COLOUR.has(name)) return false // align/wrap/overflow, not a colour
+      return true
+    })
+    if (colours.length === 0) continue
+    qualified = true
+    sample = { lit, colours }
+    const out = new Set(cn(lit).split(/\s+/))
+    if (!out.has(roleTok)) problems.push(`cn() dropped the role ${roleTok}`)
+    for (const c of colours) if (!out.has(c)) problems.push(`cn() dropped the colour ${c}`)
+  }
+  if (!qualified) return { qualified: false, ok: true, detail: "no colour beside the role — collision impossible" }
+  if (problems.length) return { qualified: true, ok: false, detail: `${problems.join("; ")} — in "${sample.lit.slice(0, 120)}"` }
+  return { qualified: true, ok: true, detail: `role + ${sample.colours.join(" + ")} both survive cn()` }
 }
 
 // ── Table integrity ─────────────────────────────────────────────────────────────────
@@ -1061,8 +1127,9 @@ if (integrity.problems.length > 0) {
 
 const failures = []
 let linksChecked = 0
+let linkCCovered = 0
 
-console.log(`\nchecking ${SLOT_TABLE.length} rewired type slot(s), 2 links each\n`)
+console.log(`\nchecking ${SLOT_TABLE.length} rewired type slot(s), up to 3 links each\n`)
 
 // Link B only needs to run once per distinct role, not once per slot — the compiled rule
 // is the same regardless of how many components consume it — but is reported per slot so
@@ -1076,23 +1143,35 @@ for (const entry of SLOT_TABLE) {
   linksChecked++
   rolesChecked.add(entry.role)
 
+  // Link C runs only when Link A resolved the literal(s) — with no literal there is
+  // nothing to feed the real cn(). It reports qualified:false (no colour beside the role)
+  // separately from a pass, so the coverage count is honest about which slots it bit.
+  const c = a.ok ? checkLinkC(entry, a.matched) : { qualified: false, ok: true, detail: "Link A did not resolve a literal" }
+  if (c.qualified) {
+    linksChecked++
+    linkCCovered++
+  }
+
   const label = `${entry.slot} (${entry.file} → text-${entry.role})${entry.note ? `  [${entry.note}]` : ""}`
-  if (a.ok && b.ok) {
+  if (a.ok && b.ok && c.ok) {
     console.log(`  PASS  ${label}`)
     console.log(`        A: ${a.detail}`)
     console.log(`        B: ${b.detail}`)
+    console.log(`        C: ${c.qualified ? c.detail : `(not covered — ${c.detail})`}`)
   } else {
     console.log(`  FAIL  ${label}`)
     console.log(`        A: ${a.ok ? "ok — " + a.detail : "FAIL — " + a.detail}`)
     console.log(`        B: ${b.ok ? "ok — " + b.detail : "FAIL — " + b.detail}`)
-    failures.push({ entry, a, b })
+    console.log(`        C: ${c.ok ? (c.qualified ? "ok — " + c.detail : "(not covered — " + c.detail + ")") : "FAIL — " + c.detail}`)
+    failures.push({ entry, a, b, c })
   }
 }
 
 console.log(`\n${SLOT_TABLE.length} slot(s), ${linksChecked} link(s) checked, ${new Set(SLOT_TABLE.map((e) => e.role)).size} distinct role(s)`)
+console.log(`Link C (runtime cn) covered ${linkCCovered} of ${SLOT_TABLE.length} slot(s) — those carrying a colour beside the role, the only shape the merge collision can occur in`)
 
 if (failures.length === 0) {
-  console.log(`\n  PASS  all ${SLOT_TABLE.length} slots trace from source through to the compiled stylesheet`)
+  console.log(`\n  PASS  all ${SLOT_TABLE.length} slots trace from source through to the compiled stylesheet, and survive the runtime merge`)
   console.log(`\n${SLOT_TABLE.length}/${SLOT_TABLE.length} checks passed.`)
 } else {
   console.log(`\n  FAIL  ${failures.length} of ${SLOT_TABLE.length} slot(s) did not verify:`)
@@ -1100,6 +1179,7 @@ if (failures.length === 0) {
     console.log(`    ${f.entry.file} — ${f.entry.slot} (text-${f.entry.role})`)
     if (!f.a.ok) console.log(`      Link A: ${f.a.detail}`)
     if (!f.b.ok) console.log(`      Link B: ${f.b.detail}`)
+    if (!f.c.ok) console.log(`      Link C: ${f.c.detail}`)
   }
   console.log(`\n${SLOT_TABLE.length - failures.length}/${SLOT_TABLE.length} checks passed.`)
   process.exitCode = 1
