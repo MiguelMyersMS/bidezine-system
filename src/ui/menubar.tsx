@@ -65,6 +65,13 @@ function MenubarTrigger({
       ref={actionIcon.ref}
       data-slot="menubar-trigger"
       className={cn(
+        // Issue 07f: px-2 (padding-8) re-adjudicated — a distinct job
+        // (the toolbar-row trigger button itself, not a dropdown row) but
+        // single-consumer in src/ui today, so it stays raw rather than
+        // become a semantic that is really just this value with a longer
+        // name. py-1 (padding-4) was already reported blocked in 07e and
+        // is unchanged — would have been a third semantic on that
+        // primitive, out of this issue's re-adjudication scope.
         "flex items-center rounded-sm px-2 py-1 text-control outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
         className
       )}
@@ -138,10 +145,14 @@ function MenubarItem({
       className={cn(
         // Issue 07e: py-1.5 rewired to menu-item-padding-y (Finding 1,
         // shared with dropdown-menu.tsx/context-menu.tsx's own Item —
-        // one genuine job, not three components sharing a number). px-2
-        // stays raw — blocked, padding-8's two-semantic cap was already
-        // spent on button-padding-x-xs/button-padding-y-default.
-        "relative flex cursor-default items-center gap-2 rounded-sm px-2 py-menu-item-padding-y text-body outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive!",
+        // one genuine job, not three components sharing a number). Issue
+        // 07f: px-2 rewired to menu-item-padding-x, the horizontal
+        // counterpart — same shared menu-row job, surviving
+        // re-adjudication once the per-primitive cap that blocked it in
+        // 07e was removed. Wired here only; dropdown-menu.tsx/context-
+        // menu.tsx share the identical job but are out of this issue's
+        // file scope.
+        "relative flex cursor-default items-center gap-2 rounded-sm px-menu-item-padding-x py-menu-item-padding-y text-body outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground data-[variant=destructive]:*:[svg]:text-destructive!",
         className
       )}
       disabled={disabled}
@@ -180,8 +191,10 @@ function MenubarCheckboxItem({
       className={cn(
         // Issue 07e: py-1.5 rewired to menu-item-padding-y (Finding 1,
         // same shared menu-row job as MenubarItem/RadioItem/Label/
-        // SubTrigger). pr-2/pl-8 stay raw.
-        "relative flex cursor-default items-center gap-2 rounded-xs py-menu-item-padding-y pr-2 pl-8 text-body outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        // SubTrigger). Issue 07f: pr-2 rewired to menu-item-padding-x
+        // (survived re-adjudication, see MenubarItem's own comment).
+        // pl-8 (the fixed indicator gutter) stays raw.
+        "relative flex cursor-default items-center gap-2 rounded-xs py-menu-item-padding-y pr-menu-item-padding-x pl-8 text-body outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       checked={checked}
@@ -208,8 +221,10 @@ function MenubarRadioItem({
       className={cn(
         // Issue 07e: py-1.5 rewired to menu-item-padding-y (Finding 1,
         // same shared menu-row job as MenubarItem/CheckboxItem/Label/
-        // SubTrigger). pr-2/pl-8 stay raw.
-        "relative flex cursor-default items-center gap-2 rounded-xs py-menu-item-padding-y pr-2 pl-8 text-body outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        // SubTrigger). Issue 07f: pr-2 rewired to menu-item-padding-x
+        // (survived re-adjudication, see MenubarItem's own comment).
+        // pl-8 (the fixed indicator gutter) stays raw.
+        "relative flex cursor-default items-center gap-2 rounded-xs py-menu-item-padding-y pr-menu-item-padding-x pl-8 text-body outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}
@@ -237,8 +252,10 @@ function MenubarLabel({
       data-inset={inset}
       className={cn(
         // Issue 07e: py-1.5 rewired to menu-item-padding-y (Finding 1,
-        // same shared menu-row job). px-2 stays raw — blocked.
-        "px-2 py-menu-item-padding-y text-control data-[inset]:pl-8",
+        // same shared menu-row job). Issue 07f: px-2 rewired to
+        // menu-item-padding-x (survived re-adjudication, see
+        // MenubarItem's own comment).
+        "px-menu-item-padding-x py-menu-item-padding-y text-control data-[inset]:pl-8",
         className
       )}
       {...props}
@@ -299,8 +316,10 @@ function MenubarSubTrigger({
       data-inset={inset}
       className={cn(
         // Issue 07e: py-1.5 rewired to menu-item-padding-y (Finding 1,
-        // same shared menu-row job). px-2 stays raw — blocked.
-        "flex cursor-default items-center rounded-sm px-2 py-menu-item-padding-y text-body outline-none select-none focus:bg-accent focus:text-accent-foreground data-[inset]:pl-8 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
+        // same shared menu-row job). Issue 07f: px-2 rewired to
+        // menu-item-padding-x (survived re-adjudication, see
+        // MenubarItem's own comment).
+        "flex cursor-default items-center rounded-sm px-menu-item-padding-x py-menu-item-padding-y text-body outline-none select-none focus:bg-accent focus:text-accent-foreground data-[inset]:pl-8 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
         className
       )}
       disabled={disabled}

@@ -114,7 +114,7 @@ const SLOT_TABLE = [
   { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuRadioItem", role: "body", anchor: "focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4" },
   { file: "src/ui/dropdown-menu.tsx", slot: "DropdownMenuSubTrigger", role: "body", anchor: "data-[inset]:pl-8 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4" },
   { file: "src/ui/menubar.tsx", slot: "MenubarItem", role: "body", anchor: "data-[variant=destructive]:text-destructive" },
-  { file: "src/ui/menubar.tsx", slot: "MenubarCheckboxItem/RadioItem", role: "body", anchor: "pr-2 pl-8 text-body outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none", literals: 2, note: "CheckboxItem and RadioItem share one byte-identical recipe — two consumers, one entry. Anchor repaired in Issue 07e after the rewire removed the py-1.5 substring this anchor used to quote." },
+  { file: "src/ui/menubar.tsx", slot: "MenubarCheckboxItem/RadioItem", role: "body", anchor: "pl-8 text-body outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none", literals: 2, note: "CheckboxItem and RadioItem share one byte-identical recipe — two consumers, one entry. Anchor repaired in Issue 07e after the rewire removed the py-1.5 substring this anchor used to quote, and again in Issue 07f after pr-2 was rewired to pr-menu-item-padding-x — dropped the pr-2 substring entirely rather than repeat the failure mode a third time." },
   { file: "src/ui/menubar.tsx", slot: "MenubarSubTrigger", role: "body", anchor: "data-[inset]:pl-8 data-[state=open]:bg-accent" },
   { file: "src/ui/command.tsx", slot: "CommandInput", role: "body", anchor: "h-10 w-full rounded-md bg-transparent py-3 text-body outline-hidden placeholder:text-muted-foreground" },
   { file: "src/ui/command.tsx", slot: "CommandEmpty", role: "body", anchor: "py-6 text-center text-body" },
@@ -628,6 +628,16 @@ function checkLinkB2(css, leading) {
 // Issue 07e added three more semantics from rewiring badge/toggle/kbd and
 // dropdown-menu/context-menu/menubar — menu-item-padding-y (shared, multi-file),
 // toggle-padding-x-lg and kbd-padding-x — and no new primitive.
+//
+// Issue 07f removed the per-primitive numeric cap 07e had imposed and
+// re-adjudicated the four padding-8 slots it had blocked, on the description
+// test alone. One survives: menu-item-padding-x, the menu row's own
+// horizontal counterpart to menu-item-padding-y, wired to menubar.tsx only
+// this commit (dropdown-menu.tsx/context-menu.tsx are out of this issue's
+// file scope, though they share the same job). badge.tsx's own px-2,
+// toggle.tsx default's own px-2 and menubar.tsx's own MenubarTrigger px-2
+// stay raw — each is a distinct job but single-consumer, so no semantic was
+// authored for any of them.
 const DENSITY_EXPECTED = {
   "control-height-xs": "1.5rem",
   "control-height-sm": "2rem",
@@ -644,6 +654,7 @@ const DENSITY_EXPECTED = {
   "menu-item-padding-y": ".375rem",
   "toggle-padding-x-lg": ".625rem",
   "kbd-padding-x": ".25rem",
+  "menu-item-padding-x": ".5rem",
 }
 
 const DENSITY_SLOT_TABLE = [
@@ -783,19 +794,28 @@ const DENSITY_SLOT_TABLE = [
     file: "src/ui/menubar.tsx",
     slot: "MenubarItem",
     anchor: "dark:data-[variant=destructive]:focus:bg-destructive/20",
-    props: [{ util: "py", token: "menu-item-padding-y" }],
+    props: [
+      { util: "py", token: "menu-item-padding-y" },
+      { util: "px", token: "menu-item-padding-x" },
+    ],
   },
   {
     file: "src/ui/menubar.tsx",
     slot: "MenubarLabel",
     anchor: "text-control data-[inset]:pl-8",
-    props: [{ util: "py", token: "menu-item-padding-y" }],
+    props: [
+      { util: "py", token: "menu-item-padding-y" },
+      { util: "px", token: "menu-item-padding-x" },
+    ],
   },
   {
     file: "src/ui/menubar.tsx",
     slot: "MenubarSubTrigger",
     anchor: "outline-none",
-    props: [{ util: "py", token: "menu-item-padding-y" }],
+    props: [
+      { util: "py", token: "menu-item-padding-y" },
+      { util: "px", token: "menu-item-padding-x" },
+    ],
   },
   // Issue 07e — dropdown-menu.tsx: Item/CheckboxItem/RadioItem/Label/
   // SubTrigger's own vertical padding is Finding 1 against menu-item-

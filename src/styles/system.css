@@ -226,6 +226,17 @@
    * job, not three components landing on the same number by coincidence),
    * toggle-padding-x-lg and kbd-padding-x. All three point at an existing
    * padding-* primitive; no new primitive was authored this issue.
+   *
+   * Issue 07f — the per-primitive numeric cap 07e imposed (never a third
+   * semantic on one primitive) is removed; see tokens/base.tokens.json's
+   * own Issue 07f paragraph for why it measured the wrong thing and what
+   * replaced it. menu-item-padding-x is authored as padding-8's third
+   * semantic (alongside button-padding-x-xs and button-padding-y-default)
+   * — the menu row's own horizontal counterpart to menu-item-padding-y,
+   * wired to menubar.tsx only this issue. badge.tsx's own px-2, toggle.tsx
+   * default's own px-2 and menubar.tsx's own MenubarTrigger px-2 were
+   * re-adjudicated and stay raw — each is a genuinely distinct job but has
+   * exactly one consumer, so none is authored.
    */
   --spacing-control-height-xs: var(--control-height-xs);
   --spacing-control-height-sm: var(--control-height-sm);
@@ -242,6 +253,7 @@
   --spacing-menu-item-padding-y: var(--menu-item-padding-y);
   --spacing-toggle-padding-x-lg: var(--toggle-padding-x-lg);
   --spacing-kbd-padding-x: var(--kbd-padding-x);
+  --spacing-menu-item-padding-x: var(--menu-item-padding-x);
 }
 
 /*
