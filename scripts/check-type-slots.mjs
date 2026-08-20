@@ -1363,7 +1363,8 @@ if (densityFailures.length === 0) {
 // beyond the menus (md by popover / hover-card / select / …; lg by dialog / sheet /
 // alert-dialog) — a "menu-surface" name would mislabel every non-menu consumer. 07j
 // rewired and checked the three menu families; Issue 07(p) below adds md's non-menu
-// consumers; lg's non-menu consumers keep Tailwind's stock shadow-lg until their commit.
+// consumers and Issue 07(q) adds lg's — so no src/ consumer references stock
+// shadow-md/shadow-lg any more, and Tailwind emits neither rule.
 //
 // Expected literals are transcribed from Tailwind's own theme.css (--shadow-md,
 // --shadow-lg, --shadow-xs, --shadow-sm), with its source colour written in the
@@ -1472,6 +1473,30 @@ const ELEVATION_SLOT_TABLE = [
     slot: "browsing panel",
     anchor: "flex h-full w-full flex-col overflow-hidden",
     token: "elevation-md",
+  },
+  // elevation-lg — the dialog-tier surfaces (Issue 07q). The lg tier's three modal
+  // content surfaces (alert-dialog, dialog, sheet) rewired off stock shadow-lg now that
+  // 07j put the menu submenus on shadow-elevation-lg. elevation-lg's own $description
+  // names all six lg consumers, so these three belong on record beside the three menu
+  // submenus. Anchors are structural fragments of each slot's own literal, never the
+  // shadow utility rewired; each renders byte-for-byte what stock shadow-lg did.
+  {
+    file: "src/ui/alert-dialog.tsx",
+    slot: "AlertDialogContent",
+    anchor: "group/alert-dialog-content",
+    token: "elevation-lg",
+  },
+  {
+    file: "src/ui/dialog.tsx",
+    slot: "DialogContent",
+    anchor: "translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6",
+    token: "elevation-lg",
+  },
+  {
+    file: "src/ui/sheet.tsx",
+    slot: "SheetContent",
+    anchor: "z-50 flex flex-col gap-4 bg-background",
+    token: "elevation-lg",
   },
   // elevation-xs — the sixteen-file family (07j deferral). Anchors are structural
   // fragments of each slot's own literal, never the shadow utility being rewired.
