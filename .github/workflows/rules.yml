@@ -30,9 +30,19 @@ jobs:
         with:
           node-version: "22"
 
-      # No install step: both scripts read source files and use only Node built-ins. The
-      # one import they share is REPO_ROOT from verifier/lib/db.mjs, which does not connect
-      # to anything at import time.
+      # No install step, and now that is actually true. Every script this job runs —
+      # check-rules-test.mjs, check-rules.mjs and check-quarantine.mjs — and every module
+      # they import reaches only Node built-ins. The shared path constant REPO_ROOT comes
+      # from scripts/lib/repo-root.mjs, which imports nothing but node:path/node:url.
+      #
+      # Before Issue 07o it came from verifier/lib/db.mjs, which does `import sql from
+      # "mssql"` — a verifier/-only dependency — at module top level. With no install step
+      # that made this gate CRASH with ERR_MODULE_NOT_FOUND at the first script, before
+      # asserting a single rule: 112 runs, 0 passes, red since its first run on 2026-08-12.
+      # The old comment here claimed the import "does not connect to anything at import
+      # time", which is true of connecting and false of resolving — and resolving is what
+      # broke. If any script this job runs ever imports a module that needs a package, add
+      # an install step here; do not restore a comment that only hopes one is unnecessary.
       - name: The rules can still fail
         # Runs BEFORE the rules themselves, on purpose. A rule that cannot fire is
         # indistinguishable from a rule that is passing — `evidence.current` was satisfied

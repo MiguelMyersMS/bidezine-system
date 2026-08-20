@@ -23,7 +23,11 @@ import { execFile } from "node:child_process"
 import { mkdir, rm, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { promisify } from "node:util"
-import { REPO_ROOT } from "../verifier/lib/db.mjs"
+// Issue 07o: REPO_ROOT comes from a database-free module, NOT verifier/lib/db.mjs, which
+// imports mssql at top level. This is a source-only check; borrowing the constant from the
+// db module crashed it — and, as the FIRST step of the blocking `rules` CI gate, the whole
+// gate — with ERR_MODULE_NOT_FOUND on any clean/root-only install, before asserting.
+import { REPO_ROOT } from "./lib/repo-root.mjs"
 
 const run = promisify(execFile)
 

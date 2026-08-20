@@ -44,7 +44,11 @@
 
 import { readFile } from "node:fs/promises"
 import { join } from "node:path"
-import { REPO_ROOT } from "../verifier/lib/db.mjs"
+// Issue 07o: REPO_ROOT comes from a database-free module, NOT verifier/lib/db.mjs, which
+// imports mssql at top level. This is a source-only check; borrowing the constant from the
+// db module crashed it with ERR_MODULE_NOT_FOUND on any clean/root-only install, before it
+// could assert a single slot.
+import { REPO_ROOT } from "./lib/repo-root.mjs"
 // Issue 07k: loading dist/system.css — and telling "the build has not run" apart from
 // "a slot did not verify" — is shared with check-shipped-tokens.mjs. A missing or
 // mid-build (empty) artifact used to fall through the local ENOENT guard and surface as

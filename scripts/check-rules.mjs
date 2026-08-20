@@ -25,7 +25,11 @@
 
 import { readFile, readdir } from "node:fs/promises"
 import { join, relative } from "node:path"
-import { REPO_ROOT } from "../verifier/lib/db.mjs"
+// Issue 07o: REPO_ROOT comes from a database-free module, NOT verifier/lib/db.mjs, which
+// imports mssql at top level. This is a source-only check; borrowing the constant from the
+// db module crashed it — and the blocking `rules` CI gate — with ERR_MODULE_NOT_FOUND on
+// any clean/root-only install, before it could assert a single rule.
+import { REPO_ROOT } from "./lib/repo-root.mjs"
 // Neutral parsing helper, not another gate — see scripts/lib/lexical-scan.mjs's own
 // header for why importing it here does not reopen the self-contained-gate question
 // R6 raised when it was non-blocking. As of Issue 06h R6 is blocking, which removes
