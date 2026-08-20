@@ -1361,9 +1361,9 @@ if (densityFailures.length === 0) {
 //
 // The names are tier-based, not widget-based, because each tier is genuinely shared
 // beyond the menus (md by popover / hover-card / select / …; lg by dialog / sheet /
-// alert-dialog) — a "menu-surface" name would mislabel every non-menu consumer. Only
-// the three in-scope menu families are rewired and checked here; the other consumers
-// keep Tailwind's stock shadow-md/shadow-lg until their own file-scope commits.
+// alert-dialog) — a "menu-surface" name would mislabel every non-menu consumer. 07j
+// rewired and checked the three menu families; Issue 07(p) below adds md's non-menu
+// consumers; lg's non-menu consumers keep Tailwind's stock shadow-lg until their commit.
 //
 // Expected literals are transcribed from Tailwind's own theme.css (--shadow-md,
 // --shadow-lg, --shadow-xs, --shadow-sm), with its source colour written in the
@@ -1429,6 +1429,49 @@ const ELEVATION_SLOT_TABLE = [
     slot: "ContextMenuSubContent",
     anchor: "origin-(--radix-context-menu-content-transform-origin) overflow-hidden",
     token: "elevation-lg",
+  },
+  // elevation-md — the non-menu surfaces (Issue 07p). The md tier's four popover-tier
+  // content surfaces (popover, hover-card, select, combobox), the navigation-menu
+  // indicator arrow, and the rail-sidebar browsing panel, rewired off stock shadow-md
+  // now that 07j put the menu roots on shadow-elevation-md. elevation-md's own
+  // $description names all nine md consumers, so these six belong on record beside the
+  // three menu roots. Anchors are structural fragments of each slot's own literal, never
+  // the shadow utility rewired; each renders byte-for-byte what stock shadow-md did.
+  {
+    file: "src/ui/combobox.tsx",
+    slot: "ComboboxContent (Popup)",
+    anchor: "group/combobox-content",
+    token: "elevation-md",
+  },
+  {
+    file: "src/ui/hover-card.tsx",
+    slot: "HoverCardContent",
+    anchor: "w-64 origin-(--radix-hover-card-content-transform-origin)",
+    token: "elevation-md",
+  },
+  {
+    file: "src/ui/popover.tsx",
+    slot: "PopoverContent",
+    anchor: "w-72 origin-(--radix-popover-content-transform-origin)",
+    token: "elevation-md",
+  },
+  {
+    file: "src/ui/select.tsx",
+    slot: "SelectContent",
+    anchor: "max-h-(--radix-select-content-available-height) min-w-[8rem]",
+    token: "elevation-md",
+  },
+  {
+    file: "src/ui/navigation-menu.tsx",
+    slot: "NavigationMenuIndicator arrow",
+    anchor: "rotate-45 rounded-tl-sm bg-border",
+    token: "elevation-md",
+  },
+  {
+    file: "src/ui/rail-sidebar.tsx",
+    slot: "browsing panel",
+    anchor: "flex h-full w-full flex-col overflow-hidden",
+    token: "elevation-md",
   },
   // elevation-xs — the sixteen-file family (07j deferral). Anchors are structural
   // fragments of each slot's own literal, never the shadow utility being rewired.

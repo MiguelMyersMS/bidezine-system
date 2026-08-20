@@ -312,7 +312,7 @@ const FOOTER_SECTIONS: RailSection[] = [{ id: "settings", label: "Settings", ico
  * `PANEL_SHADOW_INSET` (see divergence row L-35, part 2, later corrected by L-36 — see below):
  * `ResizablePanelGroup`'s own rendered box carries a real `overflow: hidden` (set internally by the
  * vendored `react-resizable-panels` library, not something in bidezine's own `src/ui/resizable.tsx`
- * recipe — confirmed live via `getComputedStyle`). With the panel's own `shadow-md` sitting flush
+ * recipe — confirmed live via `getComputedStyle`). With the panel's own `shadow-elevation-md` sitting flush
  * against the group's edges (zero slack, measured), the group clipped it — the same "ancestor
  * overflow-hidden clips a descendant's decoration" pattern as L-31's focus-ring bug, just with an
  * un-removable ancestor this time (the clipping is baked into the vendored library, unlike L-31's
@@ -381,7 +381,7 @@ const FOOTER_SECTIONS: RailSection[] = [{ id: "settings", label: "Settings", ico
  * flex row below) is restored to an explicit `8` — `PANEL_SHADOW_INSET`'s padding no longer does
  * double duty as the visual gap (a workaround the user identified as unused anywhere else in this
  * design system and asked to be reversed). `PANEL_SHADOW_INSET` still exists for its own, independent
- * job — giving the panel's `shadow-md` clipping slack against `ResizablePanelGroup`'s un-removable
+ * job — giving the panel's `shadow-elevation-md` clipping slack against `ResizablePanelGroup`'s un-removable
  * `overflow: hidden` — completely unchanged by this correction.
  */
 /**
@@ -1514,7 +1514,7 @@ export function FunctionalRailSidebar({
           padding to double as the visual gap (the user identified that reliance as an undocumented
           workaround, unused anywhere else in this design system, and asked for it to be reversed).
           `ResizablePanelGroup`'s own un-removable `overflow: hidden` still requires SOME internal
-          inset before the panel's `shadow-md` so the shadow isn't clipped flush against the group's
+          inset before the panel's `shadow-elevation-md` so the shadow isn't clipped flush against the group's
           edge — but that inset is real, structural space belonging to the shadow-clearance concern,
           not the rail-to-panel visual gap, and doubling both would put 16px between the rail and the
           panel again (the exact L-38 regression). To avoid that: the panel's LEFT-side shadow inset
@@ -1924,8 +1924,9 @@ export function FunctionalRailSidebar({
                 need to emulate everything from the menu... the elevation token, the animations." The
                 panel behaves exactly like a menu/popover (mounts/unmounts on trigger, is dismissible),
                 so it now borrows the equivalent parts of the real DropdownMenuContent recipe
-                (src/ui/dropdown-menu.tsx): `border` (L-15, unchanged), `shadow-md` (the same elevation
-                utility, no bidezine-specific --shadow-* token exists to diverge from), and the exact
+                (src/ui/dropdown-menu.tsx): `border` (L-15, unchanged), `shadow-elevation-md` (the same
+                elevation utility dropdown-menu.tsx itself now carries, mapping the shared bidezine
+                `--elevation-md` token — byte-identical to what stock Tailwind rendered before), and the exact
                 `data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95
                 data-[state=closed]:animate-out data-[state=closed]:fade-out-0
                 data-[state=closed]:zoom-out-95` state-driven enter/exit classes \u2014 copied verbatim,
@@ -2045,7 +2046,7 @@ export function FunctionalRailSidebar({
                     (confirmed live via `getComputedStyle` — set internally by the vendored
                     `react-resizable-panels` library itself, not something in bidezine's own
                     `src/ui/resizable.tsx` recipe, so it can't simply be removed the way L-31 removed
-                    a bidezine-authored `overflow-hidden`). The panel's own `shadow-md` (a
+                    a bidezine-authored `overflow-hidden`). The panel's own `shadow-elevation-md` (a
                     `box-shadow`, painted OUTSIDE its own border box) was measured flush against the
                     group's own edges — the exact same "ancestor overflow-hidden clips a descendant's
                     decoration when there's zero slack" pattern as L-31's focus-ring bug, just with an
@@ -2089,7 +2090,7 @@ export function FunctionalRailSidebar({
                           if (event.target !== event.currentTarget) return
                           if (!openSection) browsingPanelRef.current?.collapse()
                         }}
-                        className="flex h-full w-full flex-col overflow-hidden shadow-md data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95"
+                        className="flex h-full w-full flex-col overflow-hidden shadow-elevation-md data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95"
                         style={{
                           borderRadius: 12,
                           background: colors.panelSurface,
