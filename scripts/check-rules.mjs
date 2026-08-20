@@ -698,6 +698,77 @@ async function ruleShared3FilePadding() {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════════
+// R9 — no raw Tailwind stock elevation utility in src/ui/ (the elevation gate).
+//
+// Issues 07p and 07q tokenised the two stock shadow families this project uses: six
+// md-tier surfaces (combobox, hover-card, popover, select content, the rail-sidebar
+// browsing panel, the navigation-menu indicator arrow) now read shadow-elevation-md, and
+// three lg-tier surfaces (alert-dialog, dialog, sheet) read shadow-elevation-lg. Both
+// commits proved from dist/system.css that the stock .shadow-md / .shadow-lg rules then
+// DISAPPEARED — Tailwind stops emitting a utility no scanned source references. So this
+// gate guards the SOURCE: the first raw shadow-md or shadow-lg to reappear in src/ui
+// silently re-materialises the stock rule and makes elevation-md/-lg's own $description
+// (which names all nine consumers) false again — the exact defect class 07p/07q closed.
+//
+// Zero threshold, blocking: one raw shadow-md or shadow-lg in src/ui fails the build —
+// the same shape as R6 (source-scoped, comment-stripped, reason-carrying allow-list).
+//
+// Why the scan also matches shadow-xl, when the assertion is about md/lg: chart.tsx
+// carries the one remaining raw stock elevation utility, a shadow-xl the queue chose to
+// leave unnamed (a single consumer, no shared job to name). That is a deliberate
+// exception, and an exception in this file is a LIVE allow-list entry that self-reports
+// when it goes stale — not a tier quietly left outside the scan, which would record the
+// decision nowhere and leave the entry below matching nothing (and, in the R8/R6 shape,
+// perpetually reporting itself removable). So the stock tiers md|lg|xl are all scanned:
+// md and lg find zero, xl finds chart.tsx alone, and that one match is allow-listed with
+// its reason. A NEW shadow-xl consumer fails here until it is rewired or given its own
+// ELEVATION_ALLOWED entry — which is the gate working, not the gate too wide.
+//
+// Deliberately NOT matched: bare `shadow` (Tailwind's default tier, e.g. the
+// navigation-menu viewport), the shadow-none resets, and the shadow-elevation-* tokens
+// themselves (shadow-md is not a substring of shadow-elevation-md, and the token bracket
+// on either side of md|lg|xl keeps the two apart). shadow-xs / shadow-sm are out of THIS
+// gate's scope — this commit does not widen it past the two families just put on record.
+// ═══════════════════════════════════════════════════════════════════════════════════
+const RAW_STOCK_ELEVATION_RE = /(?<![\w-])shadow-(?:md|lg|xl)(?![\w-])/
+
+const ELEVATION_ALLOWED = [
+  { file: "src/ui/chart.tsx", match: "shadow-xl", reason: "Intentional — one consumer, deliberately unnamed" },
+]
+
+function isElevationAllowed(path, cls) {
+  return ELEVATION_ALLOWED.some((e) => e.file === path && cls.includes(e.match))
+}
+
+async function ruleNoRawElevation() {
+  const seenAllowed = new Set()
+  const files = await walk(join(REPO_ROOT, "src", "ui"))
+  for (const file of files) {
+    const path = rel(file)
+    const source = stripComments(await readFile(file, "utf8"))
+    for (const { value: cls, index, truncated } of classLiterals(source)) {
+      if (truncated) {
+        // Same floor as R6: no src/ui/ literal is near the 2000-char cap, so this is
+        // expected never to fire; if it does, the scan below it is a floor, not a pass.
+        report("elevation.no-raw-shadow", path, lineOf(source, index), `literal exceeds ${cls.length}+ chars — truncated before scanning, not fully checked`)
+        continue
+      }
+      const hit = cls.match(RAW_STOCK_ELEVATION_RE)?.[0]
+      if (!hit) continue
+      if (isElevationAllowed(path, cls)) {
+        seenAllowed.add(`${path}::${cls}`)
+        continue
+      }
+      report("elevation.no-raw-shadow", path, lineOf(source, index), `raw ${hit}: "${cls.slice(0, 90)}"`)
+    }
+  }
+  for (const e of ELEVATION_ALLOWED) {
+    const stillPresent = [...seenAllowed].some((k) => k.startsWith(`${e.file}::`) && k.includes(e.match))
+    if (!stillPresent) notes.push(`R9 allow-list entry ${e.file} (${e.match}) no longer matches anything — the entry can go`)
+  }
+}
+
 // Issue 06d: R6's own header (above, "no raw Tailwind type utility") used to declare
 // it "deliberately NOT wired into a blocking `npm run *` script" — that comment
 // described intent this file's exit code never actually honored at the time.
@@ -733,6 +804,7 @@ await ruleNoRawTypeUtility()
 await ruleDescendantScopedType()
 await ruleNoCallerTypeOverride()
 await ruleShared3FilePadding()
+await ruleNoRawElevation()
 
 if (JSON_OUT) {
   console.log(JSON.stringify({ violations, notes }, null, 2))
