@@ -1582,7 +1582,7 @@ export function FunctionalRailSidebar({
               EXACTLY to the 38px-wide rail buttons it contains (confirmed via getBoundingClientRect:
               its own left/right edges were pixel-identical to a button's) — so its own overflow-hidden
               clipped anything rendered even 1px outside a button's own box, including the ENTIRE 3px
-              `focus-visible:ring-[3px]` ring every real Button already renders (Button's own real,
+              `focus-visible:ring-focus` ring every real Button already renders (Button's own real,
               shared, correct convention — not something added for the rail). Removed `overflow-hidden`
               from this specific div; the outer rail column (the `p-2` dark surface wrapping this whole
               group, two levels up) already stretches to the same fixed rail height and already carries
@@ -1822,7 +1822,7 @@ export function FunctionalRailSidebar({
               2. **It clipped the footer buttons' focus rings**, exactly reintroducing L-31 /
                  checklist item 21. The container is sized to the 38px buttons with zero slack:
                  measured left/right slack 0px on BOTH buttons, plus bottom 0px on Settings and top
-                 0px on Profile, against `Button`'s own real `focus-visible:ring-[3px]`.
+                 0px on Profile, against `Button`'s own real `focus-visible:ring-focus`.
 
               Fixed per item 21's own prescription — when a nested wrapper's `overflow-hidden` is
               redundant with a looser ancestor's, remove the tighter zero-slack one rather than

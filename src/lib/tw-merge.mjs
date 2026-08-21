@@ -20,7 +20,7 @@
 import { clsx } from "clsx"
 import { extendTailwindMerge } from "tailwind-merge"
 
-import { fontSizeRoles, shadowElevationNames } from "../tw-merge-groups.js"
+import { fontSizeRoles, ringWidthNames, shadowElevationNames } from "../tw-merge-groups.js"
 
 const twMerge = extendTailwindMerge({
   extend: {
@@ -32,6 +32,13 @@ const twMerge = extendTailwindMerge({
       // `shadow-elevation-md` resolves to box-shadow and no longer collides with a
       // shadow colour.
       shadow: [{ shadow: shadowElevationNames }],
+      // Extends the stock ring-width group (keyed by the `ring` class part), so
+      // `ring-focus` resolves to ring-width and no longer collides with a ring
+      // colour — the [isAny] catch-all that would otherwise delete it (cn drops
+      // `ring-focus` from "ring-focus ring-ring/50" without this). Tailwind v4 exposes
+      // no --ring-* theme namespace, so unlike font-size/shadow the utility itself is
+      // authored as an @utility in system.css; this only teaches the merge to keep it.
+      "ring-w": [{ ring: ringWidthNames }],
     },
   },
 })

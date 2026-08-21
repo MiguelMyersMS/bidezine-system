@@ -769,6 +769,71 @@ async function ruleNoRawElevation() {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════════
+// R10 — no raw arbitrary-value ring WIDTH in src/ui/ (the focus-ring-width gate).
+//
+// Issue 07s tokenised the one ring width this project uses: nineteen src/ui focus-ring
+// surfaces — accordion, badge, button, calendar, checkbox, combobox, input, input-group,
+// input-otp, item, native-select, navigation-menu, radio-group, scroll-area, select,
+// switch, tabs, textarea, toggle — that each carried a raw ring-[3px] now read ring-focus,
+// an @utility in system.css reading the authored --ring-focus token, which tailwind-merge
+// is taught to keep via the ring-w group (src/lib/tw-merge.mjs). The build proved from
+// dist/system.css that the stock .*:ring-[3px] rules then vanished, exactly as the two
+// elevation families did under R9. This gate guards the SOURCE: the first raw
+// ring-[<number>] to reappear in src/ui re-materialises a stock arbitrary-width rule and
+// makes ring-focus's role (and its token's $description) false again — the defect 07s closed.
+//
+// Zero threshold, blocking — the R9 shape (source-scoped, comment-stripped). It ships with
+// an EMPTY allow-list: unlike R9's chart.tsx shadow-xl there is no ring-width exception, and
+// the regex is narrow enough that none of the legitimate ring utilities need one. The list
+// and its stale-note loop are kept so a future exception has the same self-reporting home.
+//
+// The claim is deliberately narrow — ARBITRARY-VALUE widths only. The regex matches `ring-[`
+// immediately followed by a digit, i.e. a bracketed length like ring-[3px]. It does NOT
+// match, and is not meant to:
+//   • stock numeric widths ring-0/1/2/3/4 — Tailwind's own scale, which have no token to
+//     read and are out of this commit's scope (e.g. bubble.tsx's decorative ring-3, and the
+//     ring-2 focus rings on avatar/dialog/sheet/sidebar). Naming those is a later pass.
+//   • ring-offset-[…] — a different CSS property (ring offset, not ring width).
+//   • ring colours — ring-ring, ring-sidebar-ring, ring-foreground/10 — the [isAny] colour
+//     namespace, a different axis entirely.
+//   • ring-[length:var(--ring-focus)] — the @utility's own definition, which lives in
+//     system.css (not src/ui) and begins with a letter, not a digit, so it is excluded twice.
+// ═══════════════════════════════════════════════════════════════════════════════════
+const RAW_RING_WIDTH_RE = /(?<![\w-])ring-\[[0-9]/
+
+const RING_WIDTH_ALLOWED = []
+
+function isRingWidthAllowed(path, cls) {
+  return RING_WIDTH_ALLOWED.some((e) => e.file === path && cls.includes(e.match))
+}
+
+async function ruleNoRawRingWidth() {
+  const seenAllowed = new Set()
+  const files = await walk(join(REPO_ROOT, "src", "ui"))
+  for (const file of files) {
+    const path = rel(file)
+    const source = stripComments(await readFile(file, "utf8"))
+    for (const { value: cls, index, truncated } of classLiterals(source)) {
+      if (truncated) {
+        report("ring.no-raw-width", path, lineOf(source, index), `literal exceeds ${cls.length}+ chars — truncated before scanning, not fully checked`)
+        continue
+      }
+      const hit = cls.match(RAW_RING_WIDTH_RE)?.[0]
+      if (!hit) continue
+      if (isRingWidthAllowed(path, cls)) {
+        seenAllowed.add(`${path}::${cls}`)
+        continue
+      }
+      report("ring.no-raw-width", path, lineOf(source, index), `raw arbitrary ring width ${hit}…]: "${cls.slice(0, 90)}"`)
+    }
+  }
+  for (const e of RING_WIDTH_ALLOWED) {
+    const stillPresent = [...seenAllowed].some((k) => k.startsWith(`${e.file}::`) && k.includes(e.match))
+    if (!stillPresent) notes.push(`R10 allow-list entry ${e.file} (${e.match}) no longer matches anything — the entry can go`)
+  }
+}
+
 // Issue 06d: R6's own header (above, "no raw Tailwind type utility") used to declare
 // it "deliberately NOT wired into a blocking `npm run *` script" — that comment
 // described intent this file's exit code never actually honored at the time.
@@ -805,6 +870,7 @@ await ruleDescendantScopedType()
 await ruleNoCallerTypeOverride()
 await ruleShared3FilePadding()
 await ruleNoRawElevation()
+await ruleNoRawRingWidth()
 
 if (JSON_OUT) {
   console.log(JSON.stringify({ violations, notes }, null, 2))

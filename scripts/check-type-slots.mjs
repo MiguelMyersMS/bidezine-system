@@ -362,19 +362,20 @@ async function checkLinkA(entry) {
 //
 // Issue 07n (state axis) ran the probe into two more namespaces and it fired, as expected:
 //   • ring-width is EXPOSED. Tailwind files a custom `ring-<name>` under its ring-COLOUR
-//     [isAny] group — the same catch-all that swallowed text-* — so a `ring-focus` collides
-//     with `ring-ring/50` and is silently deleted: cn("focus-visible:ring-focus
-//     focus-visible:ring-ring/50") keeps only ring-ring/50. (An arbitrary length is filed as
-//     a width, not a colour, which is why the shipping `ring-[3px] ring-ring/50` recipe does
-//     NOT collide — both survive — and every focus ring renders correctly today.) UNLIKE
-//     text-*/shadow-*, this exposure is recorded UNFIXED: 07n declined to name into ring, so
-//     no `ring-w` group extension was added. The focus ring's colour is already the `ring`
-//     token (it sets border-ring AND ring-ring/50); only its 3px width would be a new name,
-//     a recipe fragment, and the fix needs the derivation in build-tokens.mjs + a `ring-w`
-//     group here in tw-merge.mjs — both outside 07n's file scope. A future issue that does
-//     name a ring width must, in the same commit, extend the merge group the 07l way:
-//     classGroups: { "ring-w": [{ ring: [<derived names>] }] } — proven to restore survival
-//     in 07n's probe — and add Link C rows for the rewired slots, or the name deletes silently.
+//     [isAny] group — the same catch-all that swallowed text-* — so a bare `ring-focus`
+//     collides with `ring-ring/50` and, unguarded, is silently deleted: cn("focus-visible:
+//     ring-focus focus-visible:ring-ring/50") keeps only ring-ring/50. (An arbitrary length
+//     is filed as a width, not a colour, which is why the PRE-07s `ring-[3px] ring-ring/50`
+//     recipe did NOT collide — both survived — and every focus ring rendered correctly.) 07n
+//     recorded this exposure UNFIXED, having declined to name into ring; Issue 07s then named
+//     it the 07l way — build-tokens.mjs derives ringWidthNames, tw-merge.mjs carries
+//     classGroups: { "ring-w": [{ ring: ringWidthNames }] } (proven in 07n's probe to restore
+//     survival), and the nineteen focus-ring surfaces read a `ring-focus` @utility over the
+//     authored --ring-focus token. The colour was already the `ring` token (border-ring AND
+//     ring-ring/50); only the 3px width was the un-named fragment, now closed. Link C rows for
+//     the rewired slots are deferred to a later commit — until they exist the name is guarded
+//     by tw-merge's ring-w group and by R10 (scripts/check-rules.mjs's ring.no-raw-width),
+//     not by Link C here.
 //   • opacity-* is SAFE from the colour collision — cn("opacity-disabled bg-red-500") keeps
 //     both — but tailwind-merge also does not RECOGNISE a custom `opacity-<name>` AS opacity,
 //     so it will not merge against stock opacity-50/opacity-100: cn("opacity-disabled
@@ -1515,7 +1516,7 @@ const ELEVATION_SLOT_TABLE = [
   {
     file: "src/ui/calendar.tsx",
     slot: "dropdown_root",
-    anchor: "has-focus:border-ring has-focus:ring-[3px]",
+    anchor: "has-focus:border-ring has-focus:ring-focus",
     token: "elevation-xs",
   },
   {

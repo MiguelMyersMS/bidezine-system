@@ -141,7 +141,7 @@ import { cn } from "@/lib/utils"
 // that is really just this value with a longer name. py-0.5 (2px) has no
 // primitive and, on the same single-consumer basis, none is authored.
 const badgeVariants = cva(
-  "inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden text-ellipsis rounded-full border border-transparent px-2 py-0.5 whitespace-nowrap transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3",
+  "inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden text-ellipsis rounded-full border border-transparent px-2 py-0.5 whitespace-nowrap transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-focus focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3",
   {
     variants: {
       variant: {

@@ -49,6 +49,12 @@
     ]
   },
 
+  "ring-focus": {
+    "$type": "dimension",
+    "$description": "Focus-ring width. Every focus ring in src/ui was authored as the arbitrary utility ring-[3px]; 3px is the width Tailwind's own ring-<n> scale and shadcn's focus recipe use, resolving to calc(3px + var(--tw-ring-offset-width)) — 3px when no ring-offset-width is set, which is the case everywhere in src/ui. Authored so the width has a name and, more to the point, so tailwind-merge has a ring-WIDTH token to file: a bare ring-<name> classifies under tailwind-merge's [isAny] catch-all as a ring COLOUR and is deleted by a colour sibling (cn('ring-focus ring-ring/50') keeps only ring-ring/50 without the ring-w group), exactly the deletion Issue 07l fixed for the type roles — so naming the width is what forces that guard (src/lib/tw-merge.mjs's ring-w group, derived via src/tw-merge-groups.js) to exist. Rendered value byte-identical to the ring-[3px] it replaces. Tailwind v4 exposes no --ring-* theme namespace (a --ring-focus key in @theme generates no utility, unlike --text-*/--shadow-*/--spacing-*, confirmed against the installed package's compiled output), so the ring-focus utility is authored as an explicit @utility in src/styles/system.css that delegates to ring-[length:var(--ring-focus)]; this token supplies that var.",
+    "$value": { "value": 3, "unit": "px" }
+  },
+
   "font-size-12": { "$type": "dimension", "$value": { "value": 12, "unit": "px" } },
   "font-size-14": { "$type": "dimension", "$value": { "value": 14, "unit": "px" } },
   "font-size-16": { "$type": "dimension", "$value": { "value": 16, "unit": "px" } },

@@ -177,7 +177,7 @@ function ScrollArea({
       <ScrollAreaPrimitive.Viewport
         ref={viewportRef}
         data-slot="scroll-area-viewport"
-        className="min-h-0 w-full flex-1 rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 [&>div]:!block"
+        className="min-h-0 w-full flex-1 rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-focus focus-visible:ring-ring/50 focus-visible:outline-1 [&>div]:!block"
       >
         <ScrollAreaOverflowContext.Provider value={{ scrollableY, scrollableX }}>
           {children}
